@@ -26,7 +26,7 @@ import { isCmdModifierPressed } from './utils-window';
  */
 
 /**
- * Class representing a generic button.
+ * A generic button.
  */
 class Button {
   /**

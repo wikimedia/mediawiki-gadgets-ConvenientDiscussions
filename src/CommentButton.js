@@ -14,8 +14,7 @@ import CdError from './CdError';
  */
 
 /**
- * Class representing a comment button, be it a simple link or an OOUI button depending on user
- * settings.
+ * A comment button, be it a simple link or an OOUI button depending on user settings.
  *
  * @augments Button
  */

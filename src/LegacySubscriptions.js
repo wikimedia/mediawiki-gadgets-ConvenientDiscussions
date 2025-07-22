@@ -9,7 +9,7 @@ import { getUserInfo, saveLocalOption } from './utils-api';
 import { wrapHtml } from './utils-window';
 
 /**
- * Class implementing legacy section watching.
+ * Implementation of legacy section watching.
  *
  * @augments Subscriptions
  */
@@ -103,7 +103,8 @@ class LegacySubscriptions extends Subscriptions {
       }
 
       // We save the full subscription list, so we need to update the data first.
-      const currentPageDataBackup = Object.assign({}, this.data);
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+      const currentPageDataBackup = { ...this.data };
       this.updateLocally(headline, true);
       this.updateLocally(unsubscribeHeadline, false);
 
@@ -114,18 +115,20 @@ class LegacySubscriptions extends Subscriptions {
         if (error instanceof CdError) {
           const { type, code } = error.data;
           if (type === 'internal' && code === 'sizeLimit') {
-            const $body = wrapHtml(cd.sParse('section-watch-error-maxsize'), {
-              callbacks: {
-                // An old class name is kept for compatibility with strings.
-                'cd-notification-editWatchedSections': () => {
-                  talkPageController.showEditSubscriptionsDialog();
+            mw.notify(
+              wrapHtml(cd.sParse('section-watch-error-maxsize'), {
+                callbacks: {
+                  // An old class name is kept for compatibility with strings.
+                  'cd-notification-editWatchedSections': () => {
+                    talkPageController.showEditSubscriptionsDialog();
+                  },
                 },
-              },
-            });
-            mw.notify($body, {
-              type: 'error',
-              autoHideSeconds: 'long',
-            });
+              }),
+              {
+                type: 'error',
+                autoHideSeconds: 'long',
+              }
+            );
           } else {
             mw.notify(cd.s('error-settings-save'), { type: 'error' });
           }
@@ -159,7 +162,8 @@ class LegacySubscriptions extends Subscriptions {
         throw error;
       }
 
-      const currentPageDataBackup = Object.assign({}, this.data);
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+      const currentPageDataBackup = { ...this.data };
       this.updateLocally(headline, false);
 
       try {

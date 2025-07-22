@@ -210,12 +210,13 @@ class CommentRegistry extends EventEmitter {
     let timeConflict = false;
     const unseenComments = bootController.getBootProcess().passedData.unseenComments;
     this.items.forEach((comment) => {
-      const unseenComment = unseenComments?.find((c) => c.id === comment.id);
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const commentTimeConflict = comment.initNewAndSeen(
         currentPageData,
         currentTime,
-        markAsReadRequested ? undefined : unseenComment
+        markAsReadRequested ? undefined : unseenComments?.find((c) => c.id === comment.id)
       );
+
       timeConflict ||= commentTimeConflict;
     });
 
@@ -286,11 +287,15 @@ class CommentRegistry extends EventEmitter {
         )
       );
 
-      // Layers that ended up under the bottom of the page content and could be moving the page
-      // bottom down.
-      const isUnderRootBottom = comment.offset && comment.offset.bottom > rootBottom;
+      if (
+        comment.underlay &&
+        !shouldBeHighlighted &&
 
-      if (comment.underlay && !shouldBeHighlighted && isUnderRootBottom) {
+        // Layers that ended up under the bottom of the page content and could be moving the page
+        // bottom down.
+        comment.offset &&
+        comment.offset.bottom > rootBottom
+      ) {
         comment.removeLayers();
       } else if (shouldBeHighlighted) {
         floatingRects ||= talkPageController.getFloatingElements().map(getExtendedRect);
@@ -307,8 +312,8 @@ class CommentRegistry extends EventEmitter {
         } else if (isMoved === null) {
           comment.removeLayers();
 
-        // Nested containers shouldn't count, the offset of layers inside them may be OK, unlike the
-        // layers preceding them.
+          // Nested containers shouldn't count, the offset of layers inside them may be OK, unlike the
+          // layers preceding them.
         } else if (comment.getLayersContainer().cdIsTopLayersContainer) {
           // isMoved === false
           notMovedCount++;
@@ -317,6 +322,7 @@ class CommentRegistry extends EventEmitter {
           }
         }
       }
+
       return false;
     });
 
@@ -511,6 +517,7 @@ class CommentRegistry extends EventEmitter {
         const higherTop = /** @type {import('./Comment').CommentOffset} */ (
           searchArea.top.roughOffset
         ).top;
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const lowerBottom = /** @type {import('./Comment').CommentOffset} */ (
           searchArea.bottom.roughOffset
         ).bottomForVisibility;
@@ -525,12 +532,13 @@ class CommentRegistry extends EventEmitter {
             'searchArea', searchArea
           );
         }
-        const index = Math.round(
-          (searchArea.bottom.index - searchArea.top.index - 1) * proportion +
-          searchArea.top.index +
-          0.5
-        );
-        comment = this.items[index];
+        comment = this.items[
+          Math.round(
+            (searchArea.bottom.index - searchArea.top.index - 1) * proportion +
+            searchArea.top.index +
+            0.5
+          )
+        ];
       }
     }
 
@@ -669,32 +677,7 @@ class CommentRegistry extends EventEmitter {
     // Section-level replies notes.
     $('.cd-thread-newCommentsNote').remove();
 
-    const newCommentsByParent = new Map();
-    newComments.forEach((comment) => {
-      let key;
-      if (comment.parent) {
-        key = comment.parentMatch;
-      } else {
-        // If there is no section match, use the ancestor sections' section match.
-        for (
-          let s = /** @type {import('./updateChecker').SectionWorkerMatched | undefined} */ (
-            comment.section
-          );
-          s && !key;
-          s = s.parent
-        ) {
-          key = s.match;
-        }
-      }
-
-      // Indirect comment children and comments out of section
-      if (!key) return;
-
-      if (!newCommentsByParent.get(key)) {
-        newCommentsByParent.set(key, []);
-      }
-      newCommentsByParent.get(key).push(comment);
-    });
+    const newCommentsByParent = Comment.groupByParent(newComments);
 
     const newCommentIndexes = newComments.map((comment) => comment.index);
     newCommentsByParent.forEach((comments, parent) => {
@@ -708,6 +691,7 @@ class CommentRegistry extends EventEmitter {
           .reduce((arr, child) => (
             this.searchForNewCommentsInSubtree(child, arr, newCommentIndexes)
           ), []);
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const threadComments = comments.filter((comment) => !sectionComments.includes(comment));
         this.addNewCommentsNote(parent, sectionComments, 'section', newCommentIndexes);
         this.addNewCommentsNote(parent, threadComments, 'thread', newCommentIndexes);

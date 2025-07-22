@@ -9,8 +9,8 @@ import sectionRegistry from './sectionRegistry';
 import { areObjectsEqual } from './utils-general';
 
 /**
- * Class representing the current page the user is visiting. Extends the base Page class with
- * methods and properties specific to the current page context.
+ * The page the user is visiting. Extends the base {@link Page} class with methods and properties
+ * specific to the current page context.
  */
 export default class CurrentPage extends Page {
   /**

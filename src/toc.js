@@ -8,6 +8,7 @@ import CdError from './CdError';
 import Comment from './Comment';
 import LiveTimestamp from './LiveTimestamp';
 import SectionSkeleton from './SectionSkeleton';
+import TocItem from './TocItem';
 import bootController from './bootController';
 import cd from './cd';
 import commentRegistry from './commentRegistry';
@@ -15,9 +16,8 @@ import sectionRegistry from './sectionRegistry';
 import settings from './settings';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
-import { isElement, isText } from './utils-general';
 import { formatDate, formatDateNative } from './utils-timestamp';
-import { createSvg, getLinkedAnchor } from './utils-window';
+import { getLinkedAnchor } from './utils-window';
 import visits from './visits';
 
 export default {
@@ -85,7 +85,10 @@ export default {
    */
   setup(sections, hideToc) {
     this.$element = this.isInSidebar() ? $('.vector-toc') : bootController.$root.find('.toc');
+
+    /** @type {TocItem[]|null} */
     this.items = null;
+
     this.floating = null;
     this.visitsPromise = new Promise((resolve) => {
       visits.once('process', resolve);
@@ -113,13 +116,12 @@ export default {
     }
 
     if (!this.items) {
-      const links = [...this.$element[0].querySelectorAll('li > a')].filter(
-        (link) => link.getAttribute('href') !== '#'
-      );
       try {
         // It is executed first time before added (gray) sections are added to the TOC, so we use a
         // simple algorithm to obtain items.
-        this.items = links.map((a) => new TocItem(a, this));
+        this.items = [...this.$element[0].querySelectorAll('li > a')]
+          .filter((link) => link.getAttribute('href') !== '#')
+          .map((link) => new TocItem(link, this));
       } catch (error) {
         console.error("Couldn't find an element of a table of contents item.", ...error);
         this.items = [];
@@ -488,7 +490,8 @@ export default {
    * Add a comment list (an `ul` element) to a section.
    *
    * @template {boolean} Rendered
-   * @param {Rendered extends true ? AtLeastOne<import('./Comment').default> : AtLeastOne<import('./updateChecker').CommentWorkerMatched>} comments Comment list.
+   * @param {Rendered extends true ? import('./Comment').default[] : import('./updateChecker').CommentWorkerMatched[]} comments
+   *   Comment list.
    * @param {Element} target Target element.
    * @private
    */
@@ -512,10 +515,7 @@ export default {
         /** @type {number} */ i
       ) => {
         const parent = 'getParent' in comment ? comment.getParent() : comment.parent;
-        const names =
-          parent?.author && comment.level > 1
-            ? cd.s('navpanel-newcomments-names', comment.author.getName(), parent.author.getName())
-            : comment.author.getName();
+
         const addAsItem = i < itemLimit - 1 || comments.length === itemLimit;
 
         let date;
@@ -530,9 +530,21 @@ export default {
           date = cd.s('navpanel-newcomments-unknowndate');
         }
 
-        const rtlMarkOrNot = cd.g.contentDirection === 'rtl' ? '\u200f' : '';
-        const dateOrNot = settings.get('timestampFormat') === 'default' ? date : '';
-        const text = names + rtlMarkOrNot + cd.mws('comma-separator') + dateOrNot;
+
+        const dateIfNeeded = settings.get('timestampFormat') === 'default' ? date : '';
+        const text =
+          // Names
+          (
+            parent?.author && comment.level > 1
+              ? cd.s('navpanel-newcomments-names', comment.author.getName(), parent.author.getName())
+              : comment.author.getName()
+          ) +
+
+          // RTL mark if needed
+          (cd.g.contentDirection === 'rtl' ? '\u200f' : '') +
+
+          cd.mws('comma-separator') +
+          dateIfNeeded;
 
         // If there are itemLimit comments or less, show all of them. If there are more, show
         // `itemLimit - 1` and "N more". (Because showing `itemLimit - 1` and then "1 more" is
@@ -586,7 +598,7 @@ export default {
         } else {
           // In a tooltip, always show the date in the default format — we won't be auto-updating
           // relative dates there due to low benefit.
-          moreTooltipText += text + (dateOrNot ? '' : nativeDate) + '\n';
+          moreTooltipText += text + (dateIfNeeded ? '' : nativeDate) + '\n';
         }
       }
     );
@@ -609,7 +621,7 @@ export default {
    * Add links to new comments (either already displayed or loaded in the background) to the table
    * of contents.
    *
-   * @param {import('./updateChecker').AddedComments['bySection']} commentsBySection
+   * @param {import('./Comment').CommentsBySection} commentsBySection
    * @param {import('./BootProcess').default} [bootProcess]
    * @private
    */
@@ -688,132 +700,3 @@ export default {
     return this.$element.offset().top + this.$element.outerHeight();
   },
 };
-
-/**
- * Class representing an item of the table of contents.
- */
-export class TocItem {
-  /**
-   * Section link jQuery element.
-   *
-   * @type {JQuery}
-   */
-  $link;
-
-  /**
-   * Section text jQuery element (including the title, number, and other possible additions).
-   *
-   * @type {JQuery}
-   */
-  $text;
-
-  /**
-   * Create a table of contents item object.
-   *
-   * @param {object} a
-   * @param {object} toc
-   * @throws {Array.<string|Element>}
-   */
-  constructor(a, toc) {
-    this.toc = toc;
-    this.canBeModified = this.toc.canBeModified;
-
-    const textSpan = a.querySelector(this.toc.isInSidebar() ? '.vector-toc-text' : '.toctext');
-    if (!textSpan) {
-      throw ['Couldn\'t find text for a link', a];
-    }
-
-    const id = a.getAttribute('href').slice(1);
-    const li = a.parentNode;
-    const level = Number(
-      li.className.match(this.toc.isInSidebar() ? /vector-toc-level-(\d+)/ : /\btoclevel-(\d+)/)[1]
-    );
-    const numberSpan = a.querySelector(this.toc.isInSidebar() ? '.vector-toc-numb' : '.tocnumber');
-    let number;
-    if (numberSpan) {
-      number = numberSpan.textContent;
-    } else {
-      console.error(['Couldn\'t find a number for a link', a]);
-      number = '?';
-    }
-
-    this.id = id;
-    this.level = level;
-    this.number = number;
-    this.$element = $(li);
-    this.$link = $(a);
-    this.$text = $(textSpan);
-  }
-
-  /**
-   * _For internal use._ Generate HTML to use it in the TOC for the section. Only a limited number
-   * of HTML elements is allowed in TOC.
-   *
-   * @param {JQuery} $headline
-   */
-  replaceText($headline) {
-    if (!this.canBeModified) return;
-
-    const titleNodes = /** @type {Array<Text|HTMLElement>} */ (this.$text
-      .contents()
-      .filter((_, node) => (
-        isText(node)
-        || (isElement(node) && ![...node.classList].some((name) => name.match(/^(cd-|vector-)/)))
-      ))
-      .get());
-    titleNodes[titleNodes.length - 1].after(
-      ...$headline
-        .clone()
-        .find('*')
-          .each((_, el) => {
-            if (['B', 'EM', 'I', 'S', 'STRIKE', 'STRONG', 'SUB', 'SUP'].includes(el.tagName)) {
-              [...el.attributes].forEach((attr) => {
-                el.removeAttribute(attr.name);
-              });
-            } else {
-              [...el.childNodes].forEach((child) => {
-                el.before(child);
-              });
-              el.remove();
-            }
-          })
-        .end()
-        .contents()
-        .get()
-    );
-    titleNodes.forEach((node) => {
-      node.remove();
-    });
-  }
-
-  /**
-   * Add/remove a subscription mark to the section's TOC link according to its subscription state
-   * and update the `title` attribute.
-   *
-   * @param {?boolean} subscriptionState
-   */
-  updateSubscriptionState(subscriptionState) {
-    if (!this.canBeModified) return;
-
-    if (subscriptionState) {
-      this.$link
-        .find(this.toc.isInSidebar() ? '.vector-toc-text' : '.toctext')
-        .append(
-          $('<span>').addClass('cd-toc-subscriptionIcon-before'),
-          $('<span>')
-            .addClass('cd-toc-subscriptionIcon cd-icon')
-            .append(
-              createSvg(14, 14, 20, 20).html(
-                `<path d="M16 7a5.38 5.38 0 0 0-4.46-4.85C11.6 1.46 11.53 0 10 0S8.4 1.46 8.46 2.15A5.38 5.38 0 0 0 4 7v6l-2 2v1h16v-1l-2-2zm-6 13a3 3 0 0 0 3-3H7a3 3 0 0 0 3 3z" />`
-              )
-            )
-            .attr('title', cd.s('toc-watched'))
-        );
-    } else {
-      this.$link
-        .removeAttr('title')
-        .find('.cd-toc-subscriptionIcon, .cd-toc-subscriptionIcon-before')
-        .remove();
-    }
-  }
-}

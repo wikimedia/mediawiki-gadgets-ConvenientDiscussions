@@ -382,11 +382,13 @@ const globalProperties = {
    */
   commentMarkerWidth: /** @type {const} */ (3),
 
-  pixelDeviationRatio: devicePixelRatioToDivisor
-    .reduce((value, [dpr, divisor]) => (
-      value ||
-      (window.devicePixelRatio >= dpr ? window.devicePixelRatio / divisor : value)
-    ), undefined),
+  pixelDeviationRatio: /** @type {number} */ (
+    devicePixelRatioToDivisor.reduce(
+      (/** @type {number | undefined} */ value, [dpr, divisor]) =>
+        value || (window.devicePixelRatio >= dpr ? window.devicePixelRatio / divisor : value),
+      undefined
+    )
+  ),
 
   pixelDeviationRatioFor1px:
     window.devicePixelRatio / Math.max(Math.floor(window.devicePixelRatio), 1),

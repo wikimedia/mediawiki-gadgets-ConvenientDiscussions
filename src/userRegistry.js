@@ -11,7 +11,7 @@ import { handleApiReject } from './utils-api';
 import { subtractDaysFromNow, ucFirst, underlinesToSpaces } from './utils-general';
 
 /**
- * Class representing a user. Is made similar to
+ * A MediaWiki user. Is structurally similar to
  * {@link https://doc.wikimedia.org/mediawiki-core/master/js/mw.user.html mw.user} so that it is
  * possible to pass it to
  * {@link https://doc.wikimedia.org/mediawiki-core/master/js/mw.html#.msg mw.msg()} and have
@@ -262,15 +262,19 @@ export default {
    * @returns {Promise.<import('./userRegistry').User[]>}
    */
   async getUsersByGlobalId(userIds) {
-    const requests = userIds.map((id) => (
-      cd.getApi().post({
-        action: 'query',
-        meta: 'globaluserinfo',
-        guiid: id,
-      }).catch(handleApiReject)
-    ));
     const responses = /** @type {ApiResponseQuery<ApiResponseQueryContentGlobalUserInfo[]>} */ (
-      await Promise.all(requests)
+      await Promise.all(
+        userIds.map((id) =>
+          cd
+            .getApi()
+            .post({
+              action: 'query',
+              meta: 'globaluserinfo',
+              guiid: id,
+            })
+            .catch(handleApiReject)
+        )
+      )
     );
 
     return responses.map((response) => {

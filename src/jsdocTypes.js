@@ -37,6 +37,11 @@
  */
 
 /**
+ * @template {any} T
+ * @typedef {T extends any ? T[] : never} ToDistributiveArray
+ */
+
+/**
  * @typedef {object} Revision
  * @property {number} revid
  * @property {number} parentid

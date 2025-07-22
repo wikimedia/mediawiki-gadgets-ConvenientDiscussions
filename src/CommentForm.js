@@ -83,7 +83,7 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
  */
 
 /**
- * Class representing a comment form.
+ * A comment form.
  *
  * @template {CommentFormMode} Mode
  * @augments EventEmitter<EventMap>
@@ -889,6 +889,7 @@ class CommentForm extends EventEmitter {
    * @private
    */
   createButtons() {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const modeToSubmitButtonMessageName = /** @type {{ [key: string]: string }} */ ({
       edit: 'save',
       addSection: 'addtopic',
@@ -1099,6 +1100,7 @@ class CommentForm extends EventEmitter {
     const $input = this.commentInput.$input;
 
     const wikiEditorModule = mw.loader.moduleRegistry['ext.wikiEditor'];
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const toolbarConfig = wikiEditorModule.packageExports['jquery.wikiEditor.toolbar.config.js'];
     $input.wikiEditor('addModule', toolbarConfig);
     const dialogsConfig = wikiEditorModule.packageExports['jquery.wikiEditor.dialogs.config.js'];
@@ -1524,6 +1526,7 @@ class CommentForm extends EventEmitter {
       let code = await preloadPage.loadCode();
       if (!code) return;
 
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const regexp = generateTagsRegexp(['onlyinclude']);
       let match;
       let onlyInclude;
@@ -1589,6 +1592,7 @@ class CommentForm extends EventEmitter {
     const element = /** @type {HTMLInputElement} */ (this.commentInput.$input[0]);
     const computedStyle = window.getComputedStyle(element);
     const $span = $('<span>');
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const $div = $('<div>')
       .text(element.value.substring(0, this.commentInput.getRange().to))
       .css({
@@ -1619,6 +1623,7 @@ class CommentForm extends EventEmitter {
       })
       .addClass('cd-dummyFloatableContainer');
     $div.remove();
+
     return $span;
   }
 
@@ -2062,18 +2067,20 @@ class CommentForm extends EventEmitter {
       this.lastKeyPresses[keypressCount - 1] - this.lastKeyPresses[0] <
       keypressCount * rateLimit
     ) {
-      const $body = wrapHtml(cd.sParse('warning-performance'), {
-        callbacks: {
-          'cd-notification-talkPageSettings': () => {
-            settings.showDialog('talkPage');
+      mw.notify(
+        wrapHtml(cd.sParse('warning-performance'), {
+          callbacks: {
+            'cd-notification-talkPageSettings': () => {
+              settings.showDialog('talkPage');
+            },
           },
-        },
-      });
-      mw.notify($body, {
-        title: cd.s('warning-performance-title'),
-        type: 'warn',
-        autoHideSeconds: 'long',
-      });
+        }),
+        {
+          title: cd.s('warning-performance-title'),
+          type: 'warn',
+          autoHideSeconds: 'long',
+        }
+      );
       settings.saveSettingOnTheFly('improvePerformance-lastSuggested', getDayTimestamp());
     }
   }
@@ -2420,7 +2427,7 @@ class CommentForm extends EventEmitter {
    *   framing.
    * @param {string} [options.logMessage] Message for the browser console.
    * @param {boolean} [options.cancel=false] Cancel the form and show the message as a notification.
-   * @param {import('./CommentFormOperationRegistry').CommentFormOperation} [options.operation]
+   * @param {import('./CommentFormOperation').default} [options.operation]
    *   Operation the form is undergoing.
    * @private
    */
@@ -2449,7 +2456,7 @@ class CommentForm extends EventEmitter {
     } else {
       if (!this.registered) return;
 
-      if (!(operation && operation.getType() === 'preview' && operation.getOption('isAuto'))) {
+      if (!(operation && operation.getType() === 'preview' && operation.getOptionValue('isAuto'))) {
         this.showMessage($message, {
           type: messageType,
           isRaw: isRawMessage,
@@ -2483,8 +2490,8 @@ class CommentForm extends EventEmitter {
    * @param {any} [options.logMessage] Data or text to display in the browser console.
    * @param {boolean} [options.cancel=false] Cancel the form and show the message as a notification.
    * @param {boolean} [options.isRawMessage=false] Show the message as it is, without OOUI framing.
-   * @param {import('./CommentFormOperationRegistry').CommentFormOperation} [options.operation]
-   *   Operation the form is undergoing.
+   * @param {import('./CommentFormOperation').default} [options.operation] Operation the form is
+   *   undergoing.
    */
   handleError({
     type,
@@ -2670,8 +2677,7 @@ class CommentForm extends EventEmitter {
    * errors.
    *
    * @param {'submit'|'viewChanges'} action
-   * @param {import('./CommentFormOperationRegistry').CommentFormOperation} operation Operation the
-   *   form is undergoing.
+   * @param {import('./CommentFormOperation').default} operation Operation the form is undergoing.
    * @returns {Promise.<object|undefined>}
    * @private
    */
@@ -2795,8 +2801,8 @@ class CommentForm extends EventEmitter {
    *
    * @param {boolean} [isAuto=true] Preview is initiated automatically (if the user has the
    *   `autopreview` setting set to `true`).
-   * @param {import('./CommentFormOperationRegistry').CommentFormOperation} [operation] Operation
-   *   object when the function is called from within itself, being delayed.
+   * @param {import('./CommentFormOperation').default} [operation] Operation object when the
+   *   function is called from within itself, being delayed.
    * @fires previewReady
    */
   async preview(isAuto = true, operation) {
@@ -2854,11 +2860,6 @@ class CommentForm extends EventEmitter {
 
     const commentInputValue = this.commentInput.getValue();
 
-    // In case of an empty comment input, we in fact make this request for the sake of parsing the
-    // summary if there is a need. The other possibility is previewing by clicking the relevant
-    // button.
-    const areInputsEmpty = !commentInputValue.trim() && !this.headlineInput?.getValue().trim();
-
     let html;
     let parsedSummary;
     try {
@@ -2887,7 +2888,18 @@ class CommentForm extends EventEmitter {
     if (operation.maybeClose()) return;
 
     if (html) {
-      if ((isAuto && areInputsEmpty) || this.deleteCheckbox?.isSelected()) {
+      if (
+        (
+          isAuto &&
+
+          // In case of an empty comment input, we in fact make this request for the sake of parsing
+          // the summary if there is a need. Alternatively, the user could click the "Preview"
+          // button.
+          !commentInputValue.trim() &&
+          !this.headlineInput?.getValue().trim()
+        ) ||
+        this.deleteCheckbox?.isSelected()
+      ) {
         this.$previewArea.empty();
       } else {
         this.updatePreview(html);
@@ -2972,14 +2984,14 @@ class CommentForm extends EventEmitter {
         options.fromrev = this.targetPage.revisionId;
       }
 
-      const request = cd
-        .getApi()
-        .post(/** @type {import('types-mediawiki/mw/Api').UnknownApiParams} */ (options), {
-          // Beneficial when sending long unicode texts, which is what we do here.
-          contentType: 'multipart/form-data',
-        });
       response = /** @type {import('./utils-api').APIResponseCompare} */ (
-        await request.catch(handleApiReject)
+        await cd
+          .getApi()
+          .post(/** @type {import('types-mediawiki/mw/Api').UnknownApiParams} */ (options), {
+            // Beneficial when sending long unicode texts, which is what we do here.
+            contentType: 'multipart/form-data',
+          })
+          .catch(handleApiReject)
       );
     } catch (error) {
       if (error instanceof CdError) {
@@ -3037,7 +3049,7 @@ class CommentForm extends EventEmitter {
    * Remove references to the form and reload the page.
    *
    * @param {object} [bootData] Data to pass to the boot process.
-   * @param {import('./CommentFormOperationRegistry').CommentFormOperation} [operation] Operation
+   * @param {import('./CommentFormOperation').default} [operation] Submit operation.
    */
   async reloadPage(bootData, operation) {
     this.unregister();
@@ -3048,11 +3060,11 @@ class CommentForm extends EventEmitter {
       url.searchParams.delete('section');
       url.searchParams.delete('action');
       url.hash = bootData.commentIds[0];
-      const currentPathnameAndSearch = location.pathname + location.search;
       location.href = url.toString();
-      if (currentPathnameAndSearch === url.pathname + url.search) {
+      if (location.pathname + location.search === url.pathname + url.search) {
         location.reload();
       }
+
       return;
     }
 
@@ -3147,8 +3159,7 @@ class CommentForm extends EventEmitter {
    * Send a post request to edit the page and handle errors.
    *
    * @param {string} code Code to save.
-   * @param {import('./CommentFormOperationRegistry').CommentFormOperation} operation Operation the
-   *   form is undergoing.
+   * @param {import('./CommentFormOperation').default} operation Operation the form is undergoing.
    * @param {boolean} [suppressTag=false]
    * @returns {Promise.<object|null>}
    * @private
@@ -3202,11 +3213,10 @@ class CommentForm extends EventEmitter {
             this.captchaInput.on('enter', () => {
               this.submit();
             });
-            let captchaMessage = new OO.ui.MessageWidget({
+            message = new OO.ui.MessageWidget({
               type: 'notice',
               label: this.captchaInput.$element,
-            });
-            message = captchaMessage.$element;
+            }).$element;
           }
 
           // FIXME: We don't pass apiResponse to prevent the message for `missingtitle` to be
@@ -3533,13 +3543,6 @@ class CommentForm extends EventEmitter {
 
     this.summaryAutopreviewBlocked = blockAutopreview;
 
-    const text = this.generateStaticSummaryText(this.targetWithOutdentedReplies || undefined);
-    const section = this.headlineInput && !this.isMode('addSubsection') ?
-      // Unclear why `this` becomes `never` here without a type hint
-      removeWikiMarkup(/** @type {this} */ (this).headlineInput.getValue()) :
-
-      this.target.getRelevantSection()?.headline;
-
     let optionalText;
     if (this.isMode('reply') || this.isMode('replyInSection')) {
       const commentText = this.commentInput.getValue()
@@ -3564,8 +3567,12 @@ class CommentForm extends EventEmitter {
     }
 
     this.autoSummary = buildEditSummary({
-      text,
-      section,
+      text: this.generateStaticSummaryText(this.targetWithOutdentedReplies || undefined),
+      section: this.headlineInput && !this.isMode('addSubsection') ?
+        // Unclear why `this` becomes `never` here without a type hint
+        removeWikiMarkup(/** @type {this} */ (this).headlineInput.getValue()) :
+
+        this.target.getRelevantSection()?.headline,
       optionalText,
       addPostfix: false,
     });
@@ -4395,6 +4402,7 @@ class CommentForm extends EventEmitter {
   static extractCommentIds(code) {
     // Russian Wikipedia's Wikificator may mangle these links, replacing `_` with ` `, so we search
     // for both characters.
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const idRegexp = /\[\[#(\d{12}[_ ][^|\]]+)/g;
 
     const ids = [];

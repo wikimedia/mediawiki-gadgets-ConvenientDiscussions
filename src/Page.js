@@ -1,5 +1,7 @@
 /**
- * Class representing a wiki page.
+ * A wiki page (a page for which the
+ * {@link https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#All_pages_(user/page-specific) wgIsArticle}
+ * config value is `true`).
  *
  * @module Page
  */
@@ -33,10 +35,10 @@ import { defined, isProbablyTalkPage, mergeRegexps } from './utils-general';
 // FIXME: make the class of the current page extend the page's class? The current page has more
 // methods effectively.
 /**
- * Class representing a wiki page (a page for which the
+ * A wiki page (a page for which the
  * {@link https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#All_pages_(user/page-specific) wgIsArticle}
- * config value is `true`) in both of its facets – a rendered instance (for the current page) and an
- * entry in the database with data and content.
+ * config value is `true`) in both of its facets – a rendered instance in case of the current page
+ * (see {@link CurrentPage}) and an entry in the database with data and content.
  *
  * To create an instance, use {@link module:pageRegistry.get} (the constructor is only exported for
  * means of code completion).
@@ -195,6 +197,7 @@ export default class Page {
    */
   isArchive() {
     let result = false;
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const name = this.realName || this.name;
     for (const sourceRegexp of Page.getSourcePagesMap().keys()) {
       if (sourceRegexp.test(name)) {
@@ -217,8 +220,8 @@ export default class Page {
     if (this.isArchive()) {
       return false;
     }
-    let result = !mergeRegexps(cd.config.pagesWithoutArchives)?.test(this.realName || this.name);
-    return Boolean(result);
+
+    return Boolean(!mergeRegexps(cd.config.pagesWithoutArchives)?.test(this.realName || this.name));
   }
 
   /**
@@ -272,7 +275,7 @@ export default class Page {
    * @param {true} [tolerateMissing=true] Return `null` if the page is missing instead of throwing
    *   an error.
    * @returns {Promise<?string>} A promise resolving to the wikitext of the page, or `null` if the
-   * page is missing.
+   *   page is missing.
    *
    * @overload
    * @param {import('./CommentForm').default} [_] Not used.
@@ -301,6 +304,7 @@ export default class Page {
    * @throws {CdError}
    */
   async loadCode(_, tolerateMissing = true) {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const request = cd
       .getApi()
       .post({
@@ -402,6 +406,7 @@ export default class Page {
       delete options.page;
     }
 
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const request = inBackground
       ? requestInBackground(options).catch(handleApiReject)
       : cd.getApi().post(options).catch(handleApiReject);
@@ -439,6 +444,7 @@ export default class Page {
       ...customOptions,
     });
 
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const request = inBackground
       ? requestInBackground(options).catch(handleApiReject)
       : cd
@@ -468,29 +474,31 @@ export default class Page {
    *   has changed.
    */
   async edit(customOptions) {
-    const options = cd.getApi().assertCurrentUser({
-      action: 'edit',
-
-      // If we know that this page is a redirect, use its target. Otherwise, use the regular name.
-      title: this.realName || this.name,
-
-      notminor: !customOptions.minor,
-
-      // Should be `undefined` instead of `null`, otherwise will be interepreted as a string.
-      tags: (cd.user.isRegistered() && cd.config.tagName) || undefined,
-
-      ...cd.g.apiErrorFormatHtml,
-      ...customOptions,
-    });
-
     let response;
     try {
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const request = cd
         .getApi()
-        .postWithEditToken(options, {
-          // Beneficial when sending long unicode texts, which is what we do here.
-          contentType: 'multipart/form-data',
-        })
+        .postWithEditToken(
+          cd.getApi().assertCurrentUser({
+            action: 'edit',
+
+            // If we know that this page is a redirect, use its target. Otherwise, use the regular name.
+            title: this.realName || this.name,
+
+            notminor: !customOptions.minor,
+
+            // Should be `undefined` instead of `null`, otherwise will be interepreted as a string.
+            tags: (cd.user.isRegistered() && cd.config.tagName) || undefined,
+
+            ...cd.g.apiErrorFormatHtml,
+            ...customOptions,
+          }),
+          {
+            // Beneficial when sending long unicode texts, which is what we do here.
+            contentType: 'multipart/form-data',
+          }
+        )
         .catch(handleApiReject);
       response = /** @type {ApiResponseEdit} */ (await request);
     } catch (error) {
@@ -603,12 +611,11 @@ export default class Page {
    * @returns {string}
    */
   getDecodedUrlWithFragment(fragment, permanent = false) {
-    const decodedPageUrl = decodeURI(
-      this.getUrl({
-        ...(permanent ? { oldid: mw.config.get('wgRevisionId') } : {}),
-      })
+    return (
+      cd.g.server +
+      decodeURI(this.getUrl(permanent ? { oldid: mw.config.get('wgRevisionId') } : {})) +
+      (fragment ? `#${fragment}` : '')
     );
-    return cd.g.server + decodedPageUrl + (fragment ? `#${fragment}` : '');
   }
 
   /**
@@ -620,15 +627,16 @@ export default class Page {
   async getFirstTemplateTransclusion(pages) {
     let data;
     try {
-      const request = cd
-        .getApi()
-        .post({
-          action: 'parse',
-          prop: 'parsetree',
-          page: this.name,
-        })
-        .catch(handleApiReject);
-      data = /** @type {import('./utils-api').ApiResponseParseTree} */ (await request);
+      data = /** @type {import('./utils-api').ApiResponseParseTree} */ (
+        await cd
+          .getApi()
+          .post({
+            action: 'parse',
+            prop: 'parsetree',
+            page: this.name,
+          })
+          .catch(handleApiReject)
+      );
     } catch (error) {
       if (
         error instanceof CdError &&
@@ -661,10 +669,12 @@ export default class Page {
             .get()
             ?.map((part) => {
               const $name = $(part).children('name');
-              const value = $(part).children('value').text().trim();
-              const key = /** @type {string} */ ($name.text().trim() || $name.attr('index'));
 
-              return [key, value];
+              // Key, value
+              return [
+                $name.text().trim() || $name.attr('index'),
+                $(part).children('value').text().trim(),
+              ];
             });
 
           return parameters
@@ -683,17 +693,18 @@ export default class Page {
    * @returns {Promise.<string>}
    */
   async compareRevisions(revisionIdFrom, revisionIdTo) {
-    const request = cd
-      .getApi()
-      .post({
-        action: 'compare',
-        fromtitle: this.name,
-        fromrev: revisionIdFrom,
-        torev: revisionIdTo,
-        prop: ['diff'],
-      })
-      .catch(handleApiReject);
-    const response = /** @type {import('./utils-api').APIResponseCompare} */ (await request);
+    const response = /** @type {import('./utils-api').APIResponseCompare} */ (
+      await cd
+        .getApi()
+        .post({
+          action: 'compare',
+          fromtitle: this.name,
+          fromrev: revisionIdFrom,
+          torev: revisionIdTo,
+          prop: ['diff'],
+        })
+        .catch(handleApiReject)
+    );
 
     return response?.compare?.body;
   }

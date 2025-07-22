@@ -400,26 +400,24 @@ class CommentFormRegistry extends EventEmitter {
   maybeShowRescueDialog(content) {
     if (!content?.length) return;
 
-    const text = content
-      .map((data) => (
-        (data.headline === undefined ? '' : `${cd.s('rd-headline')}: ${data.headline}\n\n`) +
-        `${cd.s('rd-comment')}: ${data.comment}\n\n${cd.s('rd-summary')}: ${data.summary}`
-      ))
-      .join('\n\n----\n');
-
     const dialog = new OO.ui.MessageDialog();
     cd.getWindowManager().addWindows([dialog]);
     cd.getWindowManager().openWindow(dialog, {
-      message: (new OO.ui.FieldLayout(
+      message: new OO.ui.FieldLayout(
         new OO.ui.MultilineTextInputWidget({
-          value: text,
+          value: content
+            .map((data) => (
+              (data.headline === undefined ? '' : `${cd.s('rd-headline')}: ${data.headline}\n\n`) +
+              `${cd.s('rd-comment')}: ${data.comment}\n\n${cd.s('rd-summary')}: ${data.summary}`
+            ))
+            .join('\n\n----\n'),
           rows: 20,
         }),
         {
           align: 'top',
           label: cd.s('rd-intro'),
         }
-      )).$element,
+      ).$element,
       actions: [
         {
           label: cd.s('rd-close'),

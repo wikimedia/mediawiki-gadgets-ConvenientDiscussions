@@ -558,11 +558,13 @@ export function createTitleControl(options) {
  * @returns {GenericControl<T>}
  */
 export function createGenericControl(type, input, fieldOptions = {}, data = {}) {
-  const field = /** @type {OO.ui.FieldLayout<ControlTypeToWidget[T]>} */ (new OO.ui.FieldLayout(input, {
-    align: 'top',
-    helpInline: true,
-    ...fieldOptions,
-  }));
+  const field = /** @type {OO.ui.FieldLayout<ControlTypeToWidget[T]>} */ (
+    new OO.ui.FieldLayout(input, {
+      align: 'top',
+      helpInline: true,
+      ...fieldOptions,
+    })
+  );
 
   if (!fieldOptions.label) {
     field.$element.addClass('cd-field-labelless');

@@ -67,9 +67,14 @@ class Visits extends EventEmitter {
 
     this.update(currentTime, markAsReadRequested);
 
-    const timeConflict = this.currentPageData.length ?
-      commentRegistry.initNewAndSeen(this.currentPageData, currentTime, markAsReadRequested) :
-      false;
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const shiftDueToTimeConflict =
+      (
+        this.currentPageData.length &&
+        commentRegistry.initNewAndSeen(this.currentPageData, currentTime, markAsReadRequested) &&
+        60
+      ) ||
+      0;
 
     // (Nearly) eliminate the possibility that we will wrongfully mark a seen comment as unseen/new
     // at the next page load by adding a minute to the visit time if there is at least one comment
@@ -84,7 +89,7 @@ class Visits extends EventEmitter {
     //
     // We could decide that not marking unseen comments as seen is an absolute priority and remove
     // the timeConflict stuff.
-    this.currentPageData.push(String(currentTime + Number(timeConflict) * 60));
+    this.currentPageData.push(String(currentTime + shiftDueToTimeConflict));
 
     this.save();
     this.emit('process', this.currentPageData);
@@ -154,6 +159,7 @@ class Visits extends EventEmitter {
 
     const string = LZString.decompressFromEncodedURIComponent(compressed);
     if (string) {
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const regexp = /^(\d+),(.+)$/gm;
       let match;
       while ((match = regexp.exec(string))) {

@@ -7,7 +7,7 @@ import { handleApiReject, splitIntoBatches } from './utils-api';
 import { definedAndNotNull, spacesToUnderlines, unique } from './utils-general';
 
 /**
- * Class implementing DiscussionTools' topic subscriptions.
+ * Implementation of DiscussionTools' topic subscriptions.
  *
  * @augments Subscriptions
  */
@@ -79,11 +79,10 @@ class DtSubscriptions extends Subscriptions {
 
     const subscriptions = /** @type {import('./Subscriptions').SubscriptionsData} */ ({});
     for (const nextIds of splitIntoBatches(ids)) {
-      const request = cd.getApi().post({
+      const response = /** @type {ApiDtSubscriptions} */ (await cd.getApi().post({
         action: 'discussiontoolsgetsubscriptions',
         commentname: nextIds,
-      }).catch(handleApiReject);
-      const response = /** @type {ApiDtSubscriptions} */ (await request);
+      }).catch(handleApiReject));
       Object.assign(subscriptions, intValuesToBoolean(response.subscriptions));
     }
 

@@ -66,7 +66,7 @@ import visits from './visits';
  * @typedef {object} AddedComments
  * @property {import('./updateChecker').CommentWorkerMatched[]} all
  * @property {import('./updateChecker').CommentWorkerMatched[]} relevant
- * @property {Map<import('./updateChecker').SectionWorkerMatched | null, AtLeastOne<import('./updateChecker').CommentWorkerMatched>>} bySection
+ * @property {Map<import('./updateChecker').SectionWorkerMatched | import('./Section').default | null, import('./updateChecker').CommentWorkerMatched[]>} bySection
  */
 
 /**
@@ -764,7 +764,7 @@ class UpdateChecker extends EventEmitter {
   }
 
   /**
-   * Process the comments retrieved by a web worker.
+   * Process comments retrieved by a web worker.
    *
    * @param {CommentWorkerMatched[]} comments Comments in the recent revision.
    * @param {CommentWorkerMatched[]} currentComments Comments in the currently shown revision mapped

@@ -108,7 +108,7 @@ class Subscriptions extends EventEmitter {
    * @param {string} [id] Section's ID. Not required for DiscussionTools subscriptions.
    * @param {boolean} [quiet=false] Don't show a success notification.
    * @param {string} [unsubscribeHeadline] Headline of a section to unsubscribe from (at the same
-   * time).
+   *   time).
    */
   async subscribe(subscribeId, id, quiet = false, unsubscribeHeadline) {
     await this.actuallySubscribe(subscribeId, id, unsubscribeHeadline);
@@ -148,9 +148,6 @@ class Subscriptions extends EventEmitter {
 
     const ancestorSubscribedTo = section?.getClosestSectionSubscribedTo();
     if (!quiet || ancestorSubscribedTo) {
-      const title = subscribeId.startsWith('p-') ?
-        cd.mws('discussiontools-newtopicssubscription-notify-unsubscribed-title') :
-        cd.mws('discussiontools-topicsubscription-notify-unsubscribed-title');
       let body = subscribeId.startsWith('p-') ?
         cd.mws('discussiontools-newtopicssubscription-notify-unsubscribed-body') :
         cd.mws('discussiontools-topicsubscription-notify-unsubscribed-body');
@@ -159,7 +156,12 @@ class Subscriptions extends EventEmitter {
         body += ' ' + cd.sParse('section-unwatch-stillwatched', ancestorSubscribedTo.headline);
         autoHideSeconds = 'long';
       }
-      mw.notify(wrapHtml(body), { title, autoHideSeconds });
+      mw.notify(wrapHtml(body), {
+        title: subscribeId.startsWith('p-') ?
+          cd.mws('discussiontools-newtopicssubscription-notify-unsubscribed-title') :
+          cd.mws('discussiontools-topicsubscription-notify-unsubscribed-title'),
+        autoHideSeconds,
+      });
     }
   }
 

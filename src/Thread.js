@@ -21,7 +21,7 @@ import { getExtendedRect, getRangeContents, getVisibilityByRects, isCmdModifierP
  */
 
 /**
- * Class representing a comment thread object.
+ * A comment thread object.
  */
 class Thread extends mixInObject(
   // eslint-disable-next-line jsdoc/require-jsdoc
@@ -507,6 +507,7 @@ class Thread extends mixInObject(
    * @private
    */
   getNavTarget(delta) {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const stepSize = 80;
     const clearanceSize = 15;
 
@@ -813,8 +814,9 @@ class Thread extends mixInObject(
     }
 
     const firstElement = /** @type {HTMLElement[]} */ (this.collapsedRange)[0];
-    const tagName = ['LI', 'DD'].includes(firstElement.tagName) ? firstElement.tagName : 'DIV';
-    const expandNote = document.createElement(tagName);
+    const expandNote = document.createElement(
+      ['LI', 'DD'].includes(firstElement.tagName) ? firstElement.tagName : 'DIV'
+    );
     expandNote.className = 'cd-thread-button-container cd-thread-expandNote';
     if (firstElement.classList.contains('cd-connectToPreviousItem')) {
       expandNote.className += ' cd-connectToPreviousItem';
@@ -1334,7 +1336,7 @@ class Thread extends mixInObject(
   static initPrototypes() {
     this.prototypes.add(
       'expandButton',
-      (new OO.ui.ButtonWidget({
+      new OO.ui.ButtonWidget({
         // Isn't displayed
         label: 'Expand the thread',
         icon: 'expand',
@@ -1347,7 +1349,7 @@ class Thread extends mixInObject(
           'cd-thread-button-invisible',
           'cd-icon',
         ],
-      })).$element[0]
+      }).$element[0]
     );
 
     const threadClickArea = document.createElement('div');
@@ -1523,8 +1525,9 @@ class Thread extends mixInObject(
     do {
       const currentNode = this.treeWalker.currentNode;
       if (currentNode.classList.contains('cd-commentLevel')) {
-        const className = /** @type {string} */ (currentNode.getAttribute('class'));
-        const match = className.match(/cd-commentLevel-(\d+)/);
+        const match = /** @type {string} */ (currentNode.getAttribute('class')).match(
+          /cd-commentLevel-(\d+)/
+        );
         if (match && Number(match[1]) === (level || 1)) {
           // If the level is 0 (outdented comment or subitem of a 0-level comment), we need the list
           // element, not the item element.

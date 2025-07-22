@@ -67,7 +67,29 @@ import { createSvg, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisib
  */
 
 /**
- * Class representing a comment (any signed, and in some cases unsigned, text on a wiki talk page).
+ * @typedef {{
+ *   Comment: import('./Section').default;
+ *   CommentWorkerMatched: import('./updateChecker').SectionWorkerMatched;
+ * }} CommentTypeToSectionType
+ */
+
+/**
+ * @template {import('./updateChecker').CommentWorkerMatched | Comment} [T=import('./updateChecker').CommentWorkerMatched | Comment]
+ * @typedef {(
+ *   T extends Comment
+ *     ? Map<import('./Section').default | null, Comment[]>
+ *     : T extends import('./updateChecker').CommentWorkerMatched
+ *       ? Map<import('./updateChecker').SectionWorkerMatched | null, import('./updateChecker').CommentWorkerMatched[]>
+ *       : never
+ * )} CommentsBySection
+ */
+
+/**
+ * @typedef {Map<Comment | import('./Section').default, import('./updateChecker').CommentWorkerMatched[]>} RenderedCommentsByParent
+ */
+
+/**
+ * A comment (any signed, and in some cases unsigned, text on a wiki talk page).
  *
  * @template {boolean} Reformatted
  * @augments CommentSkeleton
@@ -507,12 +529,11 @@ class Comment extends CommentSkeleton {
           }
         }
       });
-      const minNestingLevel = Math.min(...nestingLevels);
       let marginHighlightableIndex;
       for (let i = 0; i < 2; i++) {
         if (
           marginHighlightableIndex === undefined
-            ? nestingLevels[i] === minNestingLevel
+            ? nestingLevels[i] === Math.min(...nestingLevels)
             : closestListTypes[marginHighlightableIndex] === 'ol' && closestListTypes[i] !== 'ol'
         ) {
           marginHighlightableIndex = i;
@@ -567,7 +588,6 @@ class Comment extends CommentSkeleton {
    *
    * @private
    */
-  // @ts-ignore
   cleanUpSignature() {
     let previousNode = this.signatureElement.previousSibling;
 
@@ -590,6 +610,7 @@ class Comment extends CommentSkeleton {
     // Use this to tell the cases where a styled element should be kept
     // https://commons.wikimedia.org/?diff=850489596 from cases where it should be removed
     // https://en.wikipedia.org/?diff=1229675944
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const isPpnSpaced = previousNode?.textContent.startsWith(' ');
 
     this.processPossibleSignatureNode(previousNode);
@@ -598,7 +619,9 @@ class Comment extends CommentSkeleton {
       previousPreviousNode &&
       (!previousNode.parentNode || !previousNode.textContent.trim())
     ) {
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const previousPreviousPreviousNode = previousPreviousNode.previousSibling;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const isPppnSpaced = previousPreviousNode?.textContent.startsWith(' ');
       this.processPossibleSignatureNode(previousPreviousNode, isPpnSpaced);
 
@@ -655,6 +678,7 @@ class Comment extends CommentSkeleton {
 
     const headerWrapper = Comment.prototypes.get('headerWrapperElement');
     this.headerElement = /** @type {HTMLElementIfReformatted} */ (headerWrapper.firstChild);
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const authorWrapper = /** @type {HTMLElement} */ (this.headerElement.firstChild);
     const authorLink = /** @type {HTMLAnchorElement} */ (authorWrapper.firstChild);
     const authorLinksWrapper = /** @type {HTMLElement} */ (authorLink.nextElementSibling);
@@ -676,6 +700,7 @@ class Comment extends CommentSkeleton {
         this.authorLink = /** @type {HTMLAnchorElement} */ (this.authorLink.cloneNode(true));
       }
 
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const beforeAuthorLinkParseReturn = cd.config.beforeAuthorLinkParse?.(
         this.authorLink,
         authorLink
@@ -1174,12 +1199,16 @@ class Comment extends CommentSkeleton {
   reviewHighlightables() {
     for (let i = 0; i < this.highlightables.length; i++) {
       const el = this.highlightables[i];
-      const areThereClassedElements = Array.from(el.classList).some(
-        (name) => !name.startsWith('cd-') || name === 'cd-comment-replacedPart'
-      );
-      if (areThereClassedElements) {
-        const isReplacement = i === 0 && el.classList.contains('cd-comment-replacedPart');
-        const testElement = /** @type {HTMLElement} */ (isReplacement ? el.firstChild : el);
+
+      if (
+        // Are there any elements with classes not added by CD?
+        Array.from(el.classList).some(
+          (name) => !name.startsWith('cd-') || name === 'cd-comment-replacedPart'
+        )
+      ) {
+        const testElement = /** @type {HTMLElement} */ (
+          i === 0 && el.classList.contains('cd-comment-replacedPart') ? el.firstChild : el
+        );
 
         // Node that we could use window.getComputerStyle here, but avoid it to avoid the reflow.
         if (
@@ -1258,7 +1287,6 @@ class Comment extends CommentSkeleton {
    *
    * @private
    */
-  // @ts-ignore
   toggleChildThreadsButtonClick() {
     this.toggleChildThreads();
   }
@@ -1304,7 +1332,7 @@ class Comment extends CommentSkeleton {
    *
    * @param {GetOffsetOptions<boolean>} [options={}]
    * @returns {?(CommentOffset|boolean)} Offset object. If the comment is not visible, returns
-   *   `null`. If `options.set` is `true`, returns a boolean value indicating if the comment is
+   *   `null`. If `options.set` is `true`, returns a boolean value indicating if the comment has
    *   moved instead of the offset.
    */
   getOffset(options = {}) {
@@ -1333,20 +1361,21 @@ class Comment extends CommentSkeleton {
     // content starts to occupy less space.
     const scrollY = window.scrollY;
 
-    const isMoved = this.offset
-      ? // This value will be `true` wrongly if the comment is around floating elements. But that
-        // doesn't hurt much.
-        // Has the top changed. With scale other than 100% values of less than 0.001 appear in
-        // Chrome and Firefox.
-        !(Math.abs(scrollY + rectTop.top - this.offset.top) < 0.01) ||
-        // Has the height changed
-        !(
-          Math.abs(rectBottom.bottom - rectTop.top - (this.offset.bottom - this.offset.top)) < 0.01
-        ) ||
-        // Has the width of the first highlightable changed
-        !(Math.abs(this.highlightables[0].offsetWidth - this.offset.firstHighlightableWidth) < 0.01)
-      : true;
-    if (!isMoved) {
+    // Has the comment's position stayed the same (i.e. it hasn't moved)? This value will be
+    // `true` wrongly if the comment is around floating elements, but that doesn't hurt much.
+    if (
+      this.offset &&
+
+      // Has the top stayed the same? With scale other than 100% values of less than 0.001 appear
+      // in Chrome and Firefox.
+      Math.abs(scrollY + rectTop.top - this.offset.top) < 0.01 &&
+
+      // Has the height stayed the same?
+      Math.abs(rectBottom.bottom - rectTop.top - (this.offset.bottom - this.offset.top)) < 0.01 &&
+
+      // Has the width of the first highlightable stayed the same?
+      Math.abs(this.highlightables[0].offsetWidth - this.offset.firstHighlightableWidth) < 0.01
+    ) {
       // If floating elements aren't supposed to be taken into account but the comment isn't moved,
       // we still set/return the offset with floating elements taken into account because that
       // shouldn't do any harm.
@@ -1599,10 +1628,10 @@ class Comment extends CommentSkeleton {
       ? bootController.getContentColumnOffsets().startMargin
       : cd.g.commentFallbackSideMargin;
 
-    const left = this.getDirection() === 'ltr' ? startMargin : endMargin;
-    const right = this.getDirection() === 'ltr' ? endMargin : startMargin;
-
-    return { left, right };
+    return {
+      left: this.getDirection() === 'ltr' ? startMargin : endMargin,
+      right: this.getDirection() === 'ltr' ? endMargin : startMargin,
+    };
   }
 
   /**
@@ -1641,12 +1670,14 @@ class Comment extends CommentSkeleton {
       if (isMoved && options.update) {
         this.updateLayersOffset();
       }
+
       return isMoved;
     } else {
       this.createLayers();
       if (options.add) {
         this.addLayers();
       }
+
       return true;
     }
   }
@@ -1664,7 +1695,7 @@ class Comment extends CommentSkeleton {
       return null;
     }
 
-    const isMoved = this.getOffset({
+    const hasMoved = this.getOffset({
       ...options,
       considerFloating: true,
       set: true,
@@ -1682,7 +1713,7 @@ class Comment extends CommentSkeleton {
       this.layersOffset = null;
     }
 
-    return isMoved;
+    return hasMoved;
   }
 
   /**
@@ -2066,11 +2097,16 @@ class Comment extends CommentSkeleton {
     // Animation will be directed to wrong properties if we keep it going.
     this.$animatedBackground?.stop(true, true);
 
-    const isMoved = this.configureLayers();
-
     // Add classes if the comment isn't moved. If it is moved, the layers are removed and created
     // again when the next event fires.
-    if (isMoved || !this.underlay) return;
+    if (
+      // Has the comment moved?
+      this.configureLayers() ||
+
+      !this.underlay
+    ) {
+      return;
+    }
 
     this.updateClassesForType('hovered', true);
     this.isHovered = true;
@@ -2880,6 +2916,7 @@ class Comment extends CommentSkeleton {
   async findDiffMatches(compareBodies, revisions) {
     // Only analyze added lines except for headings. `diff-empty` is not always present, so we stick
     // to colspan="2" as an indicator.
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const regexp =
       /<td [^>]*colspan="2" class="[^"]*\bdiff-side-deleted\b[^"]*"[^>]*>\s*<\/td>\s*<td [^>]*class="[^"]*\bdiff-marker\b[^"]*"[^>]*>\s*<\/td>\s*<td [^>]*class="[^"]*\bdiff-addedline\b[^"]*"[^>]*>\s*<div[^>]*>(?!=)(.+?)<\/div>\s*<\/td>/g;
 
@@ -2971,29 +3008,38 @@ class Comment extends CommentSkeleton {
        * @property {object} compare
        * @property {string} compare.body
        */
-      const compareRequests = revisions.map((revision) => {
-        const request = cd.getApi().post({
-          action: 'compare',
-          fromtitle: this.getSourcePage().getArchivedPage().name,
-          fromrev: revision.revid,
-          torelative: 'prev',
-          prop: ['diff'],
-        });
 
-        return request.catch(handleApiReject);
-      });
-      const response = /** @type {ApiResponseCompare[]} */ (await Promise.all(compareRequests));
-      const compareBodies = response.map((resp) => resp.compare.body);
-      const matches = (await this.findDiffMatches(compareBodies, revisions)).sort((m1, m2) =>
+      const responses = /** @type {ApiResponseCompare[]} */ (
+        await Promise.all(
+          // Compare requests
+          revisions.map((revision) =>
+            cd
+              .getApi()
+              .post({
+                action: 'compare',
+                fromtitle: this.getSourcePage().getArchivedPage().name,
+                fromrev: revision.revid,
+                torelative: 'prev',
+                prop: ['diff'],
+              })
+              .catch(handleApiReject)
+          )
+        )
+      );
+      const matches = (
+        await this.findDiffMatches(responses.map((resp) => resp.compare.body), revisions)
+      ).sort((m1, m2) =>
         m1.wordOverlap === m2.wordOverlap
           ? m1.dateProximity - m2.dateProximity
           : m2.wordOverlap - m1.wordOverlap
       );
       if (
         !matches.length ||
-        (matches[1] &&
+        (
+          matches[1] &&
           matches[0].wordOverlap === matches[1].wordOverlap &&
-          matches[0].dateProximity === matches[1].dateProximity)
+          matches[0].dateProximity === matches[1].dateProximity
+        )
       ) {
         throw new CdError({
           type: 'parse',
@@ -3538,8 +3584,12 @@ class Comment extends CommentSkeleton {
    */
   getText(cleanUpSignature = true) {
     if (this.cachedText === undefined) {
-      const $clone = this.$elements.not(':header, .mw-heading').clone().removeClass('cd-hidden');
-      const $dummy = $('<div>').append($clone);
+      const $dummy = $('<div>').append(
+        this.$elements
+          .not(':header, .mw-heading')
+          .clone()
+          .removeClass('cd-hidden')
+      );
       const selectorParts = [
         '.cd-signature',
         '.cd-changeNote',
@@ -3550,8 +3600,9 @@ class Comment extends CommentSkeleton {
       if (cd.config.unsignedClass) {
         selectorParts.push(`.${cd.config.unsignedClass}`);
       }
-      const selector = selectorParts.join(', ');
-      $dummy.find(selector).remove();
+      $dummy
+        .find(selectorParts.join(', '))
+        .remove();
       let text = $dummy.cdGetText();
       if (cleanUpSignature) {
         if (cd.g.signatureEndingRegexp) {
@@ -4480,21 +4531,62 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Turn a comment array into an object with sections or their IDs as keys.
+   * Turn a comment array into a map with sections as keys.
    *
-   * @param {import('./updateChecker').CommentWorkerMatched[]|Comment[]} comments
-   * @returns {import('./updateChecker').AddedComments['bySection']}
+   * @template {import('./updateChecker').CommentWorkerMatched | Comment} T
+   * @param {ToDistributiveArray<T>} comments
+   * @returns {CommentsBySection<T>}
    */
   static groupBySection(comments) {
-    const map = new Map();
+    const map = /** @type {CommentsBySection<T>} */ (new Map());
     for (const comment of comments) {
       if (!map.has(comment.section)) {
         map.set(comment.section, []);
       }
-      map.get(comment.section).push(comment);
+      /** @type {ToDistributiveArray<T>} */ (map.get(comment.section)).push(comment);
     }
 
     return map;
+  }
+
+  /**
+   * Turn an array of comments that came from the web worker into a map with their parent comments
+   * or sections (the actual ones on the page, not the ones from the web worker) as keys.
+   *
+   * @param {import('./updateChecker').CommentWorkerMatched[]} comments
+   * @returns {RenderedCommentsByParent}
+   */
+  static groupByParent(comments) {
+    const commentsByParent = /** @type {RenderedCommentsByParent} */ (new Map());
+    comments.forEach((comment) => {
+      let key;
+      if (comment.parent) {
+        key = comment.parentMatch;
+      } else {
+        // If there is no section match, use the ancestor sections' section match.
+        for (
+          let s = /** @type {import('./updateChecker').SectionWorkerMatched | undefined} */ (
+            comment.section
+          );
+          s && !key;
+          s = s.parent
+        ) {
+          key = s.match;
+        }
+      }
+
+      // Indirect comment children and comments out of section
+      if (!key) return;
+
+      if (!commentsByParent.get(key)) {
+        commentsByParent.set(key, []);
+      }
+      /** @type {import('./updateChecker').CommentWorkerMatched[]} */ (
+        commentsByParent.get(key)
+      ).push(comment);
+    });
+
+    return commentsByParent;
   }
 
   /**

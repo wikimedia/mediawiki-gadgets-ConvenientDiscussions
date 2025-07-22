@@ -442,7 +442,7 @@ export default {
     const areThereNew = commentRegistry.getAll().some((comment) => comment.isNew);
     if (commentCount) {
       tooltipText = (
-        cd.s('navpanel-newcomments-count', commentCount) +
+        cd.s('navpanel-newcomments-count', String(commentCount)) +
         ' ' +
         cd.s('navpanel-newcomments-refresh') +
         ' ' +

@@ -1,7 +1,7 @@
 /**
- * Class representing the list of a comment's subitems. There can be two types of subitems
- * currently: comment forms and "new replies" notes. They are managed with this class to handle the
- * removal of their parent list properly.
+ * A list of a comment's subitems. There can be two types of subitems: comment forms and "new
+ * replies" notes. They are managed with this class to handle the removal of their parent list
+ * properly.
  */
 class CommentSubitemList {
   /**

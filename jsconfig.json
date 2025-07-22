@@ -8,5 +8,5 @@
   "exclude": ["src/worker/**/*"],
 
   // Exception for `exclude`
-  "files": ["src/worker/domhandler.d.ts"]
+  "files": ["src/worker/domhandler.d.ts", "./src/CommentFormOperation.js"]
 }

@@ -38,8 +38,21 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
   /** @type {OO.ui.StackLayout} */
   contentStack;
 
-  /** @type {ControlTypesByName} */
-  controls;
+  /** @typedef {{
+   *   standard: 'copyText';
+   *   short: 'copyText';
+   *   wikilink: 'copyText';
+   *   currentPageWikilink: 'copyText';
+   *   permanentWikilink: 'copyText';
+   *   link: 'copyText';
+   *   permanentLink: 'copyText';
+   *   jsCall: 'copyText';
+   *   jsBreakpoint: 'copyText';
+   *   jsBreakpointTimestamp: 'copyText';
+   * }} CopyLinkDialogControlTypes
+   */
+
+  controls = /** @type {ControlTypesByName<CopyLinkDialogControlTypes>} */ ({});
 
   /**
    * Create a "Copy link" dialog.
@@ -109,7 +122,6 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
       });
     }
 
-    this.controls = /** @type {ControlTypesByName} */ ({});
     this.anchorPanel = new OO.ui.PanelLayout({
       $content: this.createAnchorPanelContent(),
       padded: false,

@@ -16,8 +16,8 @@ import { formatDate, relativeTimeThresholds } from './utils-timestamp';
  */
 
 /**
- * Class representing an element that has contains an automatically updated timestamp with relative
- * (dependent on the current date and time somehow) date and time.
+ * An element that contains an automatically updated timestamp with relative (dependent on the
+ * current date and time somehow) date and time.
  */
 class LiveTimestamp extends mixInObject(
   // eslint-disable-next-line jsdoc/require-jsdoc

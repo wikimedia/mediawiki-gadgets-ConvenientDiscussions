@@ -42,6 +42,7 @@ function getAllTextNodesUnderRoot() {
  * @private
  */
 function removeDtButtonHtmlComments() {
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const treeWalker = document.createNodeIterator(
     bootController.rootElement,
     NodeFilter.SHOW_COMMENT
@@ -136,9 +137,8 @@ function processAndRemoveDtElements(elements, bootProcess) {
  */
 
 /**
- * Class representing a single process of booting or rebooting CD onto a talk page. In some sense,
- * it is a (re-)builder for {@link talkPageController}. On first run, it's a builder for
- * {@link convenientDiscussions.g}.
+ * A single process of booting or rebooting CD onto a talk page. In some sense, it is a (re-)builder
+ * for {@link talkPageController}. On first run, it's a builder for {@link convenientDiscussions.g}.
  */
 class BootProcess {
   /** @type {boolean} */
@@ -841,10 +841,12 @@ class BootProcess {
 
     const $headline = $dtNewTopicForm
       .find('.ext-discussiontools-ui-newTopic-sectionTitle input[type="text"]');
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const headline = $headline.val();
     $headline.val('');
 
     const $comment = $dtNewTopicForm.find('textarea');
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const comment = $comment.textSelection('getContents');
     $comment.textSelection('setContents', '');
 
@@ -929,15 +931,14 @@ class BootProcess {
   debugLog() {
     debug.stopTimer('total time');
 
-    const baseTime = (
-      debug.getTimerTotal('main code') +
-      debug.getTimerTotal('final code and rendering')
-    );
-    const timePerComment = baseTime / commentRegistry.getCount();
+    const timePerComment = (
+      (debug.getTimerTotal('main code') + debug.getTimerTotal('final code and rendering')) /
+      commentRegistry.getCount()
+    ).toFixed(2);
 
     debug.logAndResetTimer('total time');
     console.debug(`number of comments: ${commentRegistry.getCount()}`);
-    console.debug(`per comment: ${timePerComment.toFixed(2)}`);
+    console.debug(`per comment: ${timePerComment}`);
     debug.logAndResetEverything();
   }
 

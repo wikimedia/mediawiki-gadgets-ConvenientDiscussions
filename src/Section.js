@@ -21,7 +21,7 @@ import { encodeWikilink, maskDistractingCode, normalizeCode } from './utils-wiki
 import { getRangeContents } from './utils-window';
 
 /**
- * Class representing a section.
+ * A section.
  *
  * @augments SectionSkeleton
  */
@@ -824,7 +824,6 @@ class Section extends SectionSkeleton {
   maybeCreateMetadataElement() {
     if (!this.isTopic()) return;
 
-    const authorCount = this.comments.map((comment) => comment.author).filter(unique).length;
     const latestComment = Comment.getNewest(this.comments, false);
 
     let latestCommentWrapper;
@@ -849,7 +848,9 @@ class Section extends SectionSkeleton {
       commentCountWrapper.innerHTML = cd.sParse(
         'section-metadata-commentcount-authorcount',
         this.comments.length,
-        authorCount
+
+        // Author count
+        this.comments.map((comment) => comment.author).filter(unique).length
       );
       if (this.comments.length === 1) {
         commentCountWrapper.querySelector('.cd-section-metadata-authorcount')?.remove();
@@ -966,37 +967,39 @@ class Section extends SectionSkeleton {
       Section.prototypes.getWidget('moreMenuSelect')()
     );
 
-    const editOpeningCommentOption = this.canFirstCommentBeEdited() ?
-      new OO.ui.MenuOptionWidget({
-        data: 'editOpeningComment',
-        label: cd.s('sm-editopeningcomment'),
-        title: cd.s('sm-editopeningcomment-tooltip'),
-        icon: 'edit',
-      }) :
-      undefined;
-    const moveOption = this.canBeMoved() ?
-      new OO.ui.MenuOptionWidget({
-        data: 'move',
-        label: cd.s('sm-move'),
-        title: cd.s('sm-move-tooltip'),
-        icon: 'arrowNext',
-      }) :
-      undefined;
-    const addSubsectionOption = this.canBeSubsectioned() ?
-      new OO.ui.MenuOptionWidget({
-        data: 'addSubsection',
-        label: cd.s('sm-addsubsection'),
-        title: cd.s('sm-addsubsection-tooltip'),
-        icon: 'speechBubbleAdd',
-      }) :
-      undefined;
-
     this.actions.moreMenuSelectDummy.element.remove();
     this.actionsElement.append(moreMenuSelect.$element[0]);
 
-    const items = [editOpeningCommentOption, moveOption, addSubsectionOption].filter(defined);
-    moreMenuSelect.getMenu()
-      .addItems(items)
+    moreMenuSelect
+      .getMenu()
+      .addItems(
+        [
+          this.canFirstCommentBeEdited()
+            ? new OO.ui.MenuOptionWidget({
+                data: 'editOpeningComment',
+                label: cd.s('sm-editopeningcomment'),
+                title: cd.s('sm-editopeningcomment-tooltip'),
+                icon: 'edit',
+              })
+            : undefined,
+          this.canBeMoved()
+            ? new OO.ui.MenuOptionWidget({
+                data: 'move',
+                label: cd.s('sm-move'),
+                title: cd.s('sm-move-tooltip'),
+                icon: 'arrowNext',
+              })
+            : undefined,
+          this.canBeSubsectioned()
+            ? new OO.ui.MenuOptionWidget({
+                data: 'addSubsection',
+                label: cd.s('sm-addsubsection'),
+                title: cd.s('sm-addsubsection-tooltip'),
+                icon: 'speechBubbleAdd',
+              })
+            : undefined,
+        ].filter(defined)
+      )
       .on('choose', (option) => {
         switch (option.getData()) {
           case 'editOpeningComment':
@@ -1231,7 +1234,7 @@ class Section extends SectionSkeleton {
       return;
     }
 
-    const newText = cd.s('section-metadata-newcommentcount', this.newComments.length);
+    const newText = cd.s('section-metadata-newcommentcount', String(this.newComments.length));
 
     let newLink = document.createElement('a');
     newLink.textContent = newText;
@@ -1433,9 +1436,7 @@ class Section extends SectionSkeleton {
   move() {
     if (bootController.isPageOverlayOn()) return;
 
-    const MoveSectionDialog = require('./MoveSectionDialog').default;
-
-    const dialog = new MoveSectionDialog(this);
+    const dialog = new (require('./MoveSectionDialog').default)(this);
     cd.getWindowManager().addWindows([dialog]);
     cd.getWindowManager().openWindow(dialog);
 
@@ -1527,10 +1528,10 @@ class Section extends SectionSkeleton {
    * Remove the section from the subscription list.
    *
    * @param {'quiet'|'silent'} [mode]
-   * - No value: a notification will be shown.
-   * - `'quiet'`: don't show a notification.
-   * - `'silent'`: don't even change any UI, including the subscribe button appearance. If there is
-   *   an error, it will be displayed though.
+   *   - No value: a notification will be shown.
+   *   - `'quiet'`: don't show a notification.
+   *   - `'silent'`: don't even change any UI, including the subscribe button appearance. If there
+   *   is an error, it will be displayed though.
    */
   unsubscribe(mode) {
     if (!this.subscribeId) return;
@@ -1592,11 +1593,17 @@ class Section extends SectionSkeleton {
       return;
     }
 
-    const oldHeadingHtml = oldCommentData.elementHtmls[0].replace(
-      /\x01(\d+)_\w+\x02/g,
-      (_, /** @type {string} */ num) => currentCommentData.hiddenElementsData[Number(num) - 1].html
-    );
-    const oldSectionDummy = { headlineElement: $('<span>').html($(oldHeadingHtml).html())[0] };
+    const oldSectionDummy = {
+      headlineElement: $('<span>').html(
+        $(
+          oldCommentData.elementHtmls[0].replace(
+            /\x01(\d+)_\w+\x02/g,
+            (_, /** @type {string} */ num) =>
+              currentCommentData.hiddenElementsData[Number(num) - 1].html
+          )
+        ).html()
+      )[0],
+    };
     this.parseHeadline.call(oldSectionDummy);
     if (
       this.headline &&
@@ -1643,22 +1650,26 @@ class Section extends SectionSkeleton {
    * @throws {CdError}
    */
   async requestCode() {
-    const request = cd.getApi().post(
-      /** @type {import('types-mediawiki/mw/Api').UnknownApiParams} */ (
-        /** @type {import('types-mediawiki/api_params').ApiQueryRevisionsParams} */ ({
-          action: 'query',
-          titles: this.getSourcePage().name,
-          prop: 'revisions',
-          rvsection: this.liveSectionNumber || undefined,
-          rvslots: 'main',
-          rvprop: ['ids', 'content'],
-          redirects: !mw.config.get('wgIsRedirect'),
-          curtimestamp: true,
-        }
-      )
-    )).catch(handleApiReject);
     const { query, curtimestamp: queryTimestamp } =
-      /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (await request);
+      /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (
+        await cd
+          .getApi()
+          .post(
+            /** @type {import('types-mediawiki/mw/Api').UnknownApiParams} */ (
+              /** @type {import('types-mediawiki/api_params').ApiQueryRevisionsParams} */ ({
+                action: 'query',
+                titles: this.getSourcePage().name,
+                prop: 'revisions',
+                rvsection: this.liveSectionNumber || undefined,
+                rvslots: 'main',
+                rvprop: ['ids', 'content'],
+                redirects: !mw.config.get('wgIsRedirect'),
+                curtimestamp: true,
+              })
+            )
+          )
+          .catch(handleApiReject)
+      );
 
     const page = query?.pages?.[0];
     const revision = page?.revisions?.[0];
@@ -1768,24 +1779,26 @@ class Section extends SectionSkeleton {
    * @private
    */
   searchInCode(contextCode, isInSectionContext) {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const thisHeadline = normalizeCode(this.headline);
     const adjustedContextCode = maskDistractingCode(contextCode);
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const sectionHeadingRegexp = /^((=+)(.*)\2[ \t\x01\x02]*)\n/gm;
 
     const sourcesWithScores = [];
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const headlines = [];
     let sectionIndex = -1;
     let sectionHeadingMatch;
     while ((sectionHeadingMatch = sectionHeadingRegexp.exec(adjustedContextCode))) {
       sectionIndex++;
-      const source = new SectionSource({
+      const sourceWithScore = new SectionSource({
         section: this,
         sectionHeadingMatch,
         contextCode,
         adjustedContextCode,
         isInSectionContext,
-      });
-      const sourceWithScore = source.calculateMatchScore(sectionIndex, thisHeadline, headlines);
+      }).calculateMatchScore(sectionIndex, thisHeadline, headlines);
       if (sourceWithScore.score <= 1) continue;
 
       sourcesWithScores.push(sourceWithScore);
@@ -1941,7 +1954,7 @@ class Section extends SectionSkeleton {
   /**
    * Get the TOC item for the section if present.
    *
-   * @returns {?import('./toc').TocItem}
+   * @returns {?import('./TocItem').default}
    */
   getTocItem() {
     return toc.getItem(this.id);
