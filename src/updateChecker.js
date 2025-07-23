@@ -43,10 +43,11 @@ import visits from './visits';
  */
 
 /**
- * @typedef {(
- *   & Omit<RemoveMethods<import('./worker/CommentWorker').default>, 'children' | 'previousComments'>
- *   & CommentWorkerExtension
- * )} CommentWorkerMatched
+ * @typedef {Omit<RemoveMethods<import('./worker/CommentWorker').default>, 'children' | 'previousComments'>} CommentWorkerBase
+ */
+
+/**
+ * @typedef {CommentWorkerBase & CommentWorkerExtension} CommentWorkerMatched
  */
 
 /**
@@ -66,7 +67,7 @@ import visits from './visits';
  * @typedef {object} AddedComments
  * @property {import('./updateChecker').CommentWorkerMatched[]} all
  * @property {import('./updateChecker').CommentWorkerMatched[]} relevant
- * @property {Map<import('./updateChecker').SectionWorkerMatched | import('./Section').default | null, import('./updateChecker').CommentWorkerMatched[]>} bySection
+ * @property {Map<import('./updateChecker').SectionWorkerMatched | null, import('./updateChecker').CommentWorkerMatched[]>} bySection
  */
 
 /**
@@ -292,12 +293,16 @@ class UpdateChecker extends EventEmitter {
   sortCommentsByMatchScore(candidates, target, isTotalCountEqual) {
     return candidates
       .map((candidate) => {
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const doesParentIdMatch = candidate.parent?.id === target.parent?.id;
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const doesHeadlineMatch = candidate.section?.headline === target.section?.headline;
 
         // Taking matched ID into account makes sense only if the total number of comments coincides.
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const doesIndexMatch = candidate.index === target.index && isTotalCountEqual;
 
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const partsMatchedCount = candidate.elementHtmls
           .filter((html, i) => html === target.elementHtmls[i])
           .length;
@@ -305,20 +310,19 @@ class UpdateChecker extends EventEmitter {
           partsMatchedCount /
           Math.max(candidate.elementHtmls.length, target.elementHtmls.length)
         );
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const overlap = partsMatchedProportion === 1 ?
           1 :
           calculateWordOverlap(candidate.text, target.text);
-        const score = (
-          Number(doesParentIdMatch) * (candidate.parent?.id ? 1 : 0.75) +
-          Number(doesHeadlineMatch) * 1 +
-          partsMatchedProportion +
-          overlap +
-          Number(doesIndexMatch) * 0.25
-        );
 
         return {
           comment: candidate,
-          score,
+          score:
+            Number(doesParentIdMatch) * (candidate.parent?.id ? 1 : 0.75) +
+            Number(doesHeadlineMatch) * 1 +
+            partsMatchedProportion +
+            overlap +
+            Number(doesIndexMatch) * 0.25,
         };
       })
       .filter((match) => match.score > 1.66)
@@ -429,8 +433,9 @@ class UpdateChecker extends EventEmitter {
         this.checkForUpdates();
       });
 
-      const interval = Math.abs(cd.g.backgroundUpdateCheckInterval - cd.g.updateCheckInterval);
-      this.setAlarmViaWorker(interval * 1000);
+      this.setAlarmViaWorker(
+        Math.abs(cd.g.backgroundUpdateCheckInterval - cd.g.updateCheckInterval) * 1000
+      );
       this.isBackgroundCheckArranged = true;
       return;
     }
@@ -538,10 +543,15 @@ class UpdateChecker extends EventEmitter {
 
       const oldComment = currentComment.match;
       if (oldComment) {
-        const seenHtmlToCompare = currentComment.id && seen?.[currentComment.id]?.htmlToCompare;
+
         if (
           this.hasCommentChanged(oldComment, currentComment) &&
-          seenHtmlToCompare !== currentComment.htmlToCompare
+
+          // Seen the comment in this edition?
+          (
+            !currentComment.id ||
+            seen?.[currentComment.id]?.htmlToCompare !== currentComment.htmlToCompare
+          )
         ) {
           const comment = commentRegistry.getById(currentComment.id);
           if (!comment) return;
@@ -705,7 +715,8 @@ class UpdateChecker extends EventEmitter {
   async markCommentsAsChanged(type, data, olderRevisionId, newerRevisionId) {
     if (!data.length) return;
 
-    const currentRevisionId = mw.config.get('wgRevisionId');
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const revisionIdAtStart = mw.config.get('wgRevisionId');
 
     // Don't process >20 diffs, that's too much and probably means something is broken
     const verifyDiffs = (
@@ -726,7 +737,7 @@ class UpdateChecker extends EventEmitter {
         // Empty
       }
     }
-    if (!this.isPageStillAtRevision(currentRevisionId)) return;
+    if (!this.isPageStillAtRevision(revisionIdAtStart)) return;
 
     data.forEach(({ comment, isNewRevisionRendered, comparedRevisionId, commentsData }) => {
       if (
@@ -791,6 +802,7 @@ class UpdateChecker extends EventEmitter {
             newComment.parentMatch = commentRegistry.getById(parentMatch.id) || undefined;
           }
         }
+
         return newComment;
       }));
 

@@ -30,6 +30,7 @@ alwaysApply: true
 * Add an empty line before `return` statements at the end of blocks (function, `if` statement, etc.) unless it's the only statement in that block.
 * Use 2 spaces for indentation.
 * Use single quotes for strings.
+* Code comments should have one empty line before them.
 
 ## JSDoc code style
 

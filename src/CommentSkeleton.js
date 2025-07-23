@@ -1544,8 +1544,8 @@ class CommentSkeleton {
     this.logicalLevel = this.level;
 
     if (fixMarkup) {
-      let areElementsChanged = this.reviewDives();
-      if (areElementsChanged) {
+      // Are elements changed?
+      if (this.reviewDives()) {
         levelElements = this.highlightables.map(this.getListsUpTree.bind(this));
       }
       this.fixIndentationHoles();

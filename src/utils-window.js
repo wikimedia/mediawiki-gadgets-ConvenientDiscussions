@@ -278,10 +278,11 @@ export function getHigherNodeAndOffsetInSelection(selection) {
  * @private
  */
 export function copyText(text, messages) {
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const $textarea = $('<textarea>')
     .val(text)
     .appendTo(document.body)
-    .select();
+    .trigger('select');
   const successful = document.execCommand('copy');
   $textarea.remove();
 
@@ -419,6 +420,7 @@ export function cleanUpPasteDom(element, containerElement) {
     el.textContent = el.textContent;
   });
 
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const syntaxHighlightLanguages = [...element.querySelectorAll('pre, code')].map((el) => (
     (
       (el.tagName === 'PRE' ? /** @type {HTMLElement} */ (el.parentElement) : el).className
@@ -480,6 +482,7 @@ export function cleanUpPasteDom(element, containerElement) {
 
   // Need to do it before removing the element; if we do it later, the literal textual content of
   // the elements equivalent to .textContent will be used instead of the rendered appearance.
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const text = element.innerText;
 
   element.remove();
@@ -606,9 +609,7 @@ export function getRangeContents(start, end, rootElement) {
  * @returns {JQuery<SVGElement>}
  */
 export function createSvg(width, height, viewBoxWidth = width, viewBoxHeight = height) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-
-  return $(svg)
+  return $(document.createElementNS('http://www.w3.org/2000/svg', 'svg'))
     .attr('width', width)
     .attr('height', height)
     .attr('viewBox', `0 0 ${viewBoxWidth} ${viewBoxHeight}`)
@@ -626,6 +627,7 @@ export function createSvg(width, height, viewBoxWidth = width, viewBoxHeight = h
  * @private
  */
 export function getAllTextNodes(rootNode) {
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const treeWalker = document.createNodeIterator(rootNode, NodeFilter.SHOW_TEXT);
   const nodes = [];
   let node;

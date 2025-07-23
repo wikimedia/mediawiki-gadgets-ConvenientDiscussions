@@ -67,21 +67,15 @@ import { createSvg, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisib
  */
 
 /**
- * @typedef {{
- *   Comment: import('./Section').default;
- *   CommentWorkerMatched: import('./updateChecker').SectionWorkerMatched;
- * }} CommentTypeToSectionType
+ * @typedef {RemoveMethods<import('./SectionSkeleton').default>} SectionBase
  */
 
 /**
- * @template {import('./updateChecker').CommentWorkerMatched | Comment} [T=import('./updateChecker').CommentWorkerMatched | Comment]
- * @typedef {(
- *   T extends Comment
- *     ? Map<import('./Section').default | null, Comment[]>
- *     : T extends import('./updateChecker').CommentWorkerMatched
- *       ? Map<import('./updateChecker').SectionWorkerMatched | null, import('./updateChecker').CommentWorkerMatched[]>
- *       : never
- * )} CommentsBySection
+ * @typedef {Omit<RemoveMethods<import('./CommentSkeleton').default>, 'children' | 'previousComments'>} CommentBase
+ */
+
+/**
+ * @typedef {Map<import('./updateChecker').SectionWorkerMatched | import('./Section').default | null, import('./updateChecker').CommentWorkerMatched[] | Comment[]>} CommentsBySection
  */
 
 /**
@@ -1106,10 +1100,9 @@ class Comment extends CommentSkeleton {
   updateToggleChildThreadsButton() {
     if (!this.toggleChildThreadsButton) return;
 
-    const childrenCollapsed = this.areChildThreadsCollapsed();
     this.toggleChildThreadsButton.element.innerHTML = '';
     this.toggleChildThreadsButton.element.appendChild(
-      childrenCollapsed
+      this.areChildThreadsCollapsed()
         ? Comment.prototypes.get('expandChildThreadsButtonSvg')
         : Comment.prototypes.get('collapseChildThreadsButtonSvg')
     );
@@ -1695,6 +1688,7 @@ class Comment extends CommentSkeleton {
       return null;
     }
 
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const hasMoved = this.getOffset({
       ...options,
       considerFloating: true,
@@ -2181,6 +2175,7 @@ class Comment extends CommentSkeleton {
     }
 
     // Get the current colors
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const initialMarkerColor = this.$marker.css('background-color');
     const initialBackgroundColor = this.$underlay.css('background-color');
 
@@ -2188,6 +2183,7 @@ class Comment extends CommentSkeleton {
     this.updateClassesForType(type, false);
 
     // Get the final (destination) colors
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const finalMarkerColor = this.$marker.css('background-color');
     let finalBackgroundColor = this.$underlay.css('background-color');
 
@@ -2329,6 +2325,7 @@ class Comment extends CommentSkeleton {
         return;
       }
       const startLineNumber = countOccurrences(pageCode.slice(0, source.lineStartIndex), /\n/g) + 1;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const endLineNumber =
         startLineNumber +
         countOccurrences(pageCode.slice(source.lineStartIndex, source.signatureEndIndex), /\n/g);
@@ -2669,24 +2666,23 @@ class Comment extends CommentSkeleton {
     const elementNames = [...this.$elements].map((el) => el.tagName);
     const elementClassNames = [...this.$elements].map((el) => el.className);
 
-    // References themselves may be out of the comment's HTML and might be edited.
-    const areThereReferences = newComment.hiddenElementsData.some(
-      (data) => data.type === 'reference'
-    );
-
-    // If a style element is replaced with a link element, we can't replace HTML.
-    const areStyleTagsKept =
-      !newComment.hiddenElementsData.length ||
-      newComment.hiddenElementsData.every(
-        (data) => data.type !== 'templateStyles' || data.tagName === 'STYLE'
-      ) ||
-      currentComment.hiddenElementsData.every(
-        (data) => data.type !== 'templateStyles' || data.tagName !== 'STYLE'
-      );
-
     if (
-      !areThereReferences &&
-      areStyleTagsKept &&
+      // Are there references? References themselves may be out of the comment's HTML and might be
+      // edited.
+      !newComment.hiddenElementsData.some((data) => data.type === 'reference') &&
+
+      // Are style tags kept? If a style element is replaced with a link element, we can't replace
+      // HTML.
+      (
+        !newComment.hiddenElementsData.length ||
+        newComment.hiddenElementsData.every(
+          (data) => data.type !== 'templateStyles' || data.tagName === 'STYLE'
+        ) ||
+        currentComment.hiddenElementsData.every(
+          (data) => data.type !== 'templateStyles' || data.tagName !== 'STYLE'
+        )
+      ) &&
+
       areObjectsEqual(elementNames, newComment.elementNames)
     ) {
       // TODO: support non-Arabic digits (e.g. fa.wikipedia.org). Also not sure square brackets are
@@ -2713,10 +2709,8 @@ class Comment extends CommentSkeleton {
           }
         } else {
           const $element = this.$elements.eq(i);
-          const isHidden = $element.hasClass('cd-hidden');
-          const newElement = this.replaceElement($element, html);
-          if (isHidden) {
-            $(newElement).addClass('cd-hidden');
+          if ($element.hasClass('cd-hidden')) {
+            $(this.replaceElement($element, html)).addClass('cd-hidden');
           }
         }
       });
@@ -2777,8 +2771,7 @@ class Comment extends CommentSkeleton {
 
     const id = this.dtId || this.id;
     if (pushState && id) {
-      const newState = { ...history.state, cdJumpedToComment: true };
-      history.pushState(newState, '', `#${id}`);
+      history.pushState({ ...history.state, cdJumpedToComment: true }, '', `#${id}`);
     }
 
     if (this.isCollapsed) {
@@ -2866,6 +2859,7 @@ class Comment extends CommentSkeleton {
   async generateDiffView() {
     const edit = await this.findEdit();
     const diffLink = await this.getDiffLink();
+
     return $('<div>')
       .addClass('cd-diffView-diff')
       .append(
@@ -2947,8 +2941,7 @@ class Comment extends CommentSkeleton {
       if (!diffOriginalText.trim()) continue;
 
       revision.diffBody = diffBody;
-      const timestamp = new Date(revision.timestamp).setSeconds(0);
-      const dateProximity = Math.abs(/** @type {Date} */ (this.date).getTime() - timestamp);
+
       let wordOverlap = Math.max(
         calculateWordOverlap(diffText, commentFullText),
         bestDiffPartWordOverlap
@@ -2968,7 +2961,13 @@ class Comment extends CommentSkeleton {
         wordOverlap = calculateWordOverlap(diffOriginalText, commentFullText);
       }
 
-      matches.push({ revision, wordOverlap, dateProximity });
+      matches.push({
+        revision,
+        wordOverlap,
+        dateProximity: Math.abs(
+          /** @type {Date} */ (this.date).getTime() - new Date(revision.timestamp).setSeconds(0)
+        ),
+      });
     }
 
     return matches;
@@ -3096,20 +3095,18 @@ class Comment extends CommentSkeleton {
    */
   thankFail(error) {
     const { type, code } = error instanceof CdError ? error.data : {};
-    let text;
+    let /** @type {string} */ text;
+    const historyUrl = this.getSourcePage().getArchivedPage().getUrl({ action: 'history' });
     switch (type) {
       case 'parse': {
-        const url = this.getSourcePage().getArchivedPage().getUrl({ action: 'history' });
-        text = cd.sParse('error-diffnotfound') + ' ' + cd.sParse('error-diffnotfound-history', url);
+        text = cd.sParse('error-diffnotfound') + ' ' + cd.sParse('error-diffnotfound-history', historyUrl);
         break;
       }
 
       case 'api':
       default: {
         if (code === 'noData') {
-          const url = this.getSourcePage().getArchivedPage().getUrl({ action: 'history' });
-          text =
-            cd.sParse('error-diffnotfound') + ' ' + cd.sParse('error-diffnotfound-history', url);
+          text = cd.sParse('error-diffnotfound') + ' ' + cd.sParse('error-diffnotfound-history', historyUrl);
         } else {
           text = cd.sParse('thank-error');
           console.warn(error);
@@ -3160,9 +3157,10 @@ class Comment extends CommentSkeleton {
       }
     );
     $question.find('a').attr('data-instantdiffs-link', 'event');
-    const $content = mergeJquery($question, await this.generateDiffView());
+    const $diffView = await this.generateDiffView();
 
-    if ((await showConfirmDialog($content, { size: 'larger' })) === 'accept') {
+    const answer = await showConfirmDialog(mergeJquery($question, $diffView), { size: 'larger' });
+    if (answer === 'accept') {
       try {
         await cd
           .getApi()
@@ -3487,10 +3485,13 @@ class Comment extends CommentSkeleton {
       this.flashChanged();
     }
 
-    const makesSenseToRegisterFurther = commentRegistry
-      .getAll()
-      .some((comment) => comment.isSeen || comment.willFlashChangedOnSight);
-    if (registerAllInDirection && makesSenseToRegisterFurther) {
+    if (
+      registerAllInDirection &&
+
+      // Makes sense to register further?
+      commentRegistry.getAll().some((comment) => comment.isSeen || comment.willFlashChangedOnSight)
+    ) {
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const change = registerAllInDirection === 'backward' ? -1 : 1;
       const nextComment = commentRegistry.getByIndex(this.index + change);
       if (nextComment && nextComment.isInViewport() !== false) {
@@ -3543,9 +3544,11 @@ class Comment extends CommentSkeleton {
     const nativeElement = element instanceof HTMLElement ? element : element[0];
     let newElement;
     if (typeof newElementOrHtml === 'string') {
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const index = [.../** @type {HTMLElement} */ (nativeElement.parentElement).children].indexOf(
         nativeElement
       );
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const parentElement = /** @type {HTMLElement} */ (nativeElement.parentElement);
       nativeElement.outerHTML = newElementOrHtml;
       newElement = /** @type {HTMLElement} */ (parentElement.children[index]);
@@ -3923,9 +3926,10 @@ class Comment extends CommentSkeleton {
 
         // Layout bug where not all children are `li`s:
         // https://ru.wikipedia.org/wiki/Википедия:Заявки_на_статус_администратора/Евгений_Юрьев#Против
-        const index = [...$outerWrapper.parent().children('li:not(.cd-skip)')].indexOf($next[0]);
-
-        $next.attr('value', index + 1);
+        $next.attr(
+          'value',
+          [...$outerWrapper.parent().children('li:not(.cd-skip)')].indexOf($next[0]) + 1
+        );
       }
     } else if ($wrappingList) {
       $wrappingList.insertAfter($lastOfTarget);
@@ -4026,9 +4030,12 @@ class Comment extends CommentSkeleton {
    */
   initNewAndSeen(currentPageVisits, currentTime, unseenComment) {
     // Let's take 3 minutes as a tolerable time discrepancy.
-    const isDateInFuture = this.date && this.date.getTime() > Date.now() + cd.g.msInMin * 3;
+    if (
+      !this.date ||
 
-    if (!this.date || isDateInFuture) {
+      // Is the comment date in the future?
+      (this.date && this.date.getTime() > Date.now() + cd.g.msInMin * 3)
+    ) {
       this.isNew = false;
       this.isSeen = true;
       return false;
@@ -4356,6 +4363,7 @@ class Comment extends CommentSkeleton {
       authorLink.className = 'cd-comment-author mw-userlink';
       authorWrapper.append(authorLink);
 
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const bdiElement = document.createElement('bdi');
       authorLink.append(bdiElement);
 
@@ -4531,19 +4539,35 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Turn a comment array into a map with sections as keys.
+   * Turn a Comment[] into a map with Section as keys.
    *
-   * @template {import('./updateChecker').CommentWorkerMatched | Comment} T
-   * @param {ToDistributiveArray<T>} comments
-   * @returns {CommentsBySection<T>}
+   * @overload
+   * @param {Comment[]} comments
+   * @returns {Map<import('./Section').default | null, Comment[]>}
+   */
+
+  /**
+   * Turn a CommentWorkerMatched[] into a map with SectionWorkerMatched as keys.
+   *
+   * @overload
+   * @param {import('./updateChecker').CommentWorkerMatched[]} comments
+   * @returns {Map<import('./updateChecker').SectionWorkerMatched | null, import('./updateChecker').CommentWorkerMatched[]>}
+   */
+
+  /**
+   * Turn a comment array into an object with sections or their IDs as keys.
+   *
+   * @param {CommentBase[]} comments
+   * @returns {Map<SectionBase | null, CommentBase[]>}
    */
   static groupBySection(comments) {
-    const map = /** @type {CommentsBySection<T>} */ (new Map());
+    const map = /** @type {Map<SectionBase | null, CommentBase[]>} */ (new Map());
     for (const comment of comments) {
       if (!map.has(comment.section)) {
         map.set(comment.section, []);
       }
-      /** @type {ToDistributiveArray<T>} */ (map.get(comment.section)).push(comment);
+
+      /** @type {CommentBase[]} */ (map.get(comment.section)).push(comment);
     }
 
     return map;
@@ -4610,16 +4634,18 @@ class Comment extends CommentSkeleton {
       return null;
     }
 
-    const year = Number(match[1]);
-    const month = Number(match[2]) - 1;
-    const day = Number(match[3]);
-    const hours = Number(match[4]);
-    const minutes = Number(match[5]);
-    const author = underlinesToSpaces(match[6]);
-
-    const date = new Date(Date.UTC(year, month, day, hours, minutes));
-
-    return { date, author };
+    return {
+      date: new Date(
+        Date.UTC(
+          Number(match[1]),
+          Number(match[2]) - 1,
+          Number(match[3]),
+          Number(match[4]),
+          Number(match[5])
+        )
+      ),
+      author: underlinesToSpaces(match[6]),
+    };
   }
 
   /**
@@ -4634,28 +4660,35 @@ class Comment extends CommentSkeleton {
       return null;
     }
 
-    const parseTimestamp = (startIndex) => {
-      const author = underlinesToSpaces(match[startIndex]);
+    const parseTimestamp = (/** @type {number} */  startIndex) => {
       let date;
       if (match[startIndex + 1]) {
-        const year = Number(match[startIndex + 1]);
-        const month = Number(match[startIndex + 2]) - 1;
-        const day = Number(match[startIndex + 3]);
-        const hours = Number(match[startIndex + 4]);
-        const minutes = Number(match[startIndex + 5]);
-        date = new Date(Date.UTC(year, month, day, hours, minutes));
+        date = new Date(
+          Date.UTC(
+            Number(match[startIndex + 1]),
+            Number(match[startIndex + 2]) - 1,
+            Number(match[startIndex + 3]),
+            Number(match[startIndex + 4]),
+            Number(match[startIndex + 5])
+          )
+        );
       } else {
         date = new Date(match[startIndex + 6]);
       }
-      return [author, date];
+      return [underlinesToSpaces(match[startIndex]), date];
     };
 
     const [author, date] = parseTimestamp(1);
     const [parentAuthor, parentDate] = match[8] ? parseTimestamp(8) : [];
-    const sectionIdBeginning = match[15];
-    const index = match[16] ? Number(match[16]) : undefined;
 
-    return { author, date, parentAuthor, parentDate, sectionIdBeginning, index };
+    return {
+      author,
+      date,
+      parentAuthor,
+      parentDate,
+      sectionIdBeginning: match[15],
+      index: match[16] ? Number(match[16]) : undefined,
+    };
   }
 
   /**
