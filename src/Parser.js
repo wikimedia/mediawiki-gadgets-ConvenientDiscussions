@@ -193,7 +193,7 @@ class Parser {
     }
 
     // Don't have Node#replaceChild() in the worker.
-    node.parentElement?.insertBefore(/** @type {any} */ (span), /** @type {any} */ (node));
+    node.parentElement?.insertBefore(span, node);
     node.remove();
   }
 
@@ -222,7 +222,7 @@ class Parser {
     const { date, match } = parseTimestamp(text) || {};
     if (
       !date ||
-      this.noSignatureElements.some((/** @type {ElementLike} */ el) => el.contains(/** @type {any} */ (node)))
+      this.noSignatureElements.some((/** @type {ElementLike} */ el) => el.contains(node))
     ) {
       return null;
     }
@@ -233,9 +233,9 @@ class Parser {
     const remainedText = node.textContent.slice(match.index + match[0].length);
     const afterNode = remainedText ? document.createTextNode(remainedText) : undefined;
     node.textContent = match[1];
-    node.parentElement?.insertBefore(/** @type {any} */ (element), /** @type {any} */ (node.nextSibling));
+    node.parentElement?.insertBefore(element, node.nextSibling);
     if (afterNode) {
-      node.parentElement?.insertBefore(/** @type {any} */ (afterNode), /** @type {any} */ (element.nextSibling));
+      node.parentElement?.insertBefore(afterNode, element.nextSibling);
     }
 
     return { element, date };
@@ -397,8 +397,8 @@ class Parser {
     const startElementNextSibling = signatureNodes[0].nextSibling;
     const element = document.createElement('span');
     element.classList.add('cd-signature');
-    signatureNodes.reverse().forEach(/** @type {any} */ (element.appendChild.bind(element)));
-    signatureContainer.insertBefore(/** @type {any} */ (element), /** @type {any} */ (startElementNextSibling));
+    signatureNodes.reverse().forEach(element.appendChild.bind(element));
+    signatureContainer.insertBefore(element, startElementNextSibling);
 
     return {
       element,
@@ -603,7 +603,7 @@ class Parser {
         (element) =>
           element.getAttribute('id') !== 'mw-toc-heading' &&
           !this.noSignatureElements.some((/** @type {ElementLike} */ noSigEl) =>
-            noSigEl.contains(/** @type {any} */ (element))
+            noSigEl.contains(element)
           )
       )
       .map((element) => ({
@@ -655,7 +655,7 @@ class Parser {
     let lastChild;
     while ((lastChild = parent.lastChild) && lastChild !== node) {
       const firstChild = /** @type {NodeLike} */ (clone.firstChild);
-      clone.insertBefore(/** @type {any} */ (lastChild), /** @type {any} */ (firstChild));
+      clone.insertBefore(lastChild, firstChild);
 
       // if (isDomHandlerNode(clone) && isDomHandlerNode(lastChild) && isDomHandlerNode(firstChild)) {
       //   clone.insertBefore(lastChild, firstChild);
@@ -664,7 +664,7 @@ class Parser {
       // }
     }
     if (clone[this.context.childElementsProp].length > 0) {
-      parent.parentElement?.insertBefore(/** @type {any} */ (clone), /** @type {any} */ (parent.nextSibling));
+      parent.parentElement?.insertBefore(clone, parent.nextSibling);
     }
 
     return { parent, clone };

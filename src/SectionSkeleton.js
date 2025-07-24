@@ -307,7 +307,7 @@ class SectionSkeleton {
     // Some wrappers that include the section heading added by users
     while (
       lastElement &&
-      lastElement.contains(/** @type {any} */ (this.headingElement)) &&
+      lastElement.contains(this.headingElement) &&
       lastElement !== this.headingElement
     ) {
       lastElement = /** @type {ElementLike} */ (lastElement.lastElementChild);
