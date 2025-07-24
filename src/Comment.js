@@ -4534,8 +4534,8 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * @typedef {import('./updateChecker').SectionWorkerMatched & import('./Section').default} SectionBase
-   * @typedef {import('./updateChecker').CommentWorkerMatched & import('./Comment').default} CommentBase
+   * @typedef {CommonProps<RemoveMethods<import('./updateChecker').SectionWorkerMatched>, import('./Section').default>} SectionBase
+   * @typedef {CommonProps<Omit<RemoveMethods<import('./CommentSkeleton').default>, 'children' | 'previousComments'>, Comment>} CommentBase
    */
 
   /**

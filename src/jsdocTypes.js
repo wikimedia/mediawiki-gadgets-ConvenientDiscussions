@@ -27,6 +27,12 @@
  */
 
 /**
+ * @template {object} A
+ * @template {object} B
+ * @typedef {{ [K in keyof A & keyof B]: A[K] }} CommonProps
+ */
+
+/**
  * Don't use ElementLike[] - elements of different types can't be mixed.
  *
  * @typedef {Element[] | import('./worker/domhandlerExtended').Element[]} ElementLikeArray
