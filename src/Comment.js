@@ -67,14 +67,6 @@ import { createSvg, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisib
  */
 
 /**
- * @typedef {RemoveMethods<import('./SectionSkeleton').default>} SectionBase
- */
-
-/**
- * @typedef {Omit<RemoveMethods<import('./CommentSkeleton').default>, 'children' | 'previousComments'>} CommentBase
- */
-
-/**
  * @typedef {Map<import('./updateChecker').SectionWorkerMatched | import('./Section').default | null, import('./updateChecker').CommentWorkerMatched[] | Comment[]>} CommentsBySection
  */
 
@@ -4540,6 +4532,11 @@ class Comment extends CommentSkeleton {
 
     return rect;
   }
+
+  /**
+   * @typedef {import('./updateChecker').SectionWorkerMatched & import('./Section').default} SectionBase
+   * @typedef {import('./updateChecker').CommentWorkerMatched & import('./Comment').default} CommentBase
+   */
 
   /**
    * Turn a Comment[] into a map with Section as keys.

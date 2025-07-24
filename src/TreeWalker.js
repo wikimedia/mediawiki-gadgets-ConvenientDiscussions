@@ -21,7 +21,7 @@ import { isElement, isNode } from './utils-general';
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/TreeWalker TreeWalker web API} for the
  * normal and worker contexts.
  *
- * @template {NodeLike} [AcceptedNode=NodeLike]
+ * @template {NodeBase} [AcceptedNode=NodeBase]
  */
 class TreeWalker {
   /** @type {AcceptedNode} */
@@ -40,13 +40,13 @@ class TreeWalker {
   nextSiblingProp;
 
   /**
-   * @typedef {(node: NodeLike) => node is AcceptedNode} AcceptNode
+   * @typedef {(node: NodeBase) => node is AcceptedNode} AcceptNode
    */
 
   /**
    * Create a tree walker.
    *
-   * @param {NodeLike} root Node that limits where the tree walker can go within this document's
+   * @param {NodeBase} root Node that limits where the tree walker can go within this document's
    *   tree: only the root node and its descendants.
    * @param {AcceptNode} [acceptNode] Function that returns `true` if the tree walker should accept
    *   the node and `false` if it should reject.
@@ -94,7 +94,7 @@ class TreeWalker {
    * @protected
    */
   tryMove(prop) {
-    /** @type {NodeLike | null} */
+    /** @type {NodeBase | null} */
     let node = this.currentNode;
     if (node === this.root && !prop.includes('Child')) {
       return null;
@@ -158,11 +158,11 @@ class TreeWalker {
   /**
    * Go to the next node (don't confuse with the next sibling).
    *
-   * @param {NodeLike} [startNode]
+   * @param {NodeBase} [startNode]
    * @returns {?AcceptedNode}
    */
   nextNode(startNode) {
-    /** @type {NodeLike | null} */
+    /** @type {NodeBase | null} */
     let node = startNode || this.currentNode;
 
     do {
@@ -188,14 +188,14 @@ class TreeWalker {
    * @returns {?AcceptedNode}
    */
   previousNode() {
-    /** @type {NodeLike | null} */
+    /** @type {NodeBase | null} */
     let node = this.currentNode;
     if (node === this.root) {
       return null;
     }
 
     do {
-      let test = /** @type {NodeLike | null} */ (node[this.previousSiblingProp]);
+      let test = /** @type {NodeBase | null} */ (node[this.previousSiblingProp]);
       if (test) {
         node = test;
         while ((test = node[this.lastChildProp])) {

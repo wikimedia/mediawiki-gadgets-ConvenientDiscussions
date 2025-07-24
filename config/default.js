@@ -855,9 +855,9 @@ export default {
    * https://github.com/jwbth/convenient-discussions/blob/6281b9ede22149beb47ba0da37549d13600cb1c9/src/js/BootProcess.js#L745
    * this}.
    *
-   * @type {?((node: NodeLike, context: import('./../src/Parser').Context) => boolean)}
+   * @type {?((node: NodeBase, context: import('./../src/Parser').Context) => boolean)}
    * @kind function
-   * @param {NodeLike} node
+   * @param {NodeBase} node
    * @param {import('./../src/Parser').Context} context
    * @returns {boolean}
    * @default null
