@@ -8,9 +8,6 @@ import { defined, isElement, isHeadingNode, isMetadataNode, isText } from './uti
  * Class containing the main properties of a section and building it from a heading (we should
  * probably extract `SectionParser` from it). It is extended by {@link Section}. This class is the
  * only one used in the worker context for sections.
- *
- * @template N extends NodeLike
- * @template E extends ElementLike
  */
 class SectionSkeleton {
   /**
@@ -41,7 +38,7 @@ class SectionSkeleton {
   /**
    * Last element in the section.
    *
-   * @type {E}
+   * @type {ElementLike}
    */
   lastElement;
 
@@ -49,7 +46,7 @@ class SectionSkeleton {
    * Last element in the first chunk of the section, i.e. all elements up to the first subheading
    * if it is present or just all elements if it is not.
    *
-   * @type {E}
+   * @type {ElementLike}
    */
   lastElementInFirstChunk;
 
@@ -88,16 +85,13 @@ class SectionSkeleton {
     /**
      * Heading element (`.mw-heading` or `<h1>` - `<h6>`).
      *
-     * @type {E}
+     * @type {ElementLike}
      */
-    this.headingElement = /** @type {E} */ (heading.element);
+    this.headingElement = heading.element;
 
-    /**
-     * @param {?E} node
-     * @returns {?E}
-     */
-    const returnNodeIfHNode = (node) =>
+    const returnNodeIfHNode = (/** @type {?ElementLike} */ node) =>
       node && isHeadingNode(node, true) ? node : null;
+
 
     /**
      * `<hN>` element of the section (`<h1>`-`<h6>`).
@@ -106,17 +100,17 @@ class SectionSkeleton {
      */
     this.hElement = (
       returnNodeIfHNode(this.headingElement) ||
-      returnNodeIfHNode(/** @type {E} */ (/** @type {ElementLike} */ (this.headingElement).firstElementChild)) ||
+      returnNodeIfHNode(this.headingElement.firstElementChild) ||
 
       // Russian Wikivoyage and anything with .mw-h2section (not to be confused with .mw-heading2).
       // Also, a precaution in case something in MediaWiki changes.
-      /** @type {E} */ (/** @type {ElementLike} */ (this.headingElement).querySelectorAll('h1, h2, h3, h4, h5, h6')[0])
+      this.headingElement.querySelectorAll('h1, h2, h3, h4, h5, h6')[0]
     );
 
     /**
      * Headline element.
      *
-     * @type {E}
+     * @type {ElementLike}
      * @protected
      */
     this.headlineElement = cd.g.isParsoidUsed ?
@@ -137,7 +131,7 @@ class SectionSkeleton {
      *
      * @type {string}
      */
-    this.id = /** @type {string} */ (/** @type {ElementLike} */ (this.headlineElement).getAttribute('id'));
+    this.id = /** @type {string} */ (this.headlineElement.getAttribute('id'));
 
     this.parseHeadline();
 
@@ -148,7 +142,7 @@ class SectionSkeleton {
      * @type {number}
      */
     this.level = Number(
-      /** @type {RegExpMatchArray} */ (/** @type {ElementLike} */ (this.hElement).tagName.match(/^H([1-6])$/))[1]
+      /** @type {RegExpMatchArray} */ (this.hElement.tagName.match(/^H([1-6])$/))[1]
     );
 
     /**
@@ -170,11 +164,11 @@ class SectionSkeleton {
       // &action=edit, ?action=edit (couldn't figure out where this comes from, but at least one
       // user has such links), &veaction=editsource. We perhaps could catch veaction=edit, but
       // there's probably no harm in that.
-      .find((link) => /** @type {ElementLike} */ (link).getAttribute('href')?.includes('action=edit'));
+      .find((link) => link.getAttribute('href')?.includes('action=edit'));
 
     if (editLink) {
       // `href` property with the full URL is not available in the worker context.
-      const editUrl = new URL(cd.g.server + /** @type {ElementLike} */ (editLink).getAttribute('href'));
+      const editUrl = new URL(cd.g.server + editLink.getAttribute('href'));
       if (editUrl) {
         const sectionParam = editUrl.searchParams.get('section');
         if (sectionParam && sectionParam.startsWith('T-')) {
@@ -241,24 +235,20 @@ class SectionSkeleton {
       nextNotDescendantHeadingElement = targets[nndheIndex]?.element;
     }
 
-    /** @typedef {E} TreeWalkerAcceptedNode */
+    /** @typedef {ElementLike} TreeWalkerAcceptedNode */
     const treeWalker = new TreeWalker(
-      /** @type {ElementLike} */ (this.parser.context.rootElement),
-      /** @type {(node: NodeLike) => boolean} */ (node => !isMetadataNode(node) && /** @type {ElementLike} */ (node).classList && !/** @type {ElementLike} */ (node).classList.contains('cd-section-button-container')),
+      this.parser.context.rootElement,
+      /** @type {(node: ElementLike) => node is TreeWalkerAcceptedNode} */ (node) =>
+        !isMetadataNode(node) &&
+        !node.classList.contains('cd-section-button-container'),
       true
     );
 
-    this.lastElement = this.getLastElement(
-      /** @type {E|undefined} */ (nextNotDescendantHeadingElement),
-      /** @type {import('./TreeWalker').default<ElementLike>} */ (treeWalker)
-    );
+    this.lastElement = this.getLastElement(nextNotDescendantHeadingElement, treeWalker);
 
     this.lastElementInFirstChunk = nextHeadingElement === nextNotDescendantHeadingElement ?
       this.lastElement :
-      this.getLastElement(
-        /** @type {E|undefined} */ (nextHeadingElement),
-        /** @type {import('./TreeWalker').default<ElementLike>} */ (treeWalker)
-      );
+      this.getLastElement(nextHeadingElement, treeWalker);
 
     const targetsToComments = (/** @type {import('./Parser').Target[]} */ targets) => (
       targets
@@ -298,12 +288,11 @@ class SectionSkeleton {
    * In this case, section 1 has paragraphs 1 and 2 as the first and last, and section 2 has
    * paragraphs 3 and 4 as such. Our code must capture that.
    *
-   * @param {E|undefined} followingHeadingElement
-   * @param {import('./TreeWalker').default<E>} treeWalker
-   * @returns {E}
+   * @param {ElementLike|undefined} followingHeadingElement
+   * @param {import('./TreeWalker').default<ElementLike>} treeWalker
+   * @returns {ElementLike}
    */
   getLastElement(followingHeadingElement, treeWalker) {
-    /** @type {E} */
     let lastElement;
     if (followingHeadingElement) {
       treeWalker.currentNode = followingHeadingElement;
@@ -312,20 +301,20 @@ class SectionSkeleton {
       }
       lastElement = treeWalker.currentNode;
     } else {
-      lastElement = /** @type {E} */ (/** @type {ElementLike} */ (this.parser.context.rootElement).lastElementChild);
+      lastElement = /** @type {ElementLike} */ (this.parser.context.rootElement.lastElementChild);
     }
 
     // Some wrappers that include the section heading added by users
     while (
       lastElement &&
-      /** @type {ElementLike} */ (lastElement).contains(this.headingElement) &&
+      lastElement.contains(/** @type {any} */ (this.headingElement)) &&
       lastElement !== this.headingElement
     ) {
-      lastElement = /** @type {E} */ (/** @type {ElementLike} */ (lastElement).lastElementChild);
+      lastElement = /** @type {ElementLike} */ (lastElement.lastElementChild);
     }
 
-    if (cd.config.reflistTalkClasses.some((name) => /** @type {ElementLike} */ (lastElement).classList?.contains(name))) {
-      lastElement = /** @type {E} */ (/** @type {ElementLike} */ (lastElement).previousElementSibling);
+    if (cd.config.reflistTalkClasses.some((name) => lastElement.classList?.contains(name))) {
+      lastElement = /** @type {ElementLike} */ (lastElement.previousElementSibling);
     }
 
     return lastElement;
@@ -344,12 +333,12 @@ class SectionSkeleton {
       ...cd.config.excludeFromHeadlineClasses,
     ];
 
-    this.headline = [.../** @type {ElementLike} */ (this.headlineElement).childNodes]
+    this.headline = [...this.headlineElement.childNodes]
       .filter((node) => (
         isText(node) ||
         (
           isElement(node) &&
-          !(isMetadataNode(node) || classesToFilter.some((name) => /** @type {ElementLike} */ (node).classList.contains(name)))
+          !(isMetadataNode(node) || classesToFilter.some((name) => node.classList.contains(name)))
         )
       ))
       .map((node) => node.textContent)

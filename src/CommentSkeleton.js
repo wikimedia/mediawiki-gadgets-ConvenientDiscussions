@@ -315,7 +315,7 @@ class CommentSkeleton {
     const parts = /** @type {CommentPart[]} */ ([]);
     const fiaParentNode = /** @type {ElementLike} */ (farthestInlineAncestor.parentElement);
     if (
-      (firstForeignComponentAfter && fiaParentNode.contains(firstForeignComponentAfter)) ||
+      (firstForeignComponentAfter && fiaParentNode.contains(/** @type {any} */ (firstForeignComponentAfter))) ||
 
       // Cases when the comment has no wrapper that contains only that comment (for example,
       // https://ru.wikipedia.org/wiki/Project:Форум/Архив/Технический/2020/10#202010140847_AndreiK).
@@ -785,7 +785,7 @@ class CommentSkeleton {
         }
 
         isHeading = isHeadingNode(node);
-        hasCurrentSignature = node.contains(this.signatureElement);
+        hasCurrentSignature = node.contains(/** @type {any} */ (this.signatureElement));
 
         // The second parameter of .getElementsByClassName() is an optimization for the worker
         // context.
@@ -803,7 +803,7 @@ class CommentSkeleton {
             signatureCount - Number(hasCurrentSignature) > 0 ||
             (
               firstForeignComponentAfter &&
-              node.contains(firstForeignComponentAfter) &&
+              node.contains(/** @type {any} */ (firstForeignComponentAfter)) &&
 
               !(
                 // Cases like the table added at https://ru.wikipedia.org/?diff=115822931
@@ -819,7 +819,7 @@ class CommentSkeleton {
             (
               precedingHeadingElement &&
               node !== precedingHeadingElement &&
-              node.contains(precedingHeadingElement)
+              node.contains(/** @type {any} */ (precedingHeadingElement))
             )
           )
         );
@@ -950,14 +950,14 @@ class CommentSkeleton {
       const nextSibling = this.parts[sequence.start].node.nextSibling;
       const parent = /** @type {ElementLike} */ (this.parts[sequence.start].node.parentElement);
       for (let j = sequence.end; j >= sequence.start; j--) {
-        wrapper.appendChild(this.parts[j].node);
+        wrapper.appendChild(/** @type {any} */ (this.parts[j].node));
       }
-      parent.insertBefore(wrapper, nextSibling);
+      parent.insertBefore(/** @type {any} */ (wrapper), /** @type {any} */ (nextSibling));
       this.parts.splice(sequence.start, sequence.end - sequence.start + 1, {
         node: wrapper,
         isTextNode: false,
         isHeading: false,
-        hasCurrentSignature: wrapper.contains(this.signatureElement),
+        hasCurrentSignature: wrapper.contains(/** @type {any} */ (this.signatureElement)),
         hasForeignComponents: false,
         step: 'replaced',
       });
@@ -1019,7 +1019,7 @@ class CommentSkeleton {
       isElement(firstNode.firstChild) &&
       firstNode.firstChild?.tagName === 'BR'
     ) {
-      firstNode.before(firstNode.firstChild);
+      firstNode.before(/** @type {any} */ (firstNode.firstChild));
     }
 
     for (let i = this.parts.length - 1, startNode; i >= 1; i--) {
@@ -1179,7 +1179,7 @@ class CommentSkeleton {
             node: el,
             isTextNode: false,
             isHeading: false,
-            hasCurrentSignature: el.contains(this.signatureElement),
+            hasCurrentSignature: el.contains(/** @type {any} */ (this.signatureElement)),
             hasForeignComponents: false,
             step: 'replaced',
           })));
@@ -1203,7 +1203,7 @@ class CommentSkeleton {
 
       if (firstNodeParent.tagName === 'OL') {
         // 0 or 1
-        const currentSignatureCount = Number(firstNodeParent.contains(this.signatureElement));
+        const currentSignatureCount = Number(firstNodeParent.contains(/** @type {any} */ (this.signatureElement)));
 
         // A foreign signature can be found with just .cd-signature search; example:
         // https://commons.wikimedia.org/?diff=566673258.
@@ -1218,7 +1218,7 @@ class CommentSkeleton {
           const isNumberedListUsedAsIndentation = !this.parts.some(
             (part) =>
               part.node.parentNode !== firstNodeParent &&
-              /** @type {ElementLike} */ (part.node.parentElement).contains(firstNodeParent)
+              /** @type {ElementLike} */ (part.node.parentElement).contains(/** @type {any} */ (firstNodeParent))
           );
           let outerWrapper;
           let innerWrapper;
@@ -1232,8 +1232,8 @@ class CommentSkeleton {
             innerWrapper = document.createElement('div');
             outerWrapper = innerWrapper;
           }
-          innerWrapper.appendChild(firstNodeParent);
-          parentParent.insertBefore(outerWrapper, nextSibling);
+          innerWrapper.appendChild(/** @type {any} */ (firstNodeParent));
+          parentParent.insertBefore(/** @type {any} */ (outerWrapper), /** @type {any} */ (nextSibling));
 
           this.parts.splice(0, listItems.length, {
             node: innerWrapper,
@@ -1306,10 +1306,10 @@ class CommentSkeleton {
       .forEach((el) => {
         const wrapper = document.createElement('div');
         wrapper.className = 'cd-comment-replacedPart';
-        el.before(wrapper);
-        this.elements.splice(this.elements.indexOf(el), 1, wrapper);
-        this.highlightables.splice(this.highlightables.indexOf(el), 1, wrapper);
-        wrapper.appendChild(el);
+        el.before(/** @type {any} */ (wrapper));
+        /** @type {any} */ (this.elements).splice(this.elements.indexOf(el), 1, /** @type {any} */ (wrapper));
+        /** @type {any} */ (this.highlightables).splice(this.highlightables.indexOf(el), 1, /** @type {any} */ (wrapper));
+        wrapper.appendChild(/** @type {any} */ (el));
       });
   }
 
@@ -1471,9 +1471,9 @@ class CommentSkeleton {
           const tagName = levelElement.tagName === 'DL' ? 'dd' : 'li';
           const itemElement = document.createElement(tagName);
           indexes.forEach((index) => {
-            itemElement.appendChild(this.elements[index]);
+            itemElement.appendChild(/** @type {any} */ (this.elements[index]));
           });
-          levelElement.appendChild(itemElement);
+          levelElement.appendChild(/** @type {any} */ (itemElement));
         }
       });
   }
@@ -1509,7 +1509,7 @@ class CommentSkeleton {
 
       let firstItemIndex = this.elements.length - 1;
       for (let i = this.elements.length - 2; i > 0; i--) {
-        if (closestLevelElement.contains(this.elements[i])) {
+        if (closestLevelElement.contains(/** @type {any} */ (this.elements[i]))) {
           firstItemIndex = i;
         } else {
           break;
@@ -1518,7 +1518,7 @@ class CommentSkeleton {
       this.elements.splice(
         firstItemIndex,
         this.elements.length - firstItemIndex,
-        closestLevelElement
+        /** @type {any} */ (closestLevelElement)
       );
       this.updateHighlightables();
     }
