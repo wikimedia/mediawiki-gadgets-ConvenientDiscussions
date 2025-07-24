@@ -4,13 +4,13 @@ import TreeWalker from './TreeWalker';
  * Tree walker that walks only on element nodes.
  *
  * @augments TreeWalker<AcceptedNode>
- * @template {ElementBase} [AcceptedNode=ElementBase]
+ * @template {ElementLike} [AcceptedNode=ElementLike]
  */
 class ElementsTreeWalker extends TreeWalker {
   /**
    * Create an {@link TreeWalker tree walker} that walks elements.
    *
-   * @param {NodeBase} root
+   * @param {NodeLike} root
    * @param {AcceptedNode} [startNode]
    */
   constructor(root, startNode) {

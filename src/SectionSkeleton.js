@@ -38,7 +38,7 @@ class SectionSkeleton {
   /**
    * Last element in the section.
    *
-   * @type {ElementBase}
+   * @type {ElementLike}
    */
   lastElement;
 
@@ -46,7 +46,7 @@ class SectionSkeleton {
    * Last element in the first chunk of the section, i.e. all elements up to the first subheading
    * if it is present or just all elements if it is not.
    *
-   * @type {ElementBase}
+   * @type {ElementLike}
    */
   lastElementInFirstChunk;
 
@@ -85,11 +85,11 @@ class SectionSkeleton {
     /**
      * Heading element (`.mw-heading` or `<h1>` - `<h6>`).
      *
-     * @type {ElementBase}
+     * @type {ElementLike}
      */
     this.headingElement = heading.element;
 
-    const returnNodeIfHNode = (/** @type {?ElementBase} */ node) =>
+    const returnNodeIfHNode = (/** @type {?ElementLike} */ node) =>
       node && isHeadingNode(node, true) ? node : null;
 
 
@@ -110,7 +110,7 @@ class SectionSkeleton {
     /**
      * Headline element.
      *
-     * @type {ElementBase}
+     * @type {ElementLike}
      * @protected
      */
     this.headlineElement = cd.g.isParsoidUsed ?
@@ -235,10 +235,10 @@ class SectionSkeleton {
       nextNotDescendantHeadingElement = targets[nndheIndex]?.element;
     }
 
-    /** @typedef {ElementBase} TreeWalkerAcceptedNode */
+    /** @typedef {ElementLike} TreeWalkerAcceptedNode */
     const treeWalker = new TreeWalker(
       this.parser.context.rootElement,
-      /** @type {(node: ElementBase) => node is TreeWalkerAcceptedNode} */ (node) =>
+      /** @type {(node: ElementLike) => node is TreeWalkerAcceptedNode} */ (node) =>
         !isMetadataNode(node) &&
         !node.classList.contains('cd-section-button-container'),
       true
@@ -288,9 +288,9 @@ class SectionSkeleton {
    * In this case, section 1 has paragraphs 1 and 2 as the first and last, and section 2 has
    * paragraphs 3 and 4 as such. Our code must capture that.
    *
-   * @param {ElementBase|undefined} followingHeadingElement
-   * @param {import('./TreeWalker').default<ElementBase>} treeWalker
-   * @returns {ElementBase}
+   * @param {ElementLike|undefined} followingHeadingElement
+   * @param {import('./TreeWalker').default<ElementLike>} treeWalker
+   * @returns {ElementLike}
    */
   getLastElement(followingHeadingElement, treeWalker) {
     let lastElement;
@@ -301,7 +301,7 @@ class SectionSkeleton {
       }
       lastElement = treeWalker.currentNode;
     } else {
-      lastElement = /** @type {ElementBase} */ (this.parser.context.rootElement.lastElementChild);
+      lastElement = /** @type {ElementLike} */ (this.parser.context.rootElement.lastElementChild);
     }
 
     // Some wrappers that include the section heading added by users
@@ -310,11 +310,11 @@ class SectionSkeleton {
       lastElement.contains(this.headingElement) &&
       lastElement !== this.headingElement
     ) {
-      lastElement = /** @type {ElementBase} */ (lastElement.lastElementChild);
+      lastElement = /** @type {ElementLike} */ (lastElement.lastElementChild);
     }
 
     if (cd.config.reflistTalkClasses.some((name) => lastElement.classList?.contains(name))) {
-      lastElement = /** @type {ElementBase} */ (lastElement.previousElementSibling);
+      lastElement = /** @type {ElementLike} */ (lastElement.previousElementSibling);
     }
 
     return lastElement;
