@@ -1050,7 +1050,7 @@ class CommentSkeleton {
           stage: 2,
           node: part.node,
           nextNode: nextElement,
-          lastPartNode: this.parts[0].node,
+          lastPartNode: /** @type {ElementLike} */ (this.parts[0].node),
         })
       ) {
         this.parts.splice(i);
