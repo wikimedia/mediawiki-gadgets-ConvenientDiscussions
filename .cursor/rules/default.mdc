@@ -31,6 +31,7 @@ alwaysApply: true
 * Use 2 spaces for indentation.
 * Use single quotes for strings.
 * Code comments should have one empty line before them.
+* When using inline code comments, place 2 spaces before them.
 
 ## JSDoc code style
 

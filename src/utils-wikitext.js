@@ -156,7 +156,7 @@ export function encodeWikilink(link) {
  * The object returned from `extractSignatures()`.
  *
  * @typedef {object} SignatureInWikitext
- * @property {import('./userRegistry').User} author The author name.
+ * @property {import('./User').default} author The author name.
  * @property {number} index The array index of the signature (not the index of the signature's text
  *   in the code - excuse me the ambiguity here).
  * @property {string} [timestamp] The timestamp of the signature.
@@ -171,7 +171,7 @@ export function encodeWikilink(link) {
 
 /**
  * @typedef {object} SignatureInWikitextTemp
- * @property {import("./userRegistry").User} [author]
+ * @property {import('./User').default} [author]
  * @property {string} [timestamp]
  * @property {number} startIndex
  * @property {number} endIndex
@@ -271,6 +271,7 @@ function extractRegularSignatures(adjustedCode, code) {
   const afterTimestamp = `(?!["»])(?:\\}\\}|</small>)?`;
 
   // Use (?:^|[^=]) to filter out timestamps in a parameter (in quote templates)
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const timestampRegexp = new RegExp(
     `^((.*?(?:^|[^=]))(${cd.g.contentTimestampRegexp.source})${afterTimestamp}).*${ending}`,
     'igm'
@@ -280,7 +281,9 @@ function extractRegularSignatures(adjustedCode, code) {
   // to make sure we take the first link to the same author as the author in the last link. 251 is
   // not arbitrary: it's 255 (maximum allowed signature length) minus `'[[u:a'.length` plus
   // `' '.length` (the space before the timestamp).
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const signatureScanLimit = 251;
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const signatureRegexp = new RegExp(
     /*
       Captures:
@@ -297,12 +300,14 @@ function extractRegularSignatures(adjustedCode, code) {
     ),
     'im'
   );
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const lastAuthorLinkRegexp = new RegExp(`^.*${cd.g.captureUserNamePattern}`, 'i');
   const authorLinkRegexp = new RegExp(cd.g.captureUserNamePattern, 'ig');
 
   let signatures = [];
   let timestampMatch;
   while ((timestampMatch = timestampRegexp.exec(adjustedCode))) {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const line = timestampMatch[0];
     const lineStartIndex = timestampMatch.index;
     const authorTimestampMatch = line.match(signatureRegexp);
@@ -316,6 +321,7 @@ function extractRegularSignatures(adjustedCode, code) {
     if (authorTimestampMatch) {
       // Extract the timestamp data
       const timestampStartIndex = lineStartIndex + authorTimestampMatch[2].length;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const timestampEndIndex = timestampStartIndex + authorTimestampMatch[6].length;
       timestamp = removeDirMarks(code.slice(timestampStartIndex, timestampEndIndex));
 
@@ -352,8 +358,7 @@ function extractRegularSignatures(adjustedCode, code) {
         // don't want to eliminate those cases).
         if (authorLinkMatch[2]) continue;
 
-        const testAuthor = userRegistry.get(decodeHtmlEntities(authorLinkMatch[1]));
-        if (testAuthor === author) {
+        if (userRegistry.get(decodeHtmlEntities(authorLinkMatch[1])) === author) {
           startIndex = lineStartIndex + commentEndingStartIndex + authorLinkMatch.index;
           dirtyCode = code.slice(startIndex, endIndex);
           break;
@@ -364,6 +369,7 @@ function extractRegularSignatures(adjustedCode, code) {
       endIndex = lineStartIndex + timestampMatch[1].length;
       dirtyCode = code.slice(startIndex, endIndex);
 
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const timestampEndIndex = startIndex + timestampMatch[3].length;
       timestamp = removeDirMarks(code.slice(startIndex, timestampEndIndex));
 
@@ -391,9 +397,11 @@ function extractUnsigneds(adjustedCode, code, signatures) {
   }
 
   // require() to avoid circular dependency
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const userRegistry = require('./userRegistry').default;
 
   const unsigneds = /** @type {SignatureInWikitextTemp[]} */ ([]);
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const unsignedTemplatesRegexp = new RegExp(cd.g.unsignedTemplatesPattern + '.*\\n', 'g');
   let match;
   while ((match = unsignedTemplatesRegexp.exec(adjustedCode))) {
@@ -421,33 +429,38 @@ function extractUnsigneds(adjustedCode, code, signatures) {
       authorString ||= '<undated>';
     }
 
-    // A situation is also possible when we could parse neither the author nor the timestamp. (If we
-    // could parse the timestamp, the author becomes `<undated>`). Let's assume that the template
-    // still contains a signature and is not a "stray" template and still include it (we'll filter
-    // out authorless signatures later anyway, but we need them now to figure out where comments
-    // start).
-    const author = authorString ? userRegistry.get(decodeHtmlEntities(authorString)) : undefined;
-
     // Double spaces
     timestamp = timestamp?.replace(/ +/g, ' ');
 
-    let startIndex = match.index;
+    const startIndex = match.index;
     const endIndex = match.index + match[1].length;
-    let dirtyCode = code.slice(startIndex, endIndex);
     const nextCommentStartIndex = match.index + match[0].length;
+
+    unsigneds.push({
+      // A situation is also possible when we could parse neither the author nor the timestamp. (If
+      // we could parse the timestamp, the author becomes `<undated>`). Let's assume that the
+      // template still contains a signature and is not a "stray" template and still include it
+      // (we'll filter out authorless signatures later anyway, but we need them now to figure out
+      // where comments start).
+      author: authorString ? userRegistry.get(decodeHtmlEntities(authorString)) : undefined,
+
+      timestamp,
+      startIndex,
+      endIndex,
+      dirtyCode: code.slice(startIndex, endIndex),
+      nextCommentStartIndex,
+    });
 
     // `[5 tildes] {{unsigned|...}}` cases. In these cases, both the signature and
     // {{unsigned|...}} are considered signatures and added to the array. We could combine them
     // but that would need corresponding code in Parser.js which could be tricky, so for now we just
     // remove the duplicate. That still allows to reply to the comment.
-    const relevantSignatureIndex = (
-      signatures.findIndex((sig) => sig.nextCommentStartIndex === nextCommentStartIndex)
+    const relevantSignatureIndex = signatures.findIndex(
+      (sig) => sig.nextCommentStartIndex === nextCommentStartIndex
     );
     if (relevantSignatureIndex !== -1) {
       signatures.splice(relevantSignatureIndex, 1);
     }
-
-    unsigneds.push({ author, timestamp, startIndex, endIndex, dirtyCode, nextCommentStartIndex });
   }
 
   return unsigneds;
@@ -510,18 +523,19 @@ export function escapePipesOutsideLinks(code, maskedTexts) {
 }
 
 /**
- * Extract a number from a string using a set of digits.
+ * Given a string, not necessarily with arabic numerals, and a set of digits in the target language,
+ * extract the digits and convert them to a number.
  *
  * @param {string} s
  * @param {string} [digits='0123456789']
  * @returns {number}
  */
-export function extractArabicNumeral(s, digits = '0123456789') {
-  const digitsRegExp = new RegExp(`[${digits}]`, 'g');
-  const notDigitsRegExp = new RegExp(`[^${digits}]`, 'g');
+export function extractNumeralAndConvertToNumber(s, digits = '0123456789') {
   return Number(
     s
-      .replace(notDigitsRegExp, '')
-      .replace(digitsRegExp, (s) => String(digits.indexOf(s)))
+      // Remove non-digits
+      .replace(new RegExp(`[^${digits}]`, 'g'), '')
+
+      .replace(new RegExp(`[${digits}]`, 'g'), (s) => String(digits.indexOf(s)))
   );
 }

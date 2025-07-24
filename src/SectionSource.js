@@ -221,7 +221,6 @@ class SectionSource {
    */
   collectMatchData(sectionHeadingMatch, contextCode, adjustedContextCode) {
     const fullHeadingMatch = sectionHeadingMatch[1];
-    const equalSignsPattern = `={1,${sectionHeadingMatch[2].length}}`;
     const codeFromSection = contextCode.slice(sectionHeadingMatch.index);
     const adjustedCodeFromSection = adjustedContextCode.slice(sectionHeadingMatch.index);
 
@@ -233,7 +232,7 @@ class SectionSource {
           '(' +
           mw.util.escapeRegExp(fullHeadingMatch) +
           '[^]*?\\n)' +
-          equalSignsPattern +
+          `={1,${sectionHeadingMatch[2].length}}` +
           '[^=].*=+[ \\t\\x01\\x02]*\\n'
         )
       ) ||
@@ -342,6 +341,7 @@ class SectionSource {
    * }}
    */
   calculateMatchScore(sectionIndex, thisHeadline, headlines) {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const doesHeadlineMatch = thisHeadline.includes('{{') ? 0.5 : this.headline === thisHeadline;
 
     let doesSectionIndexMatch;
@@ -373,6 +373,7 @@ class SectionSource {
       true
     );
     const sectionOldestComment = this.section.oldestComment;
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const doesOldestCommentMatch = oldestSig ?
       Boolean(
         sectionOldestComment &&

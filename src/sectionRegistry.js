@@ -192,13 +192,19 @@ class SectionRegistry {
   search({ index, headline, id, ancestors, oldestCommentId }) {
     const matches = [];
     this.items.some((section) => {
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const doesIndexMatch = section.index === index;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const doesHeadlineMatch = section.headline === headline;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const doesIdMatch = section.id === id;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const doAncestorsMatch = ancestors ?
         areObjectsEqual(section.getAncestors().map((section) => section.headline), ancestors) :
         false;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const doesOldestCommentMatch = section.oldestComment?.id === oldestCommentId;
+
       const score = (
         Number(doesHeadlineMatch) * 1 +
         Number(doAncestorsMatch) * 1 +
@@ -348,11 +354,10 @@ class SectionRegistry {
     // Don't care about top scroll padding (the sticky header's height) here.
     const viewportTop = window.scrollY;
 
-    const pageHeight = document.documentElement.scrollHeight;
     const threeScreens = window.innerHeight * 3;
 
     let firstSectionToHide;
-    if (pageHeight - viewportTop > 20000) {
+    if (document.documentElement.scrollHeight - viewportTop > 20000) {
       const currentSection = this.getCurrentSection();
       firstSectionToHide = this.items
         .filter((section) => !currentSection || section.index > currentSection.index)

@@ -32,16 +32,13 @@ import { defined, isProbablyTalkPage, mergeRegexps } from './utils-general';
  * @typedef {{ [key: string]: string }} StringsByKey
  */
 
-// FIXME: make the class of the current page extend the page's class? The current page has more
-// methods effectively.
 /**
  * A wiki page (a page for which the
  * {@link https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#All_pages_(user/page-specific) wgIsArticle}
  * config value is `true`) in both of its facets – a rendered instance in case of the current page
  * (see {@link CurrentPage}) and an entry in the database with data and content.
  *
- * To create an instance, use {@link module:pageRegistry.get} (the constructor is only exported for
- * means of code completion).
+ * To create an instance, use {@link module:pageRegistry.get}.
  */
 export default class Page {
   /** @readonly */

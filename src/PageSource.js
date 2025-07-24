@@ -148,7 +148,9 @@ export default class PageSource {
       return areNewTopicsOnTop ? firstSectionStartIndex || 0 : code.length;
     }
 
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const adjustedCode = maskDistractingCode(code);
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const sectionHeadingRegexp = PageSource.getTopicHeadingRegexp();
     let sectionHeadingMatch;
     const sections = [];
@@ -161,12 +163,16 @@ export default class PageSource {
       });
     }
 
-    const properPlaceIndex = sections.find(({ date }) =>
-      (areNewTopicsOnTop && date && date < referenceDate) ||
-      (!areNewTopicsOnTop && date && date > referenceDate)
-    )?.index;
+    return (
+      // Proper place index
+      sections.find(
+        ({ date }) =>
+          (areNewTopicsOnTop && date && date < referenceDate) ||
+          (!areNewTopicsOnTop && date && date > referenceDate)
+      )?.index ||
 
-    return properPlaceIndex || code.length;
+      code.length
+    );
   }
 
   /**

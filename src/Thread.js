@@ -764,7 +764,7 @@ class Thread extends mixInObject(
   /**
    * Get a list of users in the thread.
    *
-   * @returns {import('./userRegistry').User[]}
+   * @returns {import('./User').default[]}
    * @private
    */
   getUsers() {

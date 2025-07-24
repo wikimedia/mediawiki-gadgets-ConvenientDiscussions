@@ -30,7 +30,7 @@ import visits from './visits';
 
 /**
  * @typedef {object} CommentWorkerExtension
- * @property {import('./userRegistry').User} author
+ * @property {import('./User').default} author
  * @property {SectionWorkerMatched} [section]
  * @property {CommentWorkerMatched} [match]
  * @property {import('./Comment').default} [parentMatch]

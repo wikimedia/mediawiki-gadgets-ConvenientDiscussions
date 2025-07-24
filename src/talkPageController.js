@@ -393,6 +393,7 @@ class TalkPageController extends EventEmitter {
     if (!this.content.floatingElements) {
       // Describe all floating elements on the page in order to calculate the correct border
       // (temporarily setting `overflow: hidden`) for all comments they intersect with.
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const floatingElementSelector = [
         '.cd-floating',
         '.tleft',
@@ -1144,17 +1145,22 @@ class TalkPageController extends EventEmitter {
       if (filteredComments.length === 1) {
         const comment = filteredComments[0];
         if (comment.isToMe) {
-          const where = comment.sectionSubscribedTo ?
-            (
+          html =
+            cd.sParse(
+              'notification-toyou',
+              comment.author.getName(),
+              comment.author,
+
               wordSeparator +
-              cd.s('notification-part-insection', comment.sectionSubscribedTo.headline)
-            ) :
-            wordSeparator + cd.s('notification-part-onthispage');
-          html = (
-            cd.sParse('notification-toyou', comment.author.getName(), comment.author, where) +
+                (
+                  // Where the comment is
+                  comment.sectionSubscribedTo
+                    ? cd.s('notification-part-insection', comment.sectionSubscribedTo.headline)
+                    : cd.s('notification-part-onthispage')
+                ),
+            ) +
             wordSeparator +
-            rebootHtml
-          );
+            rebootHtml;
         } else {
           html = (
             cd.sParse(
@@ -1168,34 +1174,42 @@ class TalkPageController extends EventEmitter {
           );
         }
       } else {
-        const isCommonSection = filteredComments.every((comment) => (
-          comment.sectionSubscribedTo === filteredComments[0].sectionSubscribedTo
-        ));
-        const section = isCommonSection ? filteredComments[0].sectionSubscribedTo : undefined;
-        const where = (
-          wordSeparator +
-          (
-            section ?
-              cd.s('notification-part-insection', section.headline) :
-              cd.s('notification-part-onthispage')
+        const section =
+            // Is there a common section?
+          filteredComments.every(
+            (comment) => comment.sectionSubscribedTo === filteredComments[0].sectionSubscribedTo
           )
-        );
+
+            ? filteredComments[0].sectionSubscribedTo
+            : undefined;
+
         let mayBeRelevantString = cd.s('notification-newcomments-mayberelevant');
         if (!mayBeRelevantString.startsWith(cd.mws('comma-separator'))) {
           mayBeRelevantString = wordSeparator + mayBeRelevantString;
         }
 
-        // "that may be relevant to you" text is not needed when the section is watched and the user
-        // can clearly understand why they are notified.
-        const mayBeRelevant = section ? '' : mayBeRelevantString;
+        html =
+          cd.sParse(
+            'notification-newcomments',
+            filteredComments.length,
 
-        html = (
-          cd.sParse('notification-newcomments', filteredComments.length, where, mayBeRelevant) +
+            wordSeparator +
+              (
+                // Where the comments are
+                section
+                  ? cd.s('notification-part-insection', section.headline)
+                  : cd.s('notification-part-onthispage')
+              ),
+
+          // "that may be relevant to you" text is not needed when the section is watched and the
+          // user can clearly understand why they are notified.
+            section ? '' : mayBeRelevantString
+          ) +
           wordSeparator +
-          rebootHtml
-        );
+          rebootHtml;
       }
 
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const notification = notifications.add(
         wrapHtml(html),
         { tag: 'cd-newComments' },
@@ -1237,14 +1251,16 @@ class TalkPageController extends EventEmitter {
     const currentPageName = cd.page.name;
     if (filteredComments.length === 1) {
       if (comment.isToMe) {
-        const where = comment.section?.headline ?
-          wordSeparator + cd.s('notification-part-insection', comment.section.headline) :
-          '';
         body = cd.s(
           'notification-toyou-desktop',
           comment.author.getName(),
           comment.author,
-          where,
+
+          // Where the comment is
+          comment.section?.headline ?
+            wordSeparator + cd.s('notification-part-insection', comment.section.headline) :
+            '',
+
           currentPageName
         );
       } else {
@@ -1257,34 +1273,38 @@ class TalkPageController extends EventEmitter {
         );
       }
     } else {
-      let section;
-      const isCommonSection = filteredComments.every((comment) => (
-        comment.sectionSubscribedTo === filteredComments[0].sectionSubscribedTo
-      ));
-      if (isCommonSection) {
-        section = filteredComments[0].sectionSubscribedTo;
-      }
-      const where = section ?
-        wordSeparator + cd.s('notification-part-insection', section.headline) :
-        '';
+      const section =
+        // Is there a common section?
+        filteredComments.every(
+          (comment) => comment.sectionSubscribedTo === filteredComments[0].sectionSubscribedTo
+        )
+
+          ? filteredComments[0].sectionSubscribedTo
+          : undefined;
+
       let mayBeRelevantString = cd.s('notification-newcomments-mayberelevant');
       if (!mayBeRelevantString.startsWith(cd.mws('comma-separator'))) {
         mayBeRelevantString = wordSeparator + mayBeRelevantString;
       }
 
-      // "that may be relevant to you" text is not needed when the section is watched and the user
-      // can clearly understand why they are notified.
-      const mayBeRelevant = section ? '' : mayBeRelevantString;
-
       body = cd.s(
         'notification-newcomments-desktop',
-        filteredComments.length,
-        where,
+        String(filteredComments.length),
+
+        // Where the comments are
+        section ?
+          wordSeparator + cd.s('notification-part-insection', section.headline) :
+          '',
+
         currentPageName,
-        mayBeRelevant
+
+        // "that may be relevant to you" text is not needed when the section is watched and the user
+        // can clearly understand why they are notified.
+        section ? '' : mayBeRelevantString
       );
     }
 
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const notification = new Notification(mw.config.get('wgSiteName'), {
       body,
 

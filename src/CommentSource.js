@@ -100,27 +100,39 @@ class CommentSource {
         this.headingStartIndex :
         this.startIndex;
     } else {
-      // Dirty workaround to tell if there are foreign timestamps inside the comment.
-      const areThereForeignTimestamps = this.comment.elements.some((el) => {
-        const timestamp = el.querySelector('.cd-timestamp');
-        return timestamp && !timestamp.closest('.cd-signature');
-      });
-
       // Exclude the text of the previous comment that is ended with 3 or 5 tildes instead of 4 and
       // foreign timestamps. The foreign timestamp part can be moved out of the !headingMatch
       // condition together with cd.g.badCommentBeginnings check to allow to apply to cases like
       // https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases#Start_of_section,_comment_with_timestamp_but_without_author,_newline_inside_comment,_HTML_comments_before_reply,
       // but this can create problems with removing stuff from the opening comment.
-      [cd.g.signatureEndingRegexp, areThereForeignTimestamps ? null : cd.g.timezoneRegexp]
+      [
+        cd.g.signatureEndingRegexp,
+
+        // Dirty workaround to tell if there are foreign timestamps inside the comment
+        this.comment.elements.some((el) => {
+          const timestamp = el.querySelector('.cd-timestamp');
+
+          return timestamp && !timestamp.closest('.cd-signature');
+        })
+
+          ? null
+          : cd.g.timezoneRegexp,
+      ]
         .filter(definedAndNotNull)
         .forEach((originalRegexp) => {
+          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
           const regexp = new RegExp(originalRegexp.source + '$', 'm');
+          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
           const linesRegexp = /^(.+)\n/gm;
           let lineMatch;
           let indent;
           while ((lineMatch = linesRegexp.exec(this.code))) {
-            const line = lineMatch[1].replace(/\[\[:?(?:[^|[\]<>\n]+\|)?(.+?)\]\]/g, '$1');
-            if (regexp.test(line)) {
+            if (
+              regexp.test(
+                // Line
+                lineMatch[1].replace(/\[\[:?(?:[^|[\]<>\n]+\|)?(.+?)\]\]/g, '$1')
+              )
+            ) {
               const testIndent = lineMatch.index + lineMatch[0].length;
               if (testIndent === this.code.length) {
                 break;
@@ -365,6 +377,7 @@ class CommentSource {
    * }}
    */
   calculateMatchScore(commentData, sources, signatures) {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const doesIndexMatch = commentData.index === this.index;
     let doesPreviousCommentsDataMatch = false;
     let isPreviousCommentsDataEqual;
@@ -447,7 +460,8 @@ class CommentSource {
    */
   toInput() {
     const originalIndentationLength = this.originalIndentation.length;
-    let code = new TextMasker(this.code)
+
+    return new TextMasker(this.code)
       .maskSensitiveCode()
       .withText((code) => {
         if (this.comment.level === 0) {
@@ -471,19 +485,25 @@ class CommentSource {
           code = code.replace(
             /^((?![:*#; ]).+)\n(?![\n:*#; \x03])(?=(.*))/gm,
             (s, currentLine, nextLine) => {
-              const newlineOrSpace = (
-                entireLineRegexp.test(currentLine) ||
-                entireLineRegexp.test(nextLine) ||
-                fileRegexp.test(currentLine) ||
-                fileRegexp.test(nextLine) ||
-                entireLineFromStartRegexp.test(currentLine) ||
-                entireLineFromStartRegexp.test(nextLine) ||
-                currentLineEndingRegexp.test(currentLine) ||
-                nextLineBeginningRegexp.test(nextLine)
-              ) ?
-                '\n' :
-                ' ';
-              return currentLine + newlineOrSpace;
+              return (
+                currentLine +
+
+                // Newline or space
+                (
+                  (
+                    entireLineRegexp.test(currentLine) ||
+                    entireLineRegexp.test(nextLine) ||
+                    fileRegexp.test(currentLine) ||
+                    fileRegexp.test(nextLine) ||
+                    entireLineFromStartRegexp.test(currentLine) ||
+                    entireLineFromStartRegexp.test(nextLine) ||
+                    currentLineEndingRegexp.test(currentLine) ||
+                    nextLineBeginningRegexp.test(nextLine)
+                  )
+                    ? '\n'
+                    : ' '
+                )
+              );
             }
           );
         }
@@ -523,8 +543,12 @@ class CommentSource {
             .join('|');
           const pattern = `\\{\\{(?:${paragraphTemplatesPattern})\\}\\}`;
           const regexp = new RegExp(pattern, 'g');
-          const lineRegexp = new RegExp(`^(?![:*#]).*${pattern}`, 'gm');
-          code = code.replace(lineRegexp, (s) => s.replace(regexp, '\n\n'));
+          code = code.replace(
+            // Line regexp
+            new RegExp(`^(?![:*#]).*${pattern}`, 'gm'),
+
+            (s) => s.replace(regexp, '\n\n')
+          );
         }
 
         if (this.comment.level !== 0) {
@@ -534,9 +558,8 @@ class CommentSource {
         return code;
       })
       .unmask()
-      .getText();
-
-    return code.trim();
+      .getText()
+      .trim();
   }
 
   /**
@@ -564,6 +587,7 @@ class CommentSource {
       '|(?:^|\\n)\\x01.+)\\n)\\n*'
     );
     const maxIndentationLength = this.replyIndentation.length - 1;
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const endOfThreadPattern = (
       '(' +
 
@@ -586,6 +610,7 @@ class CommentSource {
     const properPlaceMatch =
       adjustedChunkCodeAfter.match(new RegExp(anySignaturePattern + endOfThreadPattern)) || [];
     let adjustedCodeBetween = properPlaceMatch[1] ?? adjustedChunkCodeAfter;
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     let indentationAfter = properPlaceMatch[properPlaceMatch.length - 1];
     let isNextLine = countOccurrences(adjustedCodeBetween, /\n/g) === 1;
 
@@ -593,6 +618,7 @@ class CommentSource {
       const outdentTemplatesPattern = cd.config.outdentTemplates
         .map(generatePageNamePattern)
         .join('|');
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const outdentTemplatesRegexp = new RegExp(
         `^\\s*([:*#]*)[ \t]*\\{\\{ *(?:${outdentTemplatesPattern}) *(?:\\||\\}\\})`
       );
@@ -881,6 +907,7 @@ class CommentSource {
           'g'
         );
       }
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const closedDiscussionSingleRegexp = new RegExp(
         `\\{\\{ *(?:${closedDiscussionBeginningsPattern}) *\\|[^}]{0,50}?=\\s*([:*#]*)`,
         'g'
@@ -921,15 +948,18 @@ class CommentSource {
       }
     }
 
-    const adjustedCodeAfter = adjustedCode.slice(currentIndex);
+    let chunkCodeAfterEndIndex =
+      currentIndex +
 
-    // Logically, there should always be a match
-    const nextSectionHeadingMatchIndex = /** @type {number} */ (
-      /** @type {RegExpMatchArray} */ (adjustedCodeAfter.match(/\n+(=+).*\1[ \t\x01\x02]*\n|$/))
-        .index
-    );
+      // Get the index of the next section heading. Logically, there should always be a match.
+      /** @type {number} */ (
+        /** @type {RegExpMatchArray} */ (
+          // Match the code after
+          adjustedCode.slice(currentIndex).match(/\n+(=+).*\1[ \t\x01\x02]*\n|$/)
+        ).index
+      ) +
 
-    let chunkCodeAfterEndIndex = currentIndex + nextSectionHeadingMatchIndex + 1;
+      1;
     const chunkCodeAfter = contextCode.slice(currentIndex, chunkCodeAfterEndIndex);
     cd.g.keepInSectionEnding.forEach((regexp) => {
       const match = chunkCodeAfter.match(regexp);

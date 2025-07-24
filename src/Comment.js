@@ -22,7 +22,7 @@ import { handleApiReject, loadUserGenders, parseCode } from './utils-api';
 import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './utils-general';
 import { showConfirmDialog } from './utils-oojs';
 import { formatDate, formatDateNative } from './utils-timestamp';
-import { extractArabicNumeral, extractSignatures, removeWikiMarkup } from './utils-wikitext';
+import { extractNumeralAndConvertToNumber, extractSignatures, removeWikiMarkup } from './utils-wikitext';
 import { createSvg, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisibilityByRects, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**
@@ -428,7 +428,7 @@ class Comment extends CommentSkeleton {
     /**
      * Comment author user object.
      *
-     * @type {import('./userRegistry').User}
+     * @type {import('./User').default}
      */
     this.author = userRegistry.get(this.authorName);
 
@@ -2342,7 +2342,10 @@ class Comment extends CommentSkeleton {
         const $tr = $(tr);
         const $lineNumbers = $tr.children('.diff-lineno');
         for (let j = 0; j < $lineNumbers.length; j++) {
-          currentLineNumbers[j] = extractArabicNumeral($lineNumbers.eq(j).text(), cd.g.uiDigits);
+          currentLineNumbers[j] = extractNumeralAndConvertToNumber(
+            $lineNumbers.eq(j).text(),
+            cd.g.uiDigits
+          );
           if (!currentLineNumbers[j]) {
             throw new CdError({
               type: 'parse',
@@ -4566,7 +4569,6 @@ class Comment extends CommentSkeleton {
       if (!map.has(comment.section)) {
         map.set(comment.section, []);
       }
-
       /** @type {CommentBase[]} */ (map.get(comment.section)).push(comment);
     }
 

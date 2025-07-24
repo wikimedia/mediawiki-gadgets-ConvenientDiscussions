@@ -205,14 +205,18 @@ class BootController {
   loadSiteData() {
     this.initFormats();
 
-    const contentDateTokensMessageNames = this.getUsedDateTokens(cd.g.contentDateFormat)
-      .map((pattern) => dateTokenToMessageNames[pattern]);
     const contentLanguageMessageNames = [
-      'word-separator', 'comma-separator', 'colon-separator', 'timezone-utc'
-    ].concat(...contentDateTokensMessageNames);
+      'word-separator',
+      'comma-separator',
+      'colon-separator',
+      'timezone-utc',
+    ].concat(
+      // Message names for date tokens in content language
+      ...this.getUsedDateTokens(cd.g.contentDateFormat).map(
+        (pattern) => dateTokenToMessageNames[pattern]
+      )
+    );
 
-    const uiDateTokensMessageNames = this.getUsedDateTokens(cd.g.uiDateFormat)
-      .map((pattern) => dateTokenToMessageNames[pattern]);
     const userLanguageMessageNames = [
       'parentheses', 'parentheses-start', 'parentheses-end', 'word-separator', 'comma-separator',
       'colon-separator', 'nextdiff', 'timezone-utc', 'pagetitle',
@@ -244,7 +248,12 @@ class BootController {
           ['visualeditor-educationpopup-dismiss'] :
           []
       )
-      .concat(...uiDateTokensMessageNames);
+      .concat(
+        // Message names for date tokens in UI language
+        ...this.getUsedDateTokens(cd.g.uiDateFormat).map(
+          (pattern) => dateTokenToMessageNames[pattern]
+        )
+      );
 
     const areLanguagesEqual = mw.config.get('wgContentLanguage') === mw.config.get('wgUserLanguage');
     if (areLanguagesEqual) {
@@ -282,30 +291,38 @@ class BootController {
     // and content language are different).
     const requests = [];
     if (areLanguagesEqual) {
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const messagesToRequest = contentLanguageMessageNames
         .concat(userLanguageMessageNames)
         .filter(unique);
       for (const nextNames of splitIntoBatches(messagesToRequest)) {
-        const request = cd.getApi().loadMessagesIfMissing(nextNames).then(() => {
-          filterAndSetContentLanguageMessages(mw.messages.get());
-        });
-        requests.push(request);
+        requests.push(
+          cd
+            .getApi()
+            .loadMessagesIfMissing(nextNames)
+            .then(() => {
+              filterAndSetContentLanguageMessages(mw.messages.get());
+            })
+        );
       }
     } else {
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const contentLanguageMessagesToRequest = contentLanguageMessageNames
         .filter((name) => !cd.g.contentLanguageMessages[name]);
       for (const nextNames of splitIntoBatches(contentLanguageMessagesToRequest)) {
-        const request = cd.getApi().getMessages(nextNames, {
-          // cd.g.contentLanguage is not used here for the reasons described in app.js where it is
-          // declared.
-          amlang: mw.config.get('wgContentLanguage'),
-        }).then(setContentLanguageMessages);
-        requests.push(request);
+        requests.push(
+          cd
+            .getApi()
+            .getMessages(nextNames, {
+              // cd.g.contentLanguage is not used here for the reasons described in app.js where it
+              // is declared.
+              amlang: mw.config.get('wgContentLanguage'),
+            })
+            .then(setContentLanguageMessages)
+        );
       }
 
-      const userLanguageMessagesRequest = cd.getApi()
-        .loadMessagesIfMissing(userLanguageMessageNames);
-      requests.push(userLanguageMessagesRequest);
+      requests.push(cd.getApi().loadMessagesIfMissing(userLanguageMessageNames));
     }
 
     cd.g.specialPageAliases = Object.assign({}, cd.config.specialPageAliases);
@@ -320,20 +337,26 @@ class BootController {
 
     const specialPages = ['Contributions', 'Diff', 'PermanentLink'];
     if (specialPages.some((page) => !cd.g.specialPageAliases[page]?.length) || !cd.g.contentTimezone) {
-      const request = cd.getApi().get({
-        action: 'query',
-        meta: 'siteinfo',
-        siprop: ['specialpagealiases', 'general'],
-      }).then((resp) => {
-        resp.query.specialpagealiases
-          .filter((page) => specialPages.includes(page.realname))
-          .forEach((page) => {
-            cd.g.specialPageAliases[page.realname] = page.aliases
-              .slice(0, page.aliases.indexOf(page.realname) + 1);
-          });
-        cd.g.contentTimezone = resp.query.general.timezone;
-      });
-      requests.push(request);
+      requests.push(
+        cd
+          .getApi()
+          .get({
+            action: 'query',
+            meta: 'siteinfo',
+            siprop: ['specialpagealiases', 'general'],
+          })
+          .then((resp) => {
+            resp.query.specialpagealiases
+              .filter((page) => specialPages.includes(page.realname))
+              .forEach((page) => {
+                cd.g.specialPageAliases[page.realname] = page.aliases.slice(
+                  0,
+                  page.aliases.indexOf(page.realname) + 1
+                );
+              });
+            cd.g.contentTimezone = resp.query.general.timezone;
+          })
+      );
     }
 
     return requests;
@@ -419,10 +442,12 @@ class BootController {
     const isContentLanguage = language === 'content';
     const format = isContentLanguage ? cd.g.contentDateFormat : cd.g.uiDateFormat;
     const digits = isContentLanguage ? cd.g.contentDigits : cd.g.uiDigits;
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const digitsPattern = digits ? `[${digits}]` : '\\d';
 
-    const regexpGroup = (regexp) => '(' + regexp + ')';
-    const regexpAlternateGroup = (arr) => '(' + arr.map(mw.util.escapeRegExp).join('|') + ')';
+    const regexpGroup = (/** @type {string} */ regexp) => '(' + regexp + ')';
+    const regexpAlternateGroup = (/** @type {string[]} */ arr) =>
+      '(' + arr.map(mw.util.escapeRegExp).join('|') + ')';
 
     let string = '';
 
@@ -443,10 +468,12 @@ class BootController {
         case 'l':
         case 'F':
         case 'M': {
-          const messages = isContentLanguage ?
-            getContentLanguageMessages(dateTokenToMessageNames[code]) :
-            dateTokenToMessageNames[code].map((token) => mw.msg(token));
-          string += regexpAlternateGroup(messages);
+          string += regexpAlternateGroup(
+            // Messages
+            isContentLanguage
+              ? getContentLanguageMessages(dateTokenToMessageNames[code])
+              : dateTokenToMessageNames[code].map((token) => mw.msg(token))
+          );
           break;
         }
         case 'd':
@@ -643,8 +670,14 @@ class BootController {
    */
   getContentColumnOffsets(reset = false) {
     if (!this.contentColumnOffsets || reset) {
-      const prop = cd.g.contentDirection === 'ltr' ? 'padding-left' : 'padding-right';
-      let startMargin = Math.max(parseFloat(this.$contentColumn.css(prop)), cd.g.contentFontSize);
+      let startMargin = Math.max(
+        parseFloat(
+          this.$contentColumn.css(
+            cd.g.contentDirection === 'ltr' ? 'padding-left' : 'padding-right'
+          )
+        ),
+        cd.g.contentFontSize
+      );
 
       // The content column in Timeless has no _borders_ as such, so it's wrong to penetrate the
       // surrounding area from the design point of view.
@@ -693,7 +726,7 @@ class BootController {
      *
      * @see module:userRegistry.getCurrent
      * @name user
-     * @type {import('./userRegistry').User}
+     * @type {import('./User').default}
      * @memberof convenientDiscussions
      */
     cd.user = userRegistry.getCurrent();
@@ -881,6 +914,7 @@ class BootController {
 
     // Not constants: go() may run a second time, see app~maybeAddFooterSwitcher().
     const isEnabledInQuery = getQueryParamBooleanValue('cdtalkpage') === true;
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const isDisabledInQuery = getQueryParamBooleanValue('cdtalkpage') === false;
 
     this.pageTypes.definitelyTalk = Boolean(

@@ -677,10 +677,8 @@ class CommentRegistry extends EventEmitter {
     // Section-level replies notes.
     $('.cd-thread-newCommentsNote').remove();
 
-    const newCommentsByParent = Comment.groupByParent(newComments);
-
     const newCommentIndexes = newComments.map((comment) => comment.index);
-    newCommentsByParent.forEach((comments, parent) => {
+    Comment.groupByParent(newComments).forEach((comments, parent) => {
       if (parent instanceof Comment) {
         this.addNewCommentsNote(parent, comments, 'thread', newCommentIndexes);
       } else {
@@ -850,9 +848,8 @@ class CommentRegistry extends EventEmitter {
    */
   getSelectedComment() {
     const selection = window.getSelection();
-    const selectionText = selection.toString().trim();
     let comment;
-    if (selectionText) {
+    if (selection.toString().trim()) {
       const { higherNode } = getHigherNodeAndOffsetInSelection(selection);
       const treeWalker = new TreeWalker(bootController.rootElement, undefined, false, higherNode);
       let commentIndex;
@@ -876,6 +873,7 @@ class CommentRegistry extends EventEmitter {
     } else {
       this.resetSelectedComment();
     }
+
     return comment || null;
   }
 
@@ -1025,10 +1023,6 @@ class CommentRegistry extends EventEmitter {
         }
 
         if (isOrHasCommentLevel(currentTopElement)) {
-          const firstElementChild = /** @type {HTMLElement} */ (
-            currentBottomElement.firstElementChild
-          );
-
           /*
             Avoid collapsing adjacent <li>s and <dd>s if we deal with a structure like this:
 
@@ -1041,7 +1035,9 @@ class CommentRegistry extends EventEmitter {
                 <ul>Replies</ul>
               </li>
           */
-          if (['DL', 'DD', 'UL', 'LI'].includes(firstElementChild.tagName)) {
+          if (['DL', 'DD', 'UL', 'LI'].includes(
+            /** @type {HTMLElement} */ (currentBottomElement.firstElementChild).tagName
+          )) {
             while (currentBottomElement.childNodes.length) {
               let child = /** @type {ChildNode} */ (currentBottomElement.firstChild);
               if (child instanceof HTMLElement) {

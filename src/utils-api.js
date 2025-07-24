@@ -198,9 +198,13 @@ export async function parseCode(code, customOptions) {
     disableeditsection: true,
     preview: true,
   };
-  const options = { ...defaultOptions, ...customOptions };
-  const request = cd.getApi().post(options).catch(handleApiReject);
-  const response = /** @type {ApiResponseParse} */ (await request);
+
+  const response = /** @type {ApiResponseParse} */ (
+    await cd
+      .getApi()
+      .post({ ...defaultOptions, ...customOptions })
+      .catch(handleApiReject)
+  );
   if (!response.parse) {
     throw new CdError('No parse data returned.');
   }
@@ -241,8 +245,6 @@ export function getUserInfo(reuse = false) {
   }).then(
     (resp) => {
       const { options, rights } = resp.query.userinfo;
-      const visits = options[cd.g.visitsOptionName];
-      const subscriptions = options[cd.g.subscriptionsOptionName];
       try {
         cd.user.setRights(rights);
       } catch {
@@ -250,7 +252,11 @@ export function getUserInfo(reuse = false) {
         // modules are ready
       }
 
-      return { options, visits, subscriptions };
+      return {
+        options,
+        visits: options[cd.g.visitsOptionName],
+        subscriptions: options[cd.g.subscriptionsOptionName],
+      };
     },
     handleApiReject
   );
@@ -272,11 +278,15 @@ export async function getPageTitles(pageIds) {
 
   const pages = [];
   for (const nextPageIds of splitIntoBatches(pageIds)) {
-    const request = cd.getApi().post({
-      action: 'query',
-      pageids: nextPageIds,
-    }).catch(handleApiReject);
-    const response = /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (await request);
+    const response = /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (
+      await cd
+        .getApi()
+        .post({
+          action: 'query',
+          pageids: nextPageIds,
+        })
+        .catch(handleApiReject)
+    );
     pages.push(...response.query?.pages || []);
   }
 
@@ -302,12 +312,16 @@ export async function getPageIds(titles) {
   const redirects = [];
   const pages = [];
   for (const nextTitles of splitIntoBatches(titles)) {
-    const request = cd.getApi().post({
-      action: 'query',
-      titles: nextTitles,
-      redirects: true,
-    }).catch(handleApiReject);
-    const { query } = /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (await request);
+    const { query } = /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (
+      await cd
+        .getApi()
+        .post({
+          action: 'query',
+          titles: nextTitles,
+          redirects: true,
+        })
+        .catch(handleApiReject)
+    );
     if (!query) break;
 
     normalized.push(...query.normalized || []);
@@ -404,12 +418,13 @@ export async function saveGlobalOption(name, value) {
  * Request genders of a list of users and assign them as properties. A gender may be `'male'`,
  * `'female'`, or `'unknown'`.
  *
- * @param {import('./userRegistry').User[]} users
+ * @param {import('./User').default[]} users
  * @param {boolean} [doRequestInBackground=false] Make a request that won't set the process on hold
  *   when the tab is in the background.
  * @returns {Promise.<void>}
  */
 export async function loadUserGenders(users, doRequestInBackground = false) {
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const usersToRequest = users
     .filter((user) => !user.getGender() && user.isRegistered())
     .filter(unique)
@@ -421,6 +436,7 @@ export async function loadUserGenders(users, doRequestInBackground = false) {
       ususers: nextUsers,
       usprop: 'gender',
     };
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const request = doRequestInBackground ?
       requestInBackground(options).catch(handleApiReject) :
       cd.getApi().post(options).catch(handleApiReject);
@@ -453,11 +469,15 @@ export async function getPagesExistence(titles) {
   const normalized = [];
   const pages = [];
   for (const nextTitles of splitIntoBatches(titles)) {
-    const request = cd.getApi().post({
-      action: 'query',
-      titles: nextTitles,
-    }).catch(handleApiReject);
-    const response = /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (await request);
+    const response = /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (
+      await cd
+        .getApi()
+        .post({
+          action: 'query',
+          titles: nextTitles,
+        })
+        .catch(handleApiReject)
+    );
 
     const query = response.query;
     if (!query) break;

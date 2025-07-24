@@ -75,7 +75,7 @@ const convenientDiscussions = {
    */
 
   /**
-   * @typedef {SOptions | import('types-mediawiki/mw/user').User | import('./userRegistry').User | undefined} SLastParam
+   * @typedef {SOptions | import('types-mediawiki/mw/user').User | import('./User').default | undefined} SLastParam
    */
 
   /**

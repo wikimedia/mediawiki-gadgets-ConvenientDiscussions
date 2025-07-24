@@ -101,7 +101,7 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
 /**
  * @typedef {object} ConvenientDiscussionsExtension
  * @property {import('./CurrentPage').default} page Current page's object.
- * @property {import('./userRegistry').User} user Current user's object.
+ * @property {import('./User').default} user Current user's object.
  * @property {typeof import('../config/default').default} config
  * @property {GlobalProps} g
  * @property {import('./CommentSkeleton').default[]} comments

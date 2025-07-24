@@ -91,21 +91,34 @@ class LiveTimestamp extends mixInObject(
       this.update();
     }
 
-    const difference = Date.now() - this.date.getTime();
-    const threshold = relativeTimeThresholds
-      .find((threshold) => difference < threshold.interval * cd.g.msInMin);
+    const differenceMs = Date.now() - this.date.getTime();
+    const threshold = relativeTimeThresholds.find(
+      (threshold) => differenceMs < threshold.range * cd.g.msInMin
+    );
     if (threshold) {
-      const minSteps = Math.floor((difference / cd.g.msInMin) / threshold.step);
+      // Find the relevant time boundary at which the timestamp should be updated.
       for (
-        let boundary = (threshold.start + (minSteps * threshold.step)) * cd.g.msInMin;
-        boundary <= threshold.interval * cd.g.msInMin;
-        boundary += threshold.step * cd.g.msInMin
+        let boundary =
+          (
+            threshold.start +
+
+            (
+              // The number of steps to take to get to the time boundary preceding the current time,
+              // e.g. 1 hour for 1 hour and 25 minutes
+              Math.floor(differenceMs / cd.g.msInMin / threshold.step) *
+
+              threshold.step
+            )
+          );
+        boundary <= threshold.range;
+        boundary += threshold.step
       ) {
-        if (difference < boundary) {
+        const boundaryMs = boundary * cd.g.msInMin;
+        if (differenceMs < boundaryMs) {
           removeFromArrayIfPresent(LiveTimestamp.updateTimeouts, this.updateTimeout);
           this.updateTimeout = setTimeout(() => {
             this.setUpdateTimeout(true);
-          }, boundary - difference);
+          }, boundaryMs - differenceMs);
           LiveTimestamp.updateTimeouts.push(this.updateTimeout);
           break;
         }
@@ -146,14 +159,21 @@ class LiveTimestamp extends mixInObject(
     }
     date = date.startOf('day');
     this.yesterdayStart = date.subtract(1, 'day').valueOf();
-    const tomorrowStart = date.add(1, 'day').valueOf();
-    const dayAfterTomorrowStart = date.add(2, 'day').valueOf();
 
-    const tsDelay = tomorrowStart - Date.now();
-    const tsTimeout = setTimeout(this.updateImproved.bind(this), tsDelay);
-    const datsDelay = dayAfterTomorrowStart - Date.now();
-    const datsTimeout = setTimeout(this.updateImproved.bind(this), datsDelay);
-    this.updateTimeouts.push(tsTimeout, datsTimeout);
+    this.updateTimeouts.push(
+      setTimeout(
+        this.updateImproved,
+
+        // Tomorrow start delay
+        date.add(1, 'day').valueOf() - Date.now()
+      ),
+      setTimeout(
+        this.updateImproved,
+
+        // Day after tomorrow start delay
+        date.add(2, 'day').valueOf() - Date.now()
+      )
+    );
 
     this.improvedTimestampsInited = true;
   }
@@ -161,12 +181,12 @@ class LiveTimestamp extends mixInObject(
   /**
    * _For internal use._ Update the timestamps (when the timestamp format is set to "improved").
    */
-  static updateImproved() {
+  static updateImproved = () => {
     this.improvedTimestamps.forEach((timestamp) => {
       timestamp.update();
     });
     this.emit('updateImproved');
-  }
+  };
 
   /**
    * Reset the list of live timestamps on the page (this is run at every page load).

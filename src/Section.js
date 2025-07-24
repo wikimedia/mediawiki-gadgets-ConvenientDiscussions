@@ -707,7 +707,7 @@ class Section extends SectionSkeleton {
       .filter(unique)
       .map(
         (author) =>
-          /** @type {[import('./userRegistry').User, Comment[]]} */ ([
+          /** @type {[import('./User').default, Comment[]]} */ ([
             author,
             this.comments.filter((comment) => comment.author === author),
           ])

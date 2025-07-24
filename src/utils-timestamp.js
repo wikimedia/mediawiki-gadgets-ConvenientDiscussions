@@ -37,37 +37,52 @@ export const dateTokenToMessageNames = {
   M: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
 };
 
+/**
+ * Some numbers for several units used in calculations needed to update relative
+ * {@link LiveTimestamp timestamps}. 1 means 1 minute.
+ *
+ * @typedef {object} RelativeTimeThreshold
+ * @property {number} range The top of the number range for the unit (e.g. 60 for minutes)
+ * @property {number} start The start of the number range for the unit (e.g. 1 for minutes; don't
+ *   need 0 because that would be taken care of by the previous loop iteration as minute 60 [= the
+ *   first minute of the next hour])
+ * @property {number} step How often the relative timestamp should update (e.g. 1 for minutes)
+ */
+
+/**
+ * @type {RelativeTimeThreshold[]}
+ */
 export const relativeTimeThresholds = [
   // Seconds
   {
-    interval: 1,
+    range: 1,
     start: 0,
     step: 1,
   },
 
   // Minutes
   {
-    interval: 60,
+    range: 60,
     start: 1,
     step: 1,
   },
 
   // Hours
   {
-    interval: 60 * 24,
+    range: 60 * 24,
     start: 60,
     step: 60,
   },
 
   // Days
   {
-    interval: 60 * 24 * 31,
+    range: 60 * 24 * 31,
     start: 60 * 24,
     step: 60 * 24,
   },
 
-  // We don't update months and years. Additional `setTimeout`s are costly, and algorithm for them
-  // is also too complex.
+  // We don't update months and years. Additional `setTimeout`s are costly, and an algorithm for
+  // them is also too complex.
 ];
 
 /**
@@ -114,9 +129,10 @@ export function getDateFromTimestampMatch(match, timezone) {
       return text;
     }
 
-    const regexp = new RegExp('[' + digits + ']', 'g');
-
-    return text.replace(regexp, (m) => String(digits.indexOf(m)));
+    return text.replace(
+      new RegExp('[' + digits + ']', 'g'),
+      (m) => String(digits.indexOf(m))
+    );
   };
 
   let year = 0;
@@ -135,10 +151,12 @@ export function getDateFromTimestampMatch(match, timezone) {
       case 'M': {
         // The worker context doesn't have mw.msg(), but isContentLanguage should be always `true`
         // there.
-        const messages = isContentLanguage ?
-          getContentLanguageMessages(dateTokenToMessageNames[code]) :
-          dateTokenToMessageNames[code].map((token) => mw.msg(token));
-        monthIdx = messages.indexOf(text);
+        monthIdx = (
+          // Messages
+          isContentLanguage ?
+            getContentLanguageMessages(dateTokenToMessageNames[code]) :
+            dateTokenToMessageNames[code].map((token) => mw.msg(token))
+        ).indexOf(text);
         break;
       }
       case 'd':
@@ -172,13 +190,20 @@ export function getDateFromTimestampMatch(match, timezone) {
   }
 
   const unixTime = Date.UTC(year, monthIdx, day, hours, minutes);
-  const timezoneOffset = typeof timezone === 'number' ?
-    timezone * cd.g.msInMin :
+  return new Date(
+    unixTime -
 
-    // Using date-fns-tz's getTimezoneOffset is way faster than using day.js's methods.
-    (timezone === 'UTC' ? 0 : getTimezoneOffset(timezone, unixTime));
+    // Timezone offset
+    (
+      typeof timezone === 'number'
+        ? timezone * cd.g.msInMin
+        : timezone === 'UTC'
+        ? 0
 
-  return new Date(unixTime - timezoneOffset);
+        // Using date-fns-tz's getTimezoneOffset() is way faster than day.js's methods.
+        : getTimezoneOffset(timezone, unixTime)
+    )
+  );
 }
 
 /**
@@ -199,18 +224,17 @@ export function parseTimestamp(timestamp, timezone) {
   // Remove left-to-right and right-to-left marks that are sometimes copied from edit history to the
   // timestamp (for example, https://meta.wikimedia.org/w/index.php?diff=20418518). Replace with a
   // space to keep offsets.
-  const adjustedTimestamp = removeDirMarks(timestamp, true);
-
-  const regexp = timezone === undefined ?
-    cd.g.parseTimestampContentRegexp :
-    cd.g.parseTimestampUiRegexp;
-  const match = adjustedTimestamp.match(regexp);
+  const match = removeDirMarks(timestamp, true).match(
+    timezone === undefined ? cd.g.parseTimestampContentRegexp : cd.g.parseTimestampUiRegexp
+  );
   if (!match) {
     return null;
   }
-  const date = getDateFromTimestampMatch(match, timezone);
 
-  return { date, match };
+  return {
+    date: getDateFromTimestampMatch(match, timezone),
+    match,
+  };
 }
 
 /**
@@ -224,12 +248,9 @@ function generateTimezonePostfix(offset) {
   utcString ||= cd.mws('timezone-utc');
   let postfix = ` (${utcString}`;
 
-  // `offset` is not necessarily an integer
-  offset /= 60;
-
-  const sign = offset > 0 ? '+' : '-';
   if (offset !== 0) {
-    postfix += sign + Math.abs(offset);
+    // `offset` is not necessarily an integer
+    postfix += (offset > 0 ? '+' : '-') + Math.abs(offset / 60);
   }
   postfix += ')';
 
@@ -420,14 +441,19 @@ export function formatDateImproved(date, addTimezone = false) {
   const monthIdx = dayjsDate.month();
   const year = dayjsDate.year();
 
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const nowDay = now.getUTCDate();
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const nowMonthIdx = now.getUTCMonth();
   const nowYear = now.getUTCFullYear();
 
   const yesterday = new Date(now.getTime());
   yesterday.setDate(yesterday.getDate() - 1);
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const yesterdayDay = yesterday.getUTCDate();
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const yesterdayMonthIdx = yesterday.getUTCMonth();
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const yesterdayYear = yesterday.getUTCFullYear();
 
   let formattedDate;

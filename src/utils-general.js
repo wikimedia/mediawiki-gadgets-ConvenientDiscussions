@@ -544,7 +544,7 @@ export function removeFromArrayIfPresent(arr, el) {
  * Get the gender that is common for a list of users (`'unknown'` is treated as `'male'`) or
  * `'unknown'` if there is no such.
  *
- * @param {import('./userRegistry').User[]} users
+ * @param {import('./User').default[]} users
  * @returns {string}
  */
 export function getCommonGender(users) {

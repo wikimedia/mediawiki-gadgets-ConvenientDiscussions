@@ -282,12 +282,12 @@ class Autocomplete {
               const snippetMaxLength = 80;
               if (comment.getText().length > snippetMaxLength) {
                 snippet = comment.getText().slice(0, snippetMaxLength);
-                const wordSeparator = cd.mws('word-separator', { language: 'content' });
-                const spacePos = snippet.lastIndexOf(wordSeparator);
+                const spacePos = snippet.lastIndexOf(
+                  cd.mws('word-separator', { language: 'content' })
+                );
                 if (spacePos !== -1) {
                   snippet = snippet.slice(0, spacePos);
-                  const lastChar = snippet[snippet.length - 1];
-                  if (/[.…,;!?:-—–]/.test(lastChar)) {
+                  if (/[.…,;!?:-—–]/.test(snippet[snippet.length - 1])) {
                     snippet += ' ';
                   }
                   snippet += cd.s('ellipsis');
@@ -299,12 +299,10 @@ class Autocomplete {
               if (timestamp) {
                 authorTimestamp += cd.mws('comma-separator', { language: 'content' }) + timestamp;
               }
-              const colon = cd.mws('colon-separator', { language: 'content' });
-              const key = authorTimestamp + colon + snippet;
               /** @type {NonNullable<typeof this.commentLinks.default>} */ (
                 this.commentLinks.default
               ).push({
-                key,
+                key: authorTimestamp + cd.mws('colon-separator', { language: 'content' }) + snippet,
                 id: dtId || id,
                 author: author.getName(),
                 timestamp,
@@ -328,13 +326,21 @@ class Autocomplete {
             return;
           }
 
-          // @ts-ignore
-          const matches = this.tribute.search
-            .filter(text, this.commentLinks.default, {
-              extract: (/** @type {Value} */ el) => el.key,
-            })
-            .map((/** @type {import('./tribute/Tribute').TributeItem} */ match) => match.original);
-          callback(prepareValues(matches, this.commentLinks));
+          callback(
+            prepareValues(
+              // Matches
+              // @ts-ignore
+              this.tribute.search
+                .filter(text, this.commentLinks.default, {
+                  extract: (/** @type {Value} */ el) => el.key,
+                })
+                .map(
+                  (/** @type {import('./tribute/Tribute').TributeItem} */ match) => match.original
+                ),
+
+              this.commentLinks
+            )
+          );
         },
       },
 
@@ -429,28 +435,30 @@ class Autocomplete {
                   redirects: true,
                 })
                   .then(
-                    (resp) => {
-                      if (!resp.pages) {
+                    (response) => {
+                      if (!response.pages) {
                         throw 'No data.';
-                      } else if (!Object.keys(resp.pages).length) {
+                      } else if (!Object.keys(response.pages).length) {
                         throw 'Template missing.';
                       } else {
-                        return resp;
+                        return response;
                       }
                     },
                     handleApiReject
                   )
                   .then(
-                    (resp) => {
-                      const pages = resp.pages;
+                    (response) => {
+                      const pages = response.pages;
 
                       let paramsString = '';
                       let firstValueIndex = 0;
                       Object.keys(pages).forEach((key) => {
                         const template = pages[key];
                         const params = template.params || [];
-                        const paramNames = template.paramOrder || Object.keys(params);
-                        paramNames
+
+                        // Parameter names
+                        (template.paramOrder || Object.keys(params))
+
                           .filter((param) => params[param].required || params[param].suggested)
                           .forEach((param) => {
                             if (template.format === 'block') {
@@ -472,11 +480,16 @@ class Autocomplete {
                       // Remove leading "|".
                       paramsString = paramsString.slice(1);
 
-                      const caretIndex = input.getRange().to;
                       input
                         .setDisabled(false)
                         .cdInsertContent(paramsString)
-                        .selectRange(caretIndex + firstValueIndex - 1);
+                        .selectRange(
+                          // Current caret index
+                          input.getRange().to +
+
+                          firstValueIndex -
+                          1
+                      );
                     },
                     () => {
                       input
@@ -573,10 +586,14 @@ class Autocomplete {
             return;
           }
 
-          const matches = /** @type {string[]} */ (this.tags.default).filter((tag) =>
-            regexp.test(tag)
+          callback(
+            prepareValues(
+              // Matches
+              /** @type {string[]} */ (this.tags.default).filter((tag) => regexp.test(tag)),
+
+              this.tags
+            )
           );
-          callback(prepareValues(matches, this.tags));
         },
       },
     });
@@ -632,12 +649,12 @@ class Autocomplete {
           (tagString) => !tagAdditions.find((tagArray) => tagArray[0] === tagString)
         )
         .concat(tagAdditions)
-        .sort((item1, item2) => {
-          const s1 = typeof item1 === 'string' ? item1 : item1[0];
-          const s2 = typeof item2 === 'string' ? item2 : item2[0];
-
-          return s1 > s2 ? 1 : -1;
-        });
+        .sort((item1, item2) => (
+          (typeof item1 === 'string' ? item1 : item1[0]) >
+          (typeof item2 === 'string' ? item2 : item2[0])
+            ? 1
+            : -1
+        ));
 
     /**
      * Autocomplete configurations for every type.
@@ -796,14 +813,18 @@ class Autocomplete {
 
         // First, try to use the search to get only users that have talk pages. Most legitimate
         // users do, while spammers don't.
-        const request = cd.getApi().get({
-          action: 'opensearch',
-          search: text,
-          namespace: 3,
-          redirects: 'resolve',
-          limit: 10,
-        }).catch(handleApiReject);
-        const response = /** @type {OpenSearchResults} */ (await request);
+        const response = /** @type {OpenSearchResults} */ (
+          await cd
+            .getApi()
+            .get({
+              action: 'opensearch',
+              search: text,
+              namespace: 3,
+              redirects: 'resolve',
+              limit: 10,
+            })
+            .catch(handleApiReject)
+        );
 
         const users = response[1]
           ?.map((name) => (name.match(cd.g.userNamespacesRegexp) || [])[1])
@@ -814,18 +835,19 @@ class Autocomplete {
           resolve(users);
         } else {
           // If we didn't succeed with search, try the entire users database.
-          const request = cd.getApi().get({
-            action: 'query',
-            list: 'allusers',
-            auprefix: text,
-          }).catch(handleApiReject);
           const response = /** @type {ApiResponseQuery<ApiResponseQueryContentAllUsers>} */ (
-            await request
+            await cd
+              .getApi()
+              .get({
+                action: 'query',
+                list: 'allusers',
+                auprefix: text,
+              })
+              .catch(handleApiReject)
           );
           if (!response.query) return;
 
-          const users = response.query.allusers.map((user) => user.name);
-          resolve(users);
+          resolve(response.query.allusers.map((user) => user.name));
         }
       } catch (error) {
         reject(error);
@@ -846,19 +868,24 @@ class Autocomplete {
    * @returns {string}
    */
   static useOriginalFirstCharCase(result, query) {
-    const firstChar = charAt(query, 0);
-    const firstCharUpperCase = phpCharToUpper(firstChar);
-    const firstCharPattern = firstCharUpperCase !== firstChar ?
-      '[' + firstCharUpperCase + firstChar + ']' :
-      mw.util.escapeRegExp(firstChar);
-
     // But ignore cases with all caps in the first word like ABBA
     const firstWord = result.split(' ')[0];
     if (firstWord.length > 1 && firstWord.toUpperCase() === firstWord) {
       return result;
     }
 
-    return result.replace(new RegExp('^' + firstCharPattern), firstChar);
+    const firstChar = charAt(query, 0);
+    const firstCharUpperCase = phpCharToUpper(firstChar);
+
+    return result.replace(
+      new RegExp(
+        // First character pattern
+        '^' + firstCharUpperCase !== firstChar
+          ? '[' + firstCharUpperCase + firstChar + ']'
+          : mw.util.escapeRegExp(firstChar)
+      ),
+      firstChar
+    );
   }
 
   /**
@@ -893,9 +920,9 @@ class Autocomplete {
           redirects: 'return',
           limit: 10,
         }).then(
-          (resp) => {
-            const pages = resp[1]
-              ?.map((name) => {
+          (response) => {
+            resolve(
+              response[1]?.map((name) => {
                 if (mw.config.get('wgCaseSensitiveNamespaces').length) {
                   const title = mw.Title.newFromText(name);
                   if (
@@ -908,9 +935,8 @@ class Autocomplete {
                   name = this.useOriginalFirstCharCase(name, text);
                 }
                 return name.replace(/^/, colonPrefix ? ':' : '');
-              });
-
-            resolve(pages);
+              })
+            );
           },
           (error) => {
             handleApiReject(error);
@@ -951,9 +977,10 @@ class Autocomplete {
           redirects: 'return',
           limit: 10,
         }).then(
-          (resp) => {
+          (response) => {
             cd.debug.startTimer('getRelevantTemplateNames');
-            const templates = resp[1]
+            // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+            const templates = response[1]
               ?.filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
               .map((name) => text.startsWith(':') ? name : name.slice(name.indexOf(':') + 1))
               .map((name) => (

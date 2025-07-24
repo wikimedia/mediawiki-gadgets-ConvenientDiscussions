@@ -3785,13 +3785,12 @@ class CommentForm extends EventEmitter {
 
     // With just "Q" pressed, empty selection doesn't count.
     if (selection || allowEmptySelection) {
-      const isCommentInputFocused = this.commentInput.$input.is(':focus');
       const range = this.commentInput.getRange();
       let rangeStart = Math.min(range.to, range.from);
       let rangeEnd = Math.max(range.to, range.from);
 
       // Reset the selection if the input is not focused to prevent losing text.
-      if (!isCommentInputFocused && rangeStart !== rangeEnd) {
+      if (!this.commentInput.$input.is(':focus') && rangeStart !== rangeEnd) {
         this.commentInput.selectRange(range.to);
         rangeStart = rangeEnd = range.to;
       }
@@ -3885,20 +3884,18 @@ class CommentForm extends EventEmitter {
   }) {
     const range = this.commentInput.getRange();
     const selectionStartIndex = Math.min(range.from, range.to);
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const selectionEndIndex = Math.max(range.from, range.to);
     const value = this.commentInput.getValue();
-    const addLeadingNewLine = (
-      ownline &&
-      !/(^|\n)$/.test(value.slice(0, selectionStartIndex)) &&
-      !/^\n/.test(peri)
-    );
-    const leadingNewline = addLeadingNewLine ? '\n' : '';
-    const addTrailingNewLine = (
-      ownline &&
-      !/^\n/.test(value.slice(selectionEndIndex)) &&
-      !/\n$/.test(post)
-    );
-    const trailingNewline = addTrailingNewLine ? '\n' : '';
+    const leadingNewline =
+      ownline && !/(^|\n)$/.test(value.slice(0, selectionStartIndex)) && !/^\n/.test(peri)
+        ? '\n'
+        : '';
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const trailingNewline =
+      ownline && !/^\n/.test(value.slice(selectionEndIndex)) && !/\n$/.test(post)
+        ? '\n'
+        : '';
     let periStartIndex;
     if (!selection && !replace) {
       periStartIndex = selectionStartIndex + leadingNewline.length + pre.length;
@@ -3911,17 +3908,16 @@ class CommentForm extends EventEmitter {
     const [leadingSpace] = /** @type {RegExpMatchArray} */ (selection.match(/^ */));
     const [trailingSpace] = /** @type {RegExpMatchArray} */ (selection.match(/ *$/));
     const middleText = selection || peri;
-    const text = (
-      leadingNewline +
-      leadingSpace +
-      pre +
-      middleText.slice(leadingSpace.length, middleText.length - trailingSpace.length) +
-      post +
-      trailingSpace +
-      trailingNewline
-    );
 
-    this.commentInput.cdInsertContent(text);
+    this.commentInput.cdInsertContent(
+      leadingNewline +
+        leadingSpace +
+        pre +
+        middleText.slice(leadingSpace.length, middleText.length - trailingSpace.length) +
+        post +
+        trailingSpace +
+        trailingNewline
+    );
     if (periStartIndex !== undefined) {
       this.commentInput.selectRange(periStartIndex, periStartIndex + peri.length);
     }
