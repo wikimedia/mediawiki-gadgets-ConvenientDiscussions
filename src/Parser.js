@@ -13,11 +13,11 @@ import { parseTimestamp } from './utils-timestamp';
  * @property {Constructor} SectionClass
  * @property {string} childElementsProp
  * @property {(el1: NodeLike, el2: NodeLike) => boolean} follows
- * @property {() => TextLikeArray} getAllTextNodes
+ * @property {() => TextLike[]} getAllTextNodes
  * @property {(el: ElementLike, className: string) => ElementLike | null} getElementByClassName
  * @property {ElementLike} rootElement
  * @property {() => boolean} areThereOutdents
- * @property {(elements: ElementLikeArray, bootProcess?: import('./BootProcess').default) => void} processAndRemoveDtElements
+ * @property {(elements: ElementLike[], bootProcess?: import('./BootProcess').default) => void} processAndRemoveDtElements
  * @property {() => void} removeDtButtonHtmlComments
  * @property {(el: ElementLike, node: NodeLike) => boolean} contains
  * @property {(parent: ElementLike, node: NodeLike, refNode: NodeLike | null) => void} insertBefore
@@ -47,7 +47,7 @@ import { parseTimestamp } from './utils-timestamp';
  * @property {string} authorName
  * @property {boolean} isUnsigned
  * @property {boolean} isExtraSignature
- * @property {ElementLikeArray} extraSignatures
+ * @property {ElementLike[]} extraSignatures
  * @property {CommentSkeleton} [comment]
  */
 
@@ -64,7 +64,7 @@ class Parser {
   /** @type {RegExp} */
   static punctuationRegexp;
 
-  /** @type {ElementLikeArray} */
+  /** @type {ElementLike[]} */
   noSignatureElements;
 
   /** @type {string[]} */
@@ -108,7 +108,7 @@ class Parser {
 
     const classSelector = cd.g.noSignatureClasses.map((name) => `.${name}`).join(', ');
 
-    this.noSignatureElements = /** @type {ElementLikeArray} */ ([
+    this.noSignatureElements = /** @type {ElementLike[]} */ ([
       ...this.context.rootElement.querySelectorAll(`${tagSelector}, ${classSelector}`),
     ]);
   }
@@ -148,27 +148,28 @@ class Parser {
    * @param {import('./BootProcess').default} [bootProcess]
    */
   processAndRemoveDtMarkup(bootProcess) {
-    const elements = /** @type {ElementLikeArray} */ ([...this.context.rootElement.getElementsByTagName('span')]
-      .filter((el) => (
-        el.hasAttribute('data-mw-comment-start') ||
-        el.hasAttribute('data-mw-comment-end') ||
+    const elements = /** @type {ElementLike[]} */ (
+      [...this.context.rootElement.getElementsByTagName('span')]
+        .filter((el) => (
+          el.hasAttribute('data-mw-comment-start') ||
+          el.hasAttribute('data-mw-comment-end') ||
 
-        // This, in fact, targets the one span at the top of the page, out of sections which makes
-        // comments taller (example:
-        // https://commons.wikimedia.org/w/index.php?title=User_talk:Jack_who_built_the_house/CD_test_page&oldid=876639400).
-        // Check for classes and content because in older DT versions, `data-mw-thread-id` was on
-        // the .mw-headline element.
-        (
-          el.tagName === 'SPAN' &&
-          el.hasAttribute('data-mw-thread-id') &&
-          !el.classList.length &&
-          !el.textContent
+          // This, in fact, targets the one span at the top of the page, out of sections which makes
+          // comments taller (example:
+          // https://commons.wikimedia.org/w/index.php?title=User_talk:Jack_who_built_the_house/CD_test_page&oldid=876639400).
+          // Check for classes and content because in older DT versions, `data-mw-thread-id` was on
+          // the .mw-headline element.
+          (
+            el.tagName === 'SPAN' &&
+            el.hasAttribute('data-mw-thread-id') &&
+            !el.classList.length &&
+            !el.textContent
+          )
+        ))
+        .concat(
+          [...this.context.rootElement.getElementsByClassName('ext-discussiontools-init-replylink-buttons')]
         )
-      ))
-      .concat(
-        [...this.context.rootElement.getElementsByClassName('ext-discussiontools-init-replylink-buttons')]
-      )
-      .filter(unique));
+        .filter(unique));
     this.context.processAndRemoveDtElements(elements, bootProcess);
     this.context.removeDtButtonHtmlComments();
   }
@@ -570,7 +571,7 @@ class Parser {
       nodes = children;
       children = nodes.reduce(
         (arr, element) => arr.concat([...element[this.context.childElementsProp]]),
-        /** @type {ElementLikeArray} */ ([])
+        /** @type {ElementLike[]} */ ([])
       );
       if (['DL', 'UL', 'OL'].includes(nodes[0].tagName)) {
         levelsPassed++;

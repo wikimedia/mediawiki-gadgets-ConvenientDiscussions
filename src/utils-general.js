@@ -651,8 +651,8 @@ export function isText(node) {
 
 /**
  * @overload
- * @param {import('domhandler').Node} node
- * @returns {node is import('domhandler').Element}
+ * @param {import('./worker/domhandlerExtended').Node} node
+ * @returns {node is import('./worker/domhandlerExtended').Element}
  */
 
 /**
@@ -685,7 +685,7 @@ export function isNode(node) {
  * Checks if the argument is a node from the `domhandler` library.
  *
  * @param {NodeLike} [node]
- * @returns {node is import('domhandler').Node}
+ * @returns {node is import('./worker/domhandlerExtended').Node}
  */
 export function isDomHandlerNode(node) {
   return Boolean(node && 'type' in node && 'parent' in node);
@@ -695,7 +695,7 @@ export function isDomHandlerNode(node) {
  * Checks if the given node is a node from the `domhandler` library.
  *
  * @param {NodeLike} [node]
- * @returns {node is import('domhandler').Element}
+ * @returns {node is import('./worker/domhandlerExtended').Element}
  */
 // eslint-disable-next-line no-unused-vars
 export function isDomHandlerElement(node) {

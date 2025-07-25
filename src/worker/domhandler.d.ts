@@ -1,3 +1,6 @@
+// These are types for our extensions of domhandler. It's not called domhandlerExtended.d.ts because
+// that would cause type imports to be from this module.
+
 import 'domhandler';
 
 declare module 'domhandler' {

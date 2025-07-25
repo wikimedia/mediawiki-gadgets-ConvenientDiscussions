@@ -27,7 +27,7 @@ class CommentSkeleton {
    * Keep in mind that elements may be replaced, and property values will need to be updated. See
    * {@link Comment#replaceElement}.
    *
-   * @type {ElementLikeArray}
+   * @type {ElementLike[]}
    */
   highlightables;
 
@@ -207,9 +207,9 @@ class CommentSkeleton {
     /**
      * _For internal use._ Elements containing all parts of the comment.
      *
-     * @type {ElementLikeArray}
+     * @type {ElementLike[]}
      */
-    this.elements = /** @type {ElementLikeArray} */ (this.parts.map((part) => part.node));
+    this.elements = /** @type {ElementLike[]} */ (this.parts.map((part) => part.node));
 
     this.updateHighlightables();
     this.updateLevels();
@@ -831,7 +831,7 @@ class CommentSkeleton {
           !hasCurrentSignature &&
           !isInline(node) &&
           cd.g.signatureEndingRegexp?.test(node.textContent) &&
-          !this.parser.noSignatureElements.some((el) => el.contains(node))
+          !this.parser.noSignatureElements.some((el) => this.parser.context.contains(el, node))
         ) {
           break;
         }
@@ -997,7 +997,7 @@ class CommentSkeleton {
 
         // E.g. `mw-notalk` elements at the beginning of the comment (example:
         // https://ru.wikipedia.org/wiki/Википедия:Заявки_на_статус_администратора/Wikisaurus#c-Khidistavi-20240209164000-Против)
-        this.parser.noSignatureElements.some((el) => el.contains(node)) ||
+        this.parser.noSignatureElements.some((el) => this.parser.context.contains(el, node)) ||
 
         // In most cases outdent template will be filtered by this.parser.rejectClasses
         (
@@ -1270,7 +1270,7 @@ class CommentSkeleton {
       !/float: *(?:left|right)|display: *none/.test(el.getAttribute('style'))
     );
 
-    this.highlightables = /** @type {ElementLikeArray} */ (this.elements.filter(isHighlightable));
+    this.highlightables = /** @type {ElementLike[]} */ (this.elements.filter(isHighlightable));
 
     // There shouldn't be comments without highlightables.
     if (!this.highlightables.length) {
@@ -1325,7 +1325,7 @@ class CommentSkeleton {
   addAttributes() {
     this.elements.forEach((el) => {
       el.classList.add('cd-comment-part');
-      el.setAttribute('data-cd-comment-index', this.index);
+      el.setAttribute('data-cd-comment-index', String(this.index));
     });
     this.highlightables[0].classList.add('cd-comment-part-first');
     this.highlightables[this.highlightables.length - 1].classList.add('cd-comment-part-last');
@@ -1337,7 +1337,7 @@ class CommentSkeleton {
    *
    * @param {ElementLike} initialElement
    * @param {boolean} [includeFirstMatch=false]
-   * @returns {ElementLikeArray}
+   * @returns {ElementLike[]}
    */
   getListsUpTree(initialElement, includeFirstMatch = false) {
     const listElements = [];
@@ -1364,7 +1364,7 @@ class CommentSkeleton {
       }
     }
 
-    return /** @type {ElementLikeArray} */ (listElements);
+    return /** @type {ElementLike[]} */ (listElements);
   }
 
   /**
@@ -1493,7 +1493,7 @@ class CommentSkeleton {
    * * Item 3. [signature]
    * ```
    *
-   * @param {AtLeastOne<ElementLikeArray>} levelElements
+   * @param {AtLeastOne<ElementLike[]>} levelElements
    * @private
    */
   fixEndLevel(levelElements) {
@@ -1553,7 +1553,7 @@ class CommentSkeleton {
         levelElements = this.highlightables.map(this.getListsUpTree.bind(this));
       }
       this.fixIndentationHoles();
-      this.fixEndLevel(/** @type {AtLeastOne<ElementLikeArray>} */ (levelElements));
+      this.fixEndLevel(/** @type {AtLeastOne<ElementLike[]>} */ (levelElements));
     }
 
     for (let i = 0; i < this.level; i++) {

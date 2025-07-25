@@ -53,12 +53,12 @@ function setAlarm(interval) {
 /**
  * Get all text nodes under the root element.
  *
- * @returns {import('domhandler').Node[]}
+ * @returns {import('./domhandlerExtended').Node[]}
  * @private
  */
 function getAllTextNodes() {
   let nodes = [];
-  rootElement.traverseSubtree((/** @type {import('domhandler').Node} */ node) => {
+  rootElement.traverseSubtree((/** @type {import('./domhandlerExtended').Node} */ node) => {
     if (isText(node)) {
       nodes.push(node);
     }
@@ -182,10 +182,10 @@ function parse() {
     CommentClass: CommentWorker,
     SectionClass: SectionWorker,
     childElementsProp: 'childElements',
-    /** @type {(el1: import('domhandler').Node, el2: import('domhandler').Node) => boolean} */
+    /** @type {(el1: import('./domhandlerExtended').Node, el2: import('./domhandlerExtended').Node) => boolean} */
     follows: (el1, el2) => el1.follows(el2),
     getAllTextNodes,
-    /** @type {(el: import('domhandler').Element, className: string) => import('domhandler').Element | null} */
+    /** @type {(el: import('./domhandlerExtended').Element, className: string) => import('./domhandlerExtended').Element | null} */
     getElementByClassName: (el, className) => (el.getElementsByClassName(className, 1))[0] || null,
     rootElement,
     areThereOutdents: () => {
@@ -195,22 +195,22 @@ function parse() {
 
       return areThereOutdents;
     },
-    /** @type {(elements: import('domhandler').Element[]) => void} */
+    /** @type {(elements: import('./domhandlerExtended').Element[]) => void} */
     processAndRemoveDtElements: (elements) => {
       elements.forEach((el) => {
         el.remove();
       });
     },
     removeDtButtonHtmlComments,
-    /** @type {(el: import('domhandler').Element, node: import('domhandler').Node) => boolean} */
+    /** @type {(el: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node) => boolean} */
     contains: (el, node) => el.contains(node),
-    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node, refNode: import('domhandler').Node | undefined) => import('domhandler').Node} */
+    /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node, refNode: import('./domhandlerExtended').Node | undefined) => import('./domhandlerExtended').Node} */
     insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode),
-    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
+    /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node) => void} */
     appendChild: (parent, node) => parent.appendChild(node),
-    /** @type {(node: import('domhandler').Node) => void} */
+    /** @type {(node: import('./domhandlerExtended').Node) => void} */
     remove: (node) => node.remove(),
-    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
+    /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node) => void} */
     removeChild: (parent, node) => parent.removeChild(node),
   });
 
