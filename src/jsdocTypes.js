@@ -2,17 +2,17 @@
  * @typedef {'ltr' | 'rtl'} Direction
  */
 
-/**
- * @typedef {Element | import('./worker/domhandlerExtended').Element} ElementLike
- */
+// /**
+//  * @typedef {Element | import('domhandler').Element} ElementLike
+//  */
 
-/**
- * @typedef {Node | import('./worker/domhandlerExtended').Node} NodeLike
- */
+// /**
+//  * @typedef {Node | import('domhandler').Node} NodeLike
+//  */
 
-/**
- * @typedef {Text | import('./worker/domhandlerExtended').Text} TextLike
- */
+// /**
+//  * @typedef {Text | import('domhandler').Text} TextLike
+//  */
 
 /**
  * Don't use ElementLike[] - elements of different types never mix.
