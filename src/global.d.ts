@@ -250,31 +250,6 @@ declare global {
     _data(element: Element, key: string): any;
     wikiEditor: any;
   }
-
-  type ElementLike = (Element | DomHandlerElement) & ElementLikeOverrides;
-  type NodeLike = Node | DomHandlerNode;
-  type TextLike = Text | DomHandlerText;
-
-  interface ElementLikeOverrides {
-    contains: Element['contains'];
-    contains: DomHandlerElement['contains'];
-    firstElementChild: Element | null;
-    firstElementChild: DomhandlerElement | null;
-    lastElementChild: Element | null;
-    lastElementChild: DomhandlerElement | null;
-    // querySelectorAll(selector: string): Element[];
-    // querySelectorAll(selector: string): DomhandlerElement[];
-    // getElementsByTagName(name: string): Element[];
-    // getElementsByTagName(name: string): DomhandlerElement[];
-    // childElements: Element[];
-    // childElements: DomhandlerElement[];
-    // previousElementSibling: Element | null;
-    // previousElementSibling: DomhandlerElement | null;
-    // nextElementSibling: Element | null;
-    // nextElementSibling: DomhandlerElement | null;
-    // textContent: string;
-    // innerHTML: string;
-  }
 }
 
 export {};

@@ -96,7 +96,6 @@ class SectionSkeleton {
     /**
      * `<hN>` element of the section (`<h1>`-`<h6>`).
      *
-     * @type {ElementLike}
      * @protected
      */
     this.hElement = (
