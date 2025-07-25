@@ -184,8 +184,9 @@ function parse() {
     childElementsProp: 'childElements',
     follows: (el1, el2) => el1.follows(el2),
     getAllTextNodes,
-    getElementByClassName: (el, className) => {
+    getElementByClassName: (/** @type {import('domhandler').Element} */ el, className) => {
       const elements = el.getElementsByClassName(className, 1);
+
       return elements[0] || null;
     },
     rootElement,
@@ -193,6 +194,7 @@ function parse() {
       areThereOutdents ??= Boolean(
         rootElement.getElementsByClassName(cd.config.outdentClass, 1).length
       );
+
       return areThereOutdents;
     },
     processAndRemoveDtElements: (/** @type {import('domhandler').Element[]} */ elements) => {
