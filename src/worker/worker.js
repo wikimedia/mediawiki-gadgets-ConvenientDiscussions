@@ -182,13 +182,11 @@ function parse() {
     CommentClass: CommentWorker,
     SectionClass: SectionWorker,
     childElementsProp: 'childElements',
+    /** @type {(el1: import('domhandler').Node, el2: import('domhandler').Node) => boolean} */
     follows: (el1, el2) => el1.follows(el2),
     getAllTextNodes,
-    getElementByClassName: (/** @type {import('domhandler').Element} */ el, className) => {
-      const elements = el.getElementsByClassName(className, 1);
-
-      return elements[0] || null;
-    },
+    /** @type {(el: import('domhandler').Element, className: string) => import('domhandler').Element | null} */
+    getElementByClassName: (el, className) => (el.getElementsByClassName(className, 1))[0] || null,
     rootElement,
     areThereOutdents: () => {
       areThereOutdents ??= Boolean(
@@ -197,12 +195,23 @@ function parse() {
 
       return areThereOutdents;
     },
-    processAndRemoveDtElements: (/** @type {import('domhandler').Element[]} */ elements) => {
+    /** @type {(elements: import('domhandler').Element[]) => void} */
+    processAndRemoveDtElements: (elements) => {
       elements.forEach((el) => {
         el.remove();
       });
     },
     removeDtButtonHtmlComments,
+    /** @type {(el: import('domhandler').Element, node: import('domhandler').Node) => boolean} */
+    contains: (el, node) => el.contains(node),
+    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node, refNode: import('domhandler').Node | undefined) => import('domhandler').Node} */
+    insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode),
+    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
+    appendChild: (parent, node) => parent.appendChild(node),
+    /** @type {(node: import('domhandler').Node) => void} */
+    remove: (node) => node.remove(),
+    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
+    removeChild: (parent, node) => parent.removeChild(node),
   });
 
   const targets = findTargets(parser);

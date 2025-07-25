@@ -315,7 +315,7 @@ class CommentSkeleton {
     const parts = /** @type {CommentPart[]} */ ([]);
     const fiaParentNode = /** @type {ElementLike} */ (farthestInlineAncestor.parentElement);
     if (
-      (firstForeignComponentAfter && fiaParentNode.contains(firstForeignComponentAfter)) ||
+      (firstForeignComponentAfter && this.parser.context.contains(fiaParentNode, firstForeignComponentAfter)) ||
 
       // Cases when the comment has no wrapper that contains only that comment (for example,
       // https://ru.wikipedia.org/wiki/Project:Форум/Архив/Технический/2020/10#202010140847_AndreiK).
@@ -785,7 +785,7 @@ class CommentSkeleton {
         }
 
         isHeading = isHeadingNode(node);
-        hasCurrentSignature = node.contains(this.signatureElement);
+        hasCurrentSignature = this.parser.context.contains(node, this.signatureElement);
 
         // The second parameter of .getElementsByClassName() is an optimization for the worker
         // context.
@@ -803,7 +803,7 @@ class CommentSkeleton {
             signatureCount - Number(hasCurrentSignature) > 0 ||
             (
               firstForeignComponentAfter &&
-              node.contains(firstForeignComponentAfter) &&
+              this.parser.context.contains(node, firstForeignComponentAfter) &&
 
               !(
                 // Cases like the table added at https://ru.wikipedia.org/?diff=115822931
@@ -819,7 +819,7 @@ class CommentSkeleton {
             (
               precedingHeadingElement &&
               node !== precedingHeadingElement &&
-              node.contains(precedingHeadingElement)
+              this.parser.context.contains(node, precedingHeadingElement)
             )
           )
         );
@@ -950,14 +950,14 @@ class CommentSkeleton {
       const nextSibling = this.parts[sequence.start].node.nextSibling;
       const parent = /** @type {ElementLike} */ (this.parts[sequence.start].node.parentElement);
       for (let j = sequence.end; j >= sequence.start; j--) {
-        wrapper.appendChild(this.parts[j].node);
+        this.parser.context.appendChild(wrapper, this.parts[j].node);
       }
-      parent.insertBefore(wrapper, nextSibling);
+      this.parser.context.insertBefore(parent, wrapper, nextSibling);
       this.parts.splice(sequence.start, sequence.end - sequence.start + 1, {
         node: wrapper,
         isTextNode: false,
         isHeading: false,
-        hasCurrentSignature: wrapper.contains(this.signatureElement),
+        hasCurrentSignature: this.parser.context.contains(wrapper, this.signatureElement),
         hasForeignComponents: false,
         step: 'replaced',
       });
@@ -1019,7 +1019,11 @@ class CommentSkeleton {
       isElement(firstNode.firstChild) &&
       firstNode.firstChild?.tagName === 'BR'
     ) {
-      firstNode.before(firstNode.firstChild);
+      this.parser.context.insertBefore(
+        /** @type {ElementLike} */ (firstNode.parentElement),
+        /** @type {NodeLike} */ (firstNode.firstChild),
+        firstNode
+      );
     }
 
     for (let i = this.parts.length - 1, startNode; i >= 1; i--) {
@@ -1179,7 +1183,7 @@ class CommentSkeleton {
             node: el,
             isTextNode: false,
             isHeading: false,
-            hasCurrentSignature: el.contains(this.signatureElement),
+            hasCurrentSignature: this.parser.context.contains(el, this.signatureElement),
             hasForeignComponents: false,
             step: 'replaced',
           })));
@@ -1203,7 +1207,7 @@ class CommentSkeleton {
 
       if (firstNodeParent.tagName === 'OL') {
         // 0 or 1
-        const currentSignatureCount = Number(firstNodeParent.contains(this.signatureElement));
+        const currentSignatureCount = Number(this.parser.context.contains(firstNodeParent, this.signatureElement));
 
         // A foreign signature can be found with just .cd-signature search; example:
         // https://commons.wikimedia.org/?diff=566673258.
@@ -1218,7 +1222,7 @@ class CommentSkeleton {
           const isNumberedListUsedAsIndentation = !this.parts.some(
             (part) =>
               part.node.parentNode !== firstNodeParent &&
-              /** @type {ElementLike} */ (part.node.parentElement).contains(firstNodeParent)
+              this.parser.context.contains(/** @type {ElementLike} */ (part.node.parentElement), firstNodeParent)
           );
           let outerWrapper;
           let innerWrapper;
@@ -1232,8 +1236,8 @@ class CommentSkeleton {
             innerWrapper = document.createElement('div');
             outerWrapper = innerWrapper;
           }
-          innerWrapper.appendChild(firstNodeParent);
-          parentParent.insertBefore(outerWrapper, nextSibling);
+          this.parser.context.appendChild(innerWrapper, firstNodeParent);
+          this.parser.context.insertBefore(parentParent, outerWrapper, nextSibling);
 
           this.parts.splice(0, listItems.length, {
             node: innerWrapper,
@@ -1306,10 +1310,10 @@ class CommentSkeleton {
       .forEach((el) => {
         const wrapper = document.createElement('div');
         wrapper.className = 'cd-comment-replacedPart';
-        el.before(wrapper);
+        this.parser.context.insertBefore(/** @type {ElementLike} */ (el.parentElement), wrapper, el);
         this.elements.splice(this.elements.indexOf(el), 1, wrapper);
         this.highlightables.splice(this.highlightables.indexOf(el), 1, wrapper);
-        wrapper.appendChild(el);
+        this.parser.context.appendChild(wrapper, el);
       });
   }
 
@@ -1471,9 +1475,9 @@ class CommentSkeleton {
           const tagName = levelElement.tagName === 'DL' ? 'dd' : 'li';
           const itemElement = document.createElement(tagName);
           indexes.forEach((index) => {
-            itemElement.appendChild(this.elements[index]);
+            this.parser.context.appendChild(itemElement, this.elements[index]);
           });
-          levelElement.appendChild(itemElement);
+          this.parser.context.appendChild(levelElement, itemElement);
         }
       });
   }
@@ -1509,7 +1513,7 @@ class CommentSkeleton {
 
       let firstItemIndex = this.elements.length - 1;
       for (let i = this.elements.length - 2; i > 0; i--) {
-        if (closestLevelElement.contains(this.elements[i])) {
+        if (this.parser.context.contains(closestLevelElement, this.elements[i])) {
           firstItemIndex = i;
         } else {
           break;

@@ -19,6 +19,11 @@ import { parseTimestamp } from './utils-timestamp';
  * @property {() => boolean} areThereOutdents
  * @property {(elements: ElementLikeArray, bootProcess?: import('./BootProcess').default) => void} processAndRemoveDtElements
  * @property {() => void} removeDtButtonHtmlComments
+ * @property {(el: ElementLike, node: NodeLike) => boolean} contains
+ * @property {(parent: ElementLike, node: NodeLike, refNode: NodeLike | null) => void} insertBefore
+ * @property {(parent: ElementLike, node: NodeLike) => void} appendChild
+ * @property {(node: NodeLike) => void} remove
+ * @property {(parent: ElementLike, node: NodeLike) => void} removeChild
  */
 
 /**
@@ -179,8 +184,17 @@ class Parser {
   handleFactotumOutdents(text, node) {
     if (
       !/^┌─*┘$/.test(text) ||
-      node.parentElement?.classList.contains(cd.config.outdentClass) ||
-      node.parentElement?.parentElement?.classList.contains(cd.config.outdentClass)
+      (
+        node.parentElement &&
+        this.context.contains(node.parentElement, node) &&
+        node.parentElement.classList.contains(cd.config.outdentClass)
+      ) ||
+      (
+        node.parentElement &&
+        node.parentElement.parentElement &&
+        this.context.contains(node.parentElement.parentElement, node) &&
+        node.parentElement.parentElement.classList.contains(cd.config.outdentClass)
+      )
     ) {
       return;
     }
@@ -189,12 +203,14 @@ class Parser {
     span.className = cd.config.outdentClass;
     span.textContent = text;
     if (isElement(node.nextSibling) && node.nextSibling.tagName === 'BR') {
-      node.nextSibling.remove();
+      this.context.remove(node.nextSibling);
     }
 
     // Don't have Node#replaceChild() in the worker.
-    node.parentElement?.insertBefore(span, node);
-    node.remove();
+    if (node.parentElement) {
+      this.context.insertBefore(node.parentElement, span, node);
+    }
+    this.context.remove(node);
   }
 
   /**
@@ -222,7 +238,7 @@ class Parser {
     const { date, match } = parseTimestamp(text) || {};
     if (
       !date ||
-      this.noSignatureElements.some((/** @type {ElementLike} */ el) => el.contains(node))
+      this.noSignatureElements.some((/** @type {ElementLike} */ el) => this.context.contains(el, node))
     ) {
       return null;
     }
@@ -233,9 +249,11 @@ class Parser {
     const remainedText = node.textContent.slice(match.index + match[0].length);
     const afterNode = remainedText ? document.createTextNode(remainedText) : undefined;
     node.textContent = match[1];
-    node.parentElement?.insertBefore(element, node.nextSibling);
-    if (afterNode) {
-      node.parentElement?.insertBefore(afterNode, element.nextSibling);
+    if (node.parentElement) {
+      this.context.insertBefore(node.parentElement, element, node.nextSibling);
+      if (afterNode) {
+        this.context.insertBefore(node.parentElement, afterNode, element.nextSibling);
+      }
     }
 
     return { element, date };
@@ -398,7 +416,7 @@ class Parser {
     const element = document.createElement('span');
     element.classList.add('cd-signature');
     signatureNodes.reverse().forEach(element.appendChild.bind(element));
-    signatureContainer.insertBefore(element, startElementNextSibling);
+    this.context.insertBefore(signatureContainer, element, startElementNextSibling);
 
     return {
       element,
@@ -603,7 +621,7 @@ class Parser {
         (element) =>
           element.getAttribute('id') !== 'mw-toc-heading' &&
           !this.noSignatureElements.some((/** @type {ElementLike} */ noSigEl) =>
-            noSigEl.contains(element)
+            this.context.contains(noSigEl, element)
           )
       )
       .map((element) => ({
@@ -655,16 +673,10 @@ class Parser {
     let lastChild;
     while ((lastChild = parent.lastChild) && lastChild !== node) {
       const firstChild = /** @type {NodeLike} */ (clone.firstChild);
-      clone.insertBefore(lastChild, firstChild);
-
-      // if (isDomHandlerNode(clone) && isDomHandlerNode(lastChild) && isDomHandlerNode(firstChild)) {
-      //   clone.insertBefore(lastChild, firstChild);
-      // } else if (!isDomHandlerNode(clone) && !isDomHandlerNode(firstChild) && !isDomHandlerNode(lastChild)) {
-      //   clone.insertBefore(lastChild, firstChild);
-      // }
+      this.context.insertBefore(clone, lastChild, firstChild);
     }
-    if (clone[this.context.childElementsProp].length > 0) {
-      parent.parentElement?.insertBefore(clone, parent.nextSibling);
+    if (clone[this.context.childElementsProp].length > 0 && parent.parentElement) {
+      this.context.insertBefore(parent.parentElement, clone, parent.nextSibling);
     }
 
     return { parent, clone };

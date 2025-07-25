@@ -689,6 +689,16 @@ class BootProcess {
       areThereOutdents: talkPageController.areThereOutdents.bind(talkPageController),
       processAndRemoveDtElements,
       removeDtButtonHtmlComments,
+      /** @type {(el: Element, node: Node) => boolean} */
+      contains: (el, node) => el.contains(node),
+      /** @type {(parent: Element, node: Node, refNode: Node | null) => Node} */
+      insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode),
+      /** @type {(parent: Element, node: Node) => Node} */
+      appendChild: (parent, node) => parent.appendChild(node),
+      /** @type {(node: Node) => void} */
+      remove: (node) => { if (node.parentNode) node.parentNode.removeChild(node); },
+      /** @type {(parent: Element, node: Node) => Node} */
+      removeChild: (parent, node) => parent.removeChild(node),
     });
     this.parser.init();
     this.parser.processAndRemoveDtMarkup(this);
