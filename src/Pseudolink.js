@@ -1,5 +1,5 @@
 import Button from './Button';
-import cd from './cd';
+import cd from './shared/cd';
 
 /**
  * Button that inserts text in an input by click and looks like a link with a dashed underline.

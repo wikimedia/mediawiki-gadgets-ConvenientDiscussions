@@ -6,12 +6,12 @@
  * @module utilsApi
  */
 
-import CdError from './CdError';
+import CdError from './shared/CdError';
 import TextMasker from './TextMasker';
-import cd from './cd';
+import cd from './shared/cd';
 import userRegistry from './userRegistry';
-import { unique } from './utils-general';
-import { brsToNewlines } from './utils-wikitext';
+import { unique } from './shared/utils-general';
+import { brsToNewlines } from './shared/utils-wikitext';
 
 /**
  * @typedef {object} ApiResponseParseContent

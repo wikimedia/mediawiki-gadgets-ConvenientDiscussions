@@ -1,15 +1,15 @@
-import CdError from './CdError';
+import CdError from './shared/CdError';
 import Comment from './Comment';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
 import userRegistry from './userRegistry';
 import { loadUserGenders } from './utils-api';
-import { calculateWordOverlap, keepWorkerSafeValues, subtractDaysFromNow } from './utils-general';
+import { calculateWordOverlap, keepWorkerSafeValues, subtractDaysFromNow } from './shared/utils-general';
 import { EventEmitter } from './utils-oojs';
 import visits from './visits';
 

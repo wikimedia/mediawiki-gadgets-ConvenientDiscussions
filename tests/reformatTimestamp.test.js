@@ -26,11 +26,11 @@ self.$ = {};
 require('../src/jqueryExtensions');
 
 const Comment = require('../src/Comment').default;
-const cd = require('../src/cd').default;
+const cd = require('../src/shared/cd').default;
 // eslint-disable-next-line no-one-time-vars/no-one-time-vars
 const en = require('../i18n/en.json');
 const settings = require('../src/settings').default;
-const { formatDateNative, initDayjs } = require('../src/utils-timestamp');
+const { formatDateNative, initDayjs } = require('../src/shared/utils-timestamp');
 
 cd.config = {
   defaultInsertButtons: [],

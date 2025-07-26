@@ -1,5 +1,5 @@
-import CdError from './CdError';
-import cd from './cd';
+import CdError from './shared/CdError';
+import cd from './shared/cd';
 import settings from './settings';
 import { EventEmitter } from './utils-oojs';
 import { wrapHtml } from './utils-window';

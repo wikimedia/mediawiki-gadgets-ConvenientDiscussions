@@ -4,7 +4,7 @@
  * @module utilsOoui
  */
 
-import cd from './cd';
+import cd from './shared/cd';
 import { copyText } from './utils-window';
 
 /**

@@ -1,5 +1,5 @@
-import cd from './cd';
-import { isElement, isText } from './utils-general';
+import cd from './shared/cd';
+import { isElement, isText } from './shared/utils-general';
 import { createSvg } from './utils-window';
 
 /**

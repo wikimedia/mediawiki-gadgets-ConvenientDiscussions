@@ -1,6 +1,6 @@
-import CdError from './CdError';
+import CdError from './shared/CdError';
 import DivLabelWidget from './DivLabelWidget';
-import cd from './cd';
+import cd from './shared/cd';
 import { createCopyTextControl, es6ClassToOoJsClass } from './utils-oojs';
 import { mergeJquery, wrapHtml } from './utils-window';
 

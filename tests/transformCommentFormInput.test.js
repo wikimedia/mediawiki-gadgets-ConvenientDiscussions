@@ -11,7 +11,7 @@ window.mw = {
 };
 
 const CommentFormInputTransformer = require('../src/CommentFormInputTransformer').default;
-const cd = require('../src/cd').default;
+const cd = require('../src/shared/cd').default;
 
 const defaultConfig = {
   defaultIndentationChar: ':',

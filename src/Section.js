@@ -1,13 +1,13 @@
 /* eslint-disable no-self-assign */
 import Button from './Button';
-import CdError from './CdError';
+import CdError from './shared/CdError';
 import Comment from './Comment';
 import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
-import SectionSkeleton from './SectionSkeleton';
+import SectionSkeleton from './shared/SectionSkeleton';
 import SectionSource from './SectionSource';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import pageRegistry from './pageRegistry';
 import sectionRegistry from './sectionRegistry';
@@ -15,9 +15,9 @@ import settings from './settings';
 import talkPageController from './talkPageController';
 import toc from './toc';
 import { handleApiReject } from './utils-api';
-import { defined, getHeadingLevel, underlinesToSpaces, unique } from './utils-general';
-import { formatDate } from './utils-timestamp';
-import { encodeWikilink, maskDistractingCode, normalizeCode } from './utils-wikitext';
+import { defined, getHeadingLevel, underlinesToSpaces, unique } from './shared/utils-general';
+import { formatDate } from './shared/utils-timestamp';
+import { encodeWikilink, maskDistractingCode, normalizeCode } from './shared/utils-wikitext';
 import { getRangeContents } from './utils-window';
 
 /**
@@ -125,7 +125,7 @@ class Section extends SectionSkeleton {
   /**
    * Create a section object.
    *
-   * @param {import('./Parser').default} parser
+   * @param {import('./shared/Parser').default} parser
    * @param {object} heading Heading object returned by {@link Parser#findHeadings}.
    * @param {object[]} targets Sorted target objects returned by  {@link Parser#findSignatures} +
    *   {@link Parser#findHeadings}.

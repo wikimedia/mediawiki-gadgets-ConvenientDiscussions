@@ -1,6 +1,6 @@
-import CdError from './CdError';
+import CdError from './shared/CdError';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd';
 import { es6ClassToOoJsClass } from './utils-oojs';
 
 /**

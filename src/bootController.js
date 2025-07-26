@@ -3,14 +3,14 @@ import digitsData from '../data/digits.json';
 import languageFallbacks from '../data/languageFallbacks.json';
 
 import addCommentLinks from './addCommentLinks';
-import cd from './cd';
+import cd from './shared/cd';
 import debug from './debug';
 import pageRegistry from './pageRegistry';
 import settings from './settings';
 import userRegistry from './userRegistry';
 import { getUserInfo, splitIntoBatches } from './utils-api';
-import { defined, getContentLanguageMessages, getQueryParamBooleanValue, isProbablyTalkPage, sleep, unique } from './utils-general';
-import { dateTokenToMessageNames } from './utils-timestamp';
+import { defined, getContentLanguageMessages, getQueryParamBooleanValue, isProbablyTalkPage, sleep, unique } from './shared/utils-general';
+import { dateTokenToMessageNames } from './shared/utils-timestamp';
 import { createSvg, skin$, transparentize } from './utils-window';
 
 /**
@@ -1194,7 +1194,7 @@ class BootController {
    * @param {import('./BootProcess').PassedData} [passedData={}] Data passed from the previous page
    *   state. See {@link PassedData} for the list of possible properties. `html`, `unseenComments`
    *   properties are set in this function.
-   * @throws {import('./CdError').default|Error}
+   * @throws {import('./shared/CdError').default|Error}
    */
   async reboot(passedData = {}) {
     if (this.booting) return;

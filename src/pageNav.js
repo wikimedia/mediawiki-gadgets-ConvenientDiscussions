@@ -8,7 +8,7 @@
 
 import Button from './Button';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd';
 import sectionRegistry from './sectionRegistry';
 import talkPageController from './talkPageController';
 import toc from './toc';

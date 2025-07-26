@@ -1,10 +1,10 @@
 import Button from './Button';
-import CdError from './CdError';
+import CdError from './shared/CdError';
 import Subscriptions from './Subscriptions';
-import cd from './cd';
+import cd from './shared/cd';
 import sectionRegistry from './sectionRegistry';
 import { handleApiReject, splitIntoBatches } from './utils-api';
-import { definedAndNotNull, spacesToUnderlines, unique } from './utils-general';
+import { definedAndNotNull, spacesToUnderlines, unique } from './shared/utils-general';
 
 /**
  * Implementation of DiscussionTools' topic subscriptions.

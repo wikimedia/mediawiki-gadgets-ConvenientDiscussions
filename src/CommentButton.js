@@ -1,5 +1,5 @@
 import Button from './Button';
-import CdError from './CdError';
+import CdError from './shared/CdError';
 
 /**
  * @typedef {object} ButtonExtension

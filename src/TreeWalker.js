@@ -1,4 +1,4 @@
-import { isElement, isNode } from './utils-general';
+import { isElement, isNode } from './shared/utils-general';
 
 /**
  * @typedef {'firstElementChild'|'firstChild'} FirstChildProp

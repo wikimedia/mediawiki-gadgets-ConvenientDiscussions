@@ -11,9 +11,9 @@ import languageFallbacks from '../data/languageFallbacks.json';
 
 import { addCommentLinksToSpecialSearch } from './addCommentLinks';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd';
 import debug from './debug';
-import { mergeRegexps, unique } from './utils-general.js';
+import { mergeRegexps, unique } from './shared/utils-general.js';
 import { getFooter } from './utils-window.js';
 
 let config;
@@ -311,7 +311,7 @@ async function app() {
     cd.config = config;
   }
 
-  cd.g = /** @type {import('./cd').GlobalProps} */ ({});
+  cd.g = /** @type {import('./shared/cd').GlobalProps} */ ({});
 
   debug.init();
   debug.startTimer('total time');
