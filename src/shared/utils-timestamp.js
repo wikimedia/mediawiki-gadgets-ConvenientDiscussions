@@ -18,8 +18,8 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
-import cd from './cd';
-import { getContentLanguageMessages, removeDirMarks, zeroPad } from './utils-general';
+import cd from './cd.js';
+import { getContentLanguageMessages, removeDirMarks, zeroPad } from './utils-general.js';
 
 let utcString;
 

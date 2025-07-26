@@ -1,16 +1,16 @@
 import Button from './Button';
-import CdError from './CdError';
-import ElementsTreeWalker from './ElementsTreeWalker';
+import CdError from './shared/CdError.js';
+import ElementsTreeWalker from './shared/ElementsTreeWalker.js';
 import PrototypeRegistry from './PrototypeRegistry';
 import StorageItemWithKeysAndSaveTime from './StorageItemWithKeysAndSaveTime';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd.js';
 import commentRegistry from './commentRegistry';
 import settings from './settings';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
 import { loadUserGenders } from './utils-api';
-import { defined, getCommonGender, isHeadingNode, removeFromArrayIfPresent, subtractDaysFromNow, unique } from './utils-general';
+import { defined, getCommonGender, isHeadingNode, removeFromArrayIfPresent, subtractDaysFromNow, unique } from './shared/utils-general.js';
 import { EventEmitter, mixInObject } from './utils-oojs';
 import { getExtendedRect, getRangeContents, getVisibilityByRects, isCmdModifierPressed } from './utils-window';
 

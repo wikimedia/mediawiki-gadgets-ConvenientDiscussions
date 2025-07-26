@@ -1,7 +1,10 @@
 /// <reference types="types-mediawiki" />
 
-import { Document as DomHandlerDocument, Node as DomHandlerNode, Element as DomHandlerElement } from 'domhandler';
+import { Document as DomHandlerDocument, Element as DomHandlerElement, Node as DomHandlerNode } from 'domhandler';
+
 import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
+import CommentWorker from '../worker/CommentWorker';
+import SectionWorker from '../worker/SectionWorker';
 
 declare global {
   const IS_TEST: boolean;
@@ -15,8 +18,36 @@ declare global {
   const getInterwikiPrefixForHostnameSync: Function;
   const getUrlFromInterwikiLink: Function;
 
+  type MessageFromWorkerParse = {
+    type: 'parse',
+    revisionId: number,
+    resolverId: number,
+    comments: CommentWorker[],
+    sections: SectionWorker[],
+  };
+
+  type MessageFromWindowParse = {
+    type: 'parse',
+    revisionId: number,
+    resolverId: number,
+    text: string,
+    g: ConvenientDiscussions['g'],
+    config: ConvenientDiscussions['config'],
+  };
+
+  type MessageFromWindowSetAlarm = {
+    type: 'setAlarm',
+    interval: number,
+  };
+
+  type MessageFromWindowRemoveAlarm = {
+    type: 'removeAlarm',
+  };
+
+  type MessageFromWindow = MessageFromWindowParse | MessageFromWindowSetAlarm | MessageFromWindowRemoveAlarm;
+
   const convenientDiscussions: Window['convenientDiscussions'];
-  const cd: Window['cd'] | undefined;
+  const cd: Window['convenientDiscussions'] | undefined;
 
   interface Window {
     // Basically we don't have a situation where getSelection() can return `null`, judging by
@@ -25,6 +56,11 @@ declare global {
 
     cdOnlyRunByFooterLink?: boolean;
     cdShowLoadingOverlay?: boolean;
+  }
+
+  interface WindowOrWorkerGlobalScope {
+    convenientDiscussions: ConvenientDiscussions | ConvenientDiscussionsWorker;
+    cd?: Window['convenientDiscussions'];
   }
 
   interface WorkerGlobalScope {

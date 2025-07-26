@@ -1,4 +1,4 @@
-import SectionSkeleton from '../SectionSkeleton';
+import SectionSkeleton from '../shared/SectionSkeleton.js';
 
 import { keepSafeValues } from './worker';
 

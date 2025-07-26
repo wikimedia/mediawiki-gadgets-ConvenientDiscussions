@@ -1,8 +1,8 @@
-import CdError from './CdError';
+import CdError from './shared/CdError.js';
 import ProcessDialog from './ProcessDialog';
 import PseudoLink from './Pseudolink';
-import cd from './cd';
-import { canonicalUrlToPageName, defined, generateFixedPosTimestamp, getDbnameForHostname, zeroPad } from './utils-general';
+import cd from './shared/cd.js';
+import { canonicalUrlToPageName, defined, generateFixedPosTimestamp, getDbnameForHostname, zeroPad } from './shared/utils-general.js';
 import { createTextControl, createCheckboxControl, createRadioControl, es6ClassToOoJsClass, mixInClass, createTitleControl } from './utils-oojs';
 import { mergeJquery, wrapHtml } from './utils-window';
 

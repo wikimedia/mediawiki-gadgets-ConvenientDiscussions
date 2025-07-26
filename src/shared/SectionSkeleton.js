@@ -1,8 +1,8 @@
-import CdError from './CdError';
-import CommentSkeleton from './CommentSkeleton';
-import TreeWalker from './TreeWalker';
-import cd from './cd';
-import { defined, isElement, isHeadingNode, isMetadataNode, isText } from './utils-general';
+import CdError from './CdError.js';
+import CommentSkeleton from './CommentSkeleton.js';
+import TreeWalker from './TreeWalker.js';
+import cd from './cd.js';
+import { defined, isElement, isHeadingNode, isMetadataNode, isText } from './utils-general.js';
 
 /**
  * Class containing the main properties of a section and building it from a heading (we should

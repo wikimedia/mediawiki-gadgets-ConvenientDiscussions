@@ -1,4 +1,4 @@
-import TreeWalker from './TreeWalker';
+import TreeWalker from './TreeWalker.js';
 
 /**
  * Tree walker that walks only on element nodes.

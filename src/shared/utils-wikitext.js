@@ -4,10 +4,10 @@
  * @module utilsWikitext
  */
 
-import TextMasker from './TextMasker';
-import cd from './cd';
-import { decodeHtmlEntities, generatePageNamePattern, removeDirMarks } from './utils-general';
-import { parseTimestamp } from './utils-timestamp';
+import TextMasker from '../TextMasker.js';
+import cd from './cd.js';
+import { decodeHtmlEntities, generatePageNamePattern, removeDirMarks } from './utils-general.js';
+import { parseTimestamp } from './utils-timestamp.js';
 
 /**
  * Generate a regular expression that searches for specified tags in the text (opening, closing, and

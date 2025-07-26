@@ -1,3 +1,5 @@
+/// <reference path="../shared/global.d.ts" />
+
 /**
  * Web worker entry point.
  *
@@ -18,11 +20,11 @@ import './extendDomhandler';
 import { isComment, isText } from 'domhandler';
 import { parseDocument } from 'htmlparser2';
 
-import CdError from '../CdError';
-import CommentSkeleton from '../CommentSkeleton';
-import Parser from '../Parser';
-import cdTemp from '../cd';
-import debug from '../debug';
+import CdError from '../shared/CdError.js';
+import CommentSkeleton from '../shared/CommentSkeleton.js';
+import Parser from '../shared/Parser.js';
+import cdTemp from '../shared/cd.js';
+import debug from '../debug.js';
 
 import CommentWorker from './CommentWorker';
 import SectionWorker from './SectionWorker';
@@ -256,53 +258,12 @@ function restoreFunc(code) {
 }
 
 /**
- * @typedef {object} MessageFromWorkerParse
- * @property {'parse'} type
- * @property {number} revisionId
- * @property {number} resolverId
- * @property {CommentWorker[]} comments
- * @property {SectionWorker[]} sections
- */
-
-/**
- * @typedef {MessageFromWorkerParse|undefined} ReplyFromWorker
- */
-
-/**
- * @typedef {object} MessageFromWindowParse
- * @property {'parse'} type
- * @property {number} revisionId
- * @property {number} resolverId
- * @property {string} text
- * @property {import('../cd').ConvenientDiscussions['g']} g
- * @property {import('../cd').ConvenientDiscussions['config']} config
- */
-
-/**
- * @typedef {object} MessageFromWindowSetAlarm
- * @property {'setAlarm'} type
- * @property {number} interval
- */
-
-/**
- * @typedef {object} MessageFromWindowRemoveAlarm
- * @property {'removeAlarm'} type
- */
-
-/**
- * @typedef {MessageFromWindowParse | MessageFromWindowSetAlarm | MessageFromWindowRemoveAlarm} MessageFromWindow
- */
-
-/**
  * Callback for messages from the window.
  *
- * @param {MessageEvent} event
+ * @param {MessageEvent<MessageFromWindow>} event
  * @private
  */
 function onMessageFromWindow(event) {
-  /**
-   * @type {MessageFromWindow}
-   */
   const message = event.data;
 
   if (isFirstRun) {

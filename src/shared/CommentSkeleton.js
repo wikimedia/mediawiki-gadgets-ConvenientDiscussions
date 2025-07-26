@@ -1,9 +1,9 @@
-import CdError from './CdError';
-import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker';
-import ElementsTreeWalker from './ElementsTreeWalker';
-import Parser from './Parser';
-import cd from './cd';
-import { generateFixedPosTimestamp, genericGetOldestOrNewestByDateProp, isElement, isHeadingNode, isInline, isMetadataNode, isText, spacesToUnderlines, unique } from './utils-general';
+import CdError from './CdError.js';
+import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker.js';
+import ElementsTreeWalker from './ElementsTreeWalker.js';
+import Parser from './Parser.js';
+import cd from './cd.js';
+import { generateFixedPosTimestamp, genericGetOldestOrNewestByDateProp, isElement, isHeadingNode, isInline, isMetadataNode, isText, spacesToUnderlines, unique } from './utils-general.js';
 
 /**
  * Class containing the main properties of a comment and building it from a signature (we should

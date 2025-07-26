@@ -1,11 +1,11 @@
 // Here, we use vanilla JavaScript for recurring operations that together take up a lot of time.
 
-import CommentSkeleton from './CommentSkeleton';
-import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker';
-import ElementsTreeWalker from './ElementsTreeWalker';
-import cd from './cd';
-import { getHeadingLevel, parseWikiUrl, isHeadingNode, isInline, isMetadataNode, ucFirst, underlinesToSpaces, definedAndNotNull, unique, isDomHandlerElement, isElement } from './utils-general';
-import { parseTimestamp } from './utils-timestamp';
+import CommentSkeleton from './CommentSkeleton.js';
+import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker.js';
+import ElementsTreeWalker from './ElementsTreeWalker.js';
+import cd from './cd.js';
+import { getHeadingLevel, parseWikiUrl, isHeadingNode, isInline, isMetadataNode, ucFirst, underlinesToSpaces, definedAndNotNull, unique, isDomHandlerElement, isElement } from './utils-general.js';
+import { parseTimestamp } from './utils-timestamp.js';
 
 /**
  * @typedef {object} Context
@@ -17,7 +17,7 @@ import { parseTimestamp } from './utils-timestamp';
  * @property {(el: ElementLike, className: string) => ElementLike | null} getElementByClassName
  * @property {ElementLike} rootElement
  * @property {() => boolean} areThereOutdents
- * @property {(elements: ElementLike[], bootProcess?: import('./BootProcess').default) => void} processAndRemoveDtElements
+ * @property {(elements: ElementLike[], bootProcess?: import('../BootProcess').default) => void} processAndRemoveDtElements
  * @property {() => void} removeDtButtonHtmlComments
  * @property {(el: ElementLike | null, node: NodeLike) => boolean} contains
  * @property {(parent: ElementLike, node: NodeLike, refNode: NodeLike | null) => unknown} insertBefore
@@ -129,7 +129,7 @@ class Parser {
    *
    * @param {HeadingTarget} heading
    * @param {Target[]} targets
-   * @param {import('./Subscriptions').default} [subscriptions]
+   * @param {import('../Subscriptions').default} [subscriptions]
    * @returns {*}
    */
   createSection(heading, targets, subscriptions) {
@@ -145,7 +145,7 @@ class Parser {
    * disabled DT) in `BootProcess#processTargets()`. Unless the elements prove useful to CD or other
    * scripts, it's better to get rid of them rather than deal with them one by one while parsing.
    *
-   * @param {import('./BootProcess').default} [bootProcess]
+   * @param {import('../BootProcess').default} [bootProcess]
    */
   processAndRemoveDtMarkup(bootProcess) {
     this.context.processAndRemoveDtElements(

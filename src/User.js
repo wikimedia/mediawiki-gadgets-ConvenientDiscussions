@@ -1,4 +1,4 @@
-import cd from './cd';
+import cd from './shared/cd.js';
 
 /**
  * A MediaWiki user. Is structurally similar to
