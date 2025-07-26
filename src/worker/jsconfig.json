@@ -1,9 +1,7 @@
 {
   "extends": "../../jsconfig-base.json",
   "compilerOptions": {
-    "lib": ["ES2021", "WebWorker"],
-    "types": []
+    "lib": ["ES2021", "WebWorker"]
   },
-  "include": ["./**/*", "../shared/**/*"],
-  "exclude": ["domhandler.d.ts"]
+  "exclude": ["../src/worker/domhandler.d.ts"]
 }
