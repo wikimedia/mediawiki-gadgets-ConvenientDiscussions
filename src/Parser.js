@@ -20,7 +20,7 @@ import { parseTimestamp } from './utils-timestamp';
  * @property {(elements: ElementLike[], bootProcess?: import('./BootProcess').default) => void} processAndRemoveDtElements
  * @property {() => void} removeDtButtonHtmlComments
  * @property {(el: ElementLike | null, node: NodeLike) => boolean} contains
- * @property {(parent: ElementLike, node: NodeLike, refNode: NodeLike | null) => void} insertBefore
+ * @property {(parent: ElementLike, node: NodeLike, refNode: NodeLike | null) => unknown} insertBefore
  * @property {(parent: ElementLike, node: NodeLike) => void} appendChild
  * @property {(node: NodeLike) => void} remove
  * @property {(parent: ElementLike, node: NodeLike) => void} removeChild

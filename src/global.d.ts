@@ -32,7 +32,7 @@ declare global {
     cd?: Window['convenientDiscussions'];
   }
 
-  interface DedicatedWorkerGlobalScope {
+  interface WorkerGlobalScope {
     Document: typeof DomHandlerDocument;
     Element: typeof DomHandlerElement;
     Node: typeof DomHandlerNode;
@@ -41,6 +41,7 @@ declare global {
       TEXT_NODE: number;
       COMMENT_NODE: number;
     };
+    document: DomHandlerDocument;
   }
 
   // https://stackoverflow.com/a/71104272

@@ -32,7 +32,7 @@ let alarmTimeout;
 let rootElement;
 
 /** @type {import('../cd').ConvenientDiscussionsWorker} */
-const cd = cdTemp;
+const cd = /** @type {import('../cd').ConvenientDiscussionsWorker} */ (cdTemp);
 
 cd.debug = debug;
 debug.init();
@@ -53,7 +53,7 @@ function setAlarm(interval) {
 /**
  * Get all text nodes under the root element.
  *
- * @returns {import('./domhandlerExtended').Node[]}
+ * @returns {import('./domhandlerExtended').Text[]}
  * @private
  */
 function getAllTextNodes() {
@@ -85,12 +85,13 @@ function removeDtButtonHtmlComments() {
  * Find comment signatures and section headings on the page.
  *
  * @param {Parser} parser
- * @returns {object[]}
+ * @returns {import('../Parser').Target[]}
  * @private
  */
 function findTargets(parser) {
   parser.init();
   parser.processAndRemoveDtMarkup();
+
   return /** @type {import('../Parser').Target[]} */ (parser.findHeadings())
     .concat(parser.findSignatures())
     .sort((t1, t2) => parser.context.follows(t1.element, t2.element) ? 1 : -1);
@@ -204,8 +205,8 @@ function parse() {
     removeDtButtonHtmlComments,
     /** @type {(el: import('./domhandlerExtended').Element | null, node: import('./domhandlerExtended').Node) => boolean} */
     contains: (el, node) => Boolean(el && el.contains(node)),
-    /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node, refNode: import('./domhandlerExtended').Node | undefined) => import('./domhandlerExtended').Node} */
-    insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode),
+    /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node, refNode: import('./domhandlerExtended').Node | null) => unknown} */
+    insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode || undefined),
     /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node) => void} */
     appendChild: (parent, node) => parent.appendChild(node),
     /** @type {(node: import('./domhandlerExtended').Node) => void} */

@@ -3,5 +3,5 @@
   "compilerOptions": {
     "lib": ["ES2021", "WebWorker"]
   },
-  "include": ["**/*", "../src/cd.js"]
+  "exclude": ["../src/worker/domhandler.d.ts"]
 }

@@ -204,8 +204,8 @@ class SectionSkeleton {
   /**
    * Set some properties related to the content of the section (contained elements and comments).
    *
-   * @param {object} heading
-   * @param {object[]} targets
+   * @param {import('./Parser').HeadingTarget} heading
+   * @param {import('./Parser').Target[]} targets
    * @private
    */
   initContent(heading, targets) {

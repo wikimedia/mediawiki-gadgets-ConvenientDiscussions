@@ -1,12 +1,12 @@
 {
   "extends": "./jsconfig-base.json",
   "compilerOptions": {
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
     "types": ["oojs", "oojs-ui", "jquery", "jqueryui"]
   },
   "include": ["src/**/*", "node_modules/types-mediawiki"],
   "exclude": ["src/worker/**/*"],
 
   // Exception for `exclude`
-  "files": ["src/worker/domhandler.d.ts", "./src/CommentFormOperation.js"]
+  "files": ["src/worker/domhandler.d.ts"]
 }

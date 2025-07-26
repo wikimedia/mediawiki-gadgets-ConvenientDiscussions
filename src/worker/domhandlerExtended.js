@@ -475,9 +475,7 @@ Object.defineProperty(Element.prototype, 'classList', {
 
         // This can run tens of thousand times, so we microoptimize it (don't use template strings
         // and String#includes()).
-        const returnValue = Boolean(this._classList.length) && this._classList.indexOf(name) !== -1;
-
-        return returnValue;
+        return Boolean(this._classList.length) && this._classList.indexOf(name) !== -1;
       };
     }
 

@@ -62,9 +62,11 @@ async function init() {
   goToCommentToYou += cd.mws('parentheses', cd.s('lp-comment-toyou'));
   goToCommentWatchedSection += cd.mws('parentheses', cd.s('lp-comment-watchedsection'));
 
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const $aRegularPrototype = $('<a>')
     .text(cd.s('lp-comment'))
     .attr('title', cd.s('lp-comment-tooltip'));
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const $spanRegularPrototype = $('<span>')
     .addClass('cd-commentLink-innerWrapper')
     .append($aRegularPrototype);
@@ -92,9 +94,6 @@ async function init() {
  * @private
  */
 function switchRelevant() {
-  // Item grouping switched on. This may be done in the settings or in the URL.
-  const isEnhanced = !$('.mw-changeslist').find('ul.special').length;
-
   // This is for many watchlist types at once.
   const $collapsibles = bootController.$content
     .find('.mw-changeslist .mw-collapsible:not(.mw-changeslist-legend)');
@@ -103,7 +102,9 @@ function switchRelevant() {
   if (switchRelevantButton.hasFlag('progressive')) {
     // Show all
     // FIXME: Old watchlist (no JS) + ?enhanced=1&urlversion=2
-    if (isEnhanced) {
+
+    // Check if item grouping switched on. This may be done in the settings or via the URL parameter.
+    if (!$('.mw-changeslist').find('ul.special').length) {
       $lines
         .filter('table')
         .show();
@@ -255,6 +256,7 @@ function extractAuthor(line) {
  * @param {string} value
  */
 function setWrapperLinkAttr(wrapper, attr, value) {
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const linkElement = /** @type {HTMLAnchorElement} */ (
     /** @type {HTMLElement} */ (wrapper.lastChild).lastChild
   );
@@ -340,6 +342,7 @@ function processWatchlist($content) {
   //   in recent changes and watchlist")
   // * with enhanced fitlers and without (Special:Preferences#mw-prefsection-watchlist "Use
   //   non-JavaScript interface")
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const lines = $content[0].querySelectorAll('.mw-changeslist-line[data-mw-revid]');
   lines.forEach((lineOrBareTr) => {
     const line = lineOrBareTr.className
@@ -351,16 +354,15 @@ function processWatchlist($content) {
     const nsNumber = nsMatch && Number(nsMatch[1]);
     if (nsNumber === null) return;
 
-    const isNested = line.tagName === 'TR';
+
     const linkElement = /** @type {HTMLAnchorElement} */ (
-      (isNested ? /** @type {HTMLElement} */ (line.parentNode) : line).querySelector(
+      (line.tagName === 'TR' ? /** @type {HTMLElement} */ (line.parentElement) : line).querySelector(
         '.mw-changeslist-title'
       )
     );
     if (!linkElement || isWikidataItem(linkElement)) return;
 
-    const pageName = linkElement.textContent;
-    if (!isProbablyTalkPage(pageName, nsNumber)) return;
+    if (!isProbablyTalkPage(linkElement.textContent, nsNumber)) return;
 
     if (line.querySelector('.minoredit')) return;
 
@@ -448,8 +450,7 @@ function processContributions($content) {
     );
     if (!linkElement || isWikidataItem(linkElement)) return;
 
-    const pageName = linkElement.textContent;
-    const page = pageRegistry.get(pageName);
+    const page = pageRegistry.get(linkElement.textContent);
     if (!page || !page.isProbablyTalkPage()) return;
 
     const link = linkElement.href;
