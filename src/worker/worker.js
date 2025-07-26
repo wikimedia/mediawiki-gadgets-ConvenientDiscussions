@@ -202,8 +202,8 @@ function parse() {
       });
     },
     removeDtButtonHtmlComments,
-    /** @type {(el: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node) => boolean} */
-    contains: (el, node) => el.contains(node),
+    /** @type {(el: import('./domhandlerExtended').Element | null, node: import('./domhandlerExtended').Node) => boolean} */
+    contains: (el, node) => Boolean(el && el.contains(node)),
     /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node, refNode: import('./domhandlerExtended').Node | undefined) => import('./domhandlerExtended').Node} */
     insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode),
     /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node) => void} */

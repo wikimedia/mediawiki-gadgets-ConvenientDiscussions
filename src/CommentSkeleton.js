@@ -81,10 +81,6 @@ class CommentSkeleton {
      */
     this.followsHeading = targets[signatureIndex - 1]?.type === 'heading';
 
-    const precedingHeadingElement = this.followsHeading ?
-      targets[signatureIndex - 1].element :
-      undefined;
-
     /**
      * _For internal use._ Comment signature element.
      *
@@ -120,8 +116,9 @@ class CommentSkeleton {
      */
     this.id = CommentSkeleton.generateId(this.date, this.authorName, parser.existingCommentIds);
 
-    // Identify all comment nodes and save a path to them.
-    this.collectParts(precedingHeadingElement);
+    // Identify all comment nodes and save a path to them. The parameter is the heading element
+    // preceding the comment.
+    this.collectParts(this.followsHeading ? targets[signatureIndex - 1].element : undefined);
 
     // Remove parts contained by other parts.
     this.removeNestedParts();
@@ -313,21 +310,24 @@ class CommentSkeleton {
     // As an optimization, avoid adding every text node of the comment to the array of its parts if
     // possible. Add their common container instead.
     const parts = /** @type {CommentPart[]} */ ([]);
-    const fiaParentNode = /** @type {ElementLike} */ (farthestInlineAncestor.parentElement);
+    const fiaParentElement = /** @type {ElementLike} */ (farthestInlineAncestor.parentElement);
     if (
-      (firstForeignComponentAfter && this.parser.context.contains(fiaParentNode, firstForeignComponentAfter)) ||
+      (
+        firstForeignComponentAfter &&
+        this.parser.context.contains(fiaParentElement, firstForeignComponentAfter)
+      ) ||
 
       // Cases when the comment has no wrapper that contains only that comment (for example,
       // https://ru.wikipedia.org/wiki/Project:Форум/Архив/Технический/2020/10#202010140847_AndreiK).
       // The second parameter of .getElementsByClassName() is an optimization for the worker
       // context.
-      fiaParentNode.getElementsByClassName('cd-signature', 2).length > 1 ||
+      fiaParentElement.getElementsByClassName('cd-signature', 2).length > 1 ||
 
-      !this.isElementEligible(fiaParentNode, treeWalker, 'start') ||
+      !this.isElementEligible(fiaParentElement, treeWalker, 'start') ||
 
       // Outdent templates in the same item element. TODO: add a test for this case (e.g.
       // https://ru.wikipedia.org/wiki/Википедия:Голосования/Срочное_включение_нового_Vector#c-Iniquity-20240204205500-AndyVolykhov-20240204201000)
-      [...fiaParentNode[this.parser.context.childElementsProp]].some((child) => (
+      [...fiaParentElement[this.parser.context.childElementsProp]].some((child) => (
         this.parser.rejectClasses.some((name) => child.classList.contains(name))
       ))
     ) {
@@ -787,12 +787,6 @@ class CommentSkeleton {
         isHeading = isHeadingNode(node);
         hasCurrentSignature = this.parser.context.contains(node, this.signatureElement);
 
-        // The second parameter of .getElementsByClassName() is an optimization for the worker
-        // context.
-        const signatureCount = node
-          .getElementsByClassName('cd-signature', Number(hasCurrentSignature) + 1)
-          .length;
-
         hasForeignComponents = Boolean(
           // Without checking for blockness, the beginning of the comment at
           // https://ru.wikipedia.org/w/index.php?title=Википедия:Форум/Новости&oldid=125481598#c-Oleg_Yunakov-20220830173400-Iniquity-20220830171400
@@ -800,7 +794,13 @@ class CommentSkeleton {
           !isInline(node) &&
 
           (
-            signatureCount - Number(hasCurrentSignature) > 0 ||
+            (
+              // Signature count. The second parameter of .getElementsByClassName() is an
+              // optimization for the worker context.
+              node.getElementsByClassName('cd-signature', Number(hasCurrentSignature) + 1).length -
+
+              Number(hasCurrentSignature)
+            ) > 0 ||
             (
               firstForeignComponentAfter &&
               this.parser.context.contains(node, firstForeignComponentAfter) &&
@@ -935,8 +935,7 @@ class CommentSkeleton {
       } else {
         if (start !== null) {
           if (encloseThis) {
-            const end = i - 1;
-            sequencesToBeEnclosed.push({ start, end });
+            sequencesToBeEnclosed.push({ start, end: i - 1 });
           }
           start = null;
           encloseThis = false;
@@ -947,7 +946,9 @@ class CommentSkeleton {
     for (let i = sequencesToBeEnclosed.length - 1; i >= 0; i--) {
       const sequence = sequencesToBeEnclosed[i];
       const wrapper = document.createElement('div');
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const nextSibling = this.parts[sequence.start].node.nextSibling;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const parent = /** @type {ElementLike} */ (this.parts[sequence.start].node.parentElement);
       for (let j = sequence.end; j >= sequence.start; j--) {
         this.parser.context.appendChild(wrapper, this.parts[j].node);
@@ -1171,6 +1172,7 @@ class CommentSkeleton {
    * _For internal use._ Replace list elements with collections of their items if appropriate.
    */
   replaceListsWithItems() {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const lastPartNode = /** @type {CommentPart<ElementLike>[]} */ (this.parts)[
       this.parts.length - 1
     ].node;
@@ -1206,29 +1208,35 @@ class CommentSkeleton {
       const firstNodeParent = /** @type {ElementLike} */ (this.parts[0].node.parentElement);
 
       if (firstNodeParent.tagName === 'OL') {
-        // 0 or 1
-        const currentSignatureCount = Number(this.parser.context.contains(firstNodeParent, this.signatureElement));
-
         // A foreign signature can be found with just .cd-signature search; example:
         // https://commons.wikimedia.org/?diff=566673258.
         if (
-          firstNodeParent.getElementsByClassName('cd-signature').length - currentSignatureCount ===
-          0
+          (
+            firstNodeParent.getElementsByClassName('cd-signature').length -
+
+            // Current signature count, 0 or 1
+            Number(this.parser.context.contains(firstNodeParent, this.signatureElement))
+          ) === 0
         ) {
-          const listItems = this.parts.filter((part) => part.node.parentNode === firstNodeParent);
+          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+          const listItems = this.parts.filter((part) => part.node.parentElement === firstNodeParent);
+
+          let outerWrapper;
+          let innerWrapper;
+          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+          const nextSibling = firstNodeParent.nextSibling;
+          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+          const parentParent = /** @type {ElementLike} */ (firstNodeParent.parentElement);
 
           // Is `#` used as an indentation character instead of `:` or `*`, or is the comments just
           // starts with a list and ends on a correct level (without `#`)?
-          const isNumberedListUsedAsIndentation = !this.parts.some(
-            (part) =>
-              part.node.parentNode !== firstNodeParent &&
-              this.parser.context.contains(/** @type {ElementLike} */ (part.node.parentElement), firstNodeParent)
-          );
-          let outerWrapper;
-          let innerWrapper;
-          const nextSibling = firstNodeParent.nextSibling;
-          const parentParent = /** @type {ElementLike} */ (firstNodeParent.parentNode);
-          if (isNumberedListUsedAsIndentation) {
+          if (
+            !this.parts.some(
+              (part) =>
+                part.node.parentElement !== firstNodeParent &&
+                this.parser.context.contains(part.node.parentElement, firstNodeParent)
+            )
+          ) {
             innerWrapper = document.createElement('dd');
             outerWrapper = document.createElement('dl');
             outerWrapper.appendChild(innerWrapper);
@@ -1386,14 +1394,12 @@ class CommentSkeleton {
 
       const lastAncestors = allLevelElements[allLevelElements.length - 1];
       if (allLevelElements[0].length > lastAncestors.length) {
-        const index = allLevelElements
+        const firstWrongElementIndex = allLevelElements
           .slice(0, -1)
 
           // Can't be -1 - will return at least 0 since `allLevelElements[0].length >
           // lastAncestors.length`
           .findLastIndex((ancestors) => ancestors.length > lastAncestors.length);
-        const firstWrongElementIndex = index;
-        const lastLowerLevelElement = this.elements[firstWrongElementIndex];
 
         /*
           Situation like this:
@@ -1415,7 +1421,9 @@ class CommentSkeleton {
         */
         if (
           lastAncestors.length > 0 ||
-          lastLowerLevelElement.lastElementChild?.classList.contains('cd-timestamp')
+
+          // Check the last lower level element
+          this.elements[firstWrongElementIndex].lastElementChild?.classList.contains('cd-timestamp')
         ) {
           this.elements.splice(0, firstWrongElementIndex + 1);
           this.updateHighlightables();
@@ -1472,8 +1480,7 @@ class CommentSkeleton {
           .find((ancestors) => ancestors.length)
           ?.slice(-1)[0];
         if (levelElement) {
-          const tagName = levelElement.tagName === 'DL' ? 'dd' : 'li';
-          const itemElement = document.createElement(tagName);
+          const itemElement = document.createElement(levelElement.tagName === 'DL' ? 'dd' : 'li');
           indexes.forEach((index) => {
             this.parser.context.appendChild(itemElement, this.elements[index]);
           });

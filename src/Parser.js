@@ -19,7 +19,7 @@ import { parseTimestamp } from './utils-timestamp';
  * @property {() => boolean} areThereOutdents
  * @property {(elements: ElementLike[], bootProcess?: import('./BootProcess').default) => void} processAndRemoveDtElements
  * @property {() => void} removeDtButtonHtmlComments
- * @property {(el: ElementLike, node: NodeLike) => boolean} contains
+ * @property {(el: ElementLike | null, node: NodeLike) => boolean} contains
  * @property {(parent: ElementLike, node: NodeLike, refNode: NodeLike | null) => void} insertBefore
  * @property {(parent: ElementLike, node: NodeLike) => void} appendChild
  * @property {(node: NodeLike) => void} remove
@@ -148,29 +148,30 @@ class Parser {
    * @param {import('./BootProcess').default} [bootProcess]
    */
   processAndRemoveDtMarkup(bootProcess) {
-    const elements = /** @type {ElementLike[]} */ (
+    this.context.processAndRemoveDtElements(
       [...this.context.rootElement.getElementsByTagName('span')]
-        .filter((el) => (
-          el.hasAttribute('data-mw-comment-start') ||
-          el.hasAttribute('data-mw-comment-end') ||
-
-          // This, in fact, targets the one span at the top of the page, out of sections which makes
-          // comments taller (example:
-          // https://commons.wikimedia.org/w/index.php?title=User_talk:Jack_who_built_the_house/CD_test_page&oldid=876639400).
-          // Check for classes and content because in older DT versions, `data-mw-thread-id` was on
-          // the .mw-headline element.
-          (
-            el.tagName === 'SPAN' &&
-            el.hasAttribute('data-mw-thread-id') &&
-            !el.classList.length &&
-            !el.textContent
-          )
-        ))
-        .concat(
-          [...this.context.rootElement.getElementsByClassName('ext-discussiontools-init-replylink-buttons')]
+        .filter(
+          (el) =>
+            el.hasAttribute('data-mw-comment-start') ||
+            el.hasAttribute('data-mw-comment-end') ||
+            // This, in fact, targets the one span at the top of the page, out of sections which makes
+            // comments taller (example:
+            // https://commons.wikimedia.org/w/index.php?title=User_talk:Jack_who_built_the_house/CD_test_page&oldid=876639400).
+            // Check for classes and content because in older DT versions, `data-mw-thread-id` was on
+            // the .mw-headline element.
+            (el.tagName === 'SPAN' &&
+              el.hasAttribute('data-mw-thread-id') &&
+              !el.classList.length &&
+              !el.textContent)
         )
-        .filter(unique));
-    this.context.processAndRemoveDtElements(elements, bootProcess);
+        .concat([
+          ...this.context.rootElement.getElementsByClassName(
+            'ext-discussiontools-init-replylink-buttons'
+          ),
+        ])
+        .filter(unique),
+      bootProcess
+    );
     this.context.removeDtButtonHtmlComments();
   }
 
@@ -412,7 +413,9 @@ class Parser {
     const fseIndex = firstSignatureElement ? signatureNodes.indexOf(firstSignatureElement) : -1;
     signatureNodes.splice(fseIndex === -1 ? 1 : fseIndex + 1);
 
-    const signatureContainer = /** @type {ElementLike} */ (signatureNodes[0].parentNode);
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const signatureContainer = /** @type {ElementLike} */ (signatureNodes[0].parentElement);
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const startElementNextSibling = signatureNodes[0].nextSibling;
     const element = document.createElement('span');
     element.classList.add('cd-signature');
@@ -502,18 +505,16 @@ class Parser {
    * @returns {SignatureTarget[]}
    */
   findSignatures() {
-    const signatures = this.context.getAllTextNodes()
-      .map(this.findTimestamp.bind(this))
-      .filter(definedAndNotNull)
-      .map(this.getSignatureFromTimestamp.bind(this))
-      .filter(definedAndNotNull)
-      .concat(this.findRemainingUnsigneds());
-
     // Move extra signatures (additional signatures for a comment, if there is more than one) to an
     // array which then assign to a relevant signature (the one which goes first).
     let extraSignatures = [];
 
-    return signatures
+    return this.context.getAllTextNodes()
+      .map(this.findTimestamp.bind(this))
+      .filter(definedAndNotNull)
+      .map(this.getSignatureFromTimestamp.bind(this))
+      .filter(definedAndNotNull)
+      .concat(this.findRemainingUnsigneds())
       .slice()
       .reverse()
       .map((sig) => {
@@ -562,6 +563,7 @@ class Parser {
   getTopElementsWithText(element, onlyChildrenWithoutCommentLevel = false) {
     // We ignore all spaces as an easy way to ignore only whitespace text nodes between element
     // nodes (this is a bad idea if we deal with inline nodes, but here we deal with lists).
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const partTextNoSpaces = element.textContent.replace(/\s+/g, '');
 
     let nodes;
@@ -673,8 +675,7 @@ class Parser {
 
     let lastChild;
     while ((lastChild = parent.lastChild) && lastChild !== node) {
-      const firstChild = /** @type {NodeLike} */ (clone.firstChild);
-      this.context.insertBefore(clone, lastChild, firstChild);
+      this.context.insertBefore(clone, lastChild, /** @type {NodeLike} */ (clone.firstChild));
     }
     if (clone[this.context.childElementsProp].length > 0 && parent.parentElement) {
       this.context.insertBefore(parent.parentElement, clone, parent.nextSibling);
@@ -840,6 +841,7 @@ class Parser {
    * @returns {number}
    */
   getNestingLevel(element) {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const treeWalker = new ElementsTreeWalker(this.context.rootElement, element);
     let nestingLevel = 0;
     while (treeWalker.parentNode()) {

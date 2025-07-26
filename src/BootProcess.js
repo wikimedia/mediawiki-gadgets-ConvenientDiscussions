@@ -689,8 +689,8 @@ class BootProcess {
       areThereOutdents: talkPageController.areThereOutdents.bind(talkPageController),
       processAndRemoveDtElements,
       removeDtButtonHtmlComments,
-      /** @type {(el: Element, node: Node) => boolean} */
-      contains: (el, node) => el.contains(node),
+      /** @type {(el: Element | null, node: Node) => boolean} */
+      contains: (el, node) => Boolean(el && el.contains(node)),
       /** @type {(parent: Element, node: Node, refNode: Node | null) => Node} */
       insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode),
       /** @type {(parent: Element, node: Node) => Node} */
