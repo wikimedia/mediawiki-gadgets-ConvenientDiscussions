@@ -2,7 +2,8 @@
   "extends": "./jsconfig-base.json",
   "compilerOptions": {
     "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
-    "types": ["oojs", "oojs-ui", "jquery", "jqueryui"]
+    "types": ["oojs", "oojs-ui", "jquery", "jqueryui"],
+    "skipLibCheck": true
   },
   "include": ["src/**/*", "node_modules/types-mediawiki"]
 }
