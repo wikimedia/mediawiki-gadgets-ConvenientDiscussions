@@ -1,4 +1,4 @@
-import TreeWalker from './shared/TreeWalker';
+import TreeWalker from './TreeWalker';
 
 /**
  * Tree walker that walks only on element nodes.

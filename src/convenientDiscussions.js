@@ -6,10 +6,10 @@
 
 import Comment from './Comment';
 import bootController from './bootController';
-import cd from './shared/cd';
+import cd from './cd';
 import debug from './debug';
 import pageRegistry from './pageRegistry';
-import { buildEditSummary, getQueryParamBooleanValue, underlinesToSpaces } from './shared/utils-general';
+import { buildEditSummary, getQueryParamBooleanValue, underlinesToSpaces } from './utils-general';
 import { wrapDiffBody, wrapHtml } from './utils-window';
 import WebpackWorker from './worker/worker-gate';
 

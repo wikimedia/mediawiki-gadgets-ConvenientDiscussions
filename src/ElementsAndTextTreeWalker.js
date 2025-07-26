@@ -1,5 +1,5 @@
-import TreeWalker from './shared/TreeWalker';
-import { isElement, isText } from './shared/utils-general';
+import TreeWalker from './TreeWalker';
+import { isElement, isText } from './utils-general';
 
 /**
  * Tree walker that walks on both element and text nodes.

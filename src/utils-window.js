@@ -5,10 +5,10 @@
  */
 
 import Button from './Button';
-import ElementsTreeWalker from './shared/ElementsTreeWalker';
-import Parser from './shared/Parser';
-import cd from './shared/cd';
-import { defined, isInline, parseWikiUrl, spacesToUnderlines } from './shared/utils-general';
+import ElementsTreeWalker from './ElementsTreeWalker';
+import Parser from './Parser';
+import cd from './cd';
+import { defined, isInline, parseWikiUrl, spacesToUnderlines } from './utils-general';
 
 /**
  * @typedef {Record<string, () => void>} WrapCallbacks

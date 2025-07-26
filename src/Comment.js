@@ -1,17 +1,17 @@
 /* eslint-disable no-self-assign */
 import Button from './Button';
-import CdError from './shared/CdError';
+import CdError from './CdError';
 import CommentButton from './CommentButton';
-import CommentSkeleton from './shared/CommentSkeleton';
+import CommentSkeleton from './CommentSkeleton';
 import CommentSource from './CommentSource';
 import CommentSubitemList from './CommentSubitemList';
-import ElementsTreeWalker from './shared/ElementsTreeWalker';
+import ElementsTreeWalker from './ElementsTreeWalker';
 import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
 import StorageItemWithKeys from './StorageItemWithKeys';
-import TreeWalker from './shared/TreeWalker';
+import TreeWalker from './TreeWalker';
 import bootController from './bootController';
-import cd from './shared/cd';
+import cd from './cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import navPanel from './navPanel';
@@ -19,10 +19,10 @@ import settings from './settings';
 import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
 import { handleApiReject, loadUserGenders, parseCode } from './utils-api';
-import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './shared/utils-general';
+import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './utils-general';
 import { showConfirmDialog } from './utils-oojs';
-import { formatDate, formatDateNative } from './shared/utils-timestamp';
-import { extractNumeralAndConvertToNumber, extractSignatures, removeWikiMarkup } from './shared/utils-wikitext';
+import { formatDate, formatDateNative } from './utils-timestamp';
+import { extractNumeralAndConvertToNumber, extractSignatures, removeWikiMarkup } from './utils-wikitext';
 import { createSvg, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisibilityByRects, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**
@@ -67,11 +67,11 @@ import { createSvg, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisib
  */
 
 /**
- * @typedef {RemoveMethods<import('./shared/SectionSkeleton').default>} SectionBase
+ * @typedef {RemoveMethods<import('./SectionSkeleton').default>} SectionBase
  */
 
 /**
- * @typedef {Omit<RemoveMethods<import('./shared/CommentSkeleton').default>, 'children' | 'previousComments'>} CommentBase
+ * @typedef {Omit<RemoveMethods<import('./CommentSkeleton').default>, 'children' | 'previousComments'>} CommentBase
  */
 
 /**
@@ -404,10 +404,10 @@ class Comment extends CommentSkeleton {
   /**
    * Create a comment object.
    *
-   * @param {import('./shared/Parser').default} parser
-   * @param {import('./shared/Parser').SignatureTarget} signature Signature object returned by
+   * @param {import('./Parser').default} parser
+   * @param {import('./Parser').SignatureTarget} signature Signature object returned by
    *   {@link Parser#findSignatures}.
-   * @param {import('./shared/Parser').Target[]} targets Sorted target objects returned by
+   * @param {import('./Parser').Target[]} targets Sorted target objects returned by
    *   {@link Parser#findSignatures} + {@link Parser#findHeadings}.
    */
   constructor(parser, signature, targets) {

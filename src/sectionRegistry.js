@@ -1,7 +1,7 @@
-import cd from './shared/cd';
+import cd from './cd';
 import settings from './settings';
 import talkPageController from './talkPageController';
-import { areObjectsEqual, calculateWordOverlap, generateFixedPosTimestamp, spacesToUnderlines } from './shared/utils-general';
+import { areObjectsEqual, calculateWordOverlap, generateFixedPosTimestamp, spacesToUnderlines } from './utils-general';
 import { getExtendedRect, getVisibilityByRects } from './utils-window';
 import visits from './visits';
 

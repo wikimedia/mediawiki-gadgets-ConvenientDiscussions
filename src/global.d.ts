@@ -1,7 +1,7 @@
 /// <reference types="types-mediawiki" />
 
 import { Document as DomHandlerDocument, Node as DomHandlerNode, Element as DomHandlerElement } from 'domhandler';
-import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './shared/cd';
+import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
 
 declare global {
   const IS_TEST: boolean;

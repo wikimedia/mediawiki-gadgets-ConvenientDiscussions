@@ -1,5 +1,5 @@
 import CommentFormOperation from './CommentFormOperation';
-import { removeFromArrayIfPresent } from './shared/utils-general';
+import { removeFromArrayIfPresent } from './utils-general';
 
 /**
  * An operation registry: a storage of operations that a comment form currently undergoes, such as

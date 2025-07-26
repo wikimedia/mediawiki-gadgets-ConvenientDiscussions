@@ -1,10 +1,10 @@
 import dayjs from 'dayjs';
 
-import cd from './shared/cd';
+import cd from './cd';
 import settings from './settings';
-import { removeFromArrayIfPresent } from './shared/utils-general';
+import { removeFromArrayIfPresent } from './utils-general';
 import { EventEmitter, mixInObject } from './utils-oojs';
-import { formatDate, relativeTimeThresholds } from './shared/utils-timestamp';
+import { formatDate, relativeTimeThresholds } from './utils-timestamp';
 
 /**
  * @typedef {'default'|'improved'|'relative'} TimestampFormat

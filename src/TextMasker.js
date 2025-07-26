@@ -1,4 +1,4 @@
-import { generateTagsRegexp } from './shared/utils-wikitext';
+import { generateTagsRegexp } from './utils-wikitext';
 
 /**
  * Class for replacing parts of a text that shouldn't be modified, with a placeholder, in order to

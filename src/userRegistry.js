@@ -4,12 +4,12 @@
  * @module userRegistry
  */
 
-import CdError from './shared/CdError';
+import CdError from './CdError';
 import StorageItem from './StorageItem';
 import User from './User';
-import cd from './shared/cd';
+import cd from './cd';
 import { handleApiReject } from './utils-api';
-import { subtractDaysFromNow, ucFirst, underlinesToSpaces } from './shared/utils-general';
+import { subtractDaysFromNow, ucFirst, underlinesToSpaces } from './utils-general';
 
 export default {
   /**

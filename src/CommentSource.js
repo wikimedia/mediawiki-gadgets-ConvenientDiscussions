@@ -1,9 +1,9 @@
-import CdError from './shared/CdError';
+import CdError from './CdError';
 import TextMasker from './TextMasker';
-import cd from './shared/cd';
+import cd from './cd';
 import settings from './settings';
-import { calculateWordOverlap, countOccurrences, definedAndNotNull, generatePageNamePattern } from './shared/utils-general';
-import { brsToNewlines, extractSignatures, maskDistractingCode, normalizeCode, removeWikiMarkup } from './shared/utils-wikitext';
+import { calculateWordOverlap, countOccurrences, definedAndNotNull, generatePageNamePattern } from './utils-general';
+import { brsToNewlines, extractSignatures, maskDistractingCode, normalizeCode, removeWikiMarkup } from './utils-wikitext';
 
 /**
  * Class that keeps the methods and data related to a comment's source code. Also used for comment
@@ -26,7 +26,7 @@ class CommentSource {
    * Create a comment's source object.
    *
    * @param {import('./Comment').default} comment Comment.
-   * @param {import('./shared/utils-wikitext').SignatureInWikitext} signature Data about the source code of
+   * @param {import('./utils-wikitext').SignatureInWikitext} signature Data about the source code of
    *   the signature.
    * @param {string} contextCode Wikitext used as a reference point for the indexes.
    * @param {boolean} isInSectionContext Is the source code of the section (not page) used.
@@ -369,7 +369,7 @@ class CommentSource {
    *
    * @param {CommentData} commentData Data about the comment.
    * @param {CommentSource[]} sources List of all matches.
-   * @param {import('./shared/utils-wikitext').SignatureInWikitext[]} signatures List of signatures
+   * @param {import('./utils-wikitext').SignatureInWikitext[]} signatures List of signatures
    *   extracted from wikitext.
    * @returns {{
    *   source: CommentSource,

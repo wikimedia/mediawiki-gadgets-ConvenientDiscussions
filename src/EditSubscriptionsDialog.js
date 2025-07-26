@@ -1,11 +1,11 @@
-import CdError from './shared/CdError';
+import CdError from './CdError';
 import MultilineTextInputWidget from './MultilineTextInputWidget';
 import ProcessDialog from './ProcessDialog';
 import bootController from './bootController';
-import cd from './shared/cd';
+import cd from './cd';
 import talkPageController from './talkPageController';
 import { getPageIds, getPageTitles } from './utils-api';
-import { sleep, unique } from './shared/utils-general';
+import { sleep, unique } from './utils-general';
 import { es6ClassToOoJsClass } from './utils-oojs';
 
 /**

@@ -6,13 +6,13 @@
  * @module Page
  */
 
-import CdError from './shared/CdError';
+import CdError from './CdError';
 import PageSource from './PageSource';
 import TextMasker from './TextMasker';
-import cd from './shared/cd';
+import cd from './cd';
 import pageRegistry from './pageRegistry';
 import { handleApiReject, requestInBackground } from './utils-api';
-import { defined, isProbablyTalkPage, mergeRegexps } from './shared/utils-general';
+import { defined, isProbablyTalkPage, mergeRegexps } from './utils-general';
 
 /**
  * @typedef {object} ApiResponseEdit

@@ -1,11 +1,11 @@
-import CdError from './shared/CdError';
-import cd from './shared/cd';
+import CdError from './CdError';
+import cd from './cd';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
 import Tribute from './tribute/Tribute';
 import userRegistry from './userRegistry';
 import { handleApiReject } from './utils-api';
-import { charAt, defined, phpCharToUpper, removeDoubleSpaces, sleep, ucFirst, underlinesToSpaces, unique } from './shared/utils-general';
+import { charAt, defined, phpCharToUpper, removeDoubleSpaces, sleep, ucFirst, underlinesToSpaces, unique } from './utils-general';
 
 /**
  * @typedef {'mentions'|'commentLinks'|'wikilinks'|'templates'|'tags'} AutocompleteType

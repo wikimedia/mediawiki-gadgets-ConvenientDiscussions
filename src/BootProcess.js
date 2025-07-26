@@ -1,11 +1,11 @@
 import Comment from './Comment';
 import CommentForm from './CommentForm';
 import CommentFormInputTransformer from './CommentFormInputTransformer';
-import Parser from './shared/Parser';
+import Parser from './Parser';
 import Section from './Section';
 import Thread from './Thread';
 import bootController from './bootController';
-import cd from './shared/cd';
+import cd from './cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import debug from './debug';
@@ -21,8 +21,8 @@ import toc from './toc';
 import updateChecker from './updateChecker';
 import userRegistry from './userRegistry';
 import { handleApiReject, saveOptions } from './utils-api';
-import { defined, definedAndNotNull, generatePageNamePattern, sleep } from './shared/utils-general';
-import { initDayjs } from './shared/utils-timestamp';
+import { defined, definedAndNotNull, generatePageNamePattern, sleep } from './utils-general';
+import { initDayjs } from './utils-timestamp';
 import { getAllTextNodes, wrapHtml } from './utils-window';
 import visits from './visits';
 
@@ -147,7 +147,7 @@ class BootProcess {
   /** @type {Parser} */
   parser;
 
-  /** @type {import('./shared/Parser').Target[]} */
+  /** @type {import('./Parser').Target[]} */
   targets;
 
   /** @type {import('./Subscriptions').default} */
@@ -702,7 +702,7 @@ class BootProcess {
     });
     this.parser.init();
     this.parser.processAndRemoveDtMarkup(this);
-    this.targets = /** @type {import('./shared/Parser').Target[]} */ (this.parser.findHeadings())
+    this.targets = /** @type {import('./Parser').Target[]} */ (this.parser.findHeadings())
       .concat(this.parser.findSignatures())
       .sort((t1, t2) => this.parser.context.follows(t1.element, t2.element) ? 1 : -1);
   }

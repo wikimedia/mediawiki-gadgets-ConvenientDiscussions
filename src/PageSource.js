@@ -1,7 +1,7 @@
-import CdError from './shared/CdError';
-import cd from './shared/cd';
-import { parseTimestamp } from './shared/utils-timestamp';
-import { maskDistractingCode, findFirstTimestamp } from './shared/utils-wikitext';
+import CdError from './CdError';
+import cd from './cd';
+import { parseTimestamp } from './utils-timestamp';
+import { maskDistractingCode, findFirstTimestamp } from './utils-wikitext';
 
 /**
  * Class that keeps the methods and data related to the page's source code.

@@ -6,11 +6,11 @@
 
 import PrototypeRegistry from './PrototypeRegistry';
 import bootController from './bootController';
-import cd from './shared/cd';
+import cd from './cd';
 import pageRegistry from './pageRegistry';
 import settings from './settings';
-import { definedAndNotNull, generatePageNamePattern, isCommentEdit, isProbablyTalkPage, isUndo, removeDirMarks, spacesToUnderlines } from './shared/utils-general';
-import { initDayjs, parseTimestamp } from './shared/utils-timestamp';
+import { definedAndNotNull, generatePageNamePattern, isCommentEdit, isProbablyTalkPage, isUndo, removeDirMarks, spacesToUnderlines } from './utils-general';
+import { initDayjs, parseTimestamp } from './utils-timestamp';
 
 let colon;
 let moveFromBeginning;
