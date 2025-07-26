@@ -1,8 +1,8 @@
 import LZString from 'lz-string';
 
-import CdError from './CdError';
+import CdError from './shared/CdError';
 import Subscriptions from './Subscriptions';
-import cd from './cd';
+import cd from './shared/cd';
 import sectionRegistry from './sectionRegistry';
 import talkPageController from './talkPageController';
 import { getUserInfo, saveLocalOption } from './utils-api';

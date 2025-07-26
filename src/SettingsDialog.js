@@ -1,10 +1,10 @@
 import ProcessDialog from './ProcessDialog';
 import StorageItem from './StorageItem';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd';
 import settings from './settings';
 import { saveGlobalOption, saveLocalOption } from './utils-api';
-import { areObjectsEqual } from './utils-general';
+import { areObjectsEqual } from './shared/utils-general';
 import { createCheckboxControl, createNumberControl, createRadioControl, createTextControl, es6ClassToOoJsClass, createMulticheckboxControl, createTagsControl as createMultitagControl, createButtonControl } from './utils-oojs';
 
 /**

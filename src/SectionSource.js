@@ -1,8 +1,8 @@
-import CdError from './CdError';
-import cd from './cd';
+import CdError from './shared/CdError';
+import cd from './shared/cd';
 import sectionRegistry from './sectionRegistry';
-import { calculateWordOverlap, genericGetOldestOrNewestByDateProp } from './utils-general';
-import { endWithTwoNewlines, extractSignatures, normalizeCode, removeWikiMarkup } from './utils-wikitext';
+import { calculateWordOverlap, genericGetOldestOrNewestByDateProp } from './shared/utils-general';
+import { endWithTwoNewlines, extractSignatures, normalizeCode, removeWikiMarkup } from './shared/utils-wikitext';
 
 /**
  * Class that keeps the methods and data related to a section's source code. Also used for section

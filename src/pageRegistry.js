@@ -5,7 +5,7 @@
  */
 
 import Page from './Page';
-import cd from './cd';
+import cd from './shared/cd';
 
 /**
  * @exports pageRegistry

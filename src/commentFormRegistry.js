@@ -1,11 +1,11 @@
 import CommentForm from './CommentForm';
 import StorageItemWithKeysAndSaveTime from './StorageItemWithKeysAndSaveTime';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd';
 import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
 import talkPageController from './talkPageController';
-import { defined, removeFromArrayIfPresent, subtractDaysFromNow } from './utils-general';
+import { defined, removeFromArrayIfPresent, subtractDaysFromNow } from './shared/utils-general';
 import { EventEmitter } from './utils-oojs';
 import { isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
 

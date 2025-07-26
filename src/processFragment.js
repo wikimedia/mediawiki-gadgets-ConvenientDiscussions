@@ -7,12 +7,12 @@
  */
 
 import Comment from './Comment';
-import cd from './cd';
+import cd from './shared/cd';
 import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
-import { defined, sleep, underlinesToSpaces } from './utils-general';
-import { formatDateNative } from './utils-timestamp';
-import { removeWikiMarkup } from './utils-wikitext';
+import { defined, sleep, underlinesToSpaces } from './shared/utils-general';
+import { formatDateNative } from './shared/utils-timestamp';
+import { removeWikiMarkup } from './shared/utils-wikitext';
 import { isExistentAnchor, wrapHtml } from './utils-window';
 
 let decodedValue;

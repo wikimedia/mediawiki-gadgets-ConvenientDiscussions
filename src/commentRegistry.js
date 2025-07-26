@@ -1,14 +1,14 @@
 import Comment from './Comment';
 import Thread from './Thread';
-import TreeWalker from './TreeWalker';
+import TreeWalker from './shared/TreeWalker';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import settings from './settings';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
 import { getPagesExistence } from './utils-api';
-import { definedAndNotNull, getCommonGender, reorderArray, sleep, unique } from './utils-general';
+import { definedAndNotNull, getCommonGender, reorderArray, sleep, unique } from './shared/utils-general';
 import { EventEmitter } from './utils-oojs';
 import { getExtendedRect, getHigherNodeAndOffsetInSelection, mergeJquery, wrapHtml } from './utils-window';
 import visits from './visits';

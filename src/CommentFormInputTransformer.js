@@ -1,7 +1,7 @@
-import CdError from './CdError';
+import CdError from './shared/CdError';
 import TextMasker from './TextMasker';
-import cd from './cd';
-import { escapePipesOutsideLinks, generateTagsRegexp } from './utils-wikitext';
+import cd from './shared/cd';
+import { escapePipesOutsideLinks, generateTagsRegexp } from './shared/utils-wikitext';
 
 /**
  * Class that processes the comment form input and prepares the wikitext to insert into the page.

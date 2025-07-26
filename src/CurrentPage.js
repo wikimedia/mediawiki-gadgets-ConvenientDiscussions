@@ -1,12 +1,12 @@
 import CommentForm from './CommentForm';
 import Page from './Page';
 import bootController from './bootController';
-import cd from './cd';
+import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import pageRegistry from './pageRegistry';
 import sectionRegistry from './sectionRegistry';
-import { areObjectsEqual } from './utils-general';
+import { areObjectsEqual } from './shared/utils-general';
 
 /**
  * The page the user is visiting. Extends the base {@link Page} class with methods and properties
