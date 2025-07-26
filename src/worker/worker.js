@@ -13,7 +13,7 @@
 // This line allows references to MediaWiki types (the `mw` object; e.g. cd.g.isIPv6Address) to work
 // in the worker context.
 
-import './domhandlerExtended';
+import './extendDomhandler';
 
 import { isComment, isText } from 'domhandler';
 import { parseDocument } from 'htmlparser2';
@@ -53,12 +53,12 @@ function setAlarm(interval) {
 /**
  * Get all text nodes under the root element.
  *
- * @returns {import('./domhandlerExtended').Text[]}
+ * @returns {import('domhandler').Text[]}
  * @private
  */
 function getAllTextNodes() {
   let nodes = [];
-  rootElement.traverseSubtree((/** @type {import('./domhandlerExtended').Node} */ node) => {
+  rootElement.traverseSubtree((/** @type {import('domhandler').Node} */ node) => {
     if (isText(node)) {
       nodes.push(node);
     }
@@ -183,10 +183,10 @@ function parse() {
     CommentClass: CommentWorker,
     SectionClass: SectionWorker,
     childElementsProp: 'childElements',
-    /** @type {(el1: import('./domhandlerExtended').Node, el2: import('./domhandlerExtended').Node) => boolean} */
+    /** @type {(el1: import('domhandler').Node, el2: import('domhandler').Node) => boolean} */
     follows: (el1, el2) => el1.follows(el2),
     getAllTextNodes,
-    /** @type {(el: import('./domhandlerExtended').Element, className: string) => import('./domhandlerExtended').Element | null} */
+    /** @type {(el: import('domhandler').Element, className: string) => import('domhandler').Element | null} */
     getElementByClassName: (el, className) => (el.getElementsByClassName(className, 1))[0] || null,
     rootElement,
     areThereOutdents: () => {
@@ -196,22 +196,22 @@ function parse() {
 
       return areThereOutdents;
     },
-    /** @type {(elements: import('./domhandlerExtended').Element[]) => void} */
+    /** @type {(elements: import('domhandler').Element[]) => void} */
     processAndRemoveDtElements: (elements) => {
       elements.forEach((el) => {
         el.remove();
       });
     },
     removeDtButtonHtmlComments,
-    /** @type {(el: import('./domhandlerExtended').Element | null, node: import('./domhandlerExtended').Node) => boolean} */
+    /** @type {(el: import('domhandler').Element | null, node: import('domhandler').Node) => boolean} */
     contains: (el, node) => Boolean(el && el.contains(node)),
-    /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node, refNode: import('./domhandlerExtended').Node | null) => unknown} */
+    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node, refNode: import('domhandler').Node | null) => unknown} */
     insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode || undefined),
-    /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node) => void} */
+    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
     appendChild: (parent, node) => parent.appendChild(node),
-    /** @type {(node: import('./domhandlerExtended').Node) => void} */
+    /** @type {(node: import('domhandler').Node) => void} */
     remove: (node) => node.remove(),
-    /** @type {(parent: import('./domhandlerExtended').Element, node: import('./domhandlerExtended').Node) => void} */
+    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
     removeChild: (parent, node) => parent.removeChild(node),
   });
 

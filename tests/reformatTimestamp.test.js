@@ -27,6 +27,7 @@ require('../src/jqueryExtensions');
 
 const Comment = require('../src/Comment').default;
 const cd = require('../src/cd').default;
+// eslint-disable-next-line no-one-time-vars/no-one-time-vars
 const en = require('../i18n/en.json');
 const settings = require('../src/settings').default;
 const { formatDateNative, initDayjs } = require('../src/utils-timestamp');
@@ -81,17 +82,18 @@ function testWithSettings(
   expectedValue
 ) {
   const expectedText = expectedValue[0];
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const conditions = (
     `${timestampFormat}, ${timezone}` +
     (useUiTime ? ', UI time' : '') +
     (hideTimezone ? ', hide timezone' : '')
   );
-  const label = (
+
+  test((
     spacePad(conditions, 60) +
-    ' ' +
-    (expectedText ? `"${expectedText}"` : expectedText)
-  );
-  test(label, () => {
+      ' ' +
+      (expectedText ? `"${expectedText}"` : expectedText)
+  ), () => {
     const comment = {
       timestampElement: {},
       setDateUpdateTimer: () => {},
@@ -129,6 +131,7 @@ function testWithSettings(
       mw.config.set('wgUserLanguage', 'en');
     }
 
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const originalDate = new Date();
     if (nowDate) {
       jest.useFakeTimers('modern');

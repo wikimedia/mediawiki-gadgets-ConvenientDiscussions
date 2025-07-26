@@ -12,8 +12,8 @@ import { escapePipesOutsideLinks, generateTagsRegexp } from './utils-wikitext';
 class CommentFormInputTransformer extends TextMasker {
   /**
    * @typedef {object} CommentFormTargetExtension
-   * @property {import('./CommentForm').AnySource} source When {@link CommentFormInputTransformer}
-   *   is instantiated, `source` is never `null`.
+   * @property {import('./CommentForm').NonNullableSource} source When
+   *   {@link CommentFormInputTransformer} is instantiated, `source` is never `null`.
    */
 
   /**

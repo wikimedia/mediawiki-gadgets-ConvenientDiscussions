@@ -11,7 +11,7 @@ import debug from './debug';
 import pageRegistry from './pageRegistry';
 import { buildEditSummary, getQueryParamBooleanValue, underlinesToSpaces } from './utils-general';
 import { wrapDiffBody, wrapHtml } from './utils-window';
-//import WebpackWorker from './worker/worker-gate';
+import WebpackWorker from './worker/worker-gate';
 
 const mwStringsCache = {};
 let isQqxMode;
@@ -210,7 +210,7 @@ const convenientDiscussions = {
    */
   getWorker() {
     if (!this.worker) {
-      //this.worker = /** @type {Worker} */ (new WebpackWorker());
+      this.worker = /** @type {Worker} */ (new WebpackWorker());
     }
 
     return this.worker;

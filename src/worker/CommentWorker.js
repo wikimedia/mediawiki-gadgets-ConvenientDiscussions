@@ -68,7 +68,7 @@ export default class CommentWorker extends CommentSkeleton {
   constructor(parser, signature, targets) {
     super(parser, signature, targets);
 
-    this.elements = /** @type {import('./domhandlerExtended').Element[]} */ (this.elements);
+    this.elements = /** @type {import('domhandler').Element[]} */ (this.elements);
   }
 
   /**
@@ -77,7 +77,7 @@ export default class CommentWorker extends CommentSkeleton {
   filterCommentContent() {
     this.hiddenElementsData = [];
     this.elementHtmls = this.elements
-      .map((/** @type {import('./domhandlerExtended').Element} */ element) => {
+      .map((/** @type {import('domhandler').Element} */ element) => {
         if (isHeadingNode(element)) {
           // Keep only the headline, as other elements contain dynamic identifiers.
           this.processHeadingElement(element);
@@ -132,7 +132,7 @@ export default class CommentWorker extends CommentSkeleton {
   /**
    * Process a heading element by keeping only the headline, as other elements contain dynamic identifiers.
    *
-   * @param {import('./domhandlerExtended').Element} element
+   * @param {import('domhandler').Element} element
    * @private
    */
   processHeadingElement(element) {
@@ -157,7 +157,7 @@ export default class CommentWorker extends CommentSkeleton {
    * Remove the element's attributes whose names start with `data-` and IDs added by Parsoid. Also
    * remove empty comment anchors and comment nodes.
    *
-   * @param {import('./domhandlerExtended').Element} element
+   * @param {import('domhandler').Element} element
    * @private
    */
   processElementAttributes(element) {
@@ -184,16 +184,16 @@ export default class CommentWorker extends CommentSkeleton {
   /**
    * Hide reference, autonumber, and metadata nodes recursively.
    *
-   * @param {import('./domhandlerExtended').Element} element
+   * @param {import('domhandler').Element} element
    * @private
    */
   processReferenceElements(element) {
     element
-      .filterRecursively((/** @type {import('./domhandlerExtended').Element} */ node) =>
+      .filterRecursively((/** @type {import('domhandler').Element} */ node) =>
         ['autonumber', 'reference', 'references'].some((name) => node.classList.contains(name)) ||
         isMetadataNode(node)
       )
-      .forEach((/** @type {import('./domhandlerExtended').Element} */ el) => {
+      .forEach((/** @type {import('domhandler').Element} */ el) => {
         this.hideElement(el);
       });
   }
@@ -212,7 +212,7 @@ export default class CommentWorker extends CommentSkeleton {
   /**
    * Remove SVG elements (Extension:Charts uses dynamically generated class names).
    *
-   * @param {import('./domhandlerExtended').Element} element
+   * @param {import('domhandler').Element} element
    * @private
    */
   processSvgElements(element) {
@@ -224,7 +224,7 @@ export default class CommentWorker extends CommentSkeleton {
   /**
    * Remove attributes from timestamp links that may change (`href`, `title`).
    *
-   * @param {import('./domhandlerExtended').Element} element
+   * @param {import('domhandler').Element} element
    * @private
    */
   processTimestampElements(element) {
@@ -240,7 +240,7 @@ export default class CommentWorker extends CommentSkeleton {
   /**
    * Get HTML to compare for an element.
    *
-   * @param {import('./domhandlerExtended').Element} element
+   * @param {import('domhandler').Element} element
    * @returns {string}
    * @private
    */
@@ -274,7 +274,7 @@ export default class CommentWorker extends CommentSkeleton {
   /**
    * Update comparison properties with element HTML.
    *
-   * @param {import('./domhandlerExtended').Element} element
+   * @param {import('domhandler').Element} element
    * @param {string} htmlToCompare
    * @private
    */
@@ -307,7 +307,7 @@ export default class CommentWorker extends CommentSkeleton {
   /**
    * Replace a comment element with a marker.
    *
-   * @param {import('./domhandlerExtended').Element} element
+   * @param {import('domhandler').Element} element
    * @returns {?import('domhandler').DataNode}
    * @private
    */
@@ -344,7 +344,7 @@ export default class CommentWorker extends CommentSkeleton {
   /**
    * Remove the element's attributes whose names start with `data-` and IDs added by Parsoid.
    *
-   * @param {import('./domhandlerExtended').Element} element
+   * @param {import('domhandler').Element} element
    * @private
    */
   static removeDataAndParsoidAttributes(element) {
