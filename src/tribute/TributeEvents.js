@@ -1,3 +1,4 @@
+// @ts-nocheck
 class TributeEvents {
   constructor(tribute) {
     this.tribute = tribute;

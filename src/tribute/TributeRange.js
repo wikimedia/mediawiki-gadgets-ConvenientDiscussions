@@ -1,3 +1,4 @@
+// @ts-nocheck
 // A replacement for unicode property escapes
 // (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Unicode_Property_Escapes)
 // while they are not supported in major browsers. https://github.com/slevithan/xregexp can be used

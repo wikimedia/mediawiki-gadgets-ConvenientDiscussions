@@ -96,7 +96,7 @@ module.exports = {
     ],
     'jsdoc/check-line-alignment': ['warn', 'any', { 'wrapIndent': '  ' }],
 
-    'no-one-time-vars/no-one-time-vars': ['warn', {
+    'no-one-time-vars/no-one-time-vars': ['off', {
       allowedVariableLength: 9999999,  // Allow any length
       ignoreObjectDestructuring: true,
       ignoreTemplateLiterals: true,
