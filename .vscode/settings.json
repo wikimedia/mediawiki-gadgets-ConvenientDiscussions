@@ -5,12 +5,32 @@
   "editor.wordWrapColumn": 100,
   "editor.tabSize": 2,
   "editor.codeActionsOnSave": {
-    // "source.organizeImports": "explicit"
+    // "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
   },
+  "eslint.codeActionsOnSave.rules": [
+    "!unicorn/prefer-ternary",
+    "!unicorn/prefer-switch",
+    "!no-one-time-vars/no-one-time-vars",
+    "!@typescript-eslint/no-unnecessary-condition",
+    "!@stylistic/newline-per-chained-call",
+
+    // Tries to replace `return this.method();` with `this.method(); return;` if method() returns
+    // void while under construction.
+    "!@typescript-eslint/no-confusing-void-expression",
+
+    "*"
+  ],
   "files.trimTrailingWhitespace": true,
   "files.trimFinalNewlines": true,
+  "typescript.preferences.importModuleSpecifierEnding": "minimal",
+  "typescript.preferences.quoteStyle": "single",
   "javascript.preferences.quoteStyle": "single",
+
+  // Without this, `export {};` is changed to `export { };` by `source.organizeImports`
+  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces": false,
+
   "vs-docblockr.alignTags": false,
   "vs-docblockr.columnSpacing": 1,
-  "vs-docblockr.newLinesBetweenTags": false
+  "vs-docblockr.newLinesBetweenTags": false,
 }

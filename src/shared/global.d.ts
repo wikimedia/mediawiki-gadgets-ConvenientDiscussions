@@ -4,9 +4,9 @@
 
 import { Document as DomHandlerDocument, Element as DomHandlerElement, Node as DomHandlerNode, Text as DomHandlerText } from 'domhandler';
 
+import WorkerCommentWorker from '../worker/CommentWorker';
+import WorkerSectionWorker from '../worker/SectionWorker';
 import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
-import CommentWorker from '../worker/CommentWorker';
-import SectionWorker from '../worker/SectionWorker';
 
 declare global {
   type MessageFromWorkerParse = {
@@ -37,36 +37,21 @@ declare global {
 
   type MessageFromWindow = MessageFromWindowParse | MessageFromWindowSetAlarm | MessageFromWindowRemoveAlarm;
 
-  const convenientDiscussions: Window['convenientDiscussions'];
-  const cd: Window['convenientDiscussions'] | undefined;
-
-  interface Window {
-    // Basically we don't have a situation where getSelection() can return `null`, judging by
-    // https://developer.mozilla.org/en-US/docs/Web/API/Window/getSelection.
-    getSelection(): Selection;
-
-    cdOnlyRunByFooterLink?: boolean;
-    cdShowLoadingOverlay?: boolean;
-  }
-
   interface WindowOrWorkerGlobalScope {
     convenientDiscussions: ConvenientDiscussions | ConvenientDiscussionsWorker;
-    cd?: Window['convenientDiscussions'];
-  }
-
-  interface WorkerGlobalScope {
-    Document: typeof DomHandlerDocument;
-    Element: typeof DomHandlerElement;
-    Node: typeof DomHandlerNode;
+    cd?: WindowOrWorkerGlobalScope['convenientDiscussions'];
+    document: Document | DomHandlerDocument;
     Node: {
       ELEMENT_NODE: number;
       TEXT_NODE: number;
       COMMENT_NODE: number;
     };
-    document: DomHandlerDocument;
   }
 
   // https://stackoverflow.com/a/71104272
+  const convenientDiscussions: WindowOrWorkerGlobalScope['convenientDiscussions'];
+  const cd: WindowOrWorkerGlobalScope['convenientDiscussions'] | undefined;
+
   interface String {
     /**
      * Gets a substring beginning at the specified location and having the specified length.
@@ -95,41 +80,25 @@ declare global {
     wikiEditor(funcName: 'addModule' | 'addToToolbar' | 'removeFromToolbar' | 'addDialog' | 'openDialog' | 'closeDialog', data: any): this;
   }
 
-  interface Node {
-    // Hack: remove generics to simplify making methods in window and worker scopes compatible
-    //insertBefore(node: Node, child: Node | null): Node;
-  }
-
   interface Element {
-    cdStyle: CSSStyleDeclaration;
-    cdIsTopLayersContainer: boolean;
-    cdCachedLayersContainerTop: number;
-    cdCachedLayersContainerLeft: number;
-    cdCouldHaveMoved: boolean;
-    cdMarginTop: number;
-    cdMarginBottom: number;
-    cdMarginLeft: number;
-    cdMarginRight: number;
-    cdCallback?: Function;
-    cdInput?: OO.ui.TextInputWidget;
     cdIsInline?: boolean;
 
-    // Exclude `null` which is not done in the native lib
+    // Hack: Exclude `null` which is not done in the native lib
     textContent: string;
   }
 
   interface Text {
-    // Exclude `null` which is not done in the native lib
+    // Hack: Exclude `null` which is not done in the native lib
     textContent: string;
   }
 
   interface Comment {
-    // Exclude `null` which is not done in the native lib
+    // Hack: Exclude `null` which is not done in the native lib
     textContent: string;
   }
 
   interface ChildNode {
-    // Exclude `null` which is not done in the native lib
+    // Hack: Exclude `null` which is not done in the native lib
     textContent: string;
   }
 
@@ -275,22 +244,11 @@ declare global {
   }
 
   type ElementLike = Element | DomHandlerElement;
-
   type NodeLike = Node | DomHandlerNode;
-
   type TextLike = Text | DomHandlerText;
 
-  type Constructor = new (...args: any[]) => object;
-  type AtLeastOne<T> = [T, ...T[]];
-  type MakeRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
-  type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-  // type ExpandRecursively<T> = T extends object
-  //   ? T extends infer O ? { [K in keyof O]: ExpandRecursively<O[K]> } : never
-  //   : T;
-  type ValueOf<T> = Expand<T[keyof T]>;
-  type RemoveMethods<T> = {
-    [K in keyof T as T[K] extends Function ? never : K]: T[K]
-  };
+  interface CommentWorker extends WorkerCommentWorker {}
+  interface SectionWorker extends WorkerSectionWorker {}
 }
 
 export {};

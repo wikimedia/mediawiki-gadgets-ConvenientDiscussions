@@ -541,26 +541,6 @@ export function removeFromArrayIfPresent(arr, el) {
 }
 
 /**
- * Get the gender that is common for a list of users (`'unknown'` is treated as `'male'`) or
- * `'unknown'` if there is no such.
- *
- * @param {import('./User').default[]} users
- * @returns {string}
- */
-export function getCommonGender(users) {
-  const genders = users.map((user) => user.getGender());
-  let commonGender;
-  if (genders.every((gender) => gender === 'female')) {
-    commonGender = 'female';
-  } else if (genders.every((gender) => gender !== 'female')) {
-    commonGender = 'male';
-  } else {
-    commonGender = 'unknown';
-  }
-  return commonGender;
-}
-
-/**
  * Pad a number with zeros like this: `4` → `04` or `0004`.
  *
  * @param {number} number Number to pad.

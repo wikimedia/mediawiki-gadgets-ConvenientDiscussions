@@ -53,11 +53,15 @@ export default class CommentWorker extends CommentSkeleton {
   /** @type {boolean|undefined} */
   isToMe;
 
-  /** @type {?import('./SectionWorker').default} */
-  section;
+  /**
+   * @override
+   * @type {?import('./SectionWorker').default}
+   */
+  section = this.section;
 
   /**
    * @override
+   * @type {import('domhandler').Element}
    */
   signatureElement = this.signatureElement;
 
@@ -340,7 +344,7 @@ export default class CommentWorker extends CommentSkeleton {
     });
     const span = document.createElement('span');
     span.textContent = `\x01${num}_${type}\x02`;
-    span.before(element);
+    // span.before(element);
     element.remove();
 
     this.elements[this.elements.indexOf(element)] = span;

@@ -5,6 +5,8 @@
  * @module cd
  */
 
+import './domhandler.d.ts';
+
 /** @type {WindowOrWorkerGlobalScope} */
 const context = self;
 
@@ -124,8 +126,8 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
 
 /**
  * @typedef {object} ConvenientDiscussionsWorkerExtension
- * @property {import('../worker/CommentWorker').default[]} comments
- * @property {import('../worker/SectionWorker').default[]} sections
+ * @property {CommentWorker[]} comments
+ * @property {SectionWorker[]} sections
  */
 
 /**

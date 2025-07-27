@@ -1,15 +1,15 @@
 import Autocomplete from './Autocomplete';
-import CdError from './shared/CdError';
 import ProcessDialog from './ProcessDialog';
 import PseudoLink from './Pseudolink';
 import TextInputWidget from './TextInputWidget';
 import bootController from './bootController';
-import cd from './shared/cd';
 import pageRegistry from './pageRegistry';
+import CdError from './shared/CdError';
+import cd from './shared/cd';
 import { buildEditSummary, defined, definedAndNotNull, ensureArray, mergeMaps, sleep } from './shared/utils-general';
+import { encodeWikilink, endWithTwoNewlines } from './shared/utils-wikitext';
 import { createCheckboxControl, createTitleControl, es6ClassToOoJsClass } from './utils-oojs';
-import { encodeWikilink, endWithTwoNewlines, findFirstTimestamp } from './shared/utils-wikitext';
-import { wrapHtml } from './utils-window';
+import { findFirstTimestamp, wrapHtml } from './utils-window';
 
 /**
  * Class used to create a move section dialog.

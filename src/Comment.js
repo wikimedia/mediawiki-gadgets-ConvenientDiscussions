@@ -1,29 +1,29 @@
 /* eslint-disable no-self-assign */
 import Button from './Button';
-import CdError from './shared/CdError';
 import CommentButton from './CommentButton';
-import CommentSkeleton from './shared/CommentSkeleton';
 import CommentSource from './CommentSource';
 import CommentSubitemList from './CommentSubitemList';
-import ElementsTreeWalker from './shared/ElementsTreeWalker';
 import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
 import StorageItemWithKeys from './StorageItemWithKeys';
-import TreeWalker from './shared/TreeWalker';
 import bootController from './bootController';
-import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import navPanel from './navPanel';
 import settings from './settings';
+import CdError from './shared/CdError';
+import CommentSkeleton from './shared/CommentSkeleton';
+import ElementsTreeWalker from './shared/ElementsTreeWalker';
+import TreeWalker from './shared/TreeWalker';
+import cd from './shared/cd';
+import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './shared/utils-general';
+import { formatDate, formatDateNative } from './shared/utils-timestamp';
+import { extractNumeralAndConvertToNumber, removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
 import { handleApiReject, loadUserGenders, parseCode } from './utils-api';
-import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './shared/utils-general';
 import { showConfirmDialog } from './utils-oojs';
-import { formatDate, formatDateNative } from './shared/utils-timestamp';
-import { extractNumeralAndConvertToNumber, extractSignatures, removeWikiMarkup } from './shared/utils-wikitext';
-import { createSvg, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisibilityByRects, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
+import { createSvg, extractSignatures, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisibilityByRects, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**
  * @typedef {object} CommentOffset

@@ -20,11 +20,11 @@ import './extendDomhandler';
 import { isComment, isText } from 'domhandler';
 import { parseDocument } from 'htmlparser2';
 
+import debug from '../debug.js';
 import CdError from '../shared/CdError.js';
 import CommentSkeleton from '../shared/CommentSkeleton.js';
 import Parser from '../shared/Parser.js';
 import cdTemp from '../shared/cd.js';
-import debug from '../debug.js';
 
 import CommentWorker from './CommentWorker';
 import SectionWorker from './SectionWorker';
@@ -144,7 +144,7 @@ function processSections(parser, targets) {
 /**
  * Keep only those values of an object whose names are not in the unsafe keys list.
  *
- * @param {object} obj
+ * @param {{ [key: string]: any }} obj
  * @param {string[]} unsafeKeys
  * @private
  */

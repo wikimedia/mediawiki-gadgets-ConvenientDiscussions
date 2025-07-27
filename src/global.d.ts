@@ -1,11 +1,5 @@
 /// <reference types="types-mediawiki" />
 
-import { Document as DomHandlerDocument, Element as DomHandlerElement, Node as DomHandlerNode } from 'domhandler';
-
-import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './shared/cd';
-import CommentWorker from '../worker/CommentWorker';
-import SectionWorker from '../worker/SectionWorker';
-
 declare global {
   const IS_TEST: boolean;
   const IS_DEV: boolean;
@@ -19,14 +13,9 @@ declare global {
   const getUrlFromInterwikiLink: Function;
 
   type Direction = 'ltr' | 'rtl';
-
   type ListType = 'dl' | 'ul' | 'ol';
-
   type StringsByKey = { [key: string]: string };
-
   type ValidKey = string | number;
-
-  type ToDistributiveArray<T> = T extends any ? T[] : never;
 
   interface Revision {
     revid: number;
@@ -171,37 +160,6 @@ declare global {
     'title': mw.widgets.TitleInputWidget;
   }
 
-  type MessageFromWorkerParse = {
-    type: 'parse',
-    revisionId: number,
-    resolverId: number,
-    comments: CommentWorker[],
-    sections: SectionWorker[],
-  };
-
-  type MessageFromWindowParse = {
-    type: 'parse',
-    revisionId: number,
-    resolverId: number,
-    text: string,
-    g: ConvenientDiscussions['g'],
-    config: ConvenientDiscussions['config'],
-  };
-
-  type MessageFromWindowSetAlarm = {
-    type: 'setAlarm',
-    interval: number,
-  };
-
-  type MessageFromWindowRemoveAlarm = {
-    type: 'removeAlarm',
-  };
-
-  type MessageFromWindow = MessageFromWindowParse | MessageFromWindowSetAlarm | MessageFromWindowRemoveAlarm;
-
-  const convenientDiscussions: Window['convenientDiscussions'];
-  const cd: Window['convenientDiscussions'] | undefined;
-
   interface Window {
     // Basically we don't have a situation where getSelection() can return `null`, judging by
     // https://developer.mozilla.org/en-US/docs/Web/API/Window/getSelection.
@@ -209,23 +167,6 @@ declare global {
 
     cdOnlyRunByFooterLink?: boolean;
     cdShowLoadingOverlay?: boolean;
-  }
-
-  interface WindowOrWorkerGlobalScope {
-    convenientDiscussions: ConvenientDiscussions | ConvenientDiscussionsWorker;
-    cd?: Window['convenientDiscussions'];
-  }
-
-  interface WorkerGlobalScope {
-    Document: typeof DomHandlerDocument;
-    Element: typeof DomHandlerElement;
-    Node: typeof DomHandlerNode;
-    Node: {
-      ELEMENT_NODE: number;
-      TEXT_NODE: number;
-      COMMENT_NODE: number;
-    };
-    document: DomHandlerDocument;
   }
 
   // https://stackoverflow.com/a/71104272
@@ -257,11 +198,6 @@ declare global {
     wikiEditor(funcName: 'addModule' | 'addToToolbar' | 'removeFromToolbar' | 'addDialog' | 'openDialog' | 'closeDialog', data: any): this;
   }
 
-  interface Node {
-    // Hack: remove generics to simplify making methods in window and worker scopes compatible
-    //insertBefore(node: Node, child: Node | null): Node;
-  }
-
   interface Element {
     cdStyle: CSSStyleDeclaration;
     cdIsTopLayersContainer: boolean;
@@ -274,7 +210,6 @@ declare global {
     cdMarginRight: number;
     cdCallback?: Function;
     cdInput?: OO.ui.TextInputWidget;
-    cdIsInline?: boolean;
 
     // Exclude `null` which is not done in the native lib
     textContent: string;

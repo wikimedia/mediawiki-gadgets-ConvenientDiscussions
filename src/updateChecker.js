@@ -1,16 +1,15 @@
-import CdError from './shared/CdError.js';
 import Comment from './Comment';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import bootController from './bootController';
-import cd from './shared/cd.js';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
+import CdError from './shared/CdError.js';
+import cd from './shared/cd.js';
+import { calculateWordOverlap, keepWorkerSafeValues, subtractDaysFromNow } from './shared/utils-general.js';
 import userRegistry from './userRegistry';
 import { loadUserGenders } from './utils-api';
-import { calculateWordOverlap, keepWorkerSafeValues, subtractDaysFromNow } from './shared/utils-general.js';
-import { findFirstTimestamp } from './shared/utils-wikitext.js';
 import { EventEmitter } from './utils-oojs';
 import visits from './visits';
 
@@ -22,11 +21,11 @@ import visits from './visits';
  * @property {import('./Section').default} [match]
  * @property {number} [matchScore]
  * @property {number} [tocLevel]
- * @property {import('./worker/SectionWorker').default|SectionWorkerMatched} [parent]
+ * @property {SectionWorker|SectionWorkerMatched} [parent]
  */
 
 /**
- * @typedef {RemoveMethods<import('./worker/SectionWorker').default> & SectionWorkerExtension} SectionWorkerMatched
+ * @typedef {RemoveMethods<SectionWorker> & SectionWorkerExtension} SectionWorkerMatched
  */
 
 /**
@@ -44,7 +43,7 @@ import visits from './visits';
  */
 
 /**
- * @typedef {Omit<RemoveMethods<import('./worker/CommentWorker').default>, 'children' | 'previousComments'>} CommentWorkerBase
+ * @typedef {Omit<RemoveMethods<CommentWorker>, 'children' | 'previousComments'>} CommentWorkerBase
  */
 
 /**
@@ -229,7 +228,7 @@ class UpdateChecker extends EventEmitter {
    * Map sections obtained from a revision to the sections present on the page. (Contrast with
    * `updateChecker#mapComments` which maps CommentWorker objects together.)
    *
-   * @param {import('./worker/SectionWorker').default[] | SectionWorkerMatched[]} otherSections
+   * @param {SectionWorker[] | SectionWorkerMatched[]} otherSections
    * @param {number} lastCheckedRevisionId
    * @private
    */
@@ -237,7 +236,7 @@ class UpdateChecker extends EventEmitter {
     if (!this.areSectionsEnriched(otherSections)) return;
 
     // otherSections could contain simple SectionWorker types from
-    // import('./worker/SectionWorker').default, not SectionWorkerEnriched, but for simplicity let's
+    // SectionWorker, not SectionWorkerEnriched, but for simplicity let's
     // treat them as SectionWorkerEnriched.
 
     // Reset values set in the previous run.
@@ -272,7 +271,7 @@ class UpdateChecker extends EventEmitter {
   /**
    * Check if sections instances received from a web worker were previously enriched by this class.
    *
-   * @param {import('./worker/SectionWorker').default[] | SectionWorkerMatched[]} sections
+   * @param {SectionWorker[] | SectionWorkerMatched[]} sections
    * @returns {sections is SectionWorkerMatched[]}
    */
   areSectionsEnriched(sections) {
@@ -338,8 +337,8 @@ class UpdateChecker extends EventEmitter {
    * The function also adds the `hasPoorMatch` property to comments that have possible matches that
    * are not good enough to confidently state a match.
    *
-   * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} currentComments
-   * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} otherComments
+   * @param {CommentWorker[] | CommentWorkerMatched[]} currentComments
+   * @param {CommentWorker[] | CommentWorkerMatched[]} otherComments
    * @private
    */
   mapWorkerCommentsToWorkerComments(currentComments, otherComments) {
@@ -348,8 +347,8 @@ class UpdateChecker extends EventEmitter {
     }
 
     // currentComments and otherComments could contain simple CommentWorker types from
-    // import('./worker/CommentWorker').default, not CommentWorkerEnriched, but for simplicity let's
-    // treat them as CommentWorkerEnriched.
+    // CommentWorker, not CommentWorkerEnriched, but for simplicity let's treat them as
+    // CommentWorkerEnriched.
 
     // Reset values set in the previous run ("derich").
     currentComments.forEach((comment) => {
@@ -406,7 +405,7 @@ class UpdateChecker extends EventEmitter {
   /**
    * Check if comment instances received from a web worker were previously enriched by this class.
    *
-   * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} comments
+   * @param {CommentWorker[] | CommentWorkerMatched[]} comments
    * @returns {comments is CommentWorkerMatched[]}
    */
   areCommentsEnriched(comments) {

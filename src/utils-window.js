@@ -8,10 +8,12 @@ import Button from './Button';
 import ElementsTreeWalker from './shared/ElementsTreeWalker.js';
 import Parser from './shared/Parser.js';
 import cd from './shared/cd.js';
-import { defined, isInline, parseWikiUrl, spacesToUnderlines } from './shared/utils-general.js';
+import { decodeHtmlEntities, defined, generatePageNamePattern, isInline, parseWikiUrl, removeDirMarks, spacesToUnderlines } from './shared/utils-general.js';
+import { parseTimestamp } from './shared/utils-timestamp';
+import { maskDistractingCode } from './shared/utils-wikitext';
 
 /**
- * @typedef {Record<string, () => void>} WrapCallbacks
+ * @typedef {{ [key: string]: () => void }} WrapCallbacks
  */
 
 /**
@@ -683,4 +685,348 @@ export function getLinkedAnchor(element) {
   const href = element.getAttribute('href');
 
   return href?.startsWith('#') ? href.slice(1) : null;
+}
+
+/**
+ * The object returned from `extractSignatures()`.
+ *
+ * @typedef {object} SignatureInWikitext
+ * @property {import('./User').default} author The author name.
+ * @property {number} index The array index of the signature (not the index of the signature's text
+ *   in the code - excuse me the ambiguity here).
+ * @property {string} [timestamp] The timestamp of the signature.
+ * @property {Date} [date] The timestamp parsed to a Date object.
+ * @property {number} startIndex The start index of the signature in the code.
+ * @property {number} endIndex The end index of the signature in the code.
+ * @property {number} commentStartIndex The start index of the signature's comment in the code.
+ * @property {number} [nextCommentStartIndex] The start index of the next signature's comment in the
+ *   code. This is temporary and deleted in `extractSignatures()`.
+ * @property {string} dirtyCode The whole signature with all the wikitext.
+ */
+
+/**
+ * @typedef {MakeOptional<
+ *   Omit<SignatureInWikitext, 'commentStartIndex' | 'index' | 'date'> & {
+ *     nextCommentStartIndex: NonNullable<SignatureInWikitext['nextCommentStartIndex']>
+ *   },
+ *   'author'
+ * >} SignatureInWikitextDraft
+ */
+
+/**
+ * Extract signatures from wikitext.
+ *
+ * Only basic signature parsing is performed here; more precise signature text identification is
+ * performed in `CommentSource#adjustSignature()`. See also `CommentSource#adjust()`.
+ *
+ * @param {string} code Code to extract signatures from.
+ * @returns {SignatureInWikitext[]}
+ */
+export function extractSignatures(code) {
+  // TODO: Instead of removing only lines containing antipatterns from wikitext, hide entire
+  // templates and tags?
+  // But keep in mind that this code may still be part of comments.
+  const noSignatureClassesPattern = cd.g.noSignatureClasses.join('\\b|\\b');
+  const commentAntipatternsPatternParts = [
+    `class=(['"])[^'"\\n]*(?:\\b${noSignatureClassesPattern}\\b)[^'"\\n]*\\1`
+  ];
+  if (cd.config.noSignatureTemplates.length) {
+    const pattern = cd.config.noSignatureTemplates.map(generatePageNamePattern).join('|');
+    commentAntipatternsPatternParts.push(`\\{\\{ *(?:${pattern}) *(?:\\||\\}\\})`);
+  }
+  commentAntipatternsPatternParts.push(
+    ...cd.config.commentAntipatterns.map((regexp) => regexp.source)
+  );
+  const commentAntipatternsPattern = commentAntipatternsPatternParts.join('|');
+
+  // Hide HTML comments, quotes and lines containing antipatterns.
+  const adjustedCode = maskDistractingCode(code)
+    .replace(
+      cd.g.quoteRegexp,
+      (_, beginning, content, ending) => beginning + ' '.repeat(content.length) + ending
+    )
+    .replace(
+      new RegExp(`^.*(?:${commentAntipatternsPattern}).*$`, 'mg'),
+      (s) => ' '.repeat(s.length)
+    );
+
+  const signatureDrafts = extractRegularSignatures(adjustedCode, code);
+  const unsigneds = extractUnsigneds(adjustedCode, code, signatureDrafts);
+  signatureDrafts.push(...unsigneds);
+
+  // This is for the procedure adding anchors to comments linked from the comment in
+  // CommentForm#addAnchorsToComments().
+  const signatureIndex = adjustedCode.indexOf(cd.g.signCode);
+  if (signatureIndex !== -1) {
+    // Dummy signature
+    signatureDrafts.push({
+      author: cd.user,
+      startIndex: signatureIndex,
+      nextCommentStartIndex: signatureIndex + adjustedCode.slice(signatureIndex).indexOf('\n') + 1,
+
+      // These are not used. Purely for the sake of type checking.
+      endIndex: signatureIndex + cd.g.signCode.length,
+      dirtyCode: cd.g.signCode,
+      timestamp: '',
+    });
+  }
+
+  if (unsigneds.length || signatureIndex !== -1) {
+    signatureDrafts.sort((sig1, sig2) => sig1.startIndex > sig2.startIndex ? 1 : -1);
+  }
+
+  const signatures = /** @type {SignatureInWikitext[]} */ (
+    signatureDrafts.filter((sig) => sig.author)
+  );
+  signatures.forEach((sig, i) => {
+    sig.commentStartIndex =
+      i === 0 ? 0 : /** @type {number} */ (signatures[i - 1].nextCommentStartIndex);
+  });
+  signatures.forEach((sig, i) => {
+    const { date } = sig.timestamp && parseTimestamp(sig.timestamp) || {};
+    sig.index = i;
+    sig.date = date;
+    delete sig.nextCommentStartIndex;
+  });
+
+  return signatures;
+}
+
+/**
+ * Extract signatures that don't come from the unsigned templates from wikitext.
+ *
+ * @param {string} adjustedCode Adjusted page code.
+ * @param {string} code Page code.
+ * @returns {SignatureInWikitextDraft[]}
+ * @private
+ */
+function extractRegularSignatures(adjustedCode, code) {
+  const ending = `(?:\\n*|$)`;
+  const afterTimestamp = `(?!["»])(?:\\}\\}|</small>)?`;
+
+  // Use (?:^|[^=]) to filter out timestamps in a parameter (in quote templates)
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+  const timestampRegexp = new RegExp(
+    `^((.*?(?:^|[^=]))(${cd.g.contentTimestampRegexp.source})${afterTimestamp}).*${ending}`,
+    'igm'
+  );
+
+  // After capturing the first signature with `.*?` we make another capture (with authorLinkRegexp)
+  // to make sure we take the first link to the same author as the author in the last link. 251 is
+  // not arbitrary: it's 255 (maximum allowed signature length) minus `'[[u:a'.length` plus
+  // `' '.length` (the space before the timestamp).
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+  const signatureScanLimit = 251;
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+  const signatureRegexp = new RegExp(
+    /*
+      Captures:
+      1 - the whole line with the signature
+      2 - text before the timestamp
+      3 - text before the first user link
+      4 - author name (inside `cd.g.captureUserNamePattern`)
+      5 - sometimes, a slash appears here (inside `cd.g.captureUserNamePattern`)
+      6 - timestamp
+     */
+    (
+      `^(((.*?)${cd.g.captureUserNamePattern}.{1,${signatureScanLimit - 1}}?[^=])` +
+      `(${cd.g.contentTimestampRegexp.source})${afterTimestamp}.*)${ending}`
+    ),
+    'im'
+  );
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+  const lastAuthorLinkRegexp = new RegExp(`^.*${cd.g.captureUserNamePattern}`, 'i');
+  const authorLinkRegexp = new RegExp(cd.g.captureUserNamePattern, 'ig');
+
+  let signatures = [];
+  let timestampMatch;
+  while ((timestampMatch = timestampRegexp.exec(adjustedCode))) {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const line = timestampMatch[0];
+    const lineStartIndex = timestampMatch.index;
+    const authorTimestampMatch = line.match(signatureRegexp);
+
+    let author;
+    let timestamp;
+    let startIndex;
+    let endIndex;
+    let nextCommentStartIndex;
+    let dirtyCode;
+    if (authorTimestampMatch) {
+      // Extract the timestamp data
+      const timestampStartIndex = lineStartIndex + authorTimestampMatch[2].length;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+      const timestampEndIndex = timestampStartIndex + authorTimestampMatch[6].length;
+      timestamp = removeDirMarks(code.slice(timestampStartIndex, timestampEndIndex));
+
+      // Extract the signature data
+      startIndex = lineStartIndex + authorTimestampMatch[3].length;
+      endIndex = lineStartIndex + authorTimestampMatch[1].length;
+      dirtyCode = code.slice(startIndex, endIndex);
+
+      nextCommentStartIndex = lineStartIndex + authorTimestampMatch[0].length;
+
+      // Find the first link to this author in the preceding text.
+
+      let authorLinkMatch;
+      authorLinkRegexp.lastIndex = 0;
+      const commentEndingStartIndex = Math.max(0, timestampStartIndex - lineStartIndex - 255);
+      const commentEnding = authorTimestampMatch[0].slice(commentEndingStartIndex);
+
+      const [, lastAuthorLink] = commentEnding.match(lastAuthorLinkRegexp) || [];
+
+      // Locically it should always be non-empty. There is an unclear problem with
+      // https://az.wikipedia.org/w/index.php?title=Vikipediya:Kənd_meydanı&diff=prev&oldid=7223881,
+      // probably having something to do with difference between regular length and byte length.
+      if (!lastAuthorLink) continue;
+
+      // require() to avoid circular dependency
+      const userRegistry = require('./userRegistry').default;
+
+      author = userRegistry.get(decodeHtmlEntities(lastAuthorLink));
+
+      // Rectify the author name if needed.
+      while ((authorLinkMatch = authorLinkRegexp.exec(commentEnding))) {
+        // Slash can be present in authorLinkMatch[2]. It often indicates a link to a page in the
+        // author's userspace that is not part of the signature (while some such links are, and we
+        // don't want to eliminate those cases).
+        if (authorLinkMatch[2]) continue;
+
+        if (userRegistry.get(decodeHtmlEntities(authorLinkMatch[1])) === author) {
+          startIndex = lineStartIndex + commentEndingStartIndex + authorLinkMatch.index;
+          dirtyCode = code.slice(startIndex, endIndex);
+          break;
+        }
+      }
+    } else {
+      startIndex = lineStartIndex + timestampMatch[2].length;
+      endIndex = lineStartIndex + timestampMatch[1].length;
+      dirtyCode = code.slice(startIndex, endIndex);
+
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+      const timestampEndIndex = startIndex + timestampMatch[3].length;
+      timestamp = removeDirMarks(code.slice(startIndex, timestampEndIndex));
+
+      nextCommentStartIndex = lineStartIndex + timestampMatch[0].length;
+    }
+
+    signatures.push({ author, timestamp, startIndex, endIndex, dirtyCode, nextCommentStartIndex });
+  }
+
+  return signatures;
+}
+
+/**
+ * Extract signatures that come from the unsigned templates from wikitext.
+ *
+ * @param {string} adjustedCode Adjusted page code.
+ * @param {string} code Page code.
+ * @param {SignatureInWikitextDraft[]} signatures Existing signatures.
+ * @returns {SignatureInWikitextDraft[]}
+ * @private
+ */
+function extractUnsigneds(adjustedCode, code, signatures) {
+  if (!cd.config.unsignedTemplates.length) {
+    return [];
+  }
+
+  // require() to avoid circular dependency
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+  const userRegistry = require('./userRegistry').default;
+
+  const unsigneds = /** @type {SignatureInWikitextDraft[]} */ ([]);
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+  const unsignedTemplatesRegexp = new RegExp(cd.g.unsignedTemplatesPattern + '.*\\n', 'g');
+  let match;
+  while ((match = unsignedTemplatesRegexp.exec(adjustedCode))) {
+    let authorString;
+    let timestamp;
+    if (cd.g.contentTimestampNoTzRegexp.test(match[2])) {
+      timestamp = match[2];
+      authorString = match[3];
+    } else if (cd.g.contentTimestampNoTzRegexp.test(match[3])) {
+      timestamp = match[3];
+      authorString = match[2];
+    } else {
+      authorString = match[2];
+    }
+
+    // Append "(UTC)" to the `timestamp` of templates that allow to omit the timezone. The timezone
+    // could be not UTC, but currently the timezone offset is taken from the wiki configuration, so
+    // it doesn't have effect.
+    if (timestamp && !cd.g.contentTimestampRegexp.test(timestamp)) {
+      timestamp += ' (UTC)';
+
+      // Workaround for "undated" templates. I think (need to recheck) in most cases that signature
+      // would qualify as a regular signature, not an unsigned one, just with the timestamp in a
+      // template. But when there is no author, we need to fill the author field.
+      authorString ||= '<undated>';
+    }
+
+    // Double spaces
+    timestamp = timestamp?.replace(/ +/g, ' ');
+
+    const startIndex = match.index;
+    const endIndex = match.index + match[1].length;
+    const nextCommentStartIndex = match.index + match[0].length;
+
+    unsigneds.push({
+      // A situation is also possible when we could parse neither the author nor the timestamp. (If
+      // we could parse the timestamp, the author becomes `<undated>`). Let's assume that the
+      // template still contains a signature and is not a "stray" template and still include it
+      // (we'll filter out authorless signatures later anyway, but we need them now to figure out
+      // where comments start).
+      author: authorString ? userRegistry.get(decodeHtmlEntities(authorString)) : undefined,
+
+      timestamp,
+      startIndex,
+      endIndex,
+      dirtyCode: code.slice(startIndex, endIndex),
+      nextCommentStartIndex,
+    });
+
+    // `[5 tildes] {{unsigned|...}}` cases. In these cases, both the signature and
+    // {{unsigned|...}} are considered signatures and added to the array. We could combine them
+    // but that would need corresponding code in Parser.js which could be tricky, so for now we just
+    // remove the duplicate. That still allows to reply to the comment.
+    const relevantSignatureIndex = signatures.findIndex(
+      (sig) => sig.nextCommentStartIndex === nextCommentStartIndex
+    );
+    if (relevantSignatureIndex !== -1) {
+      signatures.splice(relevantSignatureIndex, 1);
+    }
+  }
+
+  return unsigneds;
+}
+
+/**
+ * Find the first timestamp related to a comment in the code.
+ *
+ * @param {string} code
+ * @returns {?string}
+ */
+export function findFirstTimestamp(code) {
+  return extractSignatures(code)[0]?.timestamp || null;
+}
+
+/**
+ * Get the gender that is common for a list of users (`'unknown'` is treated as `'male'`) or
+ * `'unknown'` if there is no such.
+ *
+ * @param {import('./User').default[]} users
+ * @returns {string}
+ */
+export function getCommonGender(users) {
+  const genders = users.map((user) => user.getGender());
+  let commonGender;
+  if (genders.every((gender) => gender === 'female')) {
+    commonGender = 'female';
+  } else if (genders.every((gender) => gender !== 'female')) {
+    commonGender = 'male';
+  } else {
+    commonGender = 'unknown';
+  }
+
+  return commonGender;
 }
