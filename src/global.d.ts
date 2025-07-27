@@ -1,7 +1,10 @@
 /// <reference types="types-mediawiki" />
 
-import { Document as DomHandlerDocument, Node as DomHandlerNode, Element as DomHandlerElement } from 'domhandler';
+import { Document as DomHandlerDocument, Element as DomHandlerElement, Node as DomHandlerNode } from 'domhandler';
+
 import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './shared/cd';
+import CommentWorker from '../worker/CommentWorker';
+import SectionWorker from '../worker/SectionWorker';
 
 declare global {
   const IS_TEST: boolean;
@@ -15,8 +18,189 @@ declare global {
   const getInterwikiPrefixForHostnameSync: Function;
   const getUrlFromInterwikiLink: Function;
 
+  type Direction = 'ltr' | 'rtl';
+
+  type ListType = 'dl' | 'ul' | 'ol';
+
+  type StringsByKey = { [key: string]: string };
+
+  type ValidKey = string | number;
+
+  type ToDistributiveArray<T> = T extends any ? T[] : never;
+
+  interface Revision {
+    revid: number;
+    parentid: number;
+    slots?: {
+      main: {
+        contentmodel: string;
+        contentformat: string;
+        content: string;
+        nosuchsection: boolean;
+      };
+    };
+  }
+
+  interface ApiResponseQueryPage {
+    title: string;
+    pageid: number;
+    known?: boolean;
+    missing?: boolean;
+    invalid?: boolean;
+    thumbnail?: {
+      source: string;
+      width: number;
+      height: number;
+    };
+    pageprops?: {
+      disambiguation?: '';
+    };
+    description?: string;
+    ns: number;
+    normalizedTitle?: string;
+    index?: number;
+    contentmodel: string;
+    redirects?: Array<{ title: string }>;
+    revisions?: Revision[];
+  }
+
+  interface FromTo {
+    from: string;
+    to: string;
+    tofragment?: string;
+    index: number;
+  }
+
+  interface ApiResponseQueryBase {
+    query?: {
+      redirects?: FromTo[];
+      normalized?: FromTo[];
+    };
+    curtimestamp?: string;
+    batchcomplete?: boolean;
+    continue?: object;
+  }
+
+  interface ApiResponseQueryContentPages {
+    query?: {
+      pages?: ApiResponseQueryPage[];
+    };
+  }
+
+  type ApiResponseQuery<T extends object> = ApiResponseQueryBase & T;
+
+  interface ApiResponseQueryContentGlobalUserInfo {
+    query?: {
+      globaluserinfo: {
+        home: string;
+        id: number;
+        registration: string;
+        name: string;
+      };
+    };
+  }
+
+  interface ApiResponseQueryContentAllUsers {
+    query?: {
+      allusers: Array<{
+        userid: number;
+        name: string;
+      }>;
+    };
+  }
+
+  type ControlType = 'button' | 'checkbox' | 'copyText' | 'multicheckbox' | 'multilineText' | 'multitag' | 'number' | 'radio' | 'text' | 'title';
+
+  interface ControlTypeToControl {
+    'button': ButtonControl;
+    'checkbox': CheckboxControl;
+    'copyText': CopyTextControl;
+    'multicheckbox': MulticheckboxControl;
+    'multilineText': MultilineTextInputControl;
+    'multitag': MultitagControl;
+    'number': NumberControl;
+    'radio': RadioControl;
+    'title': TitleControl;
+    'text': TextControl;
+  }
+
+  type ControlTypesByName<T extends { [K: string]: ControlType }> = {
+    -readonly [K in keyof T]: ControlTypeToControl[T[K]];
+  };
+
+  interface GenericControl<T extends ControlType> {
+    type: T;
+    field: OO.ui.FieldLayout<ControlTypeToWidget[T]>;
+    input: ControlTypeToWidget[T];
+  }
+
+  type ButtonControl = GenericControl<'button'>;
+
+  type CheckboxControl = GenericControl<'checkbox'>;
+
+  type CopyTextControl = GenericControl<'copyText'> & {
+    field: OO.ui.CopyTextLayout | OO.ui.ActionFieldLayout;
+  };
+
+  type MulticheckboxControl = GenericControl<'multicheckbox'>;
+
+  type MultilineTextInputControl = GenericControl<'multilineText'>;
+
+  type MultitagControl = GenericControl<'multitag'> & {
+    uiToData?: (value: string[]) => (string|string[])[];
+  };
+
+  type NumberControl = GenericControl<'number'>;
+
+  type RadioControl = GenericControl<'radio'>;
+
+  type TitleControl = GenericControl<'title'>;
+
+  type TextControl = GenericControl<'text'>;
+
+  interface ControlTypeToWidget {
+    'radio': OO.ui.RadioSelectWidget;
+    'text': import('./TextInputWidget').default;
+    'multilineText': OO.ui.MultilineTextInputWidget;
+    'number': OO.ui.TextInputWidget;
+    'checkbox': import('./CheckboxInputWidget').default;
+    'multitag': OO.ui.TagMultiselectWidget;
+    'multicheckbox': OO.ui.CheckboxMultiselectWidget;
+    'button': OO.ui.ButtonWidget;
+    'copyText': OO.ui.TextInputWidget;
+    'title': mw.widgets.TitleInputWidget;
+  }
+
+  type MessageFromWorkerParse = {
+    type: 'parse',
+    revisionId: number,
+    resolverId: number,
+    comments: CommentWorker[],
+    sections: SectionWorker[],
+  };
+
+  type MessageFromWindowParse = {
+    type: 'parse',
+    revisionId: number,
+    resolverId: number,
+    text: string,
+    g: ConvenientDiscussions['g'],
+    config: ConvenientDiscussions['config'],
+  };
+
+  type MessageFromWindowSetAlarm = {
+    type: 'setAlarm',
+    interval: number,
+  };
+
+  type MessageFromWindowRemoveAlarm = {
+    type: 'removeAlarm',
+  };
+
+  type MessageFromWindow = MessageFromWindowParse | MessageFromWindowSetAlarm | MessageFromWindowRemoveAlarm;
+
   const convenientDiscussions: Window['convenientDiscussions'];
-  const cd: Window['cd'] | undefined;
+  const cd: Window['convenientDiscussions'] | undefined;
 
   interface Window {
     // Basically we don't have a situation where getSelection() can return `null`, judging by
@@ -25,6 +209,11 @@ declare global {
 
     cdOnlyRunByFooterLink?: boolean;
     cdShowLoadingOverlay?: boolean;
+  }
+
+  interface WindowOrWorkerGlobalScope {
+    convenientDiscussions: ConvenientDiscussions | ConvenientDiscussionsWorker;
+    cd?: Window['convenientDiscussions'];
   }
 
   interface WorkerGlobalScope {

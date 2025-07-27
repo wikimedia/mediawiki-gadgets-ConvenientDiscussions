@@ -85,7 +85,7 @@ import visits from './visits';
  * @augments EventEmitter<EventMap>
  */
 class UpdateChecker extends EventEmitter {
-  /** @type {Map<number, import('./worker/worker').MessageFromWorkerParse | RevisionData>} */
+  /** @type {Map<number, MessageFromWorkerParse | RevisionData>} */
   revisionData = new Map();
 
   /** @type {{ [key: number]: (value: any) => void }} */
@@ -134,7 +134,7 @@ class UpdateChecker extends EventEmitter {
    * Perform a task in a web worker.
    *
    * @param {object} payload
-   * @returns {Promise.<import('./worker/worker').ReplyFromWorker>}
+   * @returns {Promise.<MessageFromWorkerParse | undefined>}
    * @private
    */
   runWorkerTask(payload) {
@@ -149,7 +149,7 @@ class UpdateChecker extends EventEmitter {
    * Process the current page in a web worker.
    *
    * @param {number} [revisionToParseId]
-   * @returns {Promise<import('./worker/worker').MessageFromWorkerParse | RevisionData>}
+   * @returns {Promise<MessageFromWorkerParse | RevisionData>}
    */
   async processPage(revisionToParseId) {
     if (typeof revisionToParseId === 'number' && this.revisionData.has(revisionToParseId)) {
@@ -161,7 +161,7 @@ class UpdateChecker extends EventEmitter {
       revid: revisionId,
     } = await cd.page.parse({ oldid: revisionToParseId }, true) || {};
 
-    const message = /** @type {import('./worker/worker').MessageFromWorkerParse} */ (
+    const message = /** @type {MessageFromWorkerParse} */ (
       await this.runWorkerTask({
         type: 'parse',
         revisionId,

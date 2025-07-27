@@ -170,13 +170,10 @@ export function encodeWikilink(link) {
  */
 
 /**
- * @typedef {object} SignatureInWikitextTemp
- * @property {import('./User').default} [author]
- * @property {string} [timestamp]
- * @property {number} startIndex
- * @property {number} endIndex
- * @property {string} dirtyCode
- * @property {number} nextCommentStartIndex
+ * @typedef {Omit<SignatureInWikitext, 'commentStartIndex' | 'index' | 'date'> & {
+ *   nextCommentStartIndex: NonNullable<SignatureInWikitext['nextCommentStartIndex']>
+ *   author?: SignatureInWikitext['author']
+ * }} SignatureInWikitextDraft
  */
 
 /**
@@ -216,16 +213,16 @@ export function extractSignatures(code) {
       (s) => ' '.repeat(s.length)
     );
 
-  let signaturesTemp = extractRegularSignatures(adjustedCode, code);
-  const unsigneds = extractUnsigneds(adjustedCode, code, signaturesTemp);
-  signaturesTemp.push(...unsigneds);
+  const signatureDrafts = extractRegularSignatures(adjustedCode, code);
+  const unsigneds = extractUnsigneds(adjustedCode, code, signatureDrafts);
+  signatureDrafts.push(...unsigneds);
 
   // This is for the procedure adding anchors to comments linked from the comment in
   // CommentForm#addAnchorsToComments().
   const signatureIndex = adjustedCode.indexOf(cd.g.signCode);
   if (signatureIndex !== -1) {
     // Dummy signature
-    signaturesTemp.push({
+    signatureDrafts.push({
       author: cd.user,
       startIndex: signatureIndex,
       nextCommentStartIndex: signatureIndex + adjustedCode.slice(signatureIndex).indexOf('\n') + 1,
@@ -238,11 +235,11 @@ export function extractSignatures(code) {
   }
 
   if (unsigneds.length || signatureIndex !== -1) {
-    signaturesTemp.sort((sig1, sig2) => sig1.startIndex > sig2.startIndex ? 1 : -1);
+    signatureDrafts.sort((sig1, sig2) => sig1.startIndex > sig2.startIndex ? 1 : -1);
   }
 
   const signatures = /** @type {SignatureInWikitext[]} */ (
-    signaturesTemp.filter((sig) => sig.author)
+    signatureDrafts.filter((sig) => sig.author)
   );
   signatures.forEach((sig, i) => {
     sig.commentStartIndex =
@@ -263,7 +260,7 @@ export function extractSignatures(code) {
  *
  * @param {string} adjustedCode Adjusted page code.
  * @param {string} code Page code.
- * @returns {SignatureInWikitextTemp[]}
+ * @returns {SignatureInWikitextDraft[]}
  * @private
  */
 function extractRegularSignatures(adjustedCode, code) {
@@ -347,7 +344,7 @@ function extractRegularSignatures(adjustedCode, code) {
       if (!lastAuthorLink) continue;
 
       // require() to avoid circular dependency
-      const userRegistry = require('./userRegistry').default;
+      const userRegistry = require('../userRegistry').default;
 
       author = userRegistry.get(decodeHtmlEntities(lastAuthorLink));
 
@@ -387,8 +384,8 @@ function extractRegularSignatures(adjustedCode, code) {
  *
  * @param {string} adjustedCode Adjusted page code.
  * @param {string} code Page code.
- * @param {SignatureInWikitextTemp[]} signatures Existing signatures.
- * @returns {SignatureInWikitextTemp[]}
+ * @param {SignatureInWikitextDraft[]} signatures Existing signatures.
+ * @returns {SignatureInWikitextDraft[]}
  * @private
  */
 function extractUnsigneds(adjustedCode, code, signatures) {
@@ -398,9 +395,9 @@ function extractUnsigneds(adjustedCode, code, signatures) {
 
   // require() to avoid circular dependency
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-  const userRegistry = require('./userRegistry').default;
+  const userRegistry = require('../userRegistry').default;
 
-  const unsigneds = /** @type {SignatureInWikitextTemp[]} */ ([]);
+  const unsigneds = /** @type {SignatureInWikitextDraft[]} */ ([]);
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const unsignedTemplatesRegexp = new RegExp(cd.g.unsignedTemplatesPattern + '.*\\n', 'g');
   let match;

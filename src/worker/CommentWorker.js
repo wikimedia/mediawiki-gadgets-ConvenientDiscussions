@@ -2,8 +2,7 @@
 import { isText } from 'domhandler';
 
 import CommentSkeleton from '../shared/CommentSkeleton.js';
-import cd from '../shared/cd.js';
-import { isHeadingNode, isMetadataNode, removeFromArrayIfPresent } from '../shared/utils-general.js';
+import { isHeadingNode, isMetadataNode } from '../shared/utils-general.js';
 
 import { keepSafeValues } from './worker';
 
@@ -58,12 +57,17 @@ export default class CommentWorker extends CommentSkeleton {
   section;
 
   /**
+   * @override
+   */
+  signatureElement = this.signatureElement;
+
+  /**
    * Create a comment worker instance.
    *
-   * @param {import('../Parser').default} parser
-   * @param {import('../Parser').SignatureTarget} signature Signature object returned by
+   * @param {import('../shared/Parser').default} parser
+   * @param {import('../shared/Parser').SignatureTarget} signature Signature object returned by
    *   {@link Parser#findSignatures}.
-   * @param {import('../Parser').Target[]} targets
+   * @param {import('../shared/Parser').Target[]} targets
    * @throws {CdError}
    */
   constructor(parser, signature, targets) {
@@ -89,7 +93,7 @@ export default class CommentWorker extends CommentSkeleton {
         this.processElementAttributes(element);
 
         if (element.classList.contains('references') || isMetadataNode(element)) {
-          return /** @type {import('domhandler').DataNode} */ (this.hideElement(element))
+          return /** @type {import('domhandler').Element} */ (this.hideElement(element))
             .textContent;
         } else {
           this.processReferenceElements(element);
@@ -299,6 +303,7 @@ export default class CommentWorker extends CommentSkeleton {
     this.headingHtmlToCompare = this.headingHtmlToCompare.trim();
 
     this.signatureElement.remove();
+
     this.text = this.elements.map((el) => el.textContent).join('\n').trim();
 
     this.elementNames = this.elements.map((el) => el.tagName);
@@ -309,7 +314,7 @@ export default class CommentWorker extends CommentSkeleton {
    * Replace a comment element with a marker.
    *
    * @param {import('domhandler').Element} element
-   * @returns {?import('domhandler').DataNode}
+   * @returns {?import('domhandler').Element}
    * @private
    */
   hideElement(element) {
@@ -333,13 +338,14 @@ export default class CommentWorker extends CommentSkeleton {
       tagName: element.tagName,
       html: element.outerHTML,
     });
-    const textNode = document.createTextNode(`\x01${num}_${type}\x02`);
-    textNode.before(element);
+    const span = document.createElement('span');
+    span.textContent = `\x01${num}_${type}\x02`;
+    span.before(element);
     element.remove();
 
-    this.elements[this.elements.indexOf(element)] = textNode;
+    this.elements[this.elements.indexOf(element)] = span;
 
-    return textNode;
+    return span;
   }
 
   /**

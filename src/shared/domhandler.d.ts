@@ -44,7 +44,7 @@ declare module 'domhandler' {
     parentElement: Element | null;
   }
 
-  interface NodeWithChildren {
+  interface NodeWithChildren extends Node {
     /**
      * Check if the element contains the specified node, either directly or indirectly as a
      * descendant, or is the same node.
@@ -160,6 +160,8 @@ declare module 'domhandler' {
 
     cdIsInline?: boolean;
   }
+
+  interface Text extends DataNode {}
 
   interface TokenList extends Array<string> {
     contains(name: string): boolean;

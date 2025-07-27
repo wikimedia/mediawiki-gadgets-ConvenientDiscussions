@@ -1,23 +1,14 @@
-/// <reference types="types-mediawiki" />
+/**
+ * This file has types for the code shared between the main and worker parts of the script.
+ */
 
-import { Document as DomHandlerDocument, Element as DomHandlerElement, Node as DomHandlerNode } from 'domhandler';
+import { Document as DomHandlerDocument, Element as DomHandlerElement, Node as DomHandlerNode, Text as DomHandlerText } from 'domhandler';
 
 import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
 import CommentWorker from '../worker/CommentWorker';
 import SectionWorker from '../worker/SectionWorker';
 
 declare global {
-  const IS_TEST: boolean;
-  const IS_DEV: boolean;
-  const IS_SINGLE: boolean;
-  const CONFIG_FILE_NAME: string | null;
-  const LANG_CODE: string | null;
-  const moment: Function;
-
-  const getInterwikiPrefixForHostname: Function;
-  const getInterwikiPrefixForHostnameSync: Function;
-  const getUrlFromInterwikiLink: Function;
-
   type MessageFromWorkerParse = {
     type: 'parse',
     revisionId: number,
@@ -282,6 +273,24 @@ declare global {
     _data(element: Element, key: string): any;
     wikiEditor: any;
   }
+
+  type ElementLike = Element | DomHandlerElement;
+
+  type NodeLike = Node | DomHandlerNode;
+
+  type TextLike = Text | DomHandlerText;
+
+  type Constructor = new (...args: any[]) => object;
+  type AtLeastOne<T> = [T, ...T[]];
+  type MakeRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
+  type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+  // type ExpandRecursively<T> = T extends object
+  //   ? T extends infer O ? { [K in keyof O]: ExpandRecursively<O[K]> } : never
+  //   : T;
+  type ValueOf<T> = Expand<T[keyof T]>;
+  type RemoveMethods<T> = {
+    [K in keyof T as T[K] extends Function ? never : K]: T[K]
+  };
 }
 
 export {};

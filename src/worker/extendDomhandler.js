@@ -1,7 +1,7 @@
 import { DataNode, Document, Element, Node, NodeWithChildren, Text } from 'domhandler';
 import { DomUtils } from 'htmlparser2';
 
-import { decodeHtmlEntities } from '../utils-general';
+import { decodeHtmlEntities } from '../shared/utils-general.js';
 
 self.Node = Node;
 
@@ -514,3 +514,5 @@ Document.prototype.createTextNode = function (content = '') {
 
 Document.prototype.getElementsByClassName = Element.prototype.getElementsByClassName;
 Document.prototype.querySelectorAll = Element.prototype.querySelectorAll;
+
+export { DataNode, Document, Element, Node, NodeWithChildren, Text };

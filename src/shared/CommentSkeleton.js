@@ -167,7 +167,7 @@ class CommentSkeleton {
     /**
      * Additional signatures in this comment (that go after the "official" signature).
      *
-     * @type {object[]}
+     * @type {import('./Parser.js').SignatureTarget[]}
      */
     this.extraSignatures = signature.extraSignatures;
 
@@ -657,7 +657,7 @@ class CommentSkeleton {
    * Check whether the element is an unsigned item of a bulleted or numbered list, in cases like
    * {@link https://de.wikipedia.org/w/index.php?title=Portal:Comic/Treffen_2024&oldid=242740035#Interessierte this}.
    *
-   * @param {object} part
+   * @param {CommentPart<ElementLike>} part
    * @returns {boolean}
    */
   isUnsignedItem(part) {
@@ -688,7 +688,7 @@ class CommentSkeleton {
   /**
    * Traverse the DOM, collecting comment parts.
    *
-   * @param {object[]} parts
+   * @param {CommentPart[]} parts
    * @param {ElementsAndTextTreeWalker} treeWalker
    * @param {ElementLike} [firstForeignComponentAfter]
    * @param {ElementLike} [precedingHeadingElement]
@@ -707,7 +707,7 @@ class CommentSkeleton {
           * "dive" (recursively go to the last not inline/text child)
           * "replaced" (obtained as a result of manipulations after node traversal)
       */
-      let step;
+      let /** @type {Step | undefined} */ step;
       const previousPart = parts[parts.length - 1];
 
       if (!previousPart.hasCurrentSignature && previousPart.hasForeignComponents) {
@@ -725,7 +725,7 @@ class CommentSkeleton {
         let parentNode;
         while ((parentNode = treeWalker.currentNode) && treeWalker.lastChild()) {
           while (
-            treeWalker.currentNode.nodeType === Node.TEXT_NODE &&
+            isText(treeWalker.currentNode) &&
             !treeWalker.currentNode.textContent.trim() &&
             treeWalker.previousSibling()
           );
@@ -734,7 +734,9 @@ class CommentSkeleton {
 
             // Cases like
             // https://en.wikipedia.org/w/index.php?title=User_talk:MBHbot&oldid=1228999533#c-1AmNobody24-20240614071000-June_2024
-            previousPart.node.getAttribute('style')?.includes('background-')
+            /** @type {ElementLike} */ (previousPart.node)
+              .getAttribute('style')
+              ?.includes('background-')
           ) {
             treeWalker.currentNode = parentNode;
             break;
@@ -768,9 +770,9 @@ class CommentSkeleton {
       }
 
       const isTextNode = isText(node);
-      let isHeading = null;
-      let hasCurrentSignature = null;
-      let hasForeignComponents = null;
+      let isHeading;
+      let hasCurrentSignature;
+      let hasForeignComponents;
       if (!isTextNode) {
         if (!this.isElementEligible(node, treeWalker, step)) {
           break;
@@ -786,7 +788,6 @@ class CommentSkeleton {
 
         isHeading = isHeadingNode(node);
         hasCurrentSignature = this.parser.context.contains(node, this.signatureElement);
-
         hasForeignComponents = Boolean(
           // Without checking for blockness, the beginning of the comment at
           // https://ru.wikipedia.org/w/index.php?title=Википедия:Форум/Новости&oldid=125481598#c-Oleg_Yunakov-20220830173400-Iniquity-20220830171400
@@ -837,8 +838,15 @@ class CommentSkeleton {
         }
       }
 
-      // We save all data related to the nodes on the path to reuse it.
-      parts.push({ node, isTextNode, isHeading, hasCurrentSignature, hasForeignComponents, step });
+      // We save all data related to nodes on the traversing path to reuse it.
+      parts.push({
+        node,
+        isTextNode,
+        isHeading: isHeading ?? false,
+        hasCurrentSignature: hasCurrentSignature ?? false,
+        hasForeignComponents: hasForeignComponents ?? false,
+        step,
+      });
 
       if (isHeading) {
         break;

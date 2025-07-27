@@ -35,19 +35,20 @@ import { parseTimestamp } from './utils-timestamp.js';
  */
 
 /**
+ * @template {ElementLike} [E=ElementLike]
  * @typedef {object} SignatureTarget
  * @property {'signature'} type
- * @property {ElementLike} element
- * @property {ElementLike} element
- * @property {ElementLike} timestampElement
+ * @property {E} element
+ * @property {E} element
+ * @property {E} timestampElement
  * @property {string} timestampText
  * @property {Date} date
- * @property {ElementLike} authorLink
- * @property {ElementLike} authorTalkLink
+ * @property {E} authorLink
+ * @property {E} authorTalkLink
  * @property {string} authorName
  * @property {boolean} isUnsigned
  * @property {boolean} isExtraSignature
- * @property {ElementLike[]} extraSignatures
+ * @property {SignatureTarget[]} extraSignatures
  * @property {CommentSkeleton} [comment]
  */
 
@@ -507,7 +508,7 @@ class Parser {
   findSignatures() {
     // Move extra signatures (additional signatures for a comment, if there is more than one) to an
     // array which then assign to a relevant signature (the one which goes first).
-    let extraSignatures = [];
+    let extraSignatures = /** @type {SignatureTarget[]} */ ([]);
 
     return this.context.getAllTextNodes()
       .map(this.findTimestamp.bind(this))

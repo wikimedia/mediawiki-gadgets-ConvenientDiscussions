@@ -122,6 +122,12 @@ class Comment extends CommentSkeleton {
    */
   elements = this.elements;
 
+  /**
+   * @override
+   * @type {import('./shared/Parser').SignatureTarget<HTMLElement>[]}
+   */
+  extraSignatures = this.extraSignatures;
+
   /** @type {Reformatted} */
   reformatted;
 

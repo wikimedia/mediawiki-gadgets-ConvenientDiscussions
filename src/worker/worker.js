@@ -33,8 +33,8 @@ let isFirstRun = true;
 let alarmTimeout;
 let rootElement;
 
-/** @type {import('../cd').ConvenientDiscussionsWorker} */
-const cd = /** @type {import('../cd').ConvenientDiscussionsWorker} */ (cdTemp);
+/** @type {import('../shared/cd').ConvenientDiscussionsWorker} */
+const cd = /** @type {import('../shared/cd').ConvenientDiscussionsWorker} */ (cdTemp);
 
 cd.debug = debug;
 debug.init();
@@ -87,14 +87,14 @@ function removeDtButtonHtmlComments() {
  * Find comment signatures and section headings on the page.
  *
  * @param {Parser} parser
- * @returns {import('../Parser').Target[]}
+ * @returns {import('../shared/Parser').Target[]}
  * @private
  */
 function findTargets(parser) {
   parser.init();
   parser.processAndRemoveDtMarkup();
 
-  return /** @type {import('../Parser').Target[]} */ (parser.findHeadings())
+  return /** @type {import('../shared/Parser').Target[]} */ (parser.findHeadings())
     .concat(parser.findSignatures())
     .sort((t1, t2) => parser.context.follows(t1.element, t2.element) ? 1 : -1);
 }
@@ -142,16 +142,16 @@ function processSections(parser, targets) {
 }
 
 /**
- * Keep only those values of an object whose names are not in the "dangerous" names list.
+ * Keep only those values of an object whose names are not in the unsafe keys list.
  *
  * @param {object} obj
- * @param {string[]} dangerousKeys
+ * @param {string[]} unsafeKeys
  * @private
  */
-export function keepSafeValues(obj, dangerousKeys) {
+export function keepSafeValues(obj, unsafeKeys) {
   // Use the same object, as creating a copy would kill the prototype.
   Object.keys(obj).forEach((key) => {
-    if (dangerousKeys.includes(key)) {
+    if (unsafeKeys.includes(key)) {
       delete obj[key];
     }
   });

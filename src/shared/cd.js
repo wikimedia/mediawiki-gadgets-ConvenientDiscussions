@@ -95,14 +95,14 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  */
 
 /**
- * @typedef {typeof import('./convenientDiscussions').globalProperties & GlobalPropertiesExtension} GlobalProps
+ * @typedef {typeof import('../convenientDiscussions').globalProperties & GlobalPropertiesExtension} GlobalProps
  */
 
 /**
  * @typedef {object} ConvenientDiscussionsExtension
- * @property {import('./CurrentPage').default} page Current page's object.
- * @property {import('./User').default} user Current user's object.
- * @property {typeof import('../config/default').default} config
+ * @property {import('../CurrentPage').default} page Current page's object.
+ * @property {import('../User').default} user Current user's object.
+ * @property {typeof import('../../config/default').default} config
  * @property {GlobalProps} g
  * @property {import('./CommentSkeleton').default[]} comments
  * @property {import('./SectionSkeleton').default[]} sections
@@ -110,22 +110,22 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
 
 /**
  * @typedef {(
- *   & typeof import('./convenientDiscussions').convenientDiscussions
+ *   & typeof import('../convenientDiscussions').convenientDiscussions
  *   & ConvenientDiscussionsExtension
  * )} ConvenientDiscussionsBase
  */
 
 /**
  * @typedef {object} ConvenientDiscussionsWindowExtension
- * @property {import('./Comment').default[]} comments
- * @property {import('./Section').default[]} sections
- * @property {import('./settings').default} settings
+ * @property {import('../Comment').default[]} comments
+ * @property {import('../Section').default[]} sections
+ * @property {import('../settings').default} settings
  */
 
 /**
  * @typedef {object} ConvenientDiscussionsWorkerExtension
- * @property {import('./worker/CommentWorker').default[]} comments
- * @property {import('./worker/SectionWorker').default[]} sections
+ * @property {import('../worker/CommentWorker').default[]} comments
+ * @property {import('../worker/SectionWorker').default[]} sections
  */
 
 /**
