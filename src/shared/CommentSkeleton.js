@@ -174,14 +174,14 @@ class CommentSkeleton {
     /**
      * _For internal use._ User page (in the "User" namespace) link element.
      *
-     * @type {ElementLike}
+     * @type {ElementLike | undefined}
      */
     this.authorLink = signature.authorLink;
 
     /**
      * _For internal use._ User talk page (in the "User talk" namespace) link element.
      *
-     * @type {ElementLike}
+     * @type {ElementLike | undefined}
      */
     this.authorTalkLink = signature.authorTalkLink;
 
@@ -1275,7 +1275,7 @@ class CommentSkeleton {
    * @private
    */
   updateHighlightables() {
-    const isHighlightable = (el) => (
+    const isHighlightable = (/** @type {ElementLike} */  el) => (
       !isHeadingNode(el) &&
       !isMetadataNode(el) &&
       !cd.g.noHighlightClasses.some((name) => el.classList.contains(name)) &&
@@ -1774,7 +1774,9 @@ class CommentSkeleton {
     [...parser.context.rootElement.getElementsByClassName(cd.config.outdentClass)]
       .reverse()
       .forEach((element) => {
+        /** @type {CommentSkeleton | undefined} */
         let childComment;
+        /** @type {CommentSkeleton | undefined} */
         let parentComment;
         const treeWalker = new ElementsTreeWalker(parser.context.rootElement, element);
         while (treeWalker.nextNode() && !childComment) {

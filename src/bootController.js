@@ -676,7 +676,7 @@ class BootController {
    * Get the offset data related to `.$contentColumn`.
    *
    * @param {boolean} [reset=false] Whether to bypass cache.
-   * @returns {object}
+   * @returns {ContentColumnOffsets}
    */
   getContentColumnOffsets(reset = false) {
     if (!this.contentColumnOffsets || reset) {

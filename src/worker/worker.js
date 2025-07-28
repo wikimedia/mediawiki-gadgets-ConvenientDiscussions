@@ -62,16 +62,18 @@ function setAlarm(interval) {
  */
 function getAllTextNodes() {
   let nodes = /** @type {import('domhandler').Text[]} */ ([]);
-  rootElement.traverseSubtree((/** @type {import('domhandler').Node} */ node) => {
-    if (isText(node)) {
-      nodes.push(node);
-    }
+  /** @type {NonNullable<typeof rootElement>} */ (rootElement).traverseSubtree(
+    (/** @type {import('domhandler').Node} */ node) => {
+      if (isText(node)) {
+        nodes.push(node);
+      }
 
-    // Remove DT reply button html comments as well to optimize.
-    if (isComment(node) && node.data.startsWith('__DTREPLYBUTTONS__')) {
-      node.remove();
+      // Remove DT reply button html comments as well to optimize.
+      if (isComment(node) && node.data.startsWith('__DTREPLYBUTTONS__')) {
+        node.remove();
+      }
     }
-  });
+  );
 
   return nodes;
 }
@@ -105,7 +107,7 @@ function findTargets(parser) {
  * Parse the comments and modify the related parts of the DOM.
  *
  * @param {Parser} parser
- * @param {object[]} targets
+ * @param {import('../shared/Parser').Target[]} targets
  * @private
  */
 function processComments(parser, targets) {
@@ -126,7 +128,7 @@ function processComments(parser, targets) {
  * Parse the sections and modify some parts of them.
  *
  * @param {Parser} parser
- * @param {object[]} targets
+ * @param {import('../shared/Parser').Target[]} targets
  * @private
  */
 function processSections(parser, targets) {
@@ -190,33 +192,26 @@ function parse() {
     /** @type {(el1: import('domhandler').Node, el2: import('domhandler').Node) => boolean} */
     follows: (el1, el2) => el1.follows(el2),
     getAllTextNodes,
-    /** @type {(el: import('domhandler').Element, className: string) => import('domhandler').Element | null} */
-    getElementByClassName: (el, className) => (el.getElementsByClassName(className, 1))[0] || null,
-    rootElement,
+    getElementByClassName: (el, className) => (/** @type {import('domhandler').Element} */ (el).getElementsByClassName(className, 1))[0] || null,
+    rootElement: /** @type {NonNullable<typeof rootElement>} */ (rootElement),
     areThereOutdents: () => {
       areThereOutdents ??= Boolean(
-        rootElement.getElementsByClassName(cd.config.outdentClass, 1).length
+        /** @type {NonNullable<typeof rootElement>} */ (rootElement).getElementsByClassName(cd.config.outdentClass, 1).length
       );
 
       return areThereOutdents;
     },
-    /** @type {(elements: import('domhandler').Element[]) => void} */
     processAndRemoveDtElements: (elements) => {
-      elements.forEach((el) => {
+      /** @type {import('domhandler').Element[]} */ (elements).forEach((el) => {
         el.remove();
       });
     },
     removeDtButtonHtmlComments,
-    /** @type {(el: import('domhandler').Element | null, node: import('domhandler').Node) => boolean} */
-    contains: (el, node) => Boolean(el && el.contains(node)),
-    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node, refNode: import('domhandler').Node | null) => unknown} */
-    insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode || undefined),
-    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
-    appendChild: (parent, node) => parent.appendChild(node),
-    /** @type {(node: import('domhandler').Node) => void} */
+    contains: (el, node) => Boolean(el && (/** @type {import('domhandler').Element} */ (el)).contains(node)),
+    insertBefore: (parent, node, refNode) => (/** @type {import('domhandler').Element} */ (parent)).insertBefore(node, refNode || undefined),
+    appendChild: (parent, node) => (/** @type {import('domhandler').Element} */ (parent)).appendChild(node),
     remove: (node) => node.remove(),
-    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
-    removeChild: (parent, node) => parent.removeChild(node),
+    removeChild: (parent, node) => (/** @type {import('domhandler').Element} */ (parent)).removeChild(node),
   });
 
   const targets = findTargets(parser);

@@ -1492,7 +1492,7 @@ class Comment extends CommentSkeleton {
     // `overflow` property to get the desired value, otherwise floating elements are not taken
     // into account.
     if (bottomIntersectsFloating) {
-      const initialOverflows = [];
+      const initialOverflows = /** @type {string[]} */ ([]);
       this.highlightables.forEach((el, i) => {
         initialOverflows[i] = el.style.overflow;
         el.style.overflow = 'hidden';

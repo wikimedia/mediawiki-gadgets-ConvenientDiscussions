@@ -775,11 +775,10 @@ export class EventEmitter extends OO.EventEmitter {
     return super.off(event, method, context);
   }
 
-  /**
-   * @template {keyof EventMap} K
-   * @overload
-   * @param {K} event The event name.
-   * @param {...EventMap[K]} args Arguments to pass to the listeners.
+  // @ts-ignore
+  /** @template {keyof EventMap} K @overload
+   * @param {K} event Thse event name.
+   * @param {...EventMap[K]} args Arguments to passssd to the listeners.
    * @returns {boolean}
    */
 
@@ -810,11 +809,10 @@ export class EventEmitter extends OO.EventEmitter {
     return super.emit(event, ...args);
   }
 
-  /**
-   * @template {keyof EventMap} K
-   * @overload
+  // @ts-ignore
+  /** @template {keyof EventMap} K @overload
    * @param {K} event
-   * @param {EventMap[K]} args
+   * @param {...EventMap[K]} args
    * @returns {boolean}
    */
 

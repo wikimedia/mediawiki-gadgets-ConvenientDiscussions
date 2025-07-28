@@ -209,7 +209,7 @@ export function getDateFromTimestampMatch(match, timezone) {
 /**
  * @typedef {object} ParseTimestampReturn
  * @property {Date} date
- * @property {object} match
+ * @property {RegExpMatchArray} match
  */
 
 /**

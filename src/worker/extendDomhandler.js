@@ -94,7 +94,7 @@ NodeWithChildren.prototype.contains = function (node) {
 };
 
 /**
- * @param {(node: Node) => boolean} callback
+ * @param {(node: Node) => boolean | void} callback
  * @param {boolean} [checkSelf=false]
  * @returns {boolean}
  */

@@ -170,8 +170,8 @@ export function getVisibilityByRects(...rects) {
  *
  * @param {JQuery.KeyDownEvent|KeyboardEvent} event
  * @param {number} keyCode
- * @param {Array.<'cmd' | 'shift' | 'alt' | 'meta' | 'ctrl'>} [modifiers=[]] Use `'cmd'` instead of
- *   `'ctrl'` to capture both Windows and Mac machines.
+ * @param {('cmd' | 'shift' | 'alt' | 'meta' | 'ctrl')[]} modifiers Use `'cmd'` instead of `'ctrl'`
+ *   to capture both Windows and Mac machines.
  * @returns {boolean}
  */
 export function keyCombination(event, keyCode, modifiers = []) {
@@ -185,10 +185,11 @@ export function keyCombination(event, keyCode, modifiers = []) {
       $.client.profile().platform === 'mac' ? 'meta' : 'ctrl'
     );
   }
+
   return (
     event.keyCode === keyCode &&
-    ['ctrl', 'shift', 'alt', 'meta'].every(
-      (/** @type {keyof modifiers} */ mod) => modifiers.includes(mod) === event[mod + 'Key']
+    /** @type {typeof modifiers} */ (['ctrl', 'shift', 'alt', 'meta']).every(
+      (mod) => modifiers.includes(mod) === event[/** @type {keyof typeof event} */ (mod + 'Key')]
     )
   );
 }
@@ -236,7 +237,7 @@ export function getFooter() {
  * focus node.
  *
  * @param {Selection} selection
- * @returns {object}
+ * @returns {{ higherNode: Node | null, higherOffset: number } | null}
  */
 export function getHigherNodeAndOffsetInSelection(selection) {
   if (!selection.anchorNode) {
@@ -354,8 +355,8 @@ export function cleanUpPasteDom(element, containerElement) {
   element.className = 'cd-commentForm-dummyElement';
   containerElement.appendChild(element);
 
-  [...element.querySelectorAll('[style]:not(pre [style])')]
-    .forEach((/** @type {HTMLElement} */ el) => {
+  /** @type {HTMLElement[]} */ ([...element.querySelectorAll('[style]:not(pre [style])')])
+    .forEach((el) => {
       if (el.style.textDecoration === 'underline' && !['U', 'INS', 'A'].includes(el.tagName)) {
         $(el).wrapInner('<u>');
       }
@@ -407,11 +408,13 @@ export function cleanUpPasteDom(element, containerElement) {
   [...element.querySelectorAll('style')]
     .forEach(removeElement);
 
-  const topElements = Parser.prototype.getTopElementsWithText.call(
-    { context: { childElementsProp: 'children' } },
-    element,
-    true
-  ).nodes;
+  const topElements = /** @type {Element[]} */ (
+    Parser.prototype.getTopElementsWithText.call(
+      { context: { childElementsProp: 'children' } },
+      element,
+      true
+    ).nodes
+  );
   if (topElements[0] !== element) {
     element.innerHTML = '';
     element.append(...topElements);

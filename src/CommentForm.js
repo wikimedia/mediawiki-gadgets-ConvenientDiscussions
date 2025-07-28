@@ -1,25 +1,25 @@
 import Autocomplete from './Autocomplete';
 import Button from './Button';
-import CdError from './shared/CdError';
 import Comment from './Comment';
 import CommentFormInputTransformer from './CommentFormInputTransformer';
 import CommentFormOperationRegistry from './CommentFormOperationRegistry';
-import Parser from './shared/Parser';
 import TextMasker from './TextMasker';
 import bootController from './bootController';
-import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import notifications from './notifications';
 import pageRegistry from './pageRegistry';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
+import CdError from './shared/CdError';
+import Parser from './shared/Parser';
+import cd from './shared/cd';
+import { buildEditSummary, defined, getDayTimestamp, removeDoubleSpaces, sleep, unique } from './shared/utils-general';
+import { escapePipesOutsideLinks, generateTagsRegexp, removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
 import { handleApiReject, parseCode } from './utils-api';
-import { buildEditSummary, defined, getDayTimestamp, removeDoubleSpaces, sleep, unique } from './shared/utils-general';
-import { createCheckboxControl as createCheckboxControl, EventEmitter } from './utils-oojs';
-import { escapePipesOutsideLinks, generateTagsRegexp, removeWikiMarkup } from './shared/utils-wikitext';
+import { createCheckboxControl, EventEmitter } from './utils-oojs';
 import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, isInputFocused, keyCombination, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**

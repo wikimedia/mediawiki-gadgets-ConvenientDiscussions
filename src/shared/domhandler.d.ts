@@ -63,7 +63,7 @@ declare module 'domhandler' {
      * Returns `true` to stop walking through subtree (after founding the required amounts for
      * elements, for instance).
      */
-    traverseSubtree: (callback: (node: Node) => boolean, checkSelf?: boolean) => boolean;
+    traverseSubtree: (callback: (node: Node) => boolean | void, checkSelf?: boolean) => boolean | undefined;
   }
 
   interface Document {

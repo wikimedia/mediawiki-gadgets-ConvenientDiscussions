@@ -43,8 +43,8 @@ import { parseTimestamp } from './utils-timestamp';
  * @property {E} timestampElement
  * @property {string} timestampText
  * @property {Date} date
- * @property {E} authorLink
- * @property {E} authorTalkLink
+ * @property {E | undefined} authorLink
+ * @property {E | undefined} authorTalkLink
  * @property {string} authorName
  * @property {boolean} isUnsigned
  * @property {boolean} isExtraSignature
@@ -79,7 +79,7 @@ class Parser {
    */
   constructor(context) {
     this.context = context;
-    this.existingCommentIds = [];
+    this.existingCommentIds = /** @type {string[]} */ ([]);
   }
 
   /**
@@ -238,18 +238,21 @@ class Parser {
     // While we're here, wrap outdents inserted by Factotum into a span.
     this.handleFactotumOutdents(text, node);
 
-    const { date, match } = parseTimestamp(text) || {};
+    const parsedTimestamp = parseTimestamp(text);
     if (
-      !date ||
+      !parsedTimestamp ||
       this.noSignatureElements.some((/** @type {ElementLike} */ el) => this.context.contains(el, node))
     ) {
       return null;
     }
 
+    const { date, match } = parsedTimestamp;
     const element = document.createElement('span');
     element.classList.add('cd-timestamp');
     element.appendChild(document.createTextNode(match[2]));
-    const remainedText = node.textContent.slice(match.index + match[0].length);
+    const remainedText = node.textContent.slice(
+      /** @type {number} */ (match.index) + match[0].length
+    );
     const afterNode = remainedText ? document.createTextNode(remainedText) : undefined;
     node.textContent = match[1];
     if (node.parentElement) {
@@ -261,6 +264,17 @@ class Parser {
 
     return { element, date };
   }
+
+  /**
+   * @typedef {object} AuthorData
+   * @property {string} name
+   * @property {boolean} isLastLinkAuthorLink
+   * @property {ElementLike} [notForeignLink]
+   * @property {ElementLike} [talkNotForeignLink]
+   * @property {ElementLike} [contribsNotForeignLink]
+   * @property {ElementLike} [link]
+   * @property {ElementLike} [talkLink]
+   */
 
   /**
    * Collect nodes related to a signature starting from a timestamp node.
@@ -301,7 +315,7 @@ class Parser {
 
     const startElement = unsignedElement || timestamp.element;
     const treeWalker = new ElementsAndTextTreeWalker(this.context.rootElement, startElement);
-    const authorData = {};
+    const authorData = /** @type {AuthorData} */ ({});
 
     let length = 0;
     let firstSignatureElement;
@@ -418,9 +432,9 @@ class Parser {
     const signatureContainer = /** @type {ElementLike} */ (signatureNodes[0].parentElement);
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const startElementNextSibling = signatureNodes[0].nextSibling;
-    const element = document.createElement('span');
+    const element = self.document.createElement('span');
     element.classList.add('cd-signature');
-    signatureNodes.reverse().forEach(element.appendChild.bind(element));
+    signatureNodes.reverse().forEach((node) => this.context.appendChild(element, node));
     this.context.insertBefore(signatureContainer, element, startElementNextSibling);
 
     return {
@@ -447,7 +461,7 @@ class Parser {
       return [];
     }
 
-    const unsigneds = [];
+    const unsigneds = /** @type {Partial<SignatureTarget>[]} */ ([]);
     [...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass)]
       .filter((element) => {
         // Only templates with no timestamp interest us.
@@ -771,7 +785,7 @@ class Parser {
    * part of the signature.
    *
    * @param {ElementLike} link
-   * @param {object} authorData
+   * @param {AuthorData} authorData
    * @returns {boolean}
    * @private
    */
