@@ -206,7 +206,7 @@ export async function showConfirmDialog(message, options = {}) {
 /**
  * @typedef {ControlOptionsBase & {
  *   value: string;
- *   copyCallback: (successful: boolean, field: OO.ui.CopyTextLayout) => void;
+ *   copyCallback: (successful: boolean, field: OO.ui.CopyTextLayout | OO.ui.ActionFieldLayout) => void;
  * }} CopyTextControlOptions
  */
 
@@ -404,10 +404,8 @@ export function createCopyTextControl({
   help,
   copyCallback,
 }) {
-  let field;
-  let input;
   if ('CopyTextLayout' in OO.ui) {
-    field = new OO.ui.CopyTextLayout({
+    const field = new OO.ui.CopyTextLayout({
       align: 'top',
       label,
       copyText: value,
@@ -417,30 +415,32 @@ export function createCopyTextControl({
       helpInline: Boolean(help),
     });
     field.on('copy', (successful) => {
-      copyCallback(successful, /** @type {OO.ui.CopyTextLayout} */ field);
+      copyCallback(successful, field);
     });
-    input = field.textInput;
+    const input = field.textInput;
+
+    return { type: 'copyText', field, input };
   } else {
     // MediaWiki versions before 1.34 do not have CopyTextLayout, so we use ActionFieldLayout
     // instead
-    input = new OO.ui.TextInputWidget({ value, disabled });
+    const input = new OO.ui.TextInputWidget({ value, disabled });
     const button = new OO.ui.ButtonWidget({
       label: cd.s('copy'),
       icon: 'copy',
       disabled,
     });
     button.on('click', () => {
-      copyCallback(copyText(input.getValue()), /** @type {OO.ui.TextInputWidget} */ field);
+      copyCallback(copyText(input.getValue()), field);
     });
-    field = new OO.ui.ActionFieldLayout(input, button, {
+    const field = new OO.ui.ActionFieldLayout(input, button, {
       align: 'top',
       label,
       help,
       helpInline: Boolean(help),
     });
-  }
 
-  return { type: 'copyText', field, input };
+    return { type: 'copyText', field, input };
+  }
 }
 
 /**
@@ -577,11 +577,11 @@ export function createGenericControl(type, input, fieldOptions = {}, data = {}) 
  * @typedef {object} OoJsClassSpecificProps
  * @property {OO.ConstructorLike} [parent] The parent constructor.
  * @property {OO.ConstructorLike} [super] The super constructor.
- * @property {object} static An object containing static properties.
+ * @property {{ [key: string]: any }} static An object containing static properties.
  */
 
 /**
- * @typedef {Constructor & OoJsClassSpecificProps} OoJsClassLike
+ * @typedef {Constructor & OoJsClassSpecificProps & { [key: string]: any }} OoJsClassLike
  */
 
 /**
@@ -779,14 +779,14 @@ export class EventEmitter extends OO.EventEmitter {
    * @template {keyof EventMap} K
    * @overload
    * @param {K} event The event name.
-   * @param {EventMap[K]} args Arguments to pass to the listeners.
+   * @param {...EventMap[K]} args Arguments to pass to the listeners.
    * @returns {boolean}
    */
 
   /**
    * @template {string} K
    * @overload
-   * @param {K} event The event name.
+   * @param {K extends keyof EventMap ? never : K} event The event name.
    * @param {...any[]} args Arguments to pass to the listeners.
    * @returns {boolean}
    */

@@ -473,9 +473,9 @@ class TalkPageController extends EventEmitter {
    * @private
    */
   extractTemplateStylesSelectors() {
-    const floating = [];
-    const hidden = [];
-    const extractSelectors = (rule) => {
+    const floating = /** @type {string[]} */ ([]);
+    const hidden = /** @type {string[]} */ ([]);
+    const extractSelectors = (/** @type {CSSRule} */ rule) => {
       if (rule instanceof CSSStyleRule) {
         const style = rule.style;
         if (style.float === 'left' || style.float === 'right') {

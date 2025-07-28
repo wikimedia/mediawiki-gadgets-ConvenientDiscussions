@@ -325,7 +325,9 @@ class BootController {
       requests.push(cd.getApi().loadMessagesIfMissing(userLanguageMessageNames));
     }
 
-    cd.g.specialPageAliases = Object.assign({}, cd.config.specialPageAliases);
+    cd.g.specialPageAliases = /** @type {import('../config/default').default['specialPageAliases']} */ ({
+      ...cd.config.specialPageAliases,
+    });
 
     Object.entries(cd.g.specialPageAliases).forEach(([key, value]) => {
       if (typeof value === 'string') {
@@ -346,7 +348,11 @@ class BootController {
             siprop: ['specialpagealiases', 'general'],
           })
           .then((resp) => {
-            resp.query.specialpagealiases
+            const specialPageAliases =
+              /** @type {import('./utils-api').ApiResponseSiteInfoSpecialPageAliases[]} */ (
+                resp.query.specialpagealiases
+              );
+            specialPageAliases
               .filter((page) => specialPages.includes(page.realname))
               .forEach((page) => {
                 cd.g.specialPageAliases[page.realname] = page.aliases.slice(
@@ -548,16 +554,20 @@ class BootController {
   }
 
   /**
+   * @typedef {'xg' | 'D' | 'l' | 'F' | 'M'} DateToken
+   */
+
+  /**
    * Get date tokens used in a format (to load only needed tokens).
    *
    * @param {string} format
-   * @returns {string[]}
+   * @returns {DateToken[]}
    * @private
    * @author Bartosz Dziewoński <matma.rex@gmail.com>
    * @license MIT
    */
   getUsedDateTokens(format) {
-    const tokens = [];
+    const tokens = /** @type {DateToken[]} */ ([]);
 
     for (let p = 0; p < format.length; p++) {
       let code = format[p];
@@ -566,7 +576,7 @@ class BootController {
       }
 
       if (['xg', 'D', 'l', 'F', 'M'].includes(code)) {
-        tokens.push(code);
+        tokens.push(/** @type {DateToken} */ (code));
       } else if (code === '\\' && p < format.length - 1) {
         ++p;
       }

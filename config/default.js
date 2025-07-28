@@ -63,7 +63,7 @@ export default {
    *
    * Each special page can have either an array of alias strings or an alias string.
    *
-   * @type {object}
+   * @type {{ [name: string]: string[] }}
    * @default {}
    */
   specialPageAliases: {},

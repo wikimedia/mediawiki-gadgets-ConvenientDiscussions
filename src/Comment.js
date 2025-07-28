@@ -85,7 +85,7 @@ import { createSvg, extractSignatures, getExtendedRect, getHigherNodeAndOffsetIn
 /**
  * A comment (any signed, and in some cases unsigned, text on a wiki talk page).
  *
- * @template {boolean} Reformatted
+ * @template {boolean} [Reformatted=boolean]
  * @augments CommentSkeleton
  */
 class Comment extends CommentSkeleton {
@@ -516,8 +516,8 @@ class Comment extends CommentSkeleton {
    */
   updateMarginHighlightable() {
     if (this.highlightables.length > 1) {
-      const nestingLevels = [];
-      const closestListTypes = [];
+      const nestingLevels = /** @type {number[]} */ ([]);
+      const closestListTypes = /** @type {ListType[]} */ ([]);
       const firstAndLastHighlightable = [
         this.highlightables[0],
         this.highlightables[this.highlightables.length - 1],
@@ -528,7 +528,9 @@ class Comment extends CommentSkeleton {
         while (treeWalker.parentNode()) {
           nestingLevels[i]++;
           if (!closestListTypes[i] && ['DL', 'UL', 'OL'].includes(treeWalker.currentNode.tagName)) {
-            closestListTypes[i] = treeWalker.currentNode.tagName.toLowerCase();
+            closestListTypes[i] = /** @type {ListType} */ (
+              treeWalker.currentNode.tagName.toLowerCase()
+            );
           }
         }
       });
@@ -1131,7 +1133,7 @@ class Comment extends CommentSkeleton {
    *
    * @param {Date} date
    * @param {string} originalTimestamp
-   * @returns {object}
+   * @returns {{ timestamp: string; title: string }}
    */
   formatTimestamp(date, originalTimestamp) {
     let timestamp;
@@ -1150,7 +1152,10 @@ class Comment extends CommentSkeleton {
 
     title += originalTimestamp;
 
-    return { timestamp, title };
+    return {
+      timestamp: timestamp || '',
+      title,
+    };
   }
 
   /**

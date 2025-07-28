@@ -119,7 +119,7 @@ NodeWithChildren.prototype.traverseSubtree = function (callback, checkSelf = fal
  * @returns {Node[]} Array of nodes that passed the callback function.
  */
 NodeWithChildren.prototype.filterRecursively = function (callback, limit) {
-  const nodes = [];
+  const nodes = /** @type {Node[]} */ ([]);
   this.traverseSubtree((node) => {
     if (callback(node)) {
       nodes.push(node);
@@ -163,6 +163,11 @@ Element.prototype.insertBefore = function (node, referenceNode) {
   return node;
 };
 
+/**
+ * @param {string} name
+ * @param {number} [limit]
+ * @returns {Element[]}
+ */
 Element.prototype.getElementsByClassName = function (name, limit) {
   return /** @type {Element[]} */ (this.filterRecursively(
     (node) => node instanceof Element && node.classList.contains(name),
@@ -202,6 +207,10 @@ Element.prototype.querySelectorAll = function (selector) {
   ));
 };
 
+/**
+ * @param {string} name
+ * @returns {Element[]}
+ */
 Element.prototype.getElementsByTagName = function (name) {
   return DomUtils.getElementsByTagName(name, this);
 };
@@ -326,7 +335,7 @@ Object.defineProperty(Element.prototype, 'textContent', {
   },
 
   set(value) {
-    this.childNodes.forEach((node) => {
+    this.childNodes.forEach((/** @type {Node} */ node) => {
       node.remove();
     });
     this.appendChild(new Text(value || ''));

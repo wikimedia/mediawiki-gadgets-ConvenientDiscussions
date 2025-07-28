@@ -30,7 +30,9 @@ import CommentWorker from './CommentWorker';
 import SectionWorker from './SectionWorker';
 
 let isFirstRun = true;
+/** @type {number | undefined} */
 let alarmTimeout;
+/** @type {import('domhandler').Element | undefined} */
 let rootElement;
 
 /** @type {import('../shared/cd').ConvenientDiscussionsWorker} */
@@ -59,7 +61,7 @@ function setAlarm(interval) {
  * @private
  */
 function getAllTextNodes() {
-  let nodes = [];
+  let nodes = /** @type {import('domhandler').Text[]} */ ([]);
   rootElement.traverseSubtree((/** @type {import('domhandler').Node} */ node) => {
     if (isText(node)) {
       nodes.push(node);
@@ -298,7 +300,7 @@ function onMessageFromWindow(event) {
       withEndIndices: true,
       decodeEntities: false,
     });
-    rootElement = document.childNodes[0];
+    rootElement = /** @type {import('domhandler').Element} */ (document.childNodes[0]);
 
     parse();
 

@@ -61,12 +61,11 @@ mw.loader.using([
   const specialPageAliases = siteInfoResp.query.specialpagealiases
     .filter((obj) => ['Contributions', 'Diff', 'PermanentLink'].includes(obj.realname));
   if (specialPageAliases.length) {
-    config.specialPageAliases = Object.assign(
-      {},
+    config.specialPageAliases = {
       ...specialPageAliases.map((page) => ({
         [page.realname]: page.aliases.slice(0, page.aliases.indexOf(page.realname) + 1),
       }))
-    )
+    };
   }
 
   const substAliases = siteInfoResp.query.magicwords

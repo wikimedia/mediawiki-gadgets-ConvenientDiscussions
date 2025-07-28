@@ -6,11 +6,11 @@
  * @module utilsApi
  */
 
-import cd from './shared/cd';
+import TextMasker from './TextMasker';
 import CdError from './shared/CdError';
+import cd from './shared/cd';
 import { unique } from './shared/utils-general';
 import { brsToNewlines } from './shared/utils-wikitext';
-import TextMasker from './TextMasker';
 import userRegistry from './userRegistry';
 
 /**
@@ -70,6 +70,13 @@ import userRegistry from './userRegistry';
  * @property {'male' | 'female' | 'unknown'} gender
  */
 
+/**
+ * @typedef {object} ApiResponseSiteInfoSpecialPageAliases
+ * @property {string} realname
+ * @property {string[]} aliases
+ */
+
+/** @type {JQuery.Promise<UserInfo> | undefined} */
 let cachedUserInfoRequest;
 
 /**

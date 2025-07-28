@@ -157,7 +157,7 @@ export function getExtendedRect(el) {
 /**
  * Given bounding client rectangle(s), determine whether the element is visible.
  *
- * @param {...object} rects
+ * @param {...DOMRect} rects
  * @returns {boolean} `true` if visible, `false` if not.
  */
 export function getVisibilityByRects(...rects) {

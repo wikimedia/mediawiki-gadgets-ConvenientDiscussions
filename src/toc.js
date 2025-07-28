@@ -4,18 +4,18 @@
  * @module toc
  */
 
-import bootController from './bootController';
 import Comment from './Comment';
-import commentRegistry from './commentRegistry';
 import LiveTimestamp from './LiveTimestamp';
+import TocItem from './TocItem';
+import bootController from './bootController';
+import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
-import cd from './shared/cd';
 import CdError from './shared/CdError';
 import SectionSkeleton from './shared/SectionSkeleton';
+import cd from './shared/cd';
 import { formatDate, formatDateNative } from './shared/utils-timestamp';
 import talkPageController from './talkPageController';
-import TocItem from './TocItem';
 import updateChecker from './updateChecker';
 import { getLinkedAnchor } from './utils-window';
 import visits from './visits';

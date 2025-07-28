@@ -130,7 +130,7 @@ declare global {
 
   type CheckboxControl = GenericControl<'checkbox'>;
 
-  type CopyTextControl = GenericControl<'copyText'> & {
+  type CopyTextControl = Omit<GenericControl<'copyText'>, 'field'> & {
     field: OO.ui.CopyTextLayout | OO.ui.ActionFieldLayout;
   };
 
@@ -250,43 +250,7 @@ declare global {
 
     namespace widgets {
       function visibleCodePointLimit(textInputWidget: OO.ui.TextInputWidget, limit?: number, filterFunction?: Function): void;
-
-      // interface TitleInputWidget
-      //   extends OO.ui.TitleInputWidget,
-      //     mw.widgets.TitleWidget,
-      //     OO.ui.mixin.LookupElement {
-      //   new (config: OO.ui.TitleInputWidget);
-      // }
     }
-
-    // namespace Upload {
-    //   interface DialogConfig {
-    //     bookletClass?: typeof mw.Upload.BookletLayout;
-    //     booklet?: object;
-    //   }
-
-    //   class Dialog extends OO.ui.ProcessDialog {
-    //     static name: string;
-    //     static title: string | Function;
-    //     static actions: Array<{
-    //       flags: string | string[];
-    //       action: string;
-    //       label: string;
-    //       modes: string | string[];
-    //     }>;
-
-    //     constructor(config?: DialogConfig);
-
-    //     protected createUploadBooklet(): mw.Upload.BookletLayout;
-    //     protected onUploadBookletSet(page: OO.ui.PageLayout): void;
-    //     protected onUploadValid(isValid: boolean): void;
-    //     protected onInfoValid(isValid: boolean): void;
-
-    //     protected bookletClass: typeof mw.Upload.BookletLayout;
-    //     protected bookletConfig: object;
-    //     protected uploadBooklet: mw.Upload.BookletLayout;
-    //   }
-    // }
   }
 
   namespace OO.ui {

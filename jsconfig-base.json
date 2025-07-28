@@ -6,6 +6,8 @@
     "resolveJsonModule": true,
     "downlevelIteration": true,
     "strictNullChecks": true,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+    "strict": true,
+    "strictPropertyInitialization": false
   }
 }
