@@ -5,10 +5,10 @@
  */
 
 import Button from './Button';
-import ElementsTreeWalker from './shared/ElementsTreeWalker.js';
-import Parser from './shared/Parser.js';
-import cd from './shared/cd.js';
-import { decodeHtmlEntities, defined, generatePageNamePattern, isInline, parseWikiUrl, removeDirMarks, spacesToUnderlines } from './shared/utils-general.js';
+import ElementsTreeWalker from './shared/ElementsTreeWalker';
+import Parser from './shared/Parser';
+import cd from './shared/cd';
+import { decodeHtmlEntities, defined, generatePageNamePattern, isInline, parseWikiUrl, removeDirMarks, spacesToUnderlines } from './shared/utils-general';
 import { parseTimestamp } from './shared/utils-timestamp';
 import { maskDistractingCode } from './shared/utils-wikitext';
 

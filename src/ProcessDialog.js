@@ -1,5 +1,5 @@
-import CdError from './shared/CdError';
 import bootController from './bootController';
+import CdError from './shared/CdError';
 import cd from './shared/cd';
 import { es6ClassToOoJsClass } from './utils-oojs';
 

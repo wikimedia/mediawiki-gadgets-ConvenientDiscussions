@@ -1,5 +1,5 @@
-import CdError from './shared/CdError';
 import DivLabelWidget from './DivLabelWidget';
+import CdError from './shared/CdError';
 import cd from './shared/cd';
 import { createCopyTextControl, es6ClassToOoJsClass } from './utils-oojs';
 import { mergeJquery, wrapHtml } from './utils-window';
@@ -81,6 +81,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
   /**
    * OOUI native method that initializes window contents.
    *
+   * @override
    * @returns {this}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.MessageDialog.html#initialize
    * @see https://www.mediawiki.org/wiki/OOUI/Windows#Window_lifecycle
@@ -144,6 +145,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
    * OOUI native method that returns a "setup" process which is used to set up a window for use in a
    * particular context, based on the `data` argument.
    *
+   * @override
    * @param {object} [data] Dialog opening data
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.Dialog.html#getSetupProcess
@@ -168,6 +170,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
    * OOUI native method that returns a "ready" process which is used to ready a window for use in a
    * particular context, based on the `data` argument.
    *
+   * @override
    * @param {object} data Window opening data
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getReadyProcess

@@ -5,6 +5,7 @@
     "noEmit": true,
     "resolveJsonModule": true,
     "downlevelIteration": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "noImplicitOverride": true
   }
 }

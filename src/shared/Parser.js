@@ -1,11 +1,11 @@
 // Here, we use vanilla JavaScript for recurring operations that together take up a lot of time.
 
-import CommentSkeleton from './CommentSkeleton.js';
-import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker.js';
-import ElementsTreeWalker from './ElementsTreeWalker.js';
-import cd from './cd.js';
-import { getHeadingLevel, parseWikiUrl, isHeadingNode, isInline, isMetadataNode, ucFirst, underlinesToSpaces, definedAndNotNull, unique, isDomHandlerElement, isElement } from './utils-general.js';
-import { parseTimestamp } from './utils-timestamp.js';
+import CommentSkeleton from './CommentSkeleton';
+import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker';
+import ElementsTreeWalker from './ElementsTreeWalker';
+import cd from './cd';
+import { definedAndNotNull, getHeadingLevel, isDomHandlerElement, isElement, isHeadingNode, isInline, isMetadataNode, parseWikiUrl, ucFirst, underlinesToSpaces, unique } from './utils-general';
+import { parseTimestamp } from './utils-timestamp';
 
 /**
  * @typedef {object} Context

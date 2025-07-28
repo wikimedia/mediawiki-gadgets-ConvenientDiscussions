@@ -1,5 +1,5 @@
-import TreeWalker from './TreeWalker.js';
-import { isElement, isText } from './utils-general.js';
+import TreeWalker from './TreeWalker';
+import { isElement, isText } from './utils-general';
 
 /**
  * Tree walker that walks on both element and text nodes.

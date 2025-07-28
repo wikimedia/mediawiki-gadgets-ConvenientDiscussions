@@ -20,11 +20,11 @@ import './extendDomhandler';
 import { isComment, isText } from 'domhandler';
 import { parseDocument } from 'htmlparser2';
 
-import debug from '../debug.js';
-import CdError from '../shared/CdError.js';
-import CommentSkeleton from '../shared/CommentSkeleton.js';
-import Parser from '../shared/Parser.js';
-import cdTemp from '../shared/cd.js';
+import debug from '../debug';
+import CdError from '../shared/CdError';
+import CommentSkeleton from '../shared/CommentSkeleton';
+import Parser from '../shared/Parser';
+import cdTemp from '../shared/cd';
 
 import CommentWorker from './CommentWorker';
 import SectionWorker from './SectionWorker';

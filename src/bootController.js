@@ -3,14 +3,14 @@ import digitsData from '../data/digits.json';
 import languageFallbacks from '../data/languageFallbacks.json';
 
 import addCommentLinks from './addCommentLinks';
-import cd from './shared/cd';
 import debug from './debug';
 import pageRegistry from './pageRegistry';
 import settings from './settings';
-import userRegistry from './userRegistry';
-import { getUserInfo, splitIntoBatches } from './utils-api';
+import cd from './shared/cd';
 import { defined, getContentLanguageMessages, getQueryParamBooleanValue, isProbablyTalkPage, sleep, unique } from './shared/utils-general';
 import { dateTokenToMessageNames } from './shared/utils-timestamp';
+import userRegistry from './userRegistry';
+import { getUserInfo, splitIntoBatches } from './utils-api';
 import { createSvg, skin$, transparentize } from './utils-window';
 
 /**

@@ -1,10 +1,7 @@
 import Autocomplete from './Autocomplete';
 import CommentForm from './CommentForm';
-import ElementsTreeWalker from './shared/ElementsTreeWalker.js';
-import Parser from './shared/Parser.js';
 import Thread from './Thread';
 import bootController from './bootController';
-import cd from './shared/cd.js';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import navPanel from './navPanel';
@@ -12,9 +9,12 @@ import notifications from './notifications';
 import pageRegistry from './pageRegistry';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
+import ElementsTreeWalker from './shared/ElementsTreeWalker';
+import Parser from './shared/Parser';
+import cd from './shared/cd';
+import { defined, definedAndNotNull, getLastArrayElementOrSelf, isHeadingNode, isInline, sleep } from './shared/utils-general';
 import toc from './toc';
 import updateChecker from './updateChecker';
-import { defined, definedAndNotNull, getLastArrayElementOrSelf, isHeadingNode, isInline, sleep } from './shared/utils-general.js';
 import { EventEmitter } from './utils-oojs';
 import { copyText, getVisibilityByRects, wrapHtml } from './utils-window';
 

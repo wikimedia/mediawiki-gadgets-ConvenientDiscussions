@@ -1,11 +1,11 @@
 import CommentForm from './CommentForm';
 import Page from './Page';
 import bootController from './bootController';
-import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import pageRegistry from './pageRegistry';
 import sectionRegistry from './sectionRegistry';
+import cd from './shared/cd';
 import { areObjectsEqual } from './shared/utils-general';
 
 /**

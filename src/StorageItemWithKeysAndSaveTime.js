@@ -51,6 +51,7 @@ class StorageItemWithKeysAndSaveTime extends StorageItemWithKeys {
    *
    * @param {ValidKey} key
    * @returns {EntryTypeWithSaveTime<EntryType, Key>}
+   * @override
    */
   get(key) {
     return this.data[key];

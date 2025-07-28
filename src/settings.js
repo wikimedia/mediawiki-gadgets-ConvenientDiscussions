@@ -1,10 +1,10 @@
 import TextMasker from './TextMasker';
-import cd from './shared/cd';
 import pageRegistry from './pageRegistry';
-import { getUserInfo, saveGlobalOption, saveLocalOption } from './utils-api';
+import cd from './shared/cd';
 import { areObjectsEqual, defined, definedAndNotNull, subtractDaysFromNow, typedKeysOf, ucFirst } from './shared/utils-general';
-import { showConfirmDialog } from './utils-oojs';
 import { formatDateImproved, formatDateNative, formatDateRelative } from './shared/utils-timestamp';
+import { getUserInfo, saveGlobalOption, saveLocalOption } from './utils-api';
+import { showConfirmDialog } from './utils-oojs';
 import { createSvg, getFooter, wrapHtml } from './utils-window';
 
 /**

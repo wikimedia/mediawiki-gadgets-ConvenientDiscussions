@@ -1,14 +1,15 @@
 /**
- * Module that populates the {@link convenientDiscussions} object.
+ * Module that populates the {@link convenientDiscussions} object. It is run in the window context
+ * and is passed partially to the worker context.
  *
  * @module convenientDiscussions
  */
 
 import Comment from './Comment';
 import bootController from './bootController';
-import cd from './shared/cd';
 import debug from './debug';
 import pageRegistry from './pageRegistry';
+import cd from './shared/cd';
 import { buildEditSummary, getQueryParamBooleanValue, underlinesToSpaces } from './shared/utils-general';
 import { wrapDiffBody, wrapHtml } from './utils-window';
 import WebpackWorker from './worker/worker-gate';

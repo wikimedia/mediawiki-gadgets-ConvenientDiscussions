@@ -1,23 +1,23 @@
 /* eslint-disable no-self-assign */
 import Button from './Button';
-import CdError from './shared/CdError';
 import Comment from './Comment';
 import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
-import SectionSkeleton from './shared/SectionSkeleton';
 import SectionSource from './SectionSource';
 import bootController from './bootController';
-import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import pageRegistry from './pageRegistry';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
-import talkPageController from './talkPageController';
-import toc from './toc';
-import { handleApiReject } from './utils-api';
+import CdError from './shared/CdError';
+import SectionSkeleton from './shared/SectionSkeleton';
+import cd from './shared/cd';
 import { defined, getHeadingLevel, underlinesToSpaces, unique } from './shared/utils-general';
 import { formatDate } from './shared/utils-timestamp';
 import { encodeWikilink, maskDistractingCode, normalizeCode } from './shared/utils-wikitext';
+import talkPageController from './talkPageController';
+import toc from './toc';
+import { handleApiReject } from './utils-api';
 import { getRangeContents } from './utils-window';
 
 /**

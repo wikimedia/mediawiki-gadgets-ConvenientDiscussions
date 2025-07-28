@@ -11,10 +11,10 @@ import languageFallbacks from '../data/languageFallbacks.json';
 
 import { addCommentLinksToSpecialSearch } from './addCommentLinks';
 import bootController from './bootController';
-import cd from './shared/cd';
 import debug from './debug';
-import { mergeRegexps, unique } from './shared/utils-general.js';
-import { getFooter } from './utils-window.js';
+import cd from './shared/cd';
+import { mergeRegexps, unique } from './shared/utils-general';
+import { getFooter } from './utils-window';
 
 let config;
 

@@ -397,8 +397,11 @@ class Comment extends CommentSkeleton {
    */
   roughOffset;
 
-  /** @type {?import('./Section').default} */
-  section;
+  /**
+   * @override
+   * @type {?import('./Section').default}
+   */
+  section = this.section;
 
   /**
    * Comment's source code object.

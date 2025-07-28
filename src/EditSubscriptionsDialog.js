@@ -1,11 +1,11 @@
-import CdError from './shared/CdError';
 import MultilineTextInputWidget from './MultilineTextInputWidget';
 import ProcessDialog from './ProcessDialog';
 import bootController from './bootController';
+import CdError from './shared/CdError';
 import cd from './shared/cd';
+import { sleep, unique } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import { getPageIds, getPageTitles } from './utils-api';
-import { sleep, unique } from './shared/utils-general';
 import { es6ClassToOoJsClass } from './utils-oojs';
 
 /**
@@ -33,6 +33,10 @@ class EditSubscriptionsDialog extends ProcessDialog {
     },
   ];
   static size = 'large';
+
+  /**
+   * @override
+   */
   static cdKey = 'ewsd';
 
   /** @type {OO.ui.StackLayout} */
@@ -61,8 +65,9 @@ class EditSubscriptionsDialog extends ProcessDialog {
   /**
    * OOUI native method to get the height of the window body.
    *
+   * @override
    * @returns {number}
-   * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getBodyHeight
+   * @see {https} ://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getBodyHeight
    * @ignore
    */
   getBodyHeight() {
@@ -77,6 +82,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
   /**
    * OOUI native method that initializes window contents.
    *
+   * @override
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#initialize
    * @see https://www.mediawiki.org/wiki/OOUI/Windows#Window_lifecycle
    * @ignore
@@ -112,6 +118,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
    * OOUI native method that returns a "setup" process which is used to set up a window for use in a
    * particular context, based on the `data` argument.
    *
+   * @override
    * @param {object} [data] Dialog opening data
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getSetupProcess
@@ -129,6 +136,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
    * OOUI native method that returns a "ready" process which is used to ready a window for use in a
    * particular context, based on the `data` argument.
    *
+   * @override
    * @param {object} data Window opening data
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getReadyProcess
@@ -193,6 +201,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
   /**
    * OOUI native method that returns a process for taking action.
    *
+   * @override
    * @param {string} action Symbolic name of the action.
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getActionProcess

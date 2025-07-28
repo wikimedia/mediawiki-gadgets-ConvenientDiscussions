@@ -1,5 +1,8 @@
 /// <reference types="types-mediawiki" />
 
+import CheckboxInputWidget from './CheckboxInputWidget';
+import TextInputWidget from './TextInputWidget';
+
 declare global {
   const IS_TEST: boolean;
   const IS_DEV: boolean;
@@ -149,10 +152,10 @@ declare global {
 
   interface ControlTypeToWidget {
     'radio': OO.ui.RadioSelectWidget;
-    'text': import('./TextInputWidget').default;
+    'text': TextInputWidget;
     'multilineText': OO.ui.MultilineTextInputWidget;
     'number': OO.ui.TextInputWidget;
-    'checkbox': import('./CheckboxInputWidget').default;
+    'checkbox': CheckboxInputWidget;
     'multitag': OO.ui.TagMultiselectWidget;
     'multicheckbox': OO.ui.CheckboxMultiselectWidget;
     'button': OO.ui.ButtonWidget;

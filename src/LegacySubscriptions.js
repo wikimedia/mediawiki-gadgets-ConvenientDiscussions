@@ -1,9 +1,9 @@
 import LZString from 'lz-string';
 
-import CdError from './shared/CdError';
 import Subscriptions from './Subscriptions';
-import cd from './shared/cd';
 import sectionRegistry from './sectionRegistry';
+import CdError from './shared/CdError';
+import cd from './shared/cd';
 import talkPageController from './talkPageController';
 import { getUserInfo, saveLocalOption } from './utils-api';
 import { wrapHtml } from './utils-window';
@@ -28,6 +28,7 @@ class LegacySubscriptions extends Subscriptions {
    * @param {import('./BootProcess').default} [bootProcess]
    * @param {boolean} [reuse=false] Reuse the existing request.
    * @returns {Promise.<void>}
+   * @override
    */
   async load(bootProcess, reuse = false) {
     if (!cd.user.isRegistered()) return;
@@ -64,6 +65,8 @@ class LegacySubscriptions extends Subscriptions {
   /**
    * Process subscriptions when they are
    * {@link LegacySubscriptions#loadToTalkPage loaded to a talk page}.
+   *
+   * @override
    */
   processOnTalkPage() {
     if (cd.page.exists()) {
@@ -77,6 +80,7 @@ class LegacySubscriptions extends Subscriptions {
    * Test if the subscription list is loaded.
    *
    * @returns {boolean}
+   * @override
    */
   areLoaded() {
     return Boolean(this.allPagesData);
@@ -92,6 +96,7 @@ class LegacySubscriptions extends Subscriptions {
    * @returns {Promise.<void>}
    * @throws {CdError}
    * @protected
+   * @override
    */
   actuallySubscribe(headline, _id, unsubscribeHeadline) {
     const subscribe = async () => {
@@ -152,6 +157,7 @@ class LegacySubscriptions extends Subscriptions {
    * @returns {Promise.<void>}
    * @throws {CdError}
    * @protected
+   * @override
    */
   actuallyUnsubscribe(headline) {
     const unsubscribe = async () => {
@@ -297,6 +303,7 @@ class LegacySubscriptions extends Subscriptions {
    * @param {string} [subscribeId] Section's subscribe ID (modern or legacy format).
    * @param {boolean} [subscribe=false] Subscribe or unsubscribe.
    * @protected
+   * @override
    */
   updateLocally(subscribeId, subscribe = false) {
     if (subscribeId === undefined) return;

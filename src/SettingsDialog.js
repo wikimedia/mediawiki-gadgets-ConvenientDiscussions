@@ -1,11 +1,11 @@
 import ProcessDialog from './ProcessDialog';
 import StorageItem from './StorageItem';
 import bootController from './bootController';
-import cd from './shared/cd';
 import settings from './settings';
-import { saveGlobalOption, saveLocalOption } from './utils-api';
+import cd from './shared/cd';
 import { areObjectsEqual } from './shared/utils-general';
-import { createCheckboxControl, createNumberControl, createRadioControl, createTextControl, es6ClassToOoJsClass, createMulticheckboxControl, createTagsControl as createMultitagControl, createButtonControl } from './utils-oojs';
+import { saveGlobalOption, saveLocalOption } from './utils-api';
+import { createButtonControl, createCheckboxControl, createMulticheckboxControl, createTagsControl as createMultitagControl, createNumberControl, createRadioControl, createTextControl, es6ClassToOoJsClass } from './utils-oojs';
 
 /**
  * Class used to create a settings dialog.
@@ -45,6 +45,10 @@ class SettingsDialog extends ProcessDialog {
     },
   ];
   static size = 'large';
+
+  /**
+   * @override
+   */
   static cdKey = 'sd';
 
   /** @type {OO.ui.StackLayout} */
@@ -88,6 +92,7 @@ class SettingsDialog extends ProcessDialog {
   /**
    * OOUI native method to get the height of the window body.
    *
+   * @override
    * @returns {number}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getBodyHeight
    * @ignore
@@ -99,7 +104,8 @@ class SettingsDialog extends ProcessDialog {
   /**
    * OOUI native method that initializes window contents.
    *
-   * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#initialize
+   * @override
+   * @see https://doc.wikimedia .org/oojs-ui/master/js/OO.ui.ProcessDialog.html#initialize
    * @see https://www.mediawiki.org/wiki/OOUI/Windows#Window_lifecycle
    * @ignore
    */
@@ -144,6 +150,7 @@ class SettingsDialog extends ProcessDialog {
    * OOUI native method that returns a "setup" process which is used to set up a window for use in a
    * particular context, based on the `data` argument.
    *
+   * @override
    * @param {object} data Dialog opening data
    * @param {Partial<import('./settings').SettingsValues>} data.loadedSettings Loaded settings
    * @returns {OO.ui.Process}
@@ -163,6 +170,7 @@ class SettingsDialog extends ProcessDialog {
    * OOUI native method that returns a "ready" process which is used to ready a window for use in a
    * particular context, based on the `data` argument.
    *
+   * @override
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getReadyProcess
    * @see https://www.mediawiki.org/wiki/OOUI/Windows#Window_lifecycle
@@ -194,6 +202,7 @@ class SettingsDialog extends ProcessDialog {
   /**
    * OOUI native method that returns a process for taking action.
    *
+   * @override
    * @param {string} action Symbolic name of the action.
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getActionProcess
@@ -318,7 +327,9 @@ class SettingsDialog extends ProcessDialog {
           this.$element.append($fields);
         }
 
-        // eslint-disable-next-line jsdoc/require-jsdoc
+        /**
+         * @override
+         */
         setupOutlineItem() {
           /** @type {OO.ui.OutlineOptionWidget} */ (this.outlineItem).setLabel(pageData.label);
         }

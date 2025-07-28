@@ -1,11 +1,11 @@
 import LZString from 'lz-string';
 
-import CdError from './shared/CdError.js';
-import cd from './shared/cd.js';
 import commentRegistry from './commentRegistry';
 import settings from './settings';
+import CdError from './shared/CdError';
+import cd from './shared/cd';
+import { subtractDaysFromNow } from './shared/utils-general';
 import { getUserInfo, saveLocalOption } from './utils-api';
-import { subtractDaysFromNow } from './shared/utils-general.js';
 import { EventEmitter } from './utils-oojs';
 
 /**

@@ -1,6 +1,6 @@
-import CdError from './shared/CdError.js';
-import cd from './shared/cd.js';
 import settings from './settings';
+import CdError from './shared/CdError';
+import cd from './shared/cd';
 import { EventEmitter } from './utils-oojs';
 import { wrapHtml } from './utils-window';
 

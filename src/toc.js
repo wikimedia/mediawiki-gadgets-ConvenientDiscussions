@@ -4,19 +4,19 @@
  * @module toc
  */
 
-import CdError from './shared/CdError.js';
-import Comment from './Comment';
-import LiveTimestamp from './LiveTimestamp';
-import SectionSkeleton from './shared/SectionSkeleton.js';
-import TocItem from './TocItem';
 import bootController from './bootController';
-import cd from './shared/cd.js';
+import Comment from './Comment';
 import commentRegistry from './commentRegistry';
+import LiveTimestamp from './LiveTimestamp';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
+import cd from './shared/cd';
+import CdError from './shared/CdError';
+import SectionSkeleton from './shared/SectionSkeleton';
+import { formatDate, formatDateNative } from './shared/utils-timestamp';
 import talkPageController from './talkPageController';
+import TocItem from './TocItem';
 import updateChecker from './updateChecker';
-import { formatDate, formatDateNative } from './shared/utils-timestamp.js';
 import { getLinkedAnchor } from './utils-window';
 import visits from './visits';
 

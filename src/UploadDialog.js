@@ -1,9 +1,9 @@
-import CdError from './shared/CdError.js';
 import ProcessDialog from './ProcessDialog';
 import PseudoLink from './Pseudolink';
-import cd from './shared/cd.js';
-import { canonicalUrlToPageName, defined, generateFixedPosTimestamp, getDbnameForHostname, zeroPad } from './shared/utils-general.js';
-import { createTextControl, createCheckboxControl, createRadioControl, es6ClassToOoJsClass, mixInClass, createTitleControl } from './utils-oojs';
+import CdError from './shared/CdError';
+import cd from './shared/cd';
+import { canonicalUrlToPageName, defined, generateFixedPosTimestamp, getDbnameForHostname, zeroPad } from './shared/utils-general';
+import { createCheckboxControl, createRadioControl, createTextControl, createTitleControl, es6ClassToOoJsClass, mixInClass } from './utils-oojs';
 import { mergeJquery, wrapHtml } from './utils-window';
 
 /**
@@ -52,6 +52,7 @@ export class UploadDialog extends mixInClass(
    * {@link ForeignStructuredUploadBookletLayout#initialize} because we need some data loaded
    * first).
    *
+   * @override
    * @param {object} data Dialog opening data
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getSetupProcess
@@ -116,6 +117,7 @@ export class UploadDialog extends mixInClass(
    *
    * We focus the title input here.
    *
+   * @override
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getReadyProcess
    * @see https://www.mediawiki.org/wiki/OOUI/Windows#Window_lifecycle
@@ -132,6 +134,7 @@ export class UploadDialog extends mixInClass(
    *
    * We alter the handling of the `'upload'` and `'cancelupload'` actions.
    *
+   * @override
    * @param {string} action Symbolic name of the action.
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getActionProcess
@@ -168,6 +171,7 @@ export class UploadDialog extends mixInClass(
   /**
    * OOUI native method to get the height of the window body.
    *
+   * @override
    * @returns {number}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getBodyHeight
    * @ignore
@@ -207,6 +211,7 @@ export class UploadDialog extends mixInClass(
    * Here we use a hack to hide the second identical error message that can appear since we execute
    * two actions, not one ("Upload and save").
    *
+   * @override
    * @param {OO.ui.Error} errors
    */
   showErrors(errors) {
@@ -245,6 +250,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
   controls = /** @type {ControlTypesByName<UploadDialogControlTypes>} */ ({});
 
   /**
+   * @override
    * @type {ForeignStructuredUpload}
    */
   upload;

@@ -1,7 +1,7 @@
 import { DataNode, Document, Element, Node, NodeWithChildren, Text } from 'domhandler';
 import { DomUtils } from 'htmlparser2';
 
-import { decodeHtmlEntities } from '../shared/utils-general.js';
+import { decodeHtmlEntities } from '../shared/utils-general';
 
 self.Node = Node;
 

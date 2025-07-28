@@ -74,6 +74,7 @@ class MoveSectionDialog extends ProcessDialog {
   /**
    * OOUI native method to get the height of the window body.
    *
+   * @override
    * @returns {number}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getBodyHeight
    * @ignore
@@ -85,6 +86,7 @@ class MoveSectionDialog extends ProcessDialog {
   /**
    * OOUI native method that initializes window contents.
    *
+   * @override
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#initialize
    * @see https://www.mediawiki.org/wiki/OOUI/Windows#Window_lifecycle
    * @ignore
@@ -143,6 +145,7 @@ class MoveSectionDialog extends ProcessDialog {
    * OOUI native method that returns a "setup" process which is used to set up a window for use in a
    * particular context, based on the `data` argument.
    *
+   * @override
    * @param {object} [data] Dialog opening data
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getSetupProcess
@@ -160,6 +163,7 @@ class MoveSectionDialog extends ProcessDialog {
    * OOUI native method that returns a "ready" process which is used to ready a window for use in a
    * particular context, based on the `data` argument.
    *
+   * @override
    * @param {object} data Window opening data
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getReadyProcess
@@ -280,6 +284,7 @@ class MoveSectionDialog extends ProcessDialog {
   /**
    * OOUI native method that returns a process for taking action.
    *
+   * @override
    * @param {string} action Symbolic name of the action.
    * @returns {OO.ui.Process}
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.ProcessDialog.html#getActionProcess

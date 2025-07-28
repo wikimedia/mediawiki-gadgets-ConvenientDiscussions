@@ -4,9 +4,10 @@
  * @module utilsWikitext
  */
 
-import TextMasker from '../TextMasker.js';
-import cd from './cd.js';
-import { decodeHtmlEntities } from './utils-general.js';
+import TextMasker from '../TextMasker';
+
+import cd from './cd';
+import { decodeHtmlEntities } from './utils-general';
 
 /**
  * Generate a regular expression that searches for specified tags in the text (opening, closing, and

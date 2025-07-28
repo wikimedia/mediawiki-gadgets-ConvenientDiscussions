@@ -99,6 +99,7 @@ class CommentButton extends Button {
    *
    * @param {boolean} disabled
    * @returns {CommentButton} This button.
+   * @override
    */
   setDisabled(disabled) {
     disabled = Boolean(disabled);
@@ -125,6 +126,7 @@ class CommentButton extends Button {
    *
    * @param {boolean} pending
    * @returns {CommentButton} This button.
+   * @override
    */
   setPending(pending) {
     super.setPending(pending);
@@ -137,6 +139,7 @@ class CommentButton extends Button {
    *
    * @param {string} label
    * @returns {CommentButton} This button.
+   * @override
    */
   setLabel(label) {
     if (!this.widgetConstructor) {
@@ -153,6 +156,7 @@ class CommentButton extends Button {
    *
    * @param {string} tooltip
    * @returns {CommentButton} This button.
+   * @override
    */
   setTooltip(tooltip) {
     if (!this.widgetConstructor) {
@@ -169,6 +173,7 @@ class CommentButton extends Button {
    *
    * @param {?import('./Button').Action} action
    * @returns {Button} This button.
+   * @override
    */
   setAction(action) {
     // OOUI widgets don't pass the event object to the handler, so we use the traditional method of
@@ -183,6 +188,7 @@ class CommentButton extends Button {
    * Check whether the button is disabled.
    *
    * @returns {boolean}
+   * @override
    */
   isDisabled() {
     return this.widgetConstructor ? Boolean(this.buttonWidget?.isDisabled()) : super.isDisabled();

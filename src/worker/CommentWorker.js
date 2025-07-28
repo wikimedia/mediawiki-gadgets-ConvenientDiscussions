@@ -1,8 +1,8 @@
 /* eslint-disable no-self-assign */
 import { isText } from 'domhandler';
 
-import CommentSkeleton from '../shared/CommentSkeleton.js';
-import { isHeadingNode, isMetadataNode } from '../shared/utils-general.js';
+import CommentSkeleton from '../shared/CommentSkeleton';
+import { isHeadingNode, isMetadataNode } from '../shared/utils-general';
 
 import { keepSafeValues } from './worker';
 

@@ -4,7 +4,7 @@
  * @module utilsOoui
  */
 
-import cd from './shared/cd.js';
+import cd from './shared/cd';
 import { copyText } from './utils-window';
 
 /**
@@ -704,6 +704,7 @@ export class EventEmitter extends OO.EventEmitter {
    * @param {C} [context] Context object for function or method call.
    * @returns {this}
    * @throws {Error} Listener argument is not a function or a valid method name.
+   * @override
    */
   on(event, method, args, context) {
     return super.on(event, method, args, context);
@@ -732,6 +733,7 @@ export class EventEmitter extends OO.EventEmitter {
    * @param {(this: null, ...args: EventMap[K]) => void} listener Listener to call when event
    *   occurs.
    * @returns {this}
+   * @override
    */
   once(event, listener) {
     return super.once(event, listener);
@@ -767,6 +769,7 @@ export class EventEmitter extends OO.EventEmitter {
    * @param {C} [context] Context object for the function or method call.
    * @throws {Error} Listener argument is not a function or a valid method name.
    * @returns {this}
+   * @override
    */
   off(event, method, context) {
     return super.off(event, method, context);
@@ -801,6 +804,7 @@ export class EventEmitter extends OO.EventEmitter {
    * @param {string} event Type of event.
    * @param {...any[]} args Arguments passed to the event handler.
    * @returns {boolean} Whether the event was handled by at least one listener.
+   * @override
    */
   emit(event, ...args) {
     return super.emit(event, ...args);
@@ -836,6 +840,7 @@ export class EventEmitter extends OO.EventEmitter {
    * @param {string} event Type of event.
    * @param {...any[]} args Arguments passed to the event handler.
    * @returns {boolean} Whether the event was handled by at least one listener.
+   * @override
    */
   emitThrow(event, ...args) {
     return super.emitThrow(event, ...args);
@@ -852,6 +857,7 @@ export class EventEmitter extends OO.EventEmitter {
    *   function followed by a list of arguments to be passed to the callback before emitted
    *   arguments.
    * @returns {this}
+   * @override
    */
   connect(context, methods) {
     return super.connect(context, methods);
@@ -872,6 +878,7 @@ export class EventEmitter extends OO.EventEmitter {
    *   (and only the parameters vary), disconnecting one variation of (event name, event listener,
    *   parameters) will disconnect other variations as well.
    * @returns {this}
+   * @override
    */
   disconnect(context, methods) {
     return super.disconnect(context, methods);

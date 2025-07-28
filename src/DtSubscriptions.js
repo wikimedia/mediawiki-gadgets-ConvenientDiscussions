@@ -1,10 +1,10 @@
 import Button from './Button';
-import CdError from './shared/CdError';
 import Subscriptions from './Subscriptions';
-import cd from './shared/cd';
 import sectionRegistry from './sectionRegistry';
-import { handleApiReject, splitIntoBatches } from './utils-api';
+import CdError from './shared/CdError';
+import cd from './shared/cd';
 import { definedAndNotNull, spacesToUnderlines, unique } from './shared/utils-general';
+import { handleApiReject, splitIntoBatches } from './utils-api';
 
 /**
  * Implementation of DiscussionTools' topic subscriptions.
@@ -18,6 +18,7 @@ class DtSubscriptions extends Subscriptions {
   /**
    * Request the subscription list from the server and assign it to the instance.
    *
+   * @override
    * @returns {Promise.<void>}
    */
   async load() {
@@ -39,6 +40,7 @@ class DtSubscriptions extends Subscriptions {
    * Process subscriptions when they are
    * {@link DtSubscriptions#loadToTalkPage loaded to a talk page}.
    *
+   * @override
    * @param {import('./BootProcess').default} [bootProcess]
    */
   processOnTalkPage(bootProcess) {
@@ -52,6 +54,7 @@ class DtSubscriptions extends Subscriptions {
   /**
    * Test if the subscription list is loaded.
    *
+   * @override
    * @returns {boolean}
    */
   areLoaded() {
@@ -159,6 +162,7 @@ class DtSubscriptions extends Subscriptions {
   /**
    * Add a section present on the current page to the subscription list.
    *
+   * @override
    * @param {string} subscribeId
    * @param {string} [id]
    * @returns {Promise.<void>}
@@ -171,6 +175,7 @@ class DtSubscriptions extends Subscriptions {
   /**
    * Remove a section present on the current page from the subscription list.
    *
+   * @override
    * @param {string} subscribeId
    * @param {string} [id]
    * @returns {Promise.<void>}

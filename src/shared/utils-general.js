@@ -7,8 +7,8 @@
 
 import html_entity_decode from 'locutus/php/strings/html_entity_decode';
 
-import CdError from './CdError.js';
-import cd from './cd.js';
+import CdError from './CdError';
+import cd from './cd';
 
 /**
  * Combine the section headline, summary text, and, optionally, summary postfix to create an edit
