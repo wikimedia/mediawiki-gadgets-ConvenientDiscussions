@@ -13,7 +13,7 @@ import { parseTimestamp } from './shared/utils-timestamp';
 import { maskDistractingCode } from './shared/utils-wikitext';
 
 /**
- * @typedef {{ [key: string]: () => void }} WrapCallbacks
+ * @typedef {{ [key: string]: import('./Button').Action }} WrapCallbacks
  */
 
 /**

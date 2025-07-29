@@ -3,7 +3,7 @@ import { isCmdModifierPressed } from './utils-window';
 /**
  * @callback Action
  * @param {MouseEvent | KeyboardEvent} event
- * @param {Button} [button]
+ * @param {Button} button
  * @returns {void}
  */
 

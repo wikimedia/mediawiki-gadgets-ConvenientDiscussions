@@ -1,11 +1,9 @@
 import Comment from './Comment';
 import CommentForm from './CommentForm';
 import CommentFormInputTransformer from './CommentFormInputTransformer';
-import Parser from './shared/Parser';
 import Section from './Section';
 import Thread from './Thread';
 import bootController from './bootController';
-import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import debug from './debug';
@@ -16,13 +14,15 @@ import pageNav from './pageNav';
 import processFragment from './processFragment';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
+import Parser from './shared/Parser';
+import cd from './shared/cd';
+import { defined, definedAndNotNull, generatePageNamePattern, isElement, sleep } from './shared/utils-general';
+import { initDayjs } from './shared/utils-timestamp';
 import talkPageController from './talkPageController';
 import toc from './toc';
 import updateChecker from './updateChecker';
 import userRegistry from './userRegistry';
 import { handleApiReject, saveOptions } from './utils-api';
-import { defined, definedAndNotNull, generatePageNamePattern, sleep } from './shared/utils-general';
-import { initDayjs } from './shared/utils-timestamp';
 import { getAllTextNodes, wrapHtml } from './utils-window';
 import visits from './visits';
 
@@ -65,12 +65,13 @@ function removeDtButtonHtmlComments() {
 function processAndRemoveDtElements(elements, bootProcess) {
   // Reply Tool is officially incompatible with CD, so we don't care if it is enabled. New Topic
   // Tool doesn't seem to make difference for our purposes here.
-  const moveNotRemove = (
+  const moveNotRemove =
     cd.g.isDtTopicSubscriptionEnabled ||
 
     // DT enabled by default. Don't know how to capture that another way.
-    !['registered', null].includes(mw.loader.getState('ext.discussionTools.init'))
-  );
+    !['registered', null].includes(mw.loader.getState('ext.discussionTools.init'));
+
+  /** @type {HTMLSpanElement | undefined} */
   let dtMarkupHavenElement;
   if (moveNotRemove) {
     if (!bootProcess.isFirstRun()) {
@@ -97,9 +98,11 @@ function processAndRemoveDtElements(elements, bootProcess) {
         // DT gets the DOM offset of each of these elements upon initialization which can take a lot
         // of time if the elements aren't put into containers with less children.
         if (i % 10 === 0) {
-          dtMarkupHavenElement.appendChild(document.createElement('span'));
+          /** @type {HTMLSpanElement} */ (
+            dtMarkupHavenElement
+          ).appendChild(document.createElement('span'));
         }
-        dtMarkupHavenElement.lastChild.appendChild(el);
+        /** @type {HTMLSpanElement} */ (/** @type {HTMLSpanElement} */ (dtMarkupHavenElement).lastChild).appendChild(el);
       } else {
         el.remove();
       }
@@ -160,7 +163,7 @@ class BootProcess {
    */
   constructor(passedData = {}) {
     this.passedData = passedData;
-    this.dtCommentIds = [];
+    this.dtCommentIds = /** @type {string[]} */ ([]);
   }
 
   /**
@@ -492,8 +495,8 @@ class BootProcess {
     const nss = mw.config.get('wgFormattedNamespaces');
     const nsIds = mw.config.get('wgNamespaceIds');
 
-    const anySpace = (s) => s.replace(/[ _]/g, '[ _]+').replace(/:/g, '[ _]*:[ _]*');
-    const joinNsNames = (...ids) => (
+    const anySpace = (/** @type {string} */ s) => s.replace(/[ _]/g, '[ _]+').replace(/:/g, '[ _]*:[ _]*');
+    const joinNsNames = (/** @type {number[]} */ ...ids) => (
       Object.keys(nsIds)
         .filter((key) => ids.includes(nsIds[key]))
 
@@ -868,10 +871,11 @@ class BootProcess {
       $('#wpTextbox1').remove();
     } else {
       const observer = new MutationObserver((records) => {
-        const isReplyWidgetAdded = (record) => (
-          [...record.addedNodes]
-            .some((node) => node.classList?.contains('ext-discussiontools-ui-replyWidget'))
-        );
+        const isReplyWidgetAdded = (/** @type {MutationRecord} */ record) =>
+          [...record.addedNodes].some(
+            (node) =>
+              isElement(node) && node.classList.contains('ext-discussiontools-ui-replyWidget')
+          );
         if (records.some(isReplyWidgetAdded)) {
           $('#wpTextbox1').remove();
           observer.disconnect();

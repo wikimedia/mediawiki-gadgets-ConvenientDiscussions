@@ -1,11 +1,11 @@
 /**
  * @typedef {object} ErrorData
- * @param {'network'|'api'|'parse'|'internal'} type Grouping of the error.
- * @param {string} [code] Error code.
- * @param {object} [apiResponse] API response.
- * @param {object} [apiError] API error code.
- * @param {object} [details] Additional details.
- * @param {string} [message] Error message for the user if they will see it.
+ * @property {'network'|'api'|'parse'|'internal'} [type='internal'] Error type/category.
+ * @property {string} [code] Error code.
+ * @property {object} [apiResponse] API response.
+ * @property {object} [apiError] API error code.
+ * @property {object} [details] Additional details.
+ * @property {string} [message] Error message for the user if they will see it.
  */
 
 /**
@@ -14,7 +14,7 @@
  * @augments Error
  */
 class CdError extends Error {
-  /** @type {ErrorData} */
+  /** @type {MakeRequired<ErrorData, 'type'>} */
   data;
 
   /**
@@ -23,14 +23,15 @@ class CdError extends Error {
    * @param {ErrorData} [data={}]
    */
   constructor(data = {}) {
+    data.type ??= 'internal';
     super(
-      (data.type || 'internal') +
+      data.type +
       (data.code ? `/${data.code}` : '') +
       (data.apiError ? `/${data.apiError}` : '') +
       (data.message ? `: ${data.message}` : '')
     );
     this.name = 'CdError';
-    this.data = data;
+    this.data = /** @type {MakeRequired<ErrorData, 'type'>} */ (data);
   }
 }
 

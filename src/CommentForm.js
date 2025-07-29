@@ -85,7 +85,7 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
 /**
  * A comment form.
  *
- * @template {CommentFormMode} Mode
+ * @template {CommentFormMode} [Mode=CommentFormMode]
  * @augments EventEmitter<EventMap>
  */
 class CommentForm extends EventEmitter {
@@ -612,7 +612,7 @@ class CommentForm extends EventEmitter {
   /**
    * Setup the form after it is added to the page for the first time (not after a page reload).
    *
-   * @param {object} [initialState={}]
+   * @param {CommentFormInitialState} [initialState={}]
    */
   setup(initialState = {}) {
     this.adjustLabels();
@@ -720,7 +720,7 @@ class CommentForm extends EventEmitter {
   /**
    * Create the text inputs based on OOUI widgets.
    *
-   * @param {object} initialState
+   * @param {CommentFormInitialState} initialState
    * @private
    */
   createTextInputs(initialState) {
@@ -775,7 +775,7 @@ class CommentForm extends EventEmitter {
   /**
    * Create the checkboxes and the horizontal layout containing them based on OOUI widgets.
    *
-   * @param {object} initialState
+   * @param {CommentFormInitialState} initialState
    * @private
    */
   createCheckboxes(initialState) {
@@ -1362,7 +1362,7 @@ class CommentForm extends EventEmitter {
   /**
    * Create the contents of the form.
    *
-   * @param {object} initialState
+   * @param {CommentFormInitialState} initialState
    * @param {string[]} requestedModulesNames
    * @private
    */
@@ -1382,7 +1382,7 @@ class CommentForm extends EventEmitter {
   /**
    * Load the edited comment to the comment form.
    *
-   * @param {object} initialState
+   * @param {CommentFormInitialState} initialState
    * @private
    */
   async loadComment(initialState) {
@@ -1438,7 +1438,7 @@ class CommentForm extends EventEmitter {
         this.$messageArea.empty();
         delete this.checkCodeRequest;
         if (error instanceof CdError) {
-          this.handleError(Object.assign({}, error.data));
+          this.handleError({ ...error.data });
         } else {
           this.handleError({
             type: 'javascript',
@@ -2468,30 +2468,36 @@ class CommentForm extends EventEmitter {
   }
 
   /**
-   * Abort an operation the form is undergoing and show an appropriate error message. This method is
-   * a wrapper around `CommentForm#abort`.
-   *
-   * @param {object} options
-   * @param {'parse'|'api'|'network'|'javascript'|'ui'} options.type Type of the error:
+   * @typedef {object} HandleErrorOptions
+   * @property {'parse'|'api'|'network'|'javascript'|'ui'} options.type Type of the error:
    *   * `'parse'` for parse errors defined in the script,
    *   * `'api'` for MediaWiki API errors,
    *   * `'network'` for network errors defined in the script,
    *   * `'javascript'` for JavaScript errors,
    *   * `'ui'` for UI errors.
-   * @param {string} [options.code] Code of the error. (Either `code`, `apiResponse`, or `message`
-   *   should be specified.)
-   * @param {object} [options.details] Additional details about the error.
-   * @param {object} [options.apiResponse] Data object received from the MediaWiki server. (Either
-   *   `code`, `apiResponse`, or `message` should be specified.)
-   * @param {string} [options.message] Text of the error. (Either `code`, `apiResponse`, or
+   * @property {string} [options.code] Code of the error. (Either `code`, `apiResponse`, or
    *   `message` should be specified.)
-   * @param {'error'|'notice'|'warning'} [options.messageType='error'] Message type if not
+   * @property {object} [options.details] Additional details about the error.
+   * @property {object} [options.apiResponse] Data object received from the MediaWiki server.
+   *   (Either `code`, `apiResponse`, or `message` should be specified.)
+   * @property {string} [options.message] Text of the error. (Either `code`, `apiResponse`, or
+   *   `message` should be specified.)
+   * @property {'error'|'notice'|'warning'} [options.messageType='error'] Message type if not
    *   `'error'`.
-   * @param {any} [options.logMessage] Data or text to display in the browser console.
-   * @param {boolean} [options.cancel=false] Cancel the form and show the message as a notification.
-   * @param {boolean} [options.isRawMessage=false] Show the message as it is, without OOUI framing.
-   * @param {import('./CommentFormOperation').default} [options.operation] Operation the form is
+   * @property {any} [options.logMessage] Data or text to display in the browser console.
+   * @property {boolean} [options.cancel=false] Cancel the form and show the message as a
+   *   notification.
+   * @property {boolean} [options.isRawMessage=false] Show the message as it is, without OOUI
+   *   framing.
+   * @property {import('./CommentFormOperation').default} [options.operation] Operation the form is
    *   undergoing.
+   */
+
+  /**
+   * Abort an operation the form is undergoing and show an appropriate error message. This method is
+   * a wrapper around `CommentForm#abort`.
+   *
+   * @param {HandleErrorOptions} options
    */
   handleError({
     type,
@@ -3048,7 +3054,7 @@ class CommentForm extends EventEmitter {
   /**
    * Remove references to the form and reload the page.
    *
-   * @param {object} [bootData] Data to pass to the boot process.
+   * @param {import('./BootProcess').PassedData} [bootData] Data to pass to the boot process.
    * @param {import('./CommentFormOperation').default} [operation] Submit operation.
    */
   async reloadPage(bootData, operation) {
@@ -3072,13 +3078,12 @@ class CommentForm extends EventEmitter {
       await bootController.reboot(bootData);
     } catch (error) {
       if (error instanceof CdError) {
-        this.handleError(
-          Object.assign({}, error.data, {
-            message: cd.sParse('error-reloadpage-saved'),
-            cancel: true,
-            operation,
-          })
-        );
+        this.handleError({
+          ...error.data,
+          message: cd.sParse('error-reloadpage-saved'),
+          cancel: true,
+          operation,
+        });
       } else {
         this.handleError({
           type: 'javascript',
@@ -3108,6 +3113,7 @@ class CommentForm extends EventEmitter {
           const ending = this.headlineInputPlaceholder === cd.s('cf-headline-topic') ?
             'topic' :
             'subsection';
+
           return confirm(
             cd.s(`cf-confirm-noheadline-${ending}`) +
             ' ' +
@@ -3148,6 +3154,7 @@ class CommentForm extends EventEmitter {
     for (const check of checks) {
       if (check.condition && !check.confirmation()) {
         this.commentInput.focus();
+
         return false;
       }
     }
@@ -3167,20 +3174,22 @@ class CommentForm extends EventEmitter {
   async editPage(code, operation, suppressTag = false) {
     let result;
     try {
-      const options = {
+      const options = /** @type {import('types-mediawiki/api_params').ApiEditPageParams} */ ({
         text: code,
         summary: buildEditSummary({ text: this.summaryInput.getValue() }),
         minor: this.minorCheckbox?.isSelected(),
         watchlist: this.watchCheckbox?.isSelected() ? 'watch' : 'unwatch',
         captchaid: this.captchaInput?.getCaptchaId(),
         captchaword: this.captchaInput?.getCaptchaWord(),
-      };
+      });
       let sectionOrPage;
       if (this.isNewSectionApi()) {
         options.sectiontitle = this.headlineInput.getValue().trim();
         options.section = 'new';
       } else if (this.isSectionSubmitted()) {
-        options.section = this.targetSection.liveSectionNumber;
+        options.section = typeof this.targetSection.liveSectionNumber === 'number' ?
+          String(this.targetSection.liveSectionNumber) :
+          undefined;
         sectionOrPage = this.targetSection;
       } else {
         sectionOrPage = this.targetPage;
