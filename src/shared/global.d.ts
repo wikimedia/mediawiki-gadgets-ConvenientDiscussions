@@ -7,6 +7,9 @@ import { Document as DomHandlerDocument } from 'domhandler';
 import WorkerCommentWorker from '../worker/CommentWorker';
 import WorkerSectionWorker from '../worker/SectionWorker';
 import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
+import CommentSkeleton from './CommentSkeleton';
+import Parser from './Parser';
+import SectionSkeleton from './SectionSkeleton';
 
 declare global {
   type MessageFromWorkerParse = {
@@ -249,42 +252,32 @@ declare global {
 
   interface CommentWorker extends WorkerCommentWorker {}
   interface SectionWorker extends WorkerSectionWorker {}
+
+  type AnyNode = import('domhandler').Node | globalThis.Node;
+
+  type ElementFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Element : Element;
+
+  type TextFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Text : Text;
+
+  interface ParsingContext<T extends AnyNode> {
+    CommentSkeletonClass: typeof CommentSkeleton;
+    SectionSkeletonClass: typeof SectionSkeleton;
+    ParserClass: new (context: ParsingContext<T>) => Parser<T>;
+    handleFirstCommentAntipatterns: (text: string, node: TextFor<T>) => void;
+    processAndRemoveDtElements: (elements: ElementFor<T>[], bootProcess: import('../BootProcess').default) => void;
+    removeDtButtonHtmlComments: () => void;
+    ElementsTreeWalkerClass: new(root: ElementFor<T>, currentNode?: T) => import('./ElementsTreeWalker').default<T>;
+    appendChild: (parent: T, child: T) => void;
+    insertBefore: (parent: T, node: T, referenceNode: T | null) => void;
+    remove: (node: T) => void;
+    getElementByClassName: (element: ElementFor<T>, className: string) => ElementFor<T> | null;
+    getAllTextNodes: () => TextFor<T>[];
+    contains: (el: ElementFor<T>, node: T) => boolean;
+    childElementsProp: string;
+    rootElement: ElementFor<T>;
+    CommentClass: new(parser: Parser<T>, signature: SignatureTarget, targets: Target[]) => import('../Comment').default<T>;
+    SectionClass: new(parser: Parser<T>, heading: HeadingTarget, targets: Target[], subscriptions: import('../Subscriptions').default) => import('../Section').default<T>;
+  }
 }
-
-/**
- * @typedef {import('domhandler').Node | globalThis.Node} AnyNode
- */
-
-/**
- * @template {AnyNode} T
- * @typedef {T extends import('domhandler').Node ? import('domhandler').Element : Element} ElementFor<T>
- */
-
-/**
- * @template {AnyNode} T
- * @typedef {T extends import('domhandler').Node ? import('domhandler').Text : Text} TextFor<T>
- */
-
-/**
- * @template {AnyNode} T
- * @typedef {object} Context
- * @property {typeof import('./CommentSkeleton').default} CommentSkeletonClass
- * @property {typeof import('./SectionSkeleton').default} SectionSkeletonClass
- * @property {new(context: Context<T>) => import('./Parser').default<T>} ParserClass
- * @property {(text: string, node: TextFor<T>) => void} handleFirstCommentAntipatterns
- * @property {(elements: ElementFor<T>[], bootProcess: import('../BootProcess').default) => void} processAndRemoveDtElements
- * @property {() => void} removeDtButtonHtmlComments
- * @property {new(root: ElementFor<T>, currentNode?: T) => import('./ElementsTreeWalker').default<T>} ElementsTreeWalkerClass
- * @property {(parent: T, child: T) => void} appendChild
- * @property {(parent: T, node: T, referenceNode: T | null) => void} insertBefore
- * @property {(node: T) => void} remove
- * @property {(element: ElementFor<T>, className: string) => ElementFor<T> | null} getElementByClassName
- * @property {() => TextFor<T>[]} getAllTextNodes
- * @property {(el: ElementFor<T>, node: T) => boolean} contains
- * @property {string} childElementsProp
- * @property {ElementFor<T>} rootElement
- * @property {new(parser: import('./Parser').default<T>, signature: SignatureTarget, targets: Target[]) => import('../Comment').default<T>} CommentClass
- * @property {new(parser: import('./Parser').default<T>, heading: HeadingTarget, targets: Target[], subscriptions: import('../Subscriptions').default) => import('../Section').default<T>} SectionClass
- */
 
 export {};
