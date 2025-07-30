@@ -78,7 +78,7 @@ class Parser {
   /**
    * Create a page parser in the provided context.
    *
-   * @param {Context<N>} context Collection of classes, functions, and other properties that perform
+   * @param {ParsingContext<N>} context Collection of classes, functions, and other properties that perform
    *   the tasks we need in the current context (window or worker).
    */
   constructor(context) {
@@ -90,7 +90,6 @@ class Parser {
    * _For internal use._ Set some properties and find some elements required for parsing.
    */
   init() {
-    const cd = this.context.cd;
     this.rejectClasses = [
       'cd-comment-part',
 
@@ -124,7 +123,7 @@ class Parser {
    *
    * @param {SignatureTarget<N>} signature
    * @param {Target<N>[]} targets
-   * @returns {import('../Comment').default<N>}
+   * @returns {import('../Comment').default}
    */
   createComment(signature, targets) {
     return new this.context.CommentClass(this, signature, targets);
@@ -136,7 +135,7 @@ class Parser {
    * @param {HeadingTarget<N>} heading
    * @param {Target<N>[]} targets
    * @param {import('../Subscriptions').default} [subscriptions]
-   * @returns {import('../Section').default<N>}
+   * @returns {import('../Section').default}
    */
   createSection(heading, targets, subscriptions) {
     return new this.context.SectionClass(this, heading, targets, subscriptions);
@@ -190,7 +189,6 @@ class Parser {
    * @private
    */
   handleFactotumOutdents(text, node) {
-    const cd = this.context.cd;
     if (
       !/^┌─*┘$/.test(text) ||
       (
@@ -290,7 +288,6 @@ class Parser {
    * @private
    */
   getSignatureFromTimestamp(timestamp) {
-    const cd = this.context.cd;
     let unsignedElement;
     {
       let /** @type {ElementFor<N> | null} */ el = timestamp.element;
@@ -464,7 +461,6 @@ class Parser {
    * @returns {Partial<SignatureTarget<N>>[]}
    */
   findRemainingUnsigneds() {
-    const cd = this.context.cd;
     if (!cd.config.unsignedClass) {
       return [];
     }
@@ -726,7 +722,6 @@ class Parser {
    * @returns {?ProcessLinkReturn}
    */
   processLink(element) {
-    const cd = this.context.cd;
     const href = element.getAttribute('href');
     let userName;
     /** @type {LinkType} */
