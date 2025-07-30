@@ -557,11 +557,11 @@ class CommentSkeleton {
   /**
    * Identify cases like:
    *
-   * \`\`\`html
+   * ```html
    * === Section title ===
    * Section introduction. Not a comment.
    * # Vote. [signature]
-   * \`\`\`
+   * ```
    *
    * and similar. Without treatment of such cases, the section introduction would be considered a
    * part of the comment. The same may happen inside a discussion thread (often because one of the
@@ -775,7 +775,7 @@ class CommentSkeleton {
       let hasCurrentSignature;
       let hasForeignComponents;
       if (!isTextNode) {
-        if (!this.isElementEligible(/** @type {ElementFor<N>} */ (node), treeWalker, step)) {
+        if (!this.isElementEligible(node, treeWalker, step)) {
           break;
         }
 
@@ -783,7 +783,7 @@ class CommentSkeleton {
         // https://he.wikipedia.org/w/index.php?title=Template:%D7%9C%D7%90_%D7%97%D7%AA%D7%9D&oldid=36579655
         // creates a class="autosigned" element and a hidden element with a signature after. Halt
         // the search completely.
-        if (step === 'up' && /** @type {ElementFor<N>} */ (node).classList.contains('cd-comment-part')) {
+        if (step === 'up' && node.classList.contains('cd-comment-part')) {
           throw new CdError();
         }
 
@@ -799,7 +799,7 @@ class CommentSkeleton {
             (
               // Signature count. The second parameter of .getElementsByClassName() is an
               // optimization for the worker context.
-              /** @type {ElementFor<N>} */ (node).getElementsByClassName('cd-signature', Number(hasCurrentSignature) + 1).length -
+              node.getElementsByClassName('cd-signature', Number(hasCurrentSignature) + 1).length -
 
               Number(hasCurrentSignature)
             ) > 0 ||
@@ -809,10 +809,10 @@ class CommentSkeleton {
 
               !(
                 // Cases like the table added at https://ru.wikipedia.org/?diff=115822931
-                /** @type {ElementFor<N>} */ (node).tagName === 'TABLE' ||
+                node.tagName === 'TABLE' ||
 
                 // Cases like the welcome template at https://en.wikipedia.org/wiki/User_talk:Carver1889
-                /** @type {ElementFor<N>} */ (node).getAttribute('style')?.includes('background-')
+                node.getAttribute('style')?.includes('background-')
               )
             ) ||
 
@@ -1502,12 +1502,12 @@ class CommentSkeleton {
    * Fix the situation where a comment signature is placed inside the last item of the comment, like
    * this:
    *
-   * \`\`\`html
+   * ```html
    * List:
    * * Item 1.
    * * Item 2.
    * * Item 3. [signature]
-   * \`\`\`
+   * ```
    *
    * @param {AtLeastOne<ElementFor<N>[]>} levelElements
    * @private

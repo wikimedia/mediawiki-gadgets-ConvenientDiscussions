@@ -69,7 +69,7 @@ class Section extends SectionSkeleton {
   /**
    * Sections contents as HTML elements.
    *
-   * @type {Element[]}
+   * @type {HTMLElement[]}
    */
   elements;
 
@@ -119,7 +119,7 @@ class Section extends SectionSkeleton {
    */
   authorsPopup;
 
-  /** @type {Element} */
+  /** @type {HTMLElement} */
   actionsElement;
 
   /**
@@ -143,11 +143,11 @@ class Section extends SectionSkeleton {
     /**
      * @see SectionSkeleton#lastElement
      */
-    this.lastElement = /** @type {Element} */ (this.lastElement);
+    this.lastElement = /** @type {HTMLElement} */ (this.lastElement);
     /**
      * @see SectionSkeleton#lastElementInFirstChunk
      */
-    this.lastElementInFirstChunk = /** @type {Element} */ (this.lastElementInFirstChunk);
+    this.lastElementInFirstChunk = /** @type {HTMLElement} */ (this.lastElementInFirstChunk);
     /**
      * @see SectionSkeleton#comments
      */
@@ -159,19 +159,19 @@ class Section extends SectionSkeleton {
     /**
      * @see SectionSkeleton#headingElement
      */
-    this.headingElement = /** @type {Element} */ (this.headingElement);
+    this.headingElement = /** @type {HTMLElement} */ (this.headingElement);
 
     /**
      * @protected
      * @see SectionSkeleton#hElement
      */
-    this.hElement = /** @type {Element} */ (this.hElement);
+    this.hElement = /** @type {HTMLElement} */ (this.hElement);
 
     /**
      * @protected
      * @see SectionSkeleton#headlineElement
      */
-    this.headlineElement = /** @type {Element} */ (this.headlineElement);
+    this.headlineElement = /** @type {HTMLElement} */ (this.headlineElement);
 
     this.subscriptions = subscriptions;
 
@@ -890,14 +890,14 @@ class Section extends SectionSkeleton {
     /**
      * Metadata element in the {@link Section#barElement bar element}.
      *
-     * @type {Element|undefined}
+     * @type {HTMLElement|undefined}
      */
     this.metadataElement = metadataElement;
 
     /**
      * Comment count wrapper element in the {@link Section#metadataElement metadata element}.
      *
-     * @type {Element|undefined}
+     * @type {HTMLElement|undefined}
      * @protected
      */
     this.commentCountWrapper = commentCountWrapper;
@@ -1094,7 +1094,7 @@ class Section extends SectionSkeleton {
      * Actions element under the 2-level section heading _or_ to the right of headings of other
      * levels.
      *
-     * @type {Element}
+     * @type {HTMLElement}
      * @private
      */
     this.actionsElement = actionsElement;
@@ -2051,14 +2051,14 @@ class Section extends SectionSkeleton {
   /**
    * Find the last element of the section including buttons and other.
    *
-   * @param {(el: Element) => boolean} [additionalCondition]
-   * @returns {Element}
+   * @param {(el: HTMLElement) => boolean} [additionalCondition]
+   * @returns {HTMLElement}
    */
   findRealLastElement(additionalCondition) {
     let realLastElement = this.lastElement;
 
     for (
-      let lastElement = /** @type {Element|null} */ (
+      let lastElement = /** @type {HTMLElement|Element|null} */ (
         this.lastElement.nextElementSibling
       );
       lastElement instanceof HTMLElement &&
@@ -2082,7 +2082,7 @@ class Section extends SectionSkeleton {
   updateVisibility(show) {
     if (Boolean(show) !== this.isHidden) return;
 
-    this.elements ||= /** @type {Element[]} */ (getRangeContents(
+    this.elements ||= /** @type {HTMLElement[]} */ (getRangeContents(
       this.headingElement,
       this.findRealLastElement(),
       bootController.rootElement

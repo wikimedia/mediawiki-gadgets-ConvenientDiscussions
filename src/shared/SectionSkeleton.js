@@ -255,7 +255,7 @@ class SectionSkeleton {
     const targetsToComments = (/** @type {import('./Parser').Target<N>[]} */ targets) => (
       targets
         .filter((target) => target.type === 'signature')
-        .map((target) => /** @type {import('./Parser').SignatureTarget<N>} */ (target).comment)
+        .map((target) => target.comment)
         .filter(defined)
     );
 
@@ -275,7 +275,8 @@ class SectionSkeleton {
    *
    * Sometimes sections are nested trickily in some kind of container elements, so a following
    * structure may take place:
-   * \`\`\`html
+   *
+   * ```html
    * == Heading 1 ==
    * <p>Paragraph 1.</p>
    * <div>
@@ -285,7 +286,7 @@ class SectionSkeleton {
    * </div>
    * <p>Paragraph 4.</p>
    * == Heading 3 ==
-   * \`\`\`
+   * ```
    *
    * In this case, section 1 has paragraphs 1 and 2 as the first and last, and section 2 has
    * paragraphs 3 and 4 as such. Our code must capture that.
@@ -340,7 +341,7 @@ class SectionSkeleton {
         isText(node) ||
         (
           isElement(node) &&
-          !(isMetadataNode(node) || classesToFilter.some((name) => /** @type {ElementFor<N>} */ (node).classList.contains(name)))
+          !(isMetadataNode(node) || classesToFilter.some((name) => node.classList.contains(name)))
         )
       ))
       .map((node) => node.textContent)

@@ -1,4 +1,4 @@
-/* eslint-disable no-useless-concat */
+// Here, we use vanilla JavaScript for recurring operations that together take up a lot of time.
 
 /**
  * Methods related to parsing a page.
@@ -59,6 +59,10 @@ import { parseTimestamp } from './utils-timestamp';
  */
 
 /**
+ * Generalization of a web page (not wikitext) parser for the window and worker contexts. Parsing
+ * here means "extracting meaningful parts from the page" such as comments, sections, etc. Functions
+ * related to wikitext parsing go in {@link module:wikitext}.
+ *
  * @template {AnyNode} N
  */
 class Parser {
