@@ -73,9 +73,7 @@ import userRegistry from './userRegistry';
 /**
  * A comment (any signed, and in some cases unsigned, text on a wiki talk page).
  *
- * @template {AnyNode} N
- * @template {boolean} [Reformatted=boolean]
- * @augments CommentSkeleton<N>
+ * @augments CommentSkeleton
  */
 class Comment extends CommentSkeleton {
   /** @readonly */
@@ -83,41 +81,41 @@ class Comment extends CommentSkeleton {
 
   /**
    * @override
-   * @type {ElementFor<N>}
+   * @type {Element}
    */
   signatureElement = this.signatureElement;
 
   /**
    * @override
-   * @type {ElementFor<N>}
+   * @type {Element}
    */
   timestampElement = this.timestampElement;
 
   /**
    * @override
-   * @type {ElementFor<N>}
+   * @type {Element}
    */
   authorLink = this.authorLink;
 
   /**
    * @override
-   * @type {ElementFor<N>}
+   * @type {Element}
    */
   authorTalkLink = this.authorTalkLink;
 
   /**
    * @override
-   * @type {ElementFor<N>[]}
+   * @type {Element[]}
    */
   elements = this.elements;
 
   /**
    * @override
-   * @type {import('./shared/Parser').SignatureTarget<ElementFor<N>>[]}
+   * @type {import('./shared/Parser').SignatureTarget<Element>[]}
    */
   extraSignatures = this.extraSignatures;
 
-  /** @type {Reformatted} */
+  /** @type {boolean} */
   reformatted;
 
   /** @type {Direction} */
@@ -127,13 +125,13 @@ class Comment extends CommentSkeleton {
    * A special {@link Comment#highlightables highlightable} used to
    * {@link Comment#getLayersMargins determine layers margins}.
    *
-   * @type {ElementFor<N>}
+   * @type {Element}
    * @private
    */
   marginHighlightable;
 
   /**
-   * @typedef {this extends Comment<N, true> ? ElementFor<N> : undefined} ElementIfReformatted
+   * @typedef {this extends Comment<true> ? Element : undefined} ElementIfReformatted
    */
 
   /**
@@ -168,14 +166,14 @@ class Comment extends CommentSkeleton {
   /**
    * _For internal use._ Comment's underlay as a native (non-jQuery) element.
    *
-   * @type {?ElementFor<N>}
+   * @type {?Element}
    */
   underlay;
 
   /**
    * Comment's overlay.
    *
-   * @type {?ElementFor<N>}
+   * @type {?Element}
    * @private
    */
   overlay;
@@ -183,7 +181,7 @@ class Comment extends CommentSkeleton {
   /**
    * Line element in comment's overlay.
    *
-   * @type {ElementFor<N>}
+   * @type {Element}
    * @private
    */
   line;
@@ -191,7 +189,7 @@ class Comment extends CommentSkeleton {
   /**
    * Comment's side marker.
    *
-   * @type {ElementFor<N>}
+   * @type {Element}
    * @private
    */
   marker;
@@ -199,7 +197,7 @@ class Comment extends CommentSkeleton {
   /**
    * Inner wrapper in comment's overlay.
    *
-   * @type {ElementFor<N>}
+   * @type {Element}
    * @private
    */
   overlayInnerWrapper;
@@ -207,7 +205,7 @@ class Comment extends CommentSkeleton {
   /**
    * Gradient element in comment's overlay.
    *
-   * @type {ElementFor<N>}
+   * @type {Element}
    * @private
    */
   overlayGradient;
@@ -215,7 +213,7 @@ class Comment extends CommentSkeleton {
   /**
    * Menu element in comment's overlay.
    *
-   * @type {ElementFor<N>}
+   * @type {Element}
    * @private
    */
   overlayMenu;
@@ -388,7 +386,7 @@ class Comment extends CommentSkeleton {
 
   /**
    * @override
-   * @type {?import('./Section').default<N>}
+   * @type {?import('./Section').default}
    */
   section = this.section;
 
@@ -402,7 +400,7 @@ class Comment extends CommentSkeleton {
   /**
    * Create a comment object.
    *
-   * @param {import('./shared/Parser').default<N>} parser
+   * @param {import('./shared/Parser').default} parser
    * @param {import('./shared/Parser').SignatureTarget} signature Signature object returned by
    *   {@link Parser#findSignatures}.
    * @param {import('./shared/Parser').Target[]} targets Sorted target objects returned by
@@ -414,9 +412,9 @@ class Comment extends CommentSkeleton {
     /**
      * @see CommentSkeleton#highlightables
      */
-    this.highlightables = /** @type {ElementFor<N>[]} */ (this.highlightables);
+    this.highlightables = /** @type {Element[]} */ (this.highlightables);
 
-    this.reformatted = /** @type {Reformatted} */ (settings.get('reformatComments') || false);
+    this.reformatted = /** @type {boolean} */ (settings.get('reformatComments') || false);
     this.showContribsLink = settings.get('showContribsLink');
     this.hideTimezone = settings.get('hideTimezone');
     this.timestampFormat = settings.get('timestampFormat');

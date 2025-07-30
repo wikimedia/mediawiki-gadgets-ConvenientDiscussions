@@ -243,6 +243,10 @@ declare global {
     wikiEditor: any;
   }
 
+  type ElementLike = Element | DomHandlerElement;
+  type NodeLike = Node | DomHandlerNode;
+  type TextLike = Text | DomHandlerText;
+
   interface CommentWorker extends WorkerCommentWorker {}
   interface SectionWorker extends WorkerSectionWorker {}
 }

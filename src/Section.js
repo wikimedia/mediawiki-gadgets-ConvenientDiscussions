@@ -23,8 +23,7 @@ import { getRangeContents } from './utils-window';
 /**
  * A section.
  *
- * @template {AnyNode} N
- * @augments SectionSkeleton<N>
+ * @augments SectionSkeleton
  */
 class Section extends SectionSkeleton {
   /** @readonly */
@@ -70,7 +69,7 @@ class Section extends SectionSkeleton {
   /**
    * Sections contents as HTML elements.
    *
-   * @type {ElementFor<N>[]}
+   * @type {Element[]}
    */
   elements;
 
@@ -120,13 +119,13 @@ class Section extends SectionSkeleton {
    */
   authorsPopup;
 
-  /** @type {ElementFor<N>} */
+  /** @type {Element} */
   actionsElement;
 
   /**
    * Create a section object.
    *
-   * @param {import('./shared/Parser').default<N>} parser
+   * @param {import('./shared/Parser').default} parser
    * @param {object} heading Heading object returned by {@link Parser#findHeadings}.
    * @param {object[]} targets Sorted target objects returned by  {@link Parser#findSignatures} +
    *   {@link Parser#findHeadings}.
@@ -140,39 +139,39 @@ class Section extends SectionSkeleton {
     /**
      * @see SectionSkeleton#commentsInFirstChunk
      */
-    this.commentsInFirstChunk = /** @type {import('./Comment').default<N>[]} */ (this.commentsInFirstChunk);
+    this.commentsInFirstChunk = /** @type {import('./Comment').default[]} */ (this.commentsInFirstChunk);
     /**
      * @see SectionSkeleton#lastElement
      */
-    this.lastElement = /** @type {ElementFor<N>} */ (this.lastElement);
+    this.lastElement = /** @type {Element} */ (this.lastElement);
     /**
      * @see SectionSkeleton#lastElementInFirstChunk
      */
-    this.lastElementInFirstChunk = /** @type {ElementFor<N>} */ (this.lastElementInFirstChunk);
+    this.lastElementInFirstChunk = /** @type {Element} */ (this.lastElementInFirstChunk);
     /**
      * @see SectionSkeleton#comments
      */
-    this.comments = /** @type {import('./Comment').default<N>[]} */ (this.comments);
+    this.comments = /** @type {import('./Comment').default[]} */ (this.comments);
     /**
      * @see SectionSkeleton#oldestComment
      */
-    this.oldestComment = /** @type {?import('./Comment').default<N>} */ (this.oldestComment);
+    this.oldestComment = /** @type {?import('./Comment').default} */ (this.oldestComment);
     /**
      * @see SectionSkeleton#headingElement
      */
-    this.headingElement = /** @type {ElementFor<N>} */ (this.headingElement);
+    this.headingElement = /** @type {Element} */ (this.headingElement);
 
     /**
      * @protected
      * @see SectionSkeleton#hElement
      */
-    this.hElement = /** @type {ElementFor<N>} */ (this.hElement);
+    this.hElement = /** @type {Element} */ (this.hElement);
 
     /**
      * @protected
      * @see SectionSkeleton#headlineElement
      */
-    this.headlineElement = /** @type {ElementFor<N>} */ (this.headlineElement);
+    this.headlineElement = /** @type {Element} */ (this.headlineElement);
 
     this.subscriptions = subscriptions;
 
@@ -425,7 +424,7 @@ class Section extends SectionSkeleton {
   /**
    * Create an "Add subsection" button (any kind).
    *
-   * @param {Section<N>} [buttonsContainerInstance=this]
+   * @param {Section} [buttonsContainerInstance=this]
    * @returns {Button}
    */
   createAddSubsectionButton(buttonsContainerInstance = this) {
@@ -450,7 +449,7 @@ class Section extends SectionSkeleton {
   /**
    * Get the last descendant section of the section.
    *
-   * @returns {?Section<N>}
+   * @returns {?Section}
    */
   getLastDescendant() {
     return this.getChildren(true).slice(-1)[0] || null;
@@ -563,7 +562,7 @@ class Section extends SectionSkeleton {
      * A subscribe button has been added to the section actions element.
      *
      * @event subscribeButtonAdded
-     * @param {Section<N>} section
+     * @param {Section} section
      * @param {object} cd {@link convenientDiscussions} object.
      */
     mw.hook('convenientDiscussions.subscribeButtonAdded').fire(this);
@@ -708,7 +707,7 @@ class Section extends SectionSkeleton {
       .filter(unique)
       .map(
         (author) =>
-          /** @type {[import('./User').default, Comment<N>[]]} */ ([
+          /** @type {[import('./User').default, Comment[]]} */ ([
             author,
             this.comments.filter((comment) => comment.author === author),
           ])
@@ -814,7 +813,7 @@ class Section extends SectionSkeleton {
    */
   scrollToLatestComment(event) {
     event.preventDefault();
-    /** @type {Comment<N>} */ (this.latestComment).scrollTo({ pushState: true });
+    /** @type {Comment} */ (this.latestComment).scrollTo({ pushState: true });
   }
 
   /**
@@ -884,21 +883,21 @@ class Section extends SectionSkeleton {
     /**
      * Latest comment in a 2-level section.
      *
-     * @type {import('./Comment').default<N>|null|undefined}
+     * @type {import('./Comment').default|null|undefined}
      */
     this.latestComment = latestComment;
 
     /**
      * Metadata element in the {@link Section#barElement bar element}.
      *
-     * @type {ElementFor<N>|undefined}
+     * @type {Element|undefined}
      */
     this.metadataElement = metadataElement;
 
     /**
      * Comment count wrapper element in the {@link Section#metadataElement metadata element}.
      *
-     * @type {ElementFor<N>|undefined}
+     * @type {Element|undefined}
      * @protected
      */
     this.commentCountWrapper = commentCountWrapper;
@@ -914,7 +913,7 @@ class Section extends SectionSkeleton {
     /**
      * Latest comment date wrapper element in the {@link Section#metadataElement metadata element}.
      *
-     * @type {ElementFor<N>|undefined}
+     * @type {Element|undefined}
      * @protected
      */
     this.latestCommentWrapper = latestCommentWrapper;
@@ -1029,7 +1028,7 @@ class Section extends SectionSkeleton {
      * element in place of a dummy button.
      *
      * @event moreMenuSelectCreated
-     * @param {Section<N>} section
+     * @param {Section} section
      * @param {object} cd {@link convenientDiscussions} object.
      */
     mw.hook('convenientDiscussions.moreMenuSelectCreated').fire(this);
@@ -1095,7 +1094,7 @@ class Section extends SectionSkeleton {
      * Actions element under the 2-level section heading _or_ to the right of headings of other
      * levels.
      *
-     * @type {ElementFor<N>}
+     * @type {Element}
      * @private
      */
     this.actionsElement = actionsElement;
@@ -1159,7 +1158,7 @@ class Section extends SectionSkeleton {
     /**
      * Bar element under a 2-level section heading.
      *
-     * @type {ElementFor<N>}
+     * @type {Element}
      */
     this.barElement = barElement;
 
@@ -1223,7 +1222,7 @@ class Section extends SectionSkeleton {
     /**
      * List of new comments in the section. ("New" actually means "unseen at the moment of load".)
      *
-     * @type {import('./Comment').default<N>[]|undefined}
+     * @type {import('./Comment').default[]|undefined}
      */
     this.newComments = this.comments.filter((comment) => comment.isSeen === false);
 
@@ -1870,12 +1869,12 @@ class Section extends SectionSkeleton {
   /**
    * @overload
    * @param {true} forceLevel2 Guarantee a 2-level section is returned.
-   * @returns {Section<N>|null} The base section, or `null` if no level 2 section is found.
+   * @returns {Section|null} The base section, or `null` if no level 2 section is found.
    *
    * @overload
    * @param {false} [forceLevel2=false] Return the closest level 2 ancestor, or the section itself
    *   if no such ancestor exists or if it is already level 2.
-   * @returns {Section<N>} The base section.
+   * @returns {Section} The base section.
    */
 
   /**
@@ -1884,7 +1883,7 @@ class Section extends SectionSkeleton {
    * higher level section (the current section may be of level 3 or 1, for example).
    *
    * @param {boolean} [forceLevel2=false] Guarantee a 2-level section is returned.
-   * @returns {?Section<N>}
+   * @returns {?Section}
    */
   getBase(forceLevel2 = false) {
     const defaultValue = forceLevel2 && !this.isTopic() ? null : this;
@@ -1905,7 +1904,7 @@ class Section extends SectionSkeleton {
    *
    * @param {boolean} [indirect=false] Whether to include subsections of subsections and so on
    *   (return descendants, in a word).
-   * @returns {Section<N>[]}
+   * @returns {Section[]}
    */
   getChildren(indirect = false) {
     const children = [];
@@ -1937,7 +1936,7 @@ class Section extends SectionSkeleton {
    * Get the first upper level section relative to the current section that is subscribed to.
    *
    * @param {boolean} [includeCurrent=false] Check the current section too.
-   * @returns {?Section<N>}
+   * @returns {?Section}
    */
   getClosestSectionSubscribedTo(includeCurrent = false) {
     for (
@@ -1983,7 +1982,7 @@ class Section extends SectionSkeleton {
    * Get a section relevant to this section, which means the section itself. (Used for polymorphism
    * with {@link Comment#getRelevantSection} and {@link Page#getRelevantSection}.)
    *
-   * @returns {Section<N>}
+   * @returns {Section}
    */
   getRelevantSection() {
     return this;
@@ -1994,7 +1993,7 @@ class Section extends SectionSkeleton {
    * section. (Used for polymorphism with {@link Comment#getRelevantComment} and
    * {@link Page#getRelevantComment}.)
    *
-   * @returns {?Comment<N>}
+   * @returns {?Comment}
    */
   getRelevantComment() {
     return this.comments[0]?.isOpeningSection ? this.comments[0] : null;
@@ -2043,7 +2042,7 @@ class Section extends SectionSkeleton {
   /**
    * Get the section used to subscribe to new comments in this section if available.
    *
-   * @returns {?Section<N>}
+   * @returns {?Section}
    */
   getSectionSubscribedTo() {
     return this.useTopicSubscription ? this.getBase(true) : this;
@@ -2052,14 +2051,14 @@ class Section extends SectionSkeleton {
   /**
    * Find the last element of the section including buttons and other.
    *
-   * @param {(el: ElementFor<N>) => boolean} [additionalCondition]
-   * @returns {ElementFor<N>}
+   * @param {(el: Element) => boolean} [additionalCondition]
+   * @returns {Element}
    */
   findRealLastElement(additionalCondition) {
     let realLastElement = this.lastElement;
 
     for (
-      let lastElement = /** @type {ElementFor<N>|Element|null} */ (
+      let lastElement = /** @type {Element|null} */ (
         this.lastElement.nextElementSibling
       );
       lastElement instanceof HTMLElement &&
@@ -2083,7 +2082,7 @@ class Section extends SectionSkeleton {
   updateVisibility(show) {
     if (Boolean(show) !== this.isHidden) return;
 
-    this.elements ||= /** @type {ElementFor<N>[]} */ (getRangeContents(
+    this.elements ||= /** @type {Element[]} */ (getRangeContents(
       this.headingElement,
       this.findRealLastElement(),
       bootController.rootElement
@@ -2098,7 +2097,7 @@ class Section extends SectionSkeleton {
    * If this section is replied to, get the comment that will end up directly above the reply.
    *
    * @param {import('./CommentForm').default} commentForm
-   * @returns {?Comment<N>}
+   * @returns {?Comment}
    */
   getCommentAboveCommentToBeAdded(commentForm) {
     return sectionRegistry.getAll()
@@ -2111,7 +2110,7 @@ class Section extends SectionSkeleton {
       .reverse()
       .reduce(
         (comment, section) => comment || section.commentsInFirstChunk.slice(-1)[0],
-        /** @type {?Comment<N>} */ (null)
+        /** @type {?Comment} */ (null)
       );
   }
 
@@ -2119,7 +2118,7 @@ class Section extends SectionSkeleton {
    * After the page is reloaded and this instance doesn't relate to a rendered section on the page,
    * get the instance of this section that does.
    *
-   * @returns {?Section<N>}
+   * @returns {?Section}
    */
   findNewSelf() {
     return (
@@ -2187,7 +2186,7 @@ class Section extends SectionSkeleton {
    * Used for polymorphism with {@link Comment#getCommentFormTargetComment} and
    * {@link Page#getCommentFormTargetComment}.
    *
-   * @returns {?import('./Comment').default<N>}
+   * @returns {?import('./Comment').default}
    */
   getCommentFormTargetComment() {
     return (

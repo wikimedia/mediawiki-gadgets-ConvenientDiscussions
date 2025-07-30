@@ -8,6 +8,8 @@ import { defined, isElement, isHeadingNode, isMetadataNode, isText } from './uti
  * Class containing the main properties of a section and building it from a heading (we should
  * probably extract `SectionParser` from it). It is extended by {@link Section}. This class is the
  * only one used in the worker context for sections.
+ *
+ * @template {AnyNode} N
  */
 class SectionSkeleton {
   /**
@@ -38,7 +40,7 @@ class SectionSkeleton {
   /**
    * Last element in the section.
    *
-   * @type {ElementLike}
+   * @type {ElementFor<N>}
    */
   lastElement;
 
@@ -46,7 +48,7 @@ class SectionSkeleton {
    * Last element in the first chunk of the section, i.e. all elements up to the first subheading
    * if it is present or just all elements if it is not.
    *
-   * @type {ElementLike}
+   * @type {ElementFor<N>}
    */
   lastElementInFirstChunk;
 
@@ -54,30 +56,30 @@ class SectionSkeleton {
    * Comments contained in the first chunk of the section, i.e. all elements up to the first
    * subheading if it is present, or all elements if it is not.
    *
-   * @type {import('./CommentSkeleton').default[]}
+   * @type {import('./CommentSkeleton').default<N>[]}
    */
   commentsInFirstChunk;
 
   /**
    * Oldest comment in the section.
    *
-   * @type {?import('./CommentSkeleton').default}
+   * @type {?import('./CommentSkeleton').default<N>}
    */
   oldestComment;
 
   /**
    * Comments contained in the section.
    *
-   * @type {import('./CommentSkeleton').default[]}
+   * @type {import('./CommentSkeleton').default<N>[]}
    */
   comments;
 
   /**
    * Create a section skeleton instance.
    *
-   * @param {import('./Parser').default} parser
-   * @param {import('./Parser').HeadingTarget} heading
-   * @param {import('./Parser').Target[]} targets
+   * @param {import('./Parser').default<N>} parser
+   * @param {import('./Parser').HeadingTarget<N>} heading
+   * @param {import('./Parser').Target<N>[]} targets
    */
   constructor(parser, heading, targets) {
     this.parser = parser;
@@ -85,11 +87,11 @@ class SectionSkeleton {
     /**
      * Heading element (`.mw-heading` or `<h1>` - `<h6>`).
      *
-     * @type {ElementLike}
+     * @type {ElementFor<N>}
      */
     this.headingElement = heading.element;
 
-    const returnNodeIfHNode = (/** @type {?ElementLike} */ node) =>
+    const returnNodeIfHNode = (/** @type {?Node} */ node) =>
       node && isHeadingNode(node, true) ? node : null;
 
 
@@ -110,7 +112,7 @@ class SectionSkeleton {
     /**
      * Headline element.
      *
-     * @type {ElementLike}
+     * @type {ElementFor<N>}
      * @protected
      */
     this.headlineElement = cd.g.isParsoidUsed ?
@@ -204,8 +206,8 @@ class SectionSkeleton {
   /**
    * Set some properties related to the content of the section (contained elements and comments).
    *
-   * @param {import('./Parser').HeadingTarget} heading
-   * @param {import('./Parser').Target[]} targets
+   * @param {import('./Parser').HeadingTarget<N>} heading
+   * @param {import('./Parser').Target<N>[]} targets
    * @private
    */
   initContent(heading, targets) {
@@ -226,7 +228,7 @@ class SectionSkeleton {
     let /** @type {number|undefined} */ nndheIndex = targets.findIndex((target, i) => (
       i > headingIndex &&
       target.type === 'heading' &&
-      target.level <= this.level
+      /** @type {import('./Parser').HeadingTarget<N>} */ (target).level <= this.level
     ));
     let nextNotDescendantHeadingElement;
     if (nndheIndex === -1) {
@@ -235,10 +237,10 @@ class SectionSkeleton {
       nextNotDescendantHeadingElement = targets[nndheIndex]?.element;
     }
 
-    /** @typedef {ElementLike} TreeWalkerAcceptedNode */
+    /** @typedef {ElementFor<N>} TreeWalkerAcceptedNode */
     const treeWalker = new TreeWalker(
       this.parser.context.rootElement,
-      /** @type {(node: ElementLike) => node is TreeWalkerAcceptedNode} */ (node) =>
+      /** @type {(node: ElementFor<N>) => node is TreeWalkerAcceptedNode} */ (node) =>
         !isMetadataNode(node) &&
         !node.classList.contains('cd-section-button-container'),
       true
@@ -250,10 +252,10 @@ class SectionSkeleton {
       this.lastElement :
       this.getLastElement(nextHeadingElement, treeWalker);
 
-    const targetsToComments = (/** @type {import('./Parser').Target[]} */ targets) => (
+    const targetsToComments = (/** @type {import('./Parser').Target<N>[]} */ targets) => (
       targets
         .filter((target) => target.type === 'signature')
-        .map((target) => target.comment)
+        .map((target) => /** @type {import('./Parser').SignatureTarget<N>} */ (target).comment)
         .filter(defined)
     );
 
@@ -273,7 +275,7 @@ class SectionSkeleton {
    *
    * Sometimes sections are nested trickily in some kind of container elements, so a following
    * structure may take place:
-   * ```html
+   * \`\`\`html
    * == Heading 1 ==
    * <p>Paragraph 1.</p>
    * <div>
@@ -283,17 +285,17 @@ class SectionSkeleton {
    * </div>
    * <p>Paragraph 4.</p>
    * == Heading 3 ==
-   * ```
+   * \`\`\`
    *
    * In this case, section 1 has paragraphs 1 and 2 as the first and last, and section 2 has
    * paragraphs 3 and 4 as such. Our code must capture that.
    *
-   * @param {ElementLike|undefined} followingHeadingElement
-   * @param {import('./TreeWalker').default<ElementLike>} treeWalker
-   * @returns {ElementLike}
+   * @param {ElementFor<N>|undefined} followingHeadingElement
+   * @param {import('./TreeWalker').default<ElementFor<N>>} treeWalker
+   * @returns {ElementFor<N>}
    */
   getLastElement(followingHeadingElement, treeWalker) {
-    let lastElement;
+    let /** @type {ElementFor<N>} */ lastElement;
     if (followingHeadingElement) {
       treeWalker.currentNode = followingHeadingElement;
       while (!treeWalker.previousSibling()) {
@@ -301,7 +303,7 @@ class SectionSkeleton {
       }
       lastElement = treeWalker.currentNode;
     } else {
-      lastElement = /** @type {ElementLike} */ (this.parser.context.rootElement.lastElementChild);
+      lastElement = /** @type {ElementFor<N>} */ (this.parser.context.rootElement.lastElementChild);
     }
 
     // Some wrappers that include the section heading added by users
@@ -310,11 +312,11 @@ class SectionSkeleton {
       this.parser.context.contains(lastElement, this.headingElement) &&
       lastElement !== this.headingElement
     ) {
-      lastElement = /** @type {ElementLike} */ (lastElement.lastElementChild);
+      lastElement = /** @type {ElementFor<N>} */ (lastElement.lastElementChild);
     }
 
     if (cd.config.reflistTalkClasses.some((name) => lastElement.classList?.contains(name))) {
-      lastElement = /** @type {ElementLike} */ (lastElement.previousElementSibling);
+      lastElement = /** @type {ElementFor<N>} */ (lastElement.previousElementSibling);
     }
 
     return lastElement;
@@ -338,7 +340,7 @@ class SectionSkeleton {
         isText(node) ||
         (
           isElement(node) &&
-          !(isMetadataNode(node) || classesToFilter.some((name) => node.classList.contains(name)))
+          !(isMetadataNode(node) || classesToFilter.some((name) => /** @type {ElementFor<N>} */ (node).classList.contains(name)))
         )
       ))
       .map((node) => node.textContent)
