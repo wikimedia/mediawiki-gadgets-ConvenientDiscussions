@@ -1,71 +1,71 @@
-// Here, we use vanilla JavaScript for recurring operations that together take up a lot of time.
+/* eslint-disable no-useless-concat */
 
+/**
+ * Methods related to parsing a page.
+ *
+ * @module Parser
+ */
+
+import cd from './cd';
 import CommentSkeleton from './CommentSkeleton';
 import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker';
-import ElementsTreeWalker from './ElementsTreeWalker';
-import cd from './cd';
-import { definedAndNotNull, getHeadingLevel, isDomHandlerElement, isElement, isHeadingNode, isInline, isMetadataNode, parseWikiUrl, ucFirst, underlinesToSpaces, unique } from './utils-general';
+import {
+  definedAndNotNull,
+  getHeadingLevel,
+  isDomHandlerElement,
+  isElement,
+  isHeadingNode,
+  isInline,
+  isMetadataNode,
+  parseWikiUrl,
+  ucFirst,
+  underlinesToSpaces,
+  unique,
+} from './utils-general';
 import { parseTimestamp } from './utils-timestamp';
 
 /**
- * @typedef {object} Context
- * @property {Constructor} CommentClass
- * @property {Constructor} SectionClass
- * @property {string} childElementsProp
- * @property {(el1: NodeLike, el2: NodeLike) => boolean} follows
- * @property {() => TextLike[]} getAllTextNodes
- * @property {(el: ElementLike, className: string) => ElementLike | null} getElementByClassName
- * @property {ElementLike} rootElement
- * @property {() => boolean} areThereOutdents
- * @property {(elements: ElementLike[], bootProcess?: import('../BootProcess').default) => void} processAndRemoveDtElements
- * @property {() => void} removeDtButtonHtmlComments
- * @property {(el: ElementLike | null, node: NodeLike) => boolean} contains
- * @property {(parent: ElementLike, node: NodeLike, refNode: NodeLike | null) => unknown} insertBefore
- * @property {(parent: ElementLike, node: NodeLike) => void} appendChild
- * @property {(node: NodeLike) => void} remove
- * @property {(parent: ElementLike, node: NodeLike) => void} removeChild
+ * @typedef {import('./ElementsTreeWalker').default} ElementsTreeWalker
  */
 
 /**
+ * @template {AnyNode} N
  * @typedef {object} HeadingTarget
  * @property {'heading'} type
+ * @property {ElementFor<N>} element
  * @property {boolean} isWrapper
  * @property {number} level
- * @property {ElementLike} element
  */
 
 /**
- * @template {ElementLike} [E=ElementLike]
+ * @template {AnyNode} N
  * @typedef {object} SignatureTarget
  * @property {'signature'} type
- * @property {E} element
- * @property {E} element
- * @property {E} timestampElement
+ * @property {ElementFor<N>} element
+ * @property {ElementFor<N>} timestampElement
  * @property {string} timestampText
  * @property {Date} date
- * @property {E | undefined} authorLink
- * @property {E | undefined} authorTalkLink
+ * @property {ElementFor<N>} authorLink
+ * @property {ElementFor<N>} authorTalkLink
  * @property {string} authorName
  * @property {boolean} isUnsigned
  * @property {boolean} isExtraSignature
- * @property {SignatureTarget[]} extraSignatures
- * @property {CommentSkeleton} [comment]
+ * @property {SignatureTarget<N>[]} extraSignatures
  */
 
 /**
- * @typedef {HeadingTarget|SignatureTarget} Target
+ * @template {AnyNode} N
+ * @typedef {HeadingTarget<N> | SignatureTarget<N>} Target
  */
 
 /**
- * Generalization of a web page (not wikitext) parser for the window and worker contexts. Parsing
- * here means "extracting meaningful parts from the page" such as comments, sections, etc. Functions
- * related to wikitext parsing go in {@link module:wikitext}.
+ * @template {AnyNode} N
  */
 class Parser {
   /** @type {RegExp} */
   static punctuationRegexp;
 
-  /** @type {ElementLike[]} */
+  /** @type {ElementFor<N>[]} */
   noSignatureElements;
 
   /** @type {string[]} */
@@ -74,7 +74,7 @@ class Parser {
   /**
    * Create a page parser in the provided context.
    *
-   * @param {Context} context Collection of classes, functions, and other properties that perform
+   * @param {Context<N>} context Collection of classes, functions, and other properties that perform
    *   the tasks we need in the current context (window or worker).
    */
   constructor(context) {
@@ -86,6 +86,7 @@ class Parser {
    * _For internal use._ Set some properties and find some elements required for parsing.
    */
   init() {
+    const cd = this.context.cd;
     this.rejectClasses = [
       'cd-comment-part',
 
@@ -109,7 +110,7 @@ class Parser {
 
     const classSelector = cd.g.noSignatureClasses.map((name) => `.${name}`).join(', ');
 
-    this.noSignatureElements = /** @type {ElementLike[]} */ ([
+    this.noSignatureElements = /** @type {ElementFor<N>[]} */ ([
       ...this.context.rootElement.querySelectorAll(`${tagSelector}, ${classSelector}`),
     ]);
   }
@@ -117,9 +118,9 @@ class Parser {
   /**
    * Create a comment instance.
    *
-   * @param {SignatureTarget} signature
-   * @param {Target[]} targets
-   * @returns {*}
+   * @param {SignatureTarget<N>} signature
+   * @param {Target<N>[]} targets
+   * @returns {import('../Comment').default<N>}
    */
   createComment(signature, targets) {
     return new this.context.CommentClass(this, signature, targets);
@@ -128,10 +129,10 @@ class Parser {
   /**
    * Create a section instance.
    *
-   * @param {HeadingTarget} heading
-   * @param {Target[]} targets
+   * @param {HeadingTarget<N>} heading
+   * @param {Target<N>[]} targets
    * @param {import('../Subscriptions').default} [subscriptions]
-   * @returns {*}
+   * @returns {import('../Section').default<N>}
    */
   createSection(heading, targets, subscriptions) {
     return new this.context.SectionClass(this, heading, targets, subscriptions);
@@ -181,10 +182,11 @@ class Parser {
    * {@link https://en.wikipedia.org/wiki/User:Alexis_Jazz/Factotum Factotum}.
    *
    * @param {string} text
-   * @param {TextLike} node
+   * @param {TextFor<N>} node
    * @private
    */
   handleFactotumOutdents(text, node) {
+    const cd = this.context.cd;
     if (
       !/^┌─*┘$/.test(text) ||
       (
@@ -218,7 +220,7 @@ class Parser {
 
   /**
    * @typedef {object} Timestamp
-   * @property {ElementLike} element
+   * @property {ElementFor<N>} element
    * @property {Date} date
    * @property {object} [match]
    * @memberof Parser
@@ -228,7 +230,7 @@ class Parser {
   /**
    * Find a timestamp in a text node.
    *
-   * @param {TextLike} node
+   * @param {TextFor<N>} node
    * @returns {?Timestamp}
    * @private
    */
@@ -241,7 +243,7 @@ class Parser {
     const parsedTimestamp = parseTimestamp(text);
     if (
       !parsedTimestamp ||
-      this.noSignatureElements.some((/** @type {ElementLike} */ el) => this.context.contains(el, node))
+      this.noSignatureElements.some((/** @type {ElementFor<N>} */ el) => this.context.contains(el, node))
     ) {
       return null;
     }
@@ -269,24 +271,25 @@ class Parser {
    * @typedef {object} AuthorData
    * @property {string} name
    * @property {boolean} isLastLinkAuthorLink
-   * @property {ElementLike} [notForeignLink]
-   * @property {ElementLike} [talkNotForeignLink]
-   * @property {ElementLike} [contribsNotForeignLink]
-   * @property {ElementLike} [link]
-   * @property {ElementLike} [talkLink]
+   * @property {ElementFor<N>} [notForeignLink]
+   * @property {ElementFor<N>} [talkNotForeignLink]
+   * @property {ElementFor<N>} [contribsNotForeignLink]
+   * @property {ElementFor<N>} [link]
+   * @property {ElementFor<N>} [talkLink]
    */
 
   /**
    * Collect nodes related to a signature starting from a timestamp node.
    *
    * @param {Timestamp} timestamp
-   * @returns {?Omit<SignatureTarget, 'type' | 'extraSignatures'>}
+   * @returns {?Omit<SignatureTarget<N>, 'type' | 'extraSignatures'>}
    * @private
    */
   getSignatureFromTimestamp(timestamp) {
+    const cd = this.context.cd;
     let unsignedElement;
     {
-      let /** @type {ElementLike | null} */ el = timestamp.element;
+      let /** @type {ElementFor<N> | null} */ el = timestamp.element;
       while (!unsignedElement && (el = el.parentElement) && isInline(el) !== false) {
         if (el.classList.contains(cd.config.unsignedClass)) {
           unsignedElement = el;
@@ -299,7 +302,7 @@ class Parser {
     // last. There is no point for us to parse them as distinct comments as a reply posted using our
     // script will go below all of them anyway.
     let isExtraSignature = false;
-    const elementsTreeWalker = new ElementsTreeWalker(this.context.rootElement, timestamp.element);
+    const elementsTreeWalker = new this.context.ElementsTreeWalkerClass(this.context.rootElement, timestamp.element);
     while (
       elementsTreeWalker.previousNode() &&
       (
@@ -319,7 +322,7 @@ class Parser {
 
     let length = 0;
     let firstSignatureElement;
-    /** @type {NodeLike[]} */
+    /** @type {N[]} */
     let signatureNodes = [];
     if (unsignedElement) {
       firstSignatureElement = startElement;
@@ -330,21 +333,21 @@ class Parser {
 
     // Unsigned template may be of the "undated" kind - containing a timestamp but no author name,
     // so we need to walk the tree anyway.
-    let /** @type {ElementLike | TextLike | null} */ node = treeWalker.currentNode;
+    let /** @type {ElementFor<N> | TextFor<N> | null} */ node = treeWalker.currentNode;
     do {
       length += node.textContent.length;
       if (isElement(node)) {
         authorData.isLastLinkAuthorLink = false;
 
         if (node.tagName === 'A') {
-          if (!Parser.processLinkData(node, authorData)) break;
+          if (!this.processLinkData(node, authorData)) break;
         } else {
           const links = [...node.getElementsByTagName('a')].reverse();
           for (const link of links) {
             // https://en.wikipedia.org/wiki/Template:Talkback and similar cases
             if (link.classList.contains('external')) continue;
 
-            Parser.processLinkData(link, authorData);
+            this.processLinkData(link, authorData);
           }
         }
 
@@ -393,7 +396,7 @@ class Parser {
                 /display: *none/.test(node.getAttribute('style') || '') ||
 
                 this.noSignatureElements.some(
-                  (/** @type {ElementLike} */ noSigEl) => noSigEl === node
+                  (/** @type {ElementFor<N>} */ noSigEl) => noSigEl === node
                 )
               )
             )
@@ -429,7 +432,7 @@ class Parser {
     signatureNodes.splice(fseIndex === -1 ? 1 : fseIndex + 1);
 
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const signatureContainer = /** @type {ElementLike} */ (signatureNodes[0].parentElement);
+    const signatureContainer = /** @type {ElementFor<N>} */ (signatureNodes[0].parentElement);
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const startElementNextSibling = signatureNodes[0].nextSibling;
     const element = self.document.createElement('span');
@@ -454,14 +457,15 @@ class Parser {
    * Find outputs of unsigned templates that we weren't able to find using the standard procedure
    * (in which case they are treated as normal signatures).
    *
-   * @returns {Partial<SignatureTarget>[]}
+   * @returns {Partial<SignatureTarget<N>>[]}
    */
   findRemainingUnsigneds() {
+    const cd = this.context.cd;
     if (!cd.config.unsignedClass) {
       return [];
     }
 
-    const unsigneds = /** @type {Partial<SignatureTarget>[]} */ ([]);
+    const unsigneds = /** @type {Partial<SignatureTarget<N>>[]} */ ([]);
     [...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass)]
       .filter((element) => {
         // Only templates with no timestamp interest us.
@@ -471,7 +475,7 @@ class Parser {
 
         // Cases like https://ru.wikipedia.org/?diff=84883816
         for (
-          let /** @type {ElementLike | null} */ el = element;
+          let /** @type {ElementFor<N> | null} */ el = element;
           el && el !== this.context.rootElement;
           el = el.parentElement
         ) {
@@ -484,7 +488,7 @@ class Parser {
       })
       .forEach((element) => {
         [...element.getElementsByTagName('a')].some((link) => {
-          const { userName: authorName, linkType } = Parser.processLink(link) || {};
+          const { userName: authorName, linkType } = this.processLink(link) || {};
           if (authorName) {
             let authorLink;
             let authorTalkLink;
@@ -517,12 +521,12 @@ class Parser {
    *
    * Characters before the author link, like "—", aren't considered a part of the signature.
    *
-   * @returns {SignatureTarget[]}
+   * @returns {SignatureTarget<N>[]}
    */
   findSignatures() {
     // Move extra signatures (additional signatures for a comment, if there is more than one) to an
     // array which then assign to a relevant signature (the one which goes first).
-    let extraSignatures = /** @type {SignatureTarget[]} */ ([]);
+    let extraSignatures = /** @type {SignatureTarget<N>[]} */ ([]);
 
     return this.context.getAllTextNodes()
       .map(this.findTimestamp.bind(this))
@@ -532,7 +536,7 @@ class Parser {
       .concat(this.findRemainingUnsigneds())
       .slice()
       .reverse()
-      .map((sig) => {
+      .map((/** @type {SignatureTarget<N>} */ sig) => {
         if (sig.isExtraSignature) {
           extraSignatures.push(sig);
         } else {
@@ -540,9 +544,9 @@ class Parser {
           extraSignatures = [];
         }
 
-        return { type: 'signature', ...sig };
+        return { ...sig, type: 'signature' };
       })
-      .filter((sig) => !sig.isExtraSignature);
+      .filter((/** @type {SignatureTarget<N>} */ sig) => !sig.isExtraSignature);
   }
 
   /**
@@ -568,10 +572,10 @@ class Parser {
    * {@link https://ru.wikipedia.org/w/index.php?title=Википедия:Форум/Общий&oldid=103760740#201912010211_Mikhail_Ryazanov})
    * It has a branchy structure that requires a tricky algorithm to be parsed correctly.
    *
-   * @param {ElementLike} element
+   * @param {ElementFor<N>} element
    * @param {boolean} [onlyChildrenWithoutCommentLevel=false]
    * @returns {{
-   *   nodes: ElementLike[];
+   *   nodes: ElementFor<N>[];
    *   levelsPassed: number;
    * }}
    */
@@ -588,7 +592,7 @@ class Parser {
       nodes = children;
       children = nodes.reduce(
         (arr, element) => arr.concat([...element[this.context.childElementsProp]]),
-        /** @type {ElementLike[]} */ ([])
+        /** @type {ElementFor<N>[]} */ ([])
       );
       if (['DL', 'UL', 'OL'].includes(nodes[0].tagName)) {
         levelsPassed++;
@@ -618,13 +622,13 @@ class Parser {
   /**
    * _For internal use._ Get all headings on the page.
    *
-   * @returns {HeadingTarget[]}
+   * @returns {HeadingTarget<N>[]}
    */
   findHeadings() {
     return [...this.context.rootElement.querySelectorAll('h1, h2, h3, h4, h5, h6')]
       .map((element) => {
         for (
-          let /** @type {ElementLike | null} */ el = element;
+          let /** @type {ElementFor<N> | null} */ el = element;
           el && el !== this.context.rootElement;
           el = el.parentElement
         ) {
@@ -638,7 +642,7 @@ class Parser {
       .filter(
         (element) =>
           element.getAttribute('id') !== 'mw-toc-heading' &&
-          !this.noSignatureElements.some((/** @type {ElementLike} */ noSigEl) =>
+          !this.noSignatureElements.some((/** @type {ElementFor<N>} */ noSigEl) =>
             this.context.contains(noSigEl, element)
           )
       )
@@ -674,14 +678,14 @@ class Parser {
    * by splitting the parent node of the given node, moving all the following nodes into the second
    * node resulting from the split. If there is no following nodes, don't perform the split.
    *
-   * @param {NodeLike} node Reference node.
+   * @param {N} node Reference node.
    * @returns {{
-   *   parent: ElementLike,
-   *   clone: ElementLike,
+   *   parent: ElementFor<N>,
+   *   clone: ElementFor<N>,
    * }} The parent nodes resultant from the split (at least one).
    */
   splitParentAfterNode(node) {
-    const parent = /** @type {ElementLike} */ (node.parentElement);
+    const parent = /** @type {ElementFor<N>} */ (node.parentElement);
 
     // TypeScript things...
     const clone = isDomHandlerElement(parent)
@@ -690,7 +694,7 @@ class Parser {
 
     let lastChild;
     while ((lastChild = parent.lastChild) && lastChild !== node) {
-      this.context.insertBefore(clone, lastChild, /** @type {NodeLike} */ (clone.firstChild));
+      this.context.insertBefore(clone, lastChild, /** @type {N} */ (clone.firstChild));
     }
     if (clone[this.context.childElementsProp].length > 0 && parent.parentElement) {
       this.context.insertBefore(parent.parentElement, clone, parent.nextSibling);
@@ -714,10 +718,11 @@ class Parser {
   /**
    * _For internal use._ Get a user name from a link, along with some other data about a page name.
    *
-   * @param {ElementLike} element
+   * @param {ElementFor<N>} element
    * @returns {?ProcessLinkReturn}
    */
-  static processLink(element) {
+  processLink(element) {
+    const cd = this.context.cd;
     const href = element.getAttribute('href');
     let userName;
     /** @type {LinkType} */
@@ -784,12 +789,12 @@ class Parser {
    * Given a link node, enrich the author data and return a boolean denoting whether the node is a
    * part of the signature.
    *
-   * @param {ElementLike} link
+   * @param {ElementFor<N>} link
    * @param {AuthorData} authorData
    * @returns {boolean}
    * @private
    */
-  static processLinkData(link, authorData) {
+  processLinkData(link, authorData) {
     const result = this.processLink(link);
     if (result) {
       const { userName, linkType } = result;
@@ -852,12 +857,12 @@ class Parser {
   /**
    * Get a nesting level of an element relative to the root element.
    *
-   * @param {ElementLike} element
+   * @param {ElementFor<N>} element
    * @returns {number}
    */
   getNestingLevel(element) {
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const treeWalker = new ElementsTreeWalker(this.context.rootElement, element);
+    const treeWalker = new this.context.ElementsTreeWalkerClass(this.context.rootElement, element);
     let nestingLevel = 0;
     while (treeWalker.parentNode()) {
       nestingLevel++;
