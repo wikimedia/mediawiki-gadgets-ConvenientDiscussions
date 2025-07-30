@@ -889,7 +889,7 @@ class CommentForm extends EventEmitter {
    * @private
    */
   createButtons() {
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+     
     const modeToSubmitButtonMessageName = /** @type {{ [key: string]: string }} */ ({
       edit: 'save',
       addSection: 'addtopic',
@@ -1088,7 +1088,7 @@ class CommentForm extends EventEmitter {
   async addToolbar(requestedModulesNames) {
     if (!this.showToolbar || !mw.loader.getState('ext.wikiEditor')) return;
 
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+     
     const $toolbarPlaceholder = $('<div>')
       .addClass('cd-toolbarPlaceholder')
       .insertBefore(this.commentInput.$element);
@@ -1100,7 +1100,7 @@ class CommentForm extends EventEmitter {
     const $input = this.commentInput.$input;
 
     const wikiEditorModule = mw.loader.moduleRegistry['ext.wikiEditor'];
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+     
     const toolbarConfig = wikiEditorModule.packageExports['jquery.wikiEditor.toolbar.config.js'];
     $input.wikiEditor('addModule', toolbarConfig);
     const dialogsConfig = wikiEditorModule.packageExports['jquery.wikiEditor.dialogs.config.js'];
@@ -1526,7 +1526,7 @@ class CommentForm extends EventEmitter {
       let code = await preloadPage.loadCode();
       if (!code) return;
 
-      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+       
       const regexp = generateTagsRegexp(['onlyinclude']);
       let match;
       let onlyInclude;
@@ -1592,7 +1592,7 @@ class CommentForm extends EventEmitter {
     const element = /** @type {HTMLInputElement} */ (this.commentInput.$input[0]);
     const computedStyle = window.getComputedStyle(element);
     const $span = $('<span>');
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+     
     const $div = $('<div>')
       .text(element.value.substring(0, this.commentInput.getRange().to))
       .css({
@@ -1715,7 +1715,7 @@ class CommentForm extends EventEmitter {
         'mediawiki.ForeignStructuredUpload.BookletLayout',
         'mediawiki.widgets',
       ]);
-    } catch (error) {
+    } catch {
       mw.notify(cd.s('cf-error-uploadimage'), { type: 'error' });
       this.popPending();
       return;
@@ -3893,14 +3893,14 @@ class CommentForm extends EventEmitter {
   }) {
     const range = this.commentInput.getRange();
     const selectionStartIndex = Math.min(range.from, range.to);
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+     
     const selectionEndIndex = Math.max(range.from, range.to);
     const value = this.commentInput.getValue();
     const leadingNewline =
       ownline && !/(^|\n)$/.test(value.slice(0, selectionStartIndex)) && !/^\n/.test(peri)
         ? '\n'
         : '';
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+     
     const trailingNewline =
       ownline && !/^\n/.test(value.slice(selectionEndIndex)) && !/\n$/.test(post)
         ? '\n'
@@ -4407,7 +4407,7 @@ class CommentForm extends EventEmitter {
   static extractCommentIds(code) {
     // Russian Wikipedia's Wikificator may mangle these links, replacing `_` with ` `, so we search
     // for both characters.
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+     
     const idRegexp = /\[\[#(\d{12}[_ ][^|\]]+)/g;
 
     const ids = [];

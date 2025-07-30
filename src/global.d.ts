@@ -151,16 +151,16 @@ declare global {
   type TextControl = GenericControl<'text'>;
 
   interface ControlTypeToWidget {
-    'radio': OO.ui.RadioSelectWidget;
-    'text': TextInputWidget;
-    'multilineText': OO.ui.MultilineTextInputWidget;
-    'number': OO.ui.TextInputWidget;
-    'checkbox': CheckboxInputWidget;
-    'multitag': OO.ui.TagMultiselectWidget;
-    'multicheckbox': OO.ui.CheckboxMultiselectWidget;
-    'button': OO.ui.ButtonWidget;
-    'copyText': OO.ui.TextInputWidget;
-    'title': mw.widgets.TitleInputWidget;
+    radio: OO.ui.RadioSelectWidget;
+    text: TextInputWidget;
+    multilineText: OO.ui.MultilineTextInputWidget;
+    number: OO.ui.TextInputWidget;
+    checkbox: CheckboxInputWidget;
+    multitag: OO.ui.TagMultiselectWidget;
+    multicheckbox: OO.ui.CheckboxMultiselectWidget;
+    button: OO.ui.ButtonWidget;
+    copyText: OO.ui.TextInputWidget;
+    title: mw.widgets.TitleInputWidget;
   }
 
   interface Window {
@@ -213,24 +213,6 @@ declare global {
     cdMarginRight: number;
     cdCallback?: Function;
     cdInput?: OO.ui.TextInputWidget;
-
-    // Exclude `null` which is not done in the native lib
-    textContent: string;
-  }
-
-  interface Text {
-    // Exclude `null` which is not done in the native lib
-    textContent: string;
-  }
-
-  interface Comment {
-    // Exclude `null` which is not done in the native lib
-    textContent: string;
-  }
-
-  interface ChildNode {
-    // Exclude `null` which is not done in the native lib
-    textContent: string;
   }
 
   namespace mw {
