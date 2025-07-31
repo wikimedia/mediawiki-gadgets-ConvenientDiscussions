@@ -784,7 +784,7 @@ class Thread extends mixInObject(
     const button = new Button({
       tooltip: cd.s('thread-expand-tooltip', cd.g.cmdModifier),
       action: this.onToggleClick.bind(this),
-      element: element,
+      element,
       buttonElement: /** @type {HTMLElement} */ (element.firstChild),
       labelElement: /** @type {HTMLElement} */ (element.querySelector('.oo-ui-labelElement-label')),
     });
@@ -792,7 +792,7 @@ class Thread extends mixInObject(
     const userList = usersInThread
       .map((author) => author.getName())
       .join(cd.mws('comma-separator'));
-    const setLabel = (genderless) => {
+    const setLabel = (/** @type {boolean} */ genderless) => {
       button.setLabel(
         cd.s(
           genderless ? 'thread-expand-label-genderless' : 'thread-expand-label',

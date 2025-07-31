@@ -863,11 +863,9 @@ class Comment extends CommentSkeleton {
       this.menuElement.appendChild(this.replyButton.element);
     } else {
       this.replyButton = new CommentButton({
-        buttonElement: Comment.prototypes.get('replyButton'),
+        buttonElement: this.createReplyButton().$element[0],
         action,
-        widgetConstructor: /** @type {() => OO.ui.ButtonWidget} */ (
-          Comment.prototypes.getWidget('replyButton')
-        ),
+        widgetConstructor: this.createReplyButton.bind(this),
       });
       this.overlayMenu.appendChild(this.replyButton.element);
     }
@@ -917,11 +915,9 @@ class Comment extends CommentSkeleton {
       this.menuElement.appendChild(this.editButton.element);
     } else {
       this.editButton = new CommentButton({
-        buttonElement: Comment.prototypes.get('editButton'),
+        buttonElement: this.createEditButton().$element[0],
         action,
-        widgetConstructor: /** @type {() => OO.ui.ButtonWidget} */ (
-          Comment.prototypes.getWidget('editButton')
-        ),
+        widgetConstructor: this.createEditButton.bind(this),
       });
       this.overlayMenu.appendChild(this.editButton.element);
     }
@@ -957,11 +953,9 @@ class Comment extends CommentSkeleton {
       this.menuElement.appendChild(this.thankButton.element);
     } else {
       this.thankButton = new CommentButton({
-        buttonElement: Comment.prototypes.get('thankButton'),
+        buttonElement: this.createThankButton().$element[0],
         action,
-        widgetConstructor: /** @type {() => OO.ui.ButtonWidget} */ (
-          Comment.prototypes.getWidget('thankButton')
-        ),
+        widgetConstructor: this.createThankButton.bind(this),
       });
       this.overlayMenu.appendChild(this.thankButton.element);
     }
@@ -981,11 +975,9 @@ class Comment extends CommentSkeleton {
     if (!this.id || this.isReformatted()) return;
 
     this.copyLinkButton = new CommentButton({
-      buttonElement: Comment.prototypes.get('copyLinkButton'),
+      buttonElement: this.createCopyLinkButton().$element[0],
       action: this.copyLink.bind(this),
-      widgetConstructor: /** @type {() => OO.ui.ButtonWidget} */ (
-        Comment.prototypes.getWidget('copyLinkButton')
-      ),
+      widgetConstructor: this.createCopyLinkButton.bind(this),
       href: this.dtId && '#' + this.dtId,
     });
     this.overlayMenu.appendChild(this.copyLinkButton.element);
@@ -1018,11 +1010,9 @@ class Comment extends CommentSkeleton {
       this.headerElement.appendChild(this.goToParentButton.element);
     } else {
       this.goToParentButton = new CommentButton({
-        buttonElement: Comment.prototypes.get('goToParentButton'),
+        buttonElement: this.createGoToParentButton().$element[0],
         action,
-        widgetConstructor: /** @type {() => OO.ui.ButtonWidget} */ (
-          Comment.prototypes.getWidget('goToParentButton')
-        ),
+        widgetConstructor: this.createGoToParentButton.bind(this),
       });
       this.overlayMenu.appendChild(this.goToParentButton.element);
     }
@@ -1065,12 +1055,10 @@ class Comment extends CommentSkeleton {
           (this.goToParentButton?.element || this.timestampElement)?.nextSibling
         );
       } else if (this.$overlayMenu) {
-        const buttonElement = Comment.prototypes.get('goToChildButton');
+        const buttonElement = this.createGoToChildButton().$element[0];
         this.goToChildButton = new CommentButton({
           element: buttonElement,
-          widgetConstructor: /** @type {() => OO.ui.ButtonWidget} */ (
-            Comment.prototypes.getWidget('goToChildButton')
-          ),
+          widgetConstructor: this.createGoToChildButton.bind(this),
           action,
         });
         this.$overlayMenu.prepend(buttonElement);
@@ -4338,17 +4326,99 @@ class Comment extends CommentSkeleton {
     return Boolean(this.date);
   }
 
+  /**
+   * Create a reply button.
+   *
+   * @returns {OO.ui.ButtonWidget}
+   */
+  createReplyButton() {
+    return new OO.ui.ButtonWidget({
+      label: cd.s('cm-reply'),
+      framed: false,
+      classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
+    });
+  }
+
+  /**
+   * Create an edit button.
+   *
+   * @returns {OO.ui.ButtonWidget}
+   */
+  createEditButton() {
+    return new OO.ui.ButtonWidget({
+      label: cd.s('cm-edit'),
+      framed: false,
+      classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
+    });
+  }
+
+  /**
+   * Create a thank button.
+   *
+   * @returns {OO.ui.ButtonWidget}
+   */
+  createThankButton() {
+    return new OO.ui.ButtonWidget({
+      label: cd.s('cm-thank'),
+      title: cd.s('cm-thank-tooltip'),
+      framed: false,
+      classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
+    });
+  }
+
+  /**
+   * Create a copy link button.
+   *
+   * @returns {OO.ui.ButtonWidget}
+   */
+  createCopyLinkButton() {
+    return new OO.ui.ButtonWidget({
+      label: cd.s('cm-copylink'),
+      icon: 'link',
+      title: cd.s('cm-copylink-tooltip'),
+      framed: false,
+      invisibleLabel: true,
+      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
+    });
+  }
+
+  /**
+   * Create a "Go to parent" button.
+   *
+   * @returns {OO.ui.ButtonWidget}
+   */
+  createGoToParentButton() {
+    return new OO.ui.ButtonWidget({
+      label: cd.s('cm-gotoparent'),
+      icon: 'upTriangle',
+      title: cd.s('cm-gotoparent-tooltip'),
+      framed: false,
+      invisibleLabel: true,
+      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
+    });
+  }
+
+  /**
+   * Create a "Go to child" button.
+   *
+   * @returns {OO.ui.ButtonWidget}
+   */
+  createGoToChildButton() {
+    return new OO.ui.ButtonWidget({
+      label: cd.s('cm-gotochild'),
+      icon: 'downTriangle',
+      title: cd.s('cm-gotochild-tooltip'),
+      framed: false,
+      invisibleLabel: true,
+      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
+    });
+  }
+
   /** @type {PrototypeRegistry<{
    *   headerWrapperElement: HTMLElement,
    *   goToParentButtonSvg: HTMLElement,
    *   collapseChildThreadsButtonSvg: HTMLElement,
    *   expandChildThreadsButtonSvg: HTMLElement,
-   *   replyButton: OO.ui.ButtonWidget,
-   *   editButton: OO.ui.ButtonWidget,
-   *   thankButton: OO.ui.ButtonWidget,
-   *   copyLinkButton: OO.ui.ButtonWidget,
-   *   goToParentButton: OO.ui.ButtonWidget,
-   *   goToChildButton: OO.ui.ButtonWidget,
    *   underlay: HTMLElement,
    *   overlay: HTMLElement,
    * }>} */
@@ -4442,80 +4512,6 @@ class Comment extends CommentSkeleton {
       this.prototypes.add(
         'expandChildThreadsButtonSvg',
         createSvg(16, 16, 20, 20).html(`<path d="M11 9V4H9v5H4v2h5v5h2v-5h5V9z" />`)[0]
-      );
-    }
-
-    /* OOUI buttons. Creating every OOUI button using the constructor takes 15 times longer than
-    cloning */
-    if (settings.get('reformatComments') !== true) {
-      this.prototypes.addWidget(
-        'replyButton',
-        () =>
-          new OO.ui.ButtonWidget({
-            label: cd.s('cm-reply'),
-            framed: false,
-            classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
-          })
-      );
-
-      this.prototypes.addWidget(
-        'editButton',
-        () =>
-          new OO.ui.ButtonWidget({
-            label: cd.s('cm-edit'),
-            framed: false,
-            classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
-          })
-      );
-
-      this.prototypes.addWidget(
-        'thankButton',
-        () =>
-          new OO.ui.ButtonWidget({
-            label: cd.s('cm-thank'),
-            title: cd.s('cm-thank-tooltip'),
-            framed: false,
-            classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
-          })
-      );
-
-      this.prototypes.addWidget(
-        'copyLinkButton',
-        () =>
-          new OO.ui.ButtonWidget({
-            label: cd.s('cm-copylink'),
-            icon: 'link',
-            title: cd.s('cm-copylink-tooltip'),
-            framed: false,
-            invisibleLabel: true,
-            classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
-          })
-      );
-
-      this.prototypes.addWidget(
-        'goToParentButton',
-        () =>
-          new OO.ui.ButtonWidget({
-            label: cd.s('cm-gotoparent'),
-            icon: 'upTriangle',
-            title: cd.s('cm-gotoparent-tooltip'),
-            framed: false,
-            invisibleLabel: true,
-            classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
-          })
-      );
-
-      this.prototypes.addWidget(
-        'goToChildButton',
-        () =>
-          new OO.ui.ButtonWidget({
-            label: cd.s('cm-gotochild'),
-            icon: 'downTriangle',
-            title: cd.s('cm-gotochild-tooltip'),
-            framed: false,
-            invisibleLabel: true,
-            classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
-          })
       );
     }
 
