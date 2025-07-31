@@ -1,14 +1,16 @@
 /**
- * Class for keeping prototypes - skeletons of elements to be cloned instead of creating a new one
- * from scratch (which is often expensive).
+ * Class for storing prototypes - skeletons/drafts of elements to be cloned instead of creating a
+ * new one from scratch (which is often expensive). Also, functions that instantiate widgets with
+ * certain characteristics (e.g. OOUI) may be stored.
  *
- * @template {{ [key: string]: any }} T - Map of string keys to prototype types
+ * @template {{ [id: string]: any }} T Map of IDs to prototype types.
+ * @template {{ [id: string]: () => any }} U Map of IDs to widget types.
  */
 class PrototypeRegistry {
-  /** @type {{ [key: string]: HTMLElement }} */
+  /** @type {T} */
   elements = {};
 
-  /** @type {{ [key: string]: () => OO.ui.Widget }} */
+  /** @type {U} */
   widgets = {};
 
   /**
@@ -25,7 +27,7 @@ class PrototypeRegistry {
    * Add a widget intended for creation of an object with certain characteristics (e.g. OOUI).
    *
    * @param {string} id
-   * @param {() => OO.ui.Widget} widget
+   * @param {() => any} widget
    */
   addWidget(id, widget) {
     this.widgets[id] = widget;

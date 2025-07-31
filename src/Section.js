@@ -21,13 +21,62 @@ import { handleApiReject } from './utils-api';
 import { getRangeContents } from './utils-window';
 
 /**
- * A section.
+ * A section in the browser context (as opposed to the worker context, see {@link SectionWorker}).
  *
  * @augments {SectionSkeleton<Node>}
  */
 class Section extends SectionSkeleton {
   /** @readonly */
   TYPE = 'section';
+
+  /**
+   * @type {import('./Comment').default[]}
+   * @override
+   */
+  comments = this.comments;
+
+  /**
+   * @type {import('./Comment').default[]}
+   * @override
+   */
+  commentsInFirstChunk = this.commentsInFirstChunk;
+
+  /**
+   * @type {HTMLElement}
+   * @override
+   */
+  lastElement = this.lastElement;
+
+  /**
+   * @type {HTMLElement}
+   * @override
+   */
+  lastElementInFirstChunk = this.lastElementInFirstChunk;
+
+  /**
+   * @type {?import('./Comment').default}
+   * @override
+   */
+  oldestComment = this.oldestComment;
+
+  /**
+   * @type {HTMLElement}
+   * @override
+   */
+  headingElement = this.headingElement;
+
+  /**
+   * @type {HTMLElement}
+   * @protected
+   * @override
+   */
+  hElement = this.hElement;
+
+  /**
+   * @type {HTMLElement}
+   * @override
+   */
+  headlineElement = this.headlineElement;
 
   /**
    * User for polymorphism with Comment.
@@ -119,6 +168,19 @@ class Section extends SectionSkeleton {
    */
   authorsPopup;
 
+  /**
+   * Section actions object. It contains widgets (buttons, menus) triggering the actions of the
+   * section.
+   *
+   * @type {{
+   *   copyLinkButton?: Button,
+   *   moreMenuSelectDummy?: Button,
+   *   moreMenuSelect?: OO.ui.ButtonMenuSelectWidget,
+   *   subscribeButton?: OO.ui.ButtonWidget,
+   * }}
+   */
+  actions;
+
   /** @type {HTMLElement} */
   actionsElement;
 
@@ -135,45 +197,6 @@ class Section extends SectionSkeleton {
    */
   constructor(parser, heading, targets, subscriptions) {
     super(parser, heading, targets);
-
-    // These are no-op workarounds to refine the type of overriden props of the parent class.
-    /**
-     * @see SectionSkeleton#commentsInFirstChunk
-     */
-    this.commentsInFirstChunk = /** @type {import('./Comment').default[]} */ (this.commentsInFirstChunk);
-    /**
-     * @see SectionSkeleton#lastElement
-     */
-    this.lastElement = /** @type {HTMLElement} */ (this.lastElement);
-    /**
-     * @see SectionSkeleton#lastElementInFirstChunk
-     */
-    this.lastElementInFirstChunk = /** @type {HTMLElement} */ (this.lastElementInFirstChunk);
-    /**
-     * @see SectionSkeleton#comments
-     */
-    this.comments = /** @type {import('./Comment').default[]} */ (this.comments);
-    /**
-     * @see SectionSkeleton#oldestComment
-     */
-    this.oldestComment = /** @type {?import('./Comment').default} */ (this.oldestComment);
-    /**
-     * @see SectionSkeleton#headingElement
-     */
-    this.headingElement = /** @type {HTMLElement} */ (this.headingElement);
-
-    /**
-     * @protected
-     * @see SectionSkeleton#hElement
-     */
-    this.hElement = /** @type {HTMLElement} */ (this.hElement);
-
-    /**
-     * @type {HTMLElement}
-     * @protected
-     * @see SectionSkeleton#headlineElement
-     */
-    this.headlineElement = /** @type {HTMLElement} */ (this.headlineElement);
 
     this.subscriptions = subscriptions;
 
@@ -241,14 +264,14 @@ class Section extends SectionSkeleton {
     /**
      * Headline element as a jQuery object.
      *
-     * @type {JQuery}
+     * @type {JQuery<HTMLElement>}
      */
     this.$headline = $(this.headlineElement);
 
     /**
      * Heading element as a jQuery element.
      *
-     * @type {JQuery}
+     * @type {JQuery<HTMLElement>}
      */
     this.$heading = $(this.headingElement);
 
@@ -724,7 +747,7 @@ class Section extends SectionSkeleton {
         $link: $('<a>')
           .text(author.getName())
           .attr('href', `#${comments[0].dtId || comments[0].id}`)
-          .on('click', Comment.scrollToFirstFlashAll.bind(Comment, comments)),
+          .on('click', () => Comment.scrollToFirstFlashAll(comments)),
       }));
 
     /**
@@ -1112,17 +1135,6 @@ class Section extends SectionSkeleton {
      */
     this.$actions = $(actionsElement);
 
-    /**
-     * Section actions object. It contains widgets (buttons, menus) triggering the actions of the
-     * section.
-     *
-     * @type {{
-     *   copyLinkButton?: Button,
-     *   moreMenuSelectDummy?: Button,
-     *   moreMenuSelect?: OO.ui.ButtonMenuSelectWidget,
-     *   subscribeButton?: OO.ui.ButtonWidget,
-     * }}
-     */
     this.actions = {
       /**
        * Copy link button widget in the {@link Section#actionsElement actions element}.
@@ -1799,6 +1811,7 @@ class Section extends SectionSkeleton {
     const sectionHeadingRegexp = /^((=+)(.*)\2[ \t\x01\x02]*)\n/gm;
 
     const sourcesWithScores = [];
+    /** @type {string[]} */
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const headlines = [];
     let sectionIndex = -1;
@@ -2233,7 +2246,12 @@ class Section extends SectionSkeleton {
     delete this.queryTimestamp;
   }
 
-  /** @type {PrototypeRegistry<{ replyButton: HTMLElement, addSubsectionButton: HTMLElement, copyLinkButton: HTMLElement, moreMenuSelect: () => OO.ui.Widget }>} */
+  /** @type {PrototypeRegistry<{
+   *  replyButton: HTMLElement;
+   *  addSubsectionButton: HTMLElement;
+   *  copyLinkButton: HTMLElement;
+   *  moreMenuSelect: () => OO.ui.Widget;
+   * }>} */
   static prototypes = new PrototypeRegistry();
 
   /**
@@ -2277,18 +2295,20 @@ class Section extends SectionSkeleton {
       }).$element[0]
     );
 
-    this.prototypes.addWidget('moreMenuSelect', () => (
-      new OO.ui.ButtonMenuSelectWidget({
-        framed: false,
-        icon: 'ellipsis',
-        label: cd.s('sm-more'),
-        invisibleLabel: true,
-        title: cd.s('sm-more'),
-        menu: {
-          horizontalPosition: 'end',
-        },
-        classes: ['cd-section-bar-button', 'cd-section-bar-moremenu'],
-      }))
+    this.prototypes.addWidget(
+      'moreMenuSelect',
+      () =>
+        new OO.ui.ButtonMenuSelectWidget({
+          framed: false,
+          icon: 'ellipsis',
+          label: cd.s('sm-more'),
+          invisibleLabel: true,
+          title: cd.s('sm-more'),
+          menu: {
+            horizontalPosition: 'end',
+          },
+          classes: ['cd-section-bar-button', 'cd-section-bar-moremenu'],
+        })
     );
   }
 }
