@@ -257,7 +257,6 @@ declare global {
   type AnyElement = import('domhandler').Element | globalThis.Element;
 
   type ElementFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Element : Element;
-
   type TextFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Text : Text;
 
   interface ParsingContext<T extends AnyNode> {

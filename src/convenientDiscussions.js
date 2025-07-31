@@ -260,6 +260,7 @@ const convenientDiscussions = {
    */
   debug,
 
+  /** @type {{ [key: string]: any }} */
   tests: {},
 
   /**

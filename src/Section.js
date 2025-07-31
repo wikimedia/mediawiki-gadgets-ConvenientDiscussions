@@ -169,6 +169,7 @@ class Section extends SectionSkeleton {
     this.hElement = /** @type {HTMLElement} */ (this.hElement);
 
     /**
+     * @type {HTMLElement}
      * @protected
      * @see SectionSkeleton#headlineElement
      */
@@ -1602,6 +1603,9 @@ class Section extends SectionSkeleton {
       return;
     }
 
+    /**
+     * @type {Partial<SectionSkeleton<Node>}
+     */
     const oldSectionDummy = {
       headlineElement: $('<span>').html(
         $(
@@ -2229,6 +2233,7 @@ class Section extends SectionSkeleton {
     delete this.queryTimestamp;
   }
 
+  /** @type {PrototypeRegistry<{ replyButton: HTMLElement, addSubsectionButton: HTMLElement, copyLinkButton: HTMLElement, moreMenuSelect: () => OO.ui.Widget }>} */
   static prototypes = new PrototypeRegistry();
 
   /**

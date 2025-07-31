@@ -27,6 +27,7 @@
     "url": "https://phabricator.wikimedia.org/tag/convenient-discussions/"
   },
   "homepage": "https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/Convenient_Discussions",
+  "type": "module",
   "dependencies": {
     "date-fns": "^2.22.1",
     "date-fns-tz": "^1.1.4",

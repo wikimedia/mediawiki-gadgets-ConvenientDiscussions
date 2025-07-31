@@ -4338,6 +4338,20 @@ class Comment extends CommentSkeleton {
     return Boolean(this.date);
   }
 
+  /** @type {PrototypeRegistry<{
+   *   headerWrapperElement: HTMLElement,
+   *   goToParentButtonSvg: HTMLElement,
+   *   collapseChildThreadsButtonSvg: HTMLElement,
+   *   expandChildThreadsButtonSvg: HTMLElement,
+   *   replyButton: OO.ui.ButtonWidget,
+   *   editButton: OO.ui.ButtonWidget,
+   *   thankButton: OO.ui.ButtonWidget,
+   *   copyLinkButton: OO.ui.ButtonWidget,
+   *   goToParentButton: OO.ui.ButtonWidget,
+   *   goToChildButton: OO.ui.ButtonWidget,
+   *   underlay: HTMLElement,
+   *   overlay: HTMLElement,
+   * }>} */
   static prototypes = new PrototypeRegistry();
 
   /**

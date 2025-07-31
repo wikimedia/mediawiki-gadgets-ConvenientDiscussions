@@ -193,7 +193,7 @@ class Subscriptions extends EventEmitter {
    * keys instead of array elements, to store it.
    *
    * @param {string[]} arr Array of section IDs.
-   * @returns {object[]}
+   * @returns {SubscriptionsData}
    */
   itemsToKeys(arr) {
     return Object.assign({}, ...arr.map((page) => ({ [page]: true })));
