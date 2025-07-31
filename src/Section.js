@@ -126,10 +126,10 @@ class Section extends SectionSkeleton {
    * Create a section object.
    *
    * @param {import('./shared/Parser').default<Node>} parser
-   * @param {import('./shared/Parser').HeadingTarget<Node>} heading Heading object returned by
+   * @param {import('./shared/Parser').HeadingTarget<Element>} heading Heading object returned by
    *   {@link Parser#findHeadings}.
-   * @param {import('./shared/Parser').Target<Node>[]} targets Sorted target objects returned by
-   *   {@link Parser#findSignatures} + {@link Parser#findHeadings}.
+   * @param {import('./shared/Parser').Target<Element>[]} targets Sorted target objects returned by
+   *   returned by {@link Parser#findSignatures} + {@link Parser#findHeadings}.
    * @param {import('./Subscriptions').default} subscriptions
    * @throws {CdError}
    */
@@ -203,6 +203,9 @@ class Section extends SectionSkeleton {
       /** @type {import('./Page').default} */ (pageRegistry.get(this.sourcePageName)) :
       cd.page;
 
+    /**
+     * @type {?string}
+     */
     this.sourcePageName = null;
 
     /**
@@ -1112,7 +1115,12 @@ class Section extends SectionSkeleton {
      * Section actions object. It contains widgets (buttons, menus) triggering the actions of the
      * section.
      *
-     * @type {object}
+     * @type {{
+     *   copyLinkButton?: Button,
+     *   moreMenuSelectDummy?: Button,
+     *   moreMenuSelect?: OO.ui.ButtonMenuSelectWidget,
+     *   subscribeButton?: OO.ui.ButtonWidget,
+     * }}
      */
     this.actions = {
       /**

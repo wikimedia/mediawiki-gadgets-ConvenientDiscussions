@@ -9,7 +9,6 @@ import WorkerCommentWorker from '../worker/CommentWorker';
 import WorkerSectionWorker from '../worker/SectionWorker';
 import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
 import CommentSkeleton from './CommentSkeleton';
-import ElementsTreeWalker from './ElementsTreeWalker';
 import SectionSkeleton from './SectionSkeleton';
 
 declare global {
@@ -255,6 +254,7 @@ declare global {
   interface SectionWorker extends WorkerSectionWorker {}
 
   type AnyNode = import('domhandler').Node | globalThis.Node;
+  type AnyElement = import('domhandler').Element | globalThis.Element;
 
   type ElementFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Element : Element;
 
@@ -264,7 +264,6 @@ declare global {
     // Classes
     CommentClass: typeof CommentSkeleton<T>;
     SectionClass: typeof SectionSkeleton<T>;
-    ElementsTreeWalkerClass: new (root: ElementFor<T>, currentNode?: T) => ElementsTreeWalker<T>;
 
     // Properties
     childElementsProp: string;

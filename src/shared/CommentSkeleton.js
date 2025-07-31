@@ -65,7 +65,7 @@ class CommentSkeleton {
    * Create a comment skeleton instance.
    *
    * @param {import('./Parser').default<N>} parser
-   * @param {import('./Parser').SignatureTarget<N>} signature Signature object returned by
+   * @param {import('./Parser').SignatureTarget<ElementFor<N>>} signature Signature object returned by
    *   {@link Parser#findSignatures}.
    * @param {import('./Parser').Target<N>[]} targets
    * @throws {CdError}
@@ -119,7 +119,7 @@ class CommentSkeleton {
 
     // Identify all comment nodes and save a path to them. The parameter is the heading element
     // preceding the comment.
-    this.collectParts(this.followsHeading ? /** @type {import('./Parser').HeadingTarget<N>} */ (targets[signatureIndex - 1]).element : undefined);
+    this.collectParts(this.followsHeading ? /** @type {import('./Parser').HeadingTarget<ElementFor<N>>} */ (targets[signatureIndex - 1]).element : undefined);
 
     // Remove parts contained by other parts.
     this.removeNestedParts();
@@ -168,7 +168,7 @@ class CommentSkeleton {
     /**
      * Additional signatures in this comment (that go after the "official" signature).
      *
-     * @type {import('./Parser.js').SignatureTarget<N>[]}
+     * @type {import('./Parser.js').SignatureTarget<ElementFor<N>>[]}
      */
     this.extraSignatures = signature.extraSignatures;
 
