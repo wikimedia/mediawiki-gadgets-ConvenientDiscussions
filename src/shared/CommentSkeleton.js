@@ -67,7 +67,7 @@ class CommentSkeleton {
    * @param {import('./Parser').default<N>} parser
    * @param {import('./Parser').SignatureTarget<ElementFor<N>>} signature Signature object returned by
    *   {@link Parser#findSignatures}.
-   * @param {import('./Parser').Target<N>[]} targets
+   * @param {import('./Parser').Target<ElementFor<N>>[]} targets
    * @throws {CdError}
    */
   constructor(parser, signature, targets) {

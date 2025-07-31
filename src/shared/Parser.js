@@ -9,6 +9,7 @@
 import cd from './cd';
 import CommentSkeleton from './CommentSkeleton';
 import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker';
+import ElementsTreeWalker from './ElementsTreeWalker';
 import {
   definedAndNotNull,
   getHeadingLevel,
@@ -51,6 +52,7 @@ import { parseTimestamp } from './utils-timestamp';
  * @property {boolean} isUnsigned
  * @property {boolean} isExtraSignature
  * @property {SignatureTarget<E>[]} extraSignatures
+ * @property {CommentSkeleton<E>} [comment]
  */
 
 /**
@@ -303,7 +305,7 @@ class Parser {
     // last. There is no point for us to parse them as distinct comments as a reply posted using our
     // script will go below all of them anyway.
     let isExtraSignature = false;
-    const elementsTreeWalker = new this.context.ElementsTreeWalkerClass(this.context.rootElement, timestamp.element);
+    const elementsTreeWalker = new ElementsTreeWalker(this.context.rootElement, timestamp.element);
     while (
       elementsTreeWalker.previousNode() &&
       (
@@ -861,7 +863,7 @@ class Parser {
    */
   getNestingLevel(element) {
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const treeWalker = new this.context.ElementsTreeWalkerClass(this.context.rootElement, element);
+    const treeWalker = new ElementsTreeWalkerClass(this.context.rootElement, element);
     let nestingLevel = 0;
     while (treeWalker.parentNode()) {
       nestingLevel++;

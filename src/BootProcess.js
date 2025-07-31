@@ -147,7 +147,7 @@ class BootProcess {
   /** @type {boolean} */
   firstRun;
 
-  /** @type {Parser<Element>} */
+  /** @type {Parser<Node>} */
   parser;
 
   /** @type {import('./shared/Parser').Target<Element>[]} */

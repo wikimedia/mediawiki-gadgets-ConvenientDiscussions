@@ -71,9 +71,9 @@ export default class CommentWorker extends CommentSkeleton {
    * Create a comment worker instance.
    *
    * @param {import('../shared/Parser').default<import('domhandler').Node>} parser
-   * @param {import('../shared/Parser').SignatureTarget<import('domhandler').Node>} signature
+   * @param {import('../shared/Parser').SignatureTarget<import('domhandler').Element>} signature
    *   Signature object returned by {@link Parser#findSignatures}.
-   * @param {import('../shared/Parser').Target<import('domhandler').Node>[]} targets
+   * @param {import('../shared/Parser').Target<import('domhandler').Element>[]} targets
    * @throws {CdError}
    */
   constructor(parser, signature, targets) {
