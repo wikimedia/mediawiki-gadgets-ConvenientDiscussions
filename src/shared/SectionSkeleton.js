@@ -78,7 +78,7 @@ class SectionSkeleton {
    * Create a section skeleton instance.
    *
    * @param {import('./Parser').default<N>} parser
-   * @param {import('./Parser').HeadingTarget<N>} heading
+   * @param {import('./Parser').HeadingTarget<ElementFor<N>>} heading
    * @param {import('./Parser').Target<N>[]} targets
    */
   constructor(parser, heading, targets) {
@@ -206,7 +206,7 @@ class SectionSkeleton {
   /**
    * Set some properties related to the content of the section (contained elements and comments).
    *
-   * @param {import('./Parser').HeadingTarget<N>} heading
+   * @param {import('./Parser').HeadingTarget<ElementFor<N>>} heading
    * @param {import('./Parser').Target<N>[]} targets
    * @private
    */
@@ -228,7 +228,7 @@ class SectionSkeleton {
     let /** @type {number|undefined} */ nndheIndex = targets.findIndex((target, i) => (
       i > headingIndex &&
       target.type === 'heading' &&
-      /** @type {import('./Parser').HeadingTarget<N>} */ (target).level <= this.level
+      /** @type {import('./Parser').HeadingTarget<ElementFor<N>>} */ (target).level <= this.level
     ));
     let nextNotDescendantHeadingElement;
     if (nndheIndex === -1) {

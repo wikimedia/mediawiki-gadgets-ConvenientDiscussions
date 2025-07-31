@@ -4,6 +4,8 @@ import { keepSafeValues } from './worker';
 
 /**
  * Section class used in the worker scope.
+ *
+ * @extends {SectionSkeleton<import('domhandler').Node>}
  */
 export default class SectionWorker extends SectionSkeleton {
   /** @type {SectionWorker|undefined} */

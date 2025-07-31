@@ -1,9 +1,14 @@
 /**
  * Class for keeping prototypes - skeletons of elements to be cloned instead of creating a new one
  * from scratch (which is often expensive).
+ *
+ *
  */
 class PrototypeRegistry {
+  /** @type {{ [key: string]: HTMLElement }} */
   elements = {};
+
+  /** @type {{ [key: string]: () => OO.ui.Widget }} */
   widgets = {};
 
   /**
@@ -33,7 +38,9 @@ class PrototypeRegistry {
    * @returns {HTMLElement}
    */
   get(id) {
-    return id in this.elements ? this.elements[id].cloneNode(true) : this.widgets[id]().$element[0];
+    return id in this.elements
+      ? /** @type {HTMLElement} */ (this.elements[id].cloneNode(true))
+      : this.widgets[id]().$element[0];
   }
 
   /**

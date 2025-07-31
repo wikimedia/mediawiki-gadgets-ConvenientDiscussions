@@ -67,15 +67,21 @@ import { createSvg, extractSignatures, getExtendedRect, getHigherNodeAndOffsetIn
  */
 
 /**
- * @typedef {RemoveMethods<import('./shared/SectionSkeleton').default>} SectionBase
+ * @typedef {RemoveMethods<import('./shared/SectionSkeleton').default<Node>>} SectionBase
  */
 
 /**
- * @typedef {Omit<RemoveMethods<import('./shared/CommentSkeleton').default>, 'children' | 'previousComments'>} CommentBase
+ * @typedef {Omit<
+ *   RemoveMethods<import('./shared/CommentSkeleton').default<Node>>,
+ *   'children' | 'previousComments'
+ * >} CommentBase
  */
 
 /**
- * @typedef {Map<import('./updateChecker').SectionWorkerMatched | import('./Section').default | null, import('./updateChecker').CommentWorkerMatched[] | Comment[]>} CommentsBySection
+ * @typedef {Map<
+ *   import('./updateChecker').SectionWorkerMatched | import('./Section').default | null,
+ *   import('./updateChecker').CommentWorkerMatched[] | Comment<boolean>[]
+ * >} CommentsBySection
  */
 
 /**
@@ -86,7 +92,7 @@ import { createSvg, extractSignatures, getExtendedRect, getHigherNodeAndOffsetIn
  * A comment (any signed, and in some cases unsigned, text on a wiki talk page).
  *
  * @template {boolean} [Reformatted=boolean]
- * @augments CommentSkeleton
+ * @augments CommentSkeleton<Node>
  */
 class Comment extends CommentSkeleton {
   /** @readonly */
@@ -413,10 +419,10 @@ class Comment extends CommentSkeleton {
   /**
    * Create a comment object.
    *
-   * @param {import('./shared/Parser').default} parser
-   * @param {import('./shared/Parser').SignatureTarget} signature Signature object returned by
-   *   {@link Parser#findSignatures}.
-   * @param {import('./shared/Parser').Target[]} targets Sorted target objects returned by
+   * @param {import('./shared/Parser').default<Node>} parser
+   * @param {import('./shared/Parser').SignatureTarget<Element>} signature Signature object returned
+   *   by {@link Parser#findSignatures}.
+   * @param {import('./shared/Parser').Target<Element>[]} targets Sorted target objects returned by
    *   {@link Parser#findSignatures} + {@link Parser#findHeadings}.
    */
   constructor(parser, signature, targets) {
