@@ -337,7 +337,7 @@ class Section extends SectionSkeleton {
     // Don't set more DOM properties to help performance. We don't need them in practice.
     const element = Section.prototypes.get('replyButton');
     const button = new Button({
-      element: element,
+      element,
       buttonElement: /** @type {HTMLElement} */ (element.firstChild),
       action: () => {
         this.reply();
@@ -458,7 +458,7 @@ class Section extends SectionSkeleton {
   createAddSubsectionButton(buttonsContainerInstance = this) {
     const element = Section.prototypes.get('addSubsectionButton');
     const button = new Button({
-      element: element,
+      element,
       buttonElement: /** @type {HTMLElement} */ (element.firstChild),
       labelElement: /** @type {HTMLElement} */ (element.querySelector('.oo-ui-labelElement-label')),
       label: cd.s('section-addsubsection-to', this.headline),
@@ -991,11 +991,19 @@ class Section extends SectionSkeleton {
    * @private
    */
   createMoreMenuSelect() {
-    const moreMenuSelect = /** @type {OO.ui.ButtonMenuSelectWidget} */ (
-      Section.prototypes.getWidget('moreMenuSelect')()
-    );
+    const moreMenuSelect = new OO.ui.ButtonMenuSelectWidget({
+      framed: false,
+      icon: 'ellipsis',
+      label: cd.s('sm-more'),
+      invisibleLabel: true,
+      title: cd.s('sm-more'),
+      menu: {
+        horizontalPosition: 'end',
+      },
+      classes: ['cd-section-bar-button', 'cd-section-bar-moremenu'],
+    });
 
-    this.actions.moreMenuSelectDummy.element.remove();
+    /** @type {Button} */ (this.actions.moreMenuSelectDummy).element.remove();
     this.actionsElement.append(moreMenuSelect.$element[0]);
 
     moreMenuSelect
@@ -1069,7 +1077,7 @@ class Section extends SectionSkeleton {
    */
   createAndClickMoreMenuSelect() {
     this.createMoreMenuSelect();
-    this.actions.moreMenuSelect.focus().emit('click');
+    /** @type {OO.ui.ButtonMenuSelectWidget} */ (this.actions.moreMenuSelect).focus().emit('click');
   }
 
   /**
@@ -1634,7 +1642,7 @@ class Section extends SectionSkeleton {
       this.headline &&
       oldSectionDummy.headline !== this.headline &&
       /** @type {import('./LegacySubscriptions').default} */ (this.subscriptions).getOriginalState(
-        oldSectionDummy.headline
+        /** @type {string} */ (oldSectionDummy.headline)
       )
     ) {
       this.subscribe('quiet', oldSectionDummy.headline);
@@ -1933,6 +1941,7 @@ class Section extends SectionSkeleton {
    * @returns {Section[]}
    */
   getChildren(indirect = false) {
+    /** @type {Section[]} */
     const children = [];
     let haveMetDirect = false;
     sectionRegistry.getAll()
@@ -2250,7 +2259,6 @@ class Section extends SectionSkeleton {
    *  replyButton: HTMLElement;
    *  addSubsectionButton: HTMLElement;
    *  copyLinkButton: HTMLElement;
-   *  moreMenuSelect: () => OO.ui.Widget;
    * }>} */
   static prototypes = new PrototypeRegistry();
 
@@ -2293,22 +2301,6 @@ class Section extends SectionSkeleton {
         title: cd.s('sm-copylink-tooltip'),
         classes: ['cd-section-bar-button'],
       }).$element[0]
-    );
-
-    this.prototypes.addWidget(
-      'moreMenuSelect',
-      () =>
-        new OO.ui.ButtonMenuSelectWidget({
-          framed: false,
-          icon: 'ellipsis',
-          label: cd.s('sm-more'),
-          invisibleLabel: true,
-          title: cd.s('sm-more'),
-          menu: {
-            horizontalPosition: 'end',
-          },
-          classes: ['cd-section-bar-button', 'cd-section-bar-moremenu'],
-        })
     );
   }
 }
