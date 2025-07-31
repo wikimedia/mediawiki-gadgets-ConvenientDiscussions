@@ -150,7 +150,7 @@ class BootProcess {
   /** @type {Parser<Node>} */
   parser;
 
-  /** @type {import('./shared/Parser').Target<Element>[]} */
+  /** @type {import('./shared/Parser').Target<Node>[]} */
   targets;
 
   /** @type {import('./Subscriptions').default} */
@@ -709,7 +709,7 @@ class BootProcess {
     });
     this.parser.init();
     this.parser.processAndRemoveDtMarkup(this);
-    this.targets = /** @type {import('./shared/Parser').Target[]} */ (this.parser.findHeadings())
+    this.targets = /** @type {import('./shared/Parser').Target<Node>[]} */ (this.parser.findHeadings())
       .concat(this.parser.findSignatures())
       .sort((t1, t2) => this.parser.context.follows(t1.element, t2.element) ? 1 : -1);
   }

@@ -78,8 +78,8 @@ class SectionSkeleton {
    * Create a section skeleton instance.
    *
    * @param {import('./Parser').default<N>} parser
-   * @param {import('./Parser').HeadingTarget<ElementFor<N>>} heading
-   * @param {import('./Parser').Target<ElementFor<N>>[]} targets
+   * @param {import('./Parser').HeadingTarget<N>} heading
+   * @param {import('./Parser').Target<N>[]} targets
    */
   constructor(parser, heading, targets) {
     this.parser = parser;
@@ -209,8 +209,8 @@ class SectionSkeleton {
   /**
    * Set some properties related to the content of the section (contained elements and comments).
    *
-   * @param {import('./Parser').HeadingTarget<ElementFor<N>>} heading
-   * @param {import('./Parser').Target<ElementFor<N>>[]} targets
+   * @param {import('./Parser').HeadingTarget<N>} heading
+   * @param {import('./Parser').Target<N>[]} targets
    * @private
    */
   initContent(heading, targets) {
@@ -231,7 +231,7 @@ class SectionSkeleton {
     let /** @type {number|undefined} */ nndheIndex = targets.findIndex((target, i) => (
       i > headingIndex &&
       target.type === 'heading' &&
-      /** @type {import('./Parser').HeadingTarget<ElementFor<N>>} */ (target).level <= this.level
+      /** @type {import('./Parser').HeadingTarget<N>} */ (target).level <= this.level
     ));
     let nextNotDescendantHeadingElement;
     if (nndheIndex === -1) {
@@ -255,7 +255,7 @@ class SectionSkeleton {
       this.lastElement :
       this.getLastElement(nextHeadingElement, treeWalker);
 
-    const targetsToComments = (/** @type {import('./Parser').Target<ElementFor<N>>[]} */ targets) =>
+    const targetsToComments = (/** @type {import('./Parser').Target<N>[]} */ targets) =>
       targets
         .filter((target) => target.type === 'signature')
         .map((target) => target.comment)

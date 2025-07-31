@@ -246,23 +246,29 @@ declare global {
     wikiEditor: any;
   }
 
-  type ElementLike = Element | DomHandlerElement;
-  type NodeLike = Node | DomHandlerNode;
-  type TextLike = Text | DomHandlerText;
+  // type ElementLike = Element | DomHandlerElement;
+  // type NodeLike = Node | DomHandlerNode;
+  // type TextLike = Text | DomHandlerText;
 
   interface CommentWorker extends WorkerCommentWorker {}
   interface SectionWorker extends WorkerSectionWorker {}
 
   type AnyNode = import('domhandler').Node | globalThis.Node;
   type AnyElement = import('domhandler').Element | globalThis.Element;
+  type AnyText = import('domhandler').Text | globalThis.Text;
+
+  type NodeLike = AnyNode;
+  type ElementLike = AnyElement;
+  type TextLike = AnyText;
 
   type ElementFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Element : Element;
+  type HTMLElementFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Element : HTMLElement;
   type TextFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Text : Text;
 
   interface ParsingContext<T extends AnyNode> {
     // Classes
-    CommentClass: typeof CommentSkeleton<T>;
-    SectionClass: typeof SectionSkeleton<T>;
+    CommentClass: new (parser: Parser<T>, signature: SignatureTarget, targets: Target[]) => CommentSkeleton<T>;
+    SectionClass: new (parser: Parser<T>, heading: HeadingTarget, targets: Target[], subscriptions: Subscriptions) => SectionSkeleton<T>;
 
     // Properties
     childElementsProp: string;
