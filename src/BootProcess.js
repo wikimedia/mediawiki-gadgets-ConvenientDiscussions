@@ -147,10 +147,10 @@ class BootProcess {
   /** @type {boolean} */
   firstRun;
 
-  /** @type {Parser} */
+  /** @type {Parser<Element>} */
   parser;
 
-  /** @type {import('./shared/Parser').Target[]} */
+  /** @type {import('./shared/Parser').Target<Element>[]} */
   targets;
 
   /** @type {import('./Subscriptions').default} */

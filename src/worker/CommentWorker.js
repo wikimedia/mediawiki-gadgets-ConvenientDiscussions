@@ -8,6 +8,8 @@ import { keepSafeValues } from './worker';
 
 /**
  * Comment class used in the worker scope.
+ *
+ * @extends {CommentSkeleton<import('domhandler').Node>}
  */
 export default class CommentWorker extends CommentSkeleton {
   /**
