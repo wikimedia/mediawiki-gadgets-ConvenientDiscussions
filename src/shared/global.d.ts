@@ -4,11 +4,12 @@
 
 import { Document as DomHandlerDocument } from 'domhandler';
 
+import BootProcess from '../BootProcess';
 import WorkerCommentWorker from '../worker/CommentWorker';
 import WorkerSectionWorker from '../worker/SectionWorker';
 import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
 import CommentSkeleton from './CommentSkeleton';
-import Parser from './Parser';
+import ElementsTreeWalker from './ElementsTreeWalker';
 import SectionSkeleton from './SectionSkeleton';
 
 declare global {
@@ -260,23 +261,29 @@ declare global {
   type TextFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Text : Text;
 
   interface ParsingContext<T extends AnyNode> {
-    CommentSkeletonClass: typeof CommentSkeleton;
-    SectionSkeletonClass: typeof SectionSkeleton;
-    ParserClass: new (context: ParsingContext<T>) => Parser<T>;
-    handleFirstCommentAntipatterns: (text: string, node: TextFor<T>) => void;
-    processAndRemoveDtElements: (elements: ElementFor<T>[], bootProcess: import('../BootProcess').default) => void;
-    removeDtButtonHtmlComments: () => void;
-    ElementsTreeWalkerClass: new(root: ElementFor<T>, currentNode?: T) => import('./ElementsTreeWalker').default<T>;
-    appendChild: (parent: T, child: T) => void;
-    insertBefore: (parent: T, node: T, referenceNode: T | null) => void;
-    remove: (node: T) => void;
-    getElementByClassName: (element: ElementFor<T>, className: string) => ElementFor<T> | null;
-    getAllTextNodes: () => TextFor<T>[];
-    contains: (el: ElementFor<T>, node: T) => boolean;
+    // Classes
+    CommentClass: typeof CommentSkeleton<T>;
+    SectionClass: typeof SectionSkeleton<T>;
+    ElementsTreeWalkerClass: new (root: ElementFor<T>, currentNode?: T) => ElementsTreeWalker<T>;
+
+    // Properties
     childElementsProp: string;
     rootElement: ElementFor<T>;
-    CommentClass: new(parser: Parser<T>, signature: SignatureTarget, targets: Target[]) => import('../Comment').default<T>;
-    SectionClass: new(parser: Parser<T>, heading: HeadingTarget, targets: Target[], subscriptions: import('../Subscriptions').default) => import('../Section').default<T>;
+
+    // Non-DOM methods
+    areThereOutdents: () => boolean;
+    processAndRemoveDtElements: (elements: ElementFor<T>[], bootProcess: BootProcess) => void;
+    removeDtButtonHtmlComments: () => void;
+
+    // DOM methods
+    appendChild: (parent: ElementFor<T>, child: T) => void;
+    contains: (el: ElementFor<T>, node: T) => boolean;
+    follows: (el1: T, el2: T) => boolean;
+    getAllTextNodes: () => TextFor<T>[];
+    getElementByClassName: (element: ElementFor<T>, className: string) => ElementFor<T> | null;
+    insertBefore: (parent: ElementFor<T>, node: T, referenceNode: T | null) => void;
+    remove: (node: T) => void;
+    removeChild: (parent: ElementFor<T>, child: T) => void;
   }
 }
 

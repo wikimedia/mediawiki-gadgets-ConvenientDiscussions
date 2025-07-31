@@ -23,7 +23,7 @@ import { getRangeContents } from './utils-window';
 /**
  * A section.
  *
- * @augments SectionSkeleton
+ * @augments {SectionSkeleton<Node>}
  */
 class Section extends SectionSkeleton {
   /** @readonly */
@@ -125,10 +125,11 @@ class Section extends SectionSkeleton {
   /**
    * Create a section object.
    *
-   * @param {import('./shared/Parser').default} parser
-   * @param {object} heading Heading object returned by {@link Parser#findHeadings}.
-   * @param {object[]} targets Sorted target objects returned by  {@link Parser#findSignatures} +
+   * @param {import('./shared/Parser').default<Node>} parser
+   * @param {import('./shared/Parser').HeadingTarget<Node>} heading Heading object returned by
    *   {@link Parser#findHeadings}.
+   * @param {import('./shared/Parser').Target<Node>[]} targets Sorted target objects returned by
+   *   {@link Parser#findSignatures} + {@link Parser#findHeadings}.
    * @param {import('./Subscriptions').default} subscriptions
    * @throws {CdError}
    */
