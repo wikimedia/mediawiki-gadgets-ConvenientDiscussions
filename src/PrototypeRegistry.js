@@ -2,15 +2,15 @@
  * Class for storing prototypes - skeletons/drafts of elements to be cloned instead of creating a
  * new one from scratch (which is often expensive).
  *
- * @template {string} T List of prototype IDs.
+ * @template {string[]} T List of prototype IDs.
  */
 class PrototypeRegistry {
-  elements = /** @type {{ [id in T]: HTMLElement }} */ ({});
+  elements = /** @type {{ [id in T[number]]: HTMLElement }} */ ({});
 
   /**
    * Register a prototype.
    *
-   * @param {keyof T} id
+   * @param {T[number]} id
    * @param {HTMLElement} prototype
    */
   add(id, prototype) {
@@ -20,7 +20,7 @@ class PrototypeRegistry {
   /**
    * Get a prototype or an instance of a widget.
    *
-   * @param {keyof T} id
+   * @param {T[number]} id
    * @returns {HTMLElement}
    */
   get(id) {

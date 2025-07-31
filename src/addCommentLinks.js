@@ -36,10 +36,7 @@ let switchRelevantButton;
 /** @type {import('./LegacySubscriptions').default} */
 let subscriptions;
 
-/** @type {PrototypeRegistry<{
- *   wrapperRegular: HTMLElement,
- *   wrapperRelevant: HTMLElement,
- * }>} */
+/** @type {PrototypeRegistry<['wrapperRegular', 'wrapperRelevant']>} */
 const prototypes = new PrototypeRegistry();
 
 /**
