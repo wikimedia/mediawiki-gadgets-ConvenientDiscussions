@@ -580,7 +580,7 @@ export function ensureArray(value) {
  *
  * @param {NodeLike} node
  * @param {boolean} [onlyHElements=false]
- * @returns {boolean}
+ * @returns {node is AnyElement}
  */
 export function isHeadingNode(node, onlyHElements = false) {
   return (

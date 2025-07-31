@@ -6,21 +6,40 @@
 
 import PrototypeRegistry from './PrototypeRegistry';
 import bootController from './bootController';
-import cd from './shared/cd';
 import pageRegistry from './pageRegistry';
 import settings from './settings';
+import cd from './shared/cd';
 import { definedAndNotNull, generatePageNamePattern, isCommentEdit, isProbablyTalkPage, isUndo, removeDirMarks, spacesToUnderlines } from './shared/utils-general';
 import { initDayjs, parseTimestamp } from './shared/utils-timestamp';
 
+/** @type {string} */
 let colon;
-let moveFromBeginning;
-let moveToBeginning;
-let goToCommentToYou;
-let goToCommentWatchedSection;
-let currentUserRegexp;
-let switchRelevantButton;
-let /** @type {import('./LegacySubscriptions').default} */ subscriptions;
 
+/** @type {string | undefined} */
+let moveFromBeginning;
+
+/** @type {string | undefined} */
+let moveToBeginning;
+
+/** @type {string} */
+let goToCommentToYou;
+
+/** @type {string} */
+let goToCommentWatchedSection;
+
+/** @type {RegExp} */
+let currentUserRegexp;
+
+/** @type {OO.ui.ButtonWidget} */
+let switchRelevantButton;
+
+/** @type {import('./LegacySubscriptions').default} */
+let subscriptions;
+
+/** @type {PrototypeRegistry<{
+ *   wrapperRegular: HTMLElement,
+ *   wrapperRelevant: HTMLElement,
+ * }>} */
 const prototypes = new PrototypeRegistry();
 
 /**
@@ -271,7 +290,7 @@ function setWrapperLinkAttr(wrapper, attr, value) {
  * @private
  */
 function isMoved(summary) {
-  return (
+  return Boolean(
     (moveFromBeginning && summary.includes(': ' + moveFromBeginning)) ||
     (moveToBeginning && summary.includes(': ' + moveToBeginning))
   );

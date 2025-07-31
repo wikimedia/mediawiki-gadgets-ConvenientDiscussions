@@ -79,7 +79,7 @@ class SectionSkeleton {
    *
    * @param {import('./Parser').default<N>} parser
    * @param {import('./Parser').HeadingTarget<ElementFor<N>>} heading
-   * @param {import('./Parser').Target<N>[]} targets
+   * @param {import('./Parser').Target<ElementFor<N>>[]} targets
    */
   constructor(parser, heading, targets) {
     this.parser = parser;
@@ -91,18 +91,22 @@ class SectionSkeleton {
      */
     this.headingElement = heading.element;
 
-    const returnNodeIfHNode = (/** @type {?Node} */ node) =>
+    /**
+     * @param {AnyNode} node
+     * @returns {AnyElement | null}
+     */
+    const returnElementIfHElement = (/** @type {?AnyNode} */ node) =>
       node && isHeadingNode(node, true) ? node : null;
-
 
     /**
      * `<hN>` element of the section (`<h1>`-`<h6>`).
      *
+     * @type {ElementFor<N>}
      * @protected
      */
-    this.hElement = (
-      returnNodeIfHNode(this.headingElement) ||
-      returnNodeIfHNode(this.headingElement.firstElementChild) ||
+    this.hElement = /** @type {ElementFor<N>} */ (
+      returnElementIfHElement(this.headingElement) ||
+      returnElementIfHElement(this.headingElement.firstElementChild) ||
 
       // Russian Wikivoyage and anything with .mw-h2section (not to be confused with .mw-heading2).
       // Also, a precaution in case something in MediaWiki changes.
@@ -113,7 +117,6 @@ class SectionSkeleton {
      * Headline element.
      *
      * @type {ElementFor<N>}
-     * @protected
      */
     this.headlineElement = cd.g.isParsoidUsed ?
       this.hElement :
@@ -207,7 +210,7 @@ class SectionSkeleton {
    * Set some properties related to the content of the section (contained elements and comments).
    *
    * @param {import('./Parser').HeadingTarget<ElementFor<N>>} heading
-   * @param {import('./Parser').Target<N>[]} targets
+   * @param {import('./Parser').Target<ElementFor<N>>[]} targets
    * @private
    */
   initContent(heading, targets) {

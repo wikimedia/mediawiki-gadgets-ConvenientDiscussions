@@ -2,7 +2,7 @@
  * Class for keeping prototypes - skeletons of elements to be cloned instead of creating a new one
  * from scratch (which is often expensive).
  *
- *
+ * @template {{ [key: string]: any }} T - Map of string keys to prototype types
  */
 class PrototypeRegistry {
   /** @type {{ [key: string]: HTMLElement }} */
@@ -15,7 +15,7 @@ class PrototypeRegistry {
    * Register a prototype.
    *
    * @param {string} id
-   * @param {*} prototype
+   * @param {any} prototype
    */
   add(id, prototype) {
     this.elements[id] = prototype;

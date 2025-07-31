@@ -4,9 +4,14 @@ import Subscriptions from './Subscriptions';
 import sectionRegistry from './sectionRegistry';
 import CdError from './shared/CdError';
 import cd from './shared/cd';
+import { typedKeysOf } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import { getUserInfo, saveLocalOption } from './utils-api';
 import { wrapHtml } from './utils-window';
+
+/**
+ * @typedef {{ [pageId: number]: import('./Subscriptions').SubscriptionsData }} AllPagesData
+ */
 
 /**
  * Implementation of legacy section watching.
@@ -16,7 +21,7 @@ import { wrapHtml } from './utils-window';
 class LegacySubscriptions extends Subscriptions {
   subscribePromise = Promise.resolve();
 
-  /** @type {{ [pageId: number]: import('./Subscriptions').SubscriptionsData }} */
+  /** @type {AllPagesData} */
   allPagesData;
 
   /** @type {string[]|undefined} */
@@ -108,7 +113,7 @@ class LegacySubscriptions extends Subscriptions {
       }
 
       // We save the full subscription list, so we need to update the data first.
-      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+
       const currentPageDataBackup = { ...this.data };
       this.updateLocally(headline, true);
       this.updateLocally(unsubscribeHeadline, false);
@@ -168,7 +173,7 @@ class LegacySubscriptions extends Subscriptions {
         throw error;
       }
 
-      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+
       const currentPageDataBackup = { ...this.data };
       this.updateLocally(headline, false);
 
@@ -190,7 +195,7 @@ class LegacySubscriptions extends Subscriptions {
   /**
    * Save the subscription list to the server as a user option.
    *
-   * @param {object} [allPagesData]
+   * @param {AllPagesData} [allPagesData]
    */
   async save(allPagesData) {
     await saveLocalOption(
@@ -202,14 +207,14 @@ class LegacySubscriptions extends Subscriptions {
   /**
    * Convert a subscriptions object into an optimized string and compress it.
    *
-   * @param {object} allPagesData
+   * @param {AllPagesData} allPagesData
    * @returns {string}
    */
   pack(allPagesData) {
     // The format of the items:
     // <Space, except for the first item><Page ID> <List of sections separated by \n>\n
     return LZString.compressToEncodedURIComponent(
-      Object.keys(allPagesData)
+      typedKeysOf(allPagesData)
         .filter((pageId) => Object.keys(allPagesData[pageId]).length)
         .map((key) => ` ${key} ${Object.keys(allPagesData[key]).join('\n')}\n`)
         .join('')
@@ -232,7 +237,7 @@ class LegacySubscriptions extends Subscriptions {
       const pages = string.split(/(?:^|\n )(\d+) /).slice(1);
 
       for (let i = 1; i < pages.length; i += 2) {
-        this.allPagesData[pages[i - 1]] = this.itemsToKeys(pages[i].split('\n'));
+        this.allPagesData[Number(pages[i - 1])] = this.itemsToKeys(pages[i].split('\n'));
       }
     }
   }
@@ -259,7 +264,7 @@ class LegacySubscriptions extends Subscriptions {
   /**
    * Get the subscription list for the current page.
    *
-   * @returns {?(object[])}
+   * @returns {string[]}
    */
   getForCurrentPage() {
     return this.getForPageId(mw.config.get('wgArticleId'));
