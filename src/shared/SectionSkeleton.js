@@ -255,12 +255,11 @@ class SectionSkeleton {
       this.lastElement :
       this.getLastElement(nextHeadingElement, treeWalker);
 
-    const targetsToComments = (/** @type {import('./Parser').Target<N>[]} */ targets) => (
+    const targetsToComments = (/** @type {import('./Parser').Target<ElementFor<N>>[]} */ targets) =>
       targets
         .filter((target) => target.type === 'signature')
         .map((target) => target.comment)
-        .filter(defined)
-    );
+        .filter(defined);
 
     this.comments = targetsToComments(targets.slice(headingIndex, nndheIndex));
     this.commentsInFirstChunk = targetsToComments(targets.slice(headingIndex, nextHeadingIndex));
