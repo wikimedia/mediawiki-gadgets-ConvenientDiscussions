@@ -126,9 +126,9 @@ class Section extends SectionSkeleton {
    * Create a section object.
    *
    * @param {import('./shared/Parser').default<Node>} parser
-   * @param {import('./shared/Parser').HeadingTarget<Element>} heading Heading object returned by
+   * @param {import('./shared/Parser').HeadingTarget<Node>} heading Heading object returned by
    *   {@link Parser#findHeadings}.
-   * @param {import('./shared/Parser').Target<Element>[]} targets Sorted target objects returned by
+   * @param {import('./shared/Parser').Target<Node>[]} targets Sorted target objects returned by
    *   returned by {@link Parser#findSignatures} + {@link Parser#findHeadings}.
    * @param {import('./Subscriptions').default} subscriptions
    * @throws {CdError}

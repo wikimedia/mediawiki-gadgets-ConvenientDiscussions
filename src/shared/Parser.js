@@ -6,10 +6,10 @@
  * @module Parser
  */
 
-import cd from './cd';
 import CommentSkeleton from './CommentSkeleton';
 import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker';
 import ElementsTreeWalker from './ElementsTreeWalker';
+import cd from './cd';
 import {
   definedAndNotNull,
   getHeadingLevel,
@@ -30,34 +30,34 @@ import { parseTimestamp } from './utils-timestamp';
  */
 
 /**
- * @template {AnyElement} E
+ * @template {AnyNode} N
  * @typedef {object} HeadingTarget
  * @property {'heading'} type
- * @property {E} element
+ * @property {HTMLElementFor<N>} element
  * @property {boolean} isWrapper
  * @property {number} level
  */
 
 /**
- * @template {AnyElement} E
+ * @template {AnyNode} N
  * @typedef {object} SignatureTarget
  * @property {'signature'} type
- * @property {E} element
- * @property {E} timestampElement
+ * @property {HTMLElementFor<N>} element
+ * @property {HTMLElementFor<N>} timestampElement
  * @property {string} timestampText
  * @property {Date} date
- * @property {E} authorLink
- * @property {E} authorTalkLink
+ * @property {HTMLElementFor<N>} authorLink
+ * @property {HTMLElementFor<N>} authorTalkLink
  * @property {string} authorName
  * @property {boolean} isUnsigned
  * @property {boolean} isExtraSignature
- * @property {SignatureTarget<E>[]} extraSignatures
- * @property {CommentSkeleton<E>} [comment]
+ * @property {SignatureTarget<N>[]} extraSignatures
+ * @property {CommentSkeleton<N>} [comment]
  */
 
 /**
- * @template {AnyElement} E
- * @typedef {HeadingTarget<E> | SignatureTarget<E>} Target
+ * @template {AnyNode} N
+ * @typedef {HeadingTarget<N> | SignatureTarget<N>} Target
  */
 
 /**
@@ -123,9 +123,9 @@ class Parser {
   /**
    * Create a comment instance.
    *
-   * @param {SignatureTarget<ElementFor<N>>} signature
+   * @param {SignatureTarget<N>} signature
    * @param {Target<N>[]} targets
-   * @returns {import('../Comment').default}
+   * @returns {import('./CommentSkeleton').default<N>}
    */
   createComment(signature, targets) {
     return new this.context.CommentClass(this, signature, targets);
@@ -134,10 +134,10 @@ class Parser {
   /**
    * Create a section instance.
    *
-   * @param {HeadingTarget<ElementFor<N>>} heading
+   * @param {HeadingTarget<N>} heading
    * @param {Target<N>[]} targets
    * @param {import('../Subscriptions').default} [subscriptions]
-   * @returns {import('../Section').default}
+   * @returns {import('./SectionSkeleton').default<N>}
    */
   createSection(heading, targets, subscriptions) {
     return new this.context.SectionClass(this, heading, targets, subscriptions);
@@ -286,13 +286,15 @@ class Parser {
    * Collect nodes related to a signature starting from a timestamp node.
    *
    * @param {Timestamp} timestamp
-   * @returns {?Omit<SignatureTarget<ElementFor<N>>, 'type' | 'extraSignatures'>}
+   * @returns {?Omit<SignatureTarget<N>, 'type' | 'extraSignatures'>}
    * @private
    */
   getSignatureFromTimestamp(timestamp) {
+    /** @type {ElementFor<N> | undefined} */
     let unsignedElement;
     {
-      let /** @type {ElementFor<N> | null} */ el = timestamp.element;
+      /** @type {ElementFor<N> | undefined} */
+      let el = timestamp.element;
       while (!unsignedElement && (el = el.parentElement) && isInline(el) !== false) {
         if (el.classList.contains(cd.config.unsignedClass)) {
           unsignedElement = el;
@@ -324,8 +326,9 @@ class Parser {
     const authorData = /** @type {AuthorData} */ ({});
 
     let length = 0;
+    /** @type {ElementFor<N> | undefined} */
     let firstSignatureElement;
-    /** @type {N[]} */
+    /** @type {ElementFor<N>[]} */
     let signatureNodes = [];
     if (unsignedElement) {
       firstSignatureElement = startElement;
@@ -460,14 +463,14 @@ class Parser {
    * Find outputs of unsigned templates that we weren't able to find using the standard procedure
    * (in which case they are treated as normal signatures).
    *
-   * @returns {Partial<SignatureTarget<ElementFor<N>>>[]}
+   * @returns {Partial<SignatureTarget<N>>[]}
    */
   findRemainingUnsigneds() {
     if (!cd.config.unsignedClass) {
       return [];
     }
 
-    const unsigneds = /** @type {Partial<SignatureTarget<ElementFor<N>>>[]} */ ([]);
+    const unsigneds = /** @type {Partial<SignatureTarget<N>>[]} */ ([]);
     [...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass)]
       .filter((element) => {
         // Only templates with no timestamp interest us.
@@ -523,12 +526,12 @@ class Parser {
    *
    * Characters before the author link, like "—", aren't considered a part of the signature.
    *
-   * @returns {SignatureTarget<ElementFor<N>>[]}
+   * @returns {SignatureTarget<N>[]}
    */
   findSignatures() {
     // Move extra signatures (additional signatures for a comment, if there is more than one) to an
     // array which then assign to a relevant signature (the one which goes first).
-    let extraSignatures = /** @type {SignatureTarget<ElementFor<N>>[]} */ ([]);
+    let extraSignatures = /** @type {SignatureTarget<N>[]} */ ([]);
 
     return this.context.getAllTextNodes()
       .map(this.findTimestamp.bind(this))
@@ -538,7 +541,7 @@ class Parser {
       .concat(this.findRemainingUnsigneds())
       .slice()
       .reverse()
-      .map((/** @type {SignatureTarget<ElementFor<N>>} */ sig) => {
+      .map((/** @type {SignatureTarget<N>} */ sig) => {
         if (sig.isExtraSignature) {
           extraSignatures.push(sig);
         } else {
@@ -548,7 +551,7 @@ class Parser {
 
         return { ...sig, type: 'signature' };
       })
-      .filter((/** @type {SignatureTarget<ElementFor<N>>} */ sig) => !sig.isExtraSignature);
+      .filter((/** @type {SignatureTarget<N>} */ sig) => !sig.isExtraSignature);
   }
 
   /**
@@ -624,7 +627,7 @@ class Parser {
   /**
    * _For internal use._ Get all headings on the page.
    *
-   * @returns {HeadingTarget<ElementFor<N>>[]}
+   * @returns {HeadingTarget<N>[]}
    */
   findHeadings() {
     return [...this.context.rootElement.querySelectorAll('h1, h2, h3, h4, h5, h6')]

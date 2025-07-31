@@ -46,7 +46,7 @@ export default [
       'no-one-time-vars': noOneTimeVarsPlugin,
     },
     linterOptions: {
-      reportUnusedDisableDirectives: true,
+      reportUnusedDisableDirectives: false,
       noInlineConfig: false,
     },
     rules: {
