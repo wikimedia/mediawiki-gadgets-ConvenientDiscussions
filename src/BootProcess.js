@@ -1034,7 +1034,7 @@ class BootProcess {
           'discussiontools-topicsubscription': '1',
         }).catch(handleApiReject);
       }
-    } catch (error) {
+    } catch {
       mw.notify(wrapHtml(cd.sParse('error-settings-save')));
       return;
     } finally {
