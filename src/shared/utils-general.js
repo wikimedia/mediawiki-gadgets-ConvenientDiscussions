@@ -135,7 +135,7 @@ export function generatePageNamePattern(string) {
   // Could be issues, probably not very serious, resulting from the difference of PHP's
   // mb_strtoupper and JavaScript's String#toUpperCase, see ucFirst() and
   // https://phabricator.wikimedia.org/T141723#2513800.
-
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const firstCharPattern = firstCharUpperCase !== firstCharLowerCase ?
     '[' + firstCharUpperCase + firstCharLowerCase + ']' :
     mw.util.escapeRegExp(firstChar);
@@ -408,7 +408,7 @@ export function areObjectsEqual(object1, object2) {
   }
 
   const keys1 = Object.keys(object1).filter((key) => object1[key] !== undefined);
-
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const keys2 = Object.keys(object2).filter((key) => object2[key] !== undefined);
 
   return (
@@ -767,7 +767,9 @@ export function generateFixedPosTimestamp(date, seconds) {
  */
 export function countOccurrences(string, regexp) {
   if (!regexp.global) {
-    throw new CdError('The regexp supplied to countOccurrences() must have the "g" flag.');
+    throw new CdError({
+      message: 'The regexp supplied to countOccurrences() must have the "g" flag.',
+    });
   }
   return (string.match(regexp) || []).length;
 }
@@ -832,9 +834,9 @@ export function getDbnameForHostname(hostname) {
     'www.wikidata.org': 'wikidatawiki',
     'www.wikifunctions.org': 'wikifunctionswiki',
   };
-
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const languagedProjectsRegexp = /^([^.]+)\.(wikibooks|wikinews|wikiquote|wikisource|wikiversity|wikivoyage|wiktionary|wikimedia|wikipedia)\./;
-
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const wikimediaNonChaptersRegexp = /^(advisory|commons|donate|foundation|incubator|login|meta|outreach|quality|species|strategy|usability|vote)$|^wikimania/;
 
   if (specialCases[hostname]) {

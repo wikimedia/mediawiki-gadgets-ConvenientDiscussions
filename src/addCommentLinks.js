@@ -36,7 +36,7 @@ let switchRelevantButton;
 /** @type {import('./LegacySubscriptions').default} */
 let subscriptions;
 
-/** @type {PrototypeRegistry<['wrapperRegular', 'wrapperRelevant']>} */
+/** @type {PrototypeRegistry<'wrapperRegular' | 'wrapperRelevant'>} */
 const prototypes = new PrototypeRegistry();
 
 /**
@@ -648,6 +648,7 @@ function processDiff($diff) {
 
       const id = require('./Comment').default.generateId(date, author);
 
+      /** @type {import('./Comment').default | undefined} */
       let comment;
       let page;
       if ($diff) {
@@ -657,7 +658,7 @@ function processDiff($diff) {
         page = pageRegistry.get(title);
         if (!page) return;
       } else {
-        comment = require('./commentRegistry').default.getById(id, true);
+        comment = require('./commentRegistry').default.getById(id, true) || undefined;
       }
       if (comment || page?.isProbablyTalkPage()) {
         let wrapper;
@@ -692,7 +693,7 @@ function processDiff($diff) {
           linkElement.href = '#' + id;
           linkElement.onclick = (event) => {
             event.preventDefault();
-            comment.scrollTo({
+            /** @type {NonNullable<typeof comment>} */ (comment).scrollTo({
               smooth: false,
               pushState: true,
               expandThreads: true,

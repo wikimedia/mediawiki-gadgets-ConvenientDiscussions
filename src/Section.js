@@ -990,18 +990,8 @@ class Section extends SectionSkeleton {
    * @fires moreMenuSelectCreated
    * @private
    */
-  createMoreMenuSelect() {
-    const moreMenuSelect = new OO.ui.ButtonMenuSelectWidget({
-      framed: false,
-      icon: 'ellipsis',
-      label: cd.s('sm-more'),
-      invisibleLabel: true,
-      title: cd.s('sm-more'),
-      menu: {
-        horizontalPosition: 'end',
-      },
-      classes: ['cd-section-bar-button', 'cd-section-bar-moremenu'],
-    });
+  addMoreMenuSelect() {
+    const moreMenuSelect = this.createMoreMenuSelect();
 
     /** @type {Button} */ (this.actions.moreMenuSelectDummy).element.remove();
     this.actionsElement.append(moreMenuSelect.$element[0]);
@@ -1071,12 +1061,31 @@ class Section extends SectionSkeleton {
   }
 
   /**
+   * Create a "More" menu select button.
+   *
+   * @returns {OO.ui.ButtonMenuSelectWidget}
+   */
+  createMoreMenuSelect() {
+    return new OO.ui.ButtonMenuSelectWidget({
+      framed: false,
+      icon: 'ellipsis',
+      label: cd.s('sm-more'),
+      invisibleLabel: true,
+      title: cd.s('sm-more'),
+      menu: {
+        horizontalPosition: 'end',
+      },
+      classes: ['cd-section-bar-button', 'cd-section-bar-moremenu'],
+    });
+  }
+
+  /**
    * Create a real "More options" menu select in place of a dummy one and click it.
    *
    * @private
    */
   createAndClickMoreMenuSelect() {
-    this.createMoreMenuSelect();
+    this.addMoreMenuSelect();
     /** @type {OO.ui.ButtonMenuSelectWidget} */ (this.actions.moreMenuSelect).focus().emit('click');
   }
 
@@ -1088,7 +1097,7 @@ class Section extends SectionSkeleton {
   createActionsElement() {
     let moreMenuSelectDummy;
     if (this.canFirstCommentBeEdited() || this.canBeMoved() || this.canBeSubsectioned()) {
-      const element = Section.prototypes.get('moreMenuSelect');
+      const element = this.createMoreMenuSelect().$element[0];
       moreMenuSelectDummy = new Button({
         element,
         buttonElement: /** @type {HTMLElement} */ (element.firstChild),
@@ -1096,7 +1105,7 @@ class Section extends SectionSkeleton {
           this.createAndClickMoreMenuSelect();
         },
       });
-      moreMenuSelectDummy.buttonElement.onmouseenter = this.createMoreMenuSelect.bind(this);
+      moreMenuSelectDummy.buttonElement.onmouseenter = this.addMoreMenuSelect.bind(this);
     }
 
     let copyLinkButton;
@@ -1688,7 +1697,7 @@ class Section extends SectionSkeleton {
         await cd
           .getApi()
           .post(
-            /** @type {import('types-mediawiki/mw/Api').UnknownApiParams} */ (
+            /** @type {import('types-mediawiki/api_params').UnknownApiParams} */ (
               /** @type {import('types-mediawiki/api_params').ApiQueryRevisionsParams} */ ({
                 action: 'query',
                 titles: this.getSourcePage().name,
@@ -1778,7 +1787,7 @@ class Section extends SectionSkeleton {
           if (
             !(
               error instanceof CdError &&
-              ['noSuchSection', 'locateSection'].includes(error.data.code)
+              ['noSuchSection', 'locateSection'].includes(error.data.code || '')
             )
           ) {
             throw error;
@@ -2255,11 +2264,11 @@ class Section extends SectionSkeleton {
     delete this.queryTimestamp;
   }
 
-  /** @type {PrototypeRegistry<{
-   *  replyButton: HTMLElement;
-   *  addSubsectionButton: HTMLElement;
-   *  copyLinkButton: HTMLElement;
-   * }>} */
+  /** @type {PrototypeRegistry<
+   *   | 'replyButton'
+   *   | 'addSubsectionButton'
+   *   | 'copyLinkButton'
+   * >} */
   static prototypes = new PrototypeRegistry();
 
   /**
