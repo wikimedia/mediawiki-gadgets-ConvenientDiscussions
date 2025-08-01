@@ -107,7 +107,7 @@ export default [
       'jsdoc/check-line-alignment': ['warn', 'any', { 'wrapIndent': '  ' }],
 
       // No one-time vars plugin rules
-      'no-one-time-vars/no-one-time-vars': ['off', {
+      'no-one-time-vars/no-one-time-vars': ['warn', {
         allowedVariableLength: 9999999,  // Allow any length
         ignoreObjectDestructuring: true,
         ignoreTemplateLiterals: true,

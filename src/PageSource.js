@@ -96,7 +96,9 @@ export default class PageSource {
     const page = this.page;
 
     if (page.code === undefined) {
-      throw new CdError('Can\'t analyze the new topics placement: Page#code is undefined.');
+      throw new CdError({
+        message: 'Can\'t analyze the new topics placement: Page#code is undefined.',
+      });
     }
 
     let areNewTopicsOnTop = cd.config.areNewTopicsOnTop?.(page.name, page.code) || null;

@@ -42,7 +42,7 @@ function getAllTextNodesUnderRoot() {
  * @private
  */
 function removeDtButtonHtmlComments() {
-
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const treeWalker = document.createNodeIterator(
     bootController.rootElement,
     NodeFilter.SHOW_COMMENT
@@ -858,12 +858,12 @@ class BootProcess {
 
     const $headline = $dtNewTopicForm
       .find('.ext-discussiontools-ui-newTopic-sectionTitle input[type="text"]');
-
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const headline = $headline.val();
     $headline.val('');
 
     const $comment = $dtNewTopicForm.find('textarea');
-
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const comment = $comment.textSelection('getContents');
     $comment.textSelection('setContents', '');
 

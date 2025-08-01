@@ -446,7 +446,7 @@ export default class Page {
       ? requestInBackground(options).catch(handleApiReject)
       : cd
           .getApi()
-          .post(/** @type {import('types-mediawiki/mw/Api').UnknownApiParams} */ (options))
+          .post(/** @type {import('types-mediawiki/api_params').UnknownApiParams} */ (options))
           .catch(handleApiReject);
     const response = /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (await request);
     const revisions = response.query?.pages?.[0]?.revisions;

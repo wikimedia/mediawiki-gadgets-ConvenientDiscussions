@@ -4414,14 +4414,13 @@ class Comment extends CommentSkeleton {
     });
   }
 
-  /** @type {PrototypeRegistry<[
-   *   'headerWrapperElement',
-   *   'goToParentButtonSvg',
-   *   'collapseChildThreadsButtonSvg',
-   *   'expandChildThreadsButtonSvg',
-   *   'underlay',
-   *   'overlay',
-   * ]>} */
+  /** @type {PrototypeRegistry<
+   *   | 'headerWrapperElement'
+   *   | 'goToParentButtonSvg'
+   *   | 'collapseChildThreadsButtonSvg'
+   *   | 'expandChildThreadsButtonSvg'
+   *   | 'underlay'
+   *   | 'overlay'>} */
   static prototypes = new PrototypeRegistry();
 
   /**

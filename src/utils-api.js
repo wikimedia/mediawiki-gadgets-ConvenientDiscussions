@@ -80,35 +80,51 @@ import userRegistry from './userRegistry';
 let cachedUserInfoRequest;
 
 /**
- * Callback used in the `.catch()` parts of API requests.
+ * @typedef {'http' | 'query-missing' | 'token-missing' | 'ok-but-empty' | string & {}} ApiErrorCode
+ */
+
+/**
+ * Callback used in the `.catch()` parts of API requests. See the parameters with which `mw.Api()`
+ * rejects:
+ * https://phabricator.wikimedia.org/source/mediawiki/browse/master/resources/src/mediawiki.api/index.js;137c7de7a44534704762105323192d2d1bfb5765$269
  *
- * @param {string|[string, object]} codeOrArr
- * @param {object} [response]
+ * @param {ApiErrorCode|[ApiErrorCode, ApiRejectResponse]} codeOrArr
+ * @param {ApiRejectResponse} [response]
  * @returns {never}
  * @throws {CdError}
  */
 export function handleApiReject(codeOrArr, response) {
-  // Native promises support only one parameter when `reject()`ing.
   let code;
+  // Native promises support only one parameter when `reject()`ing, so when we throw them,
+  // rethrowing MediaWiki API's error, we pass it as a 2-tuple.
   if (Array.isArray(codeOrArr)) {
     [code, response] = codeOrArr;
   } else {
     code = codeOrArr;
   }
 
-  // See the parameters with which mw.Api() rejects:
-  // https://phabricator.wikimedia.org/source/mediawiki/browse/master/resources/src/mediawiki.api/index.js;137c7de7a44534704762105323192d2d1bfb5765$269
-  throw code === 'http' ?
-    new CdError({ type: 'network' }) :
-    new CdError({
-      type: 'api',
-      code: 'error',
-      apiResponse: response,
+  switch (code) {
+    case 'http':
+      throw new CdError({ type: 'network' });
+    case 'ok-but-empty':
+      throw new CdError({ type: 'api', code });
+    case 'query-missing':
+      throw new CdError({ type: 'internal', code });
+    case 'token-missing':
+      throw new CdError({ type: 'internal', code });
+    default: {
+      const apiResponse = /** @type {import('types-mediawiki/mw/Api').ApiResponse} */ (response);
+      throw new CdError({
+        type: 'api',
+        code: 'error',
+        apiResponse,
 
-      // `error` or `errors` is chosen by the API depending on `errorformat` being ''html'` in
-      // requests.
-      apiError: response?.error?.code || response?.errors?.[0].code,
-    });
+        // `error` or `errors` is chosen by the API depending on `errorformat` being ''html'` in
+        // requests.
+        apiError: apiResponse?.error?.code || apiResponse?.errors?.[0].code,
+      });
+    }
+  }
 }
 
 /**
@@ -153,9 +169,9 @@ export function splitIntoBatches(arr) {
 /**
  * Make a request that won't set the process on hold when the tab is in the background.
  *
- * @param {object} params
+ * @param {import('types-mediawiki/api_params').UnknownApiParams} params
  * @param {'get'|'post'|'postWithEditToken'} [method='post']
- * @returns {Promise.<object>}
+ * @returns {Promise.<import('types-mediawiki/mw/Api').ApiResponse>}
  */
 export function requestInBackground(params, method = 'post') {
   return new Promise((resolve, reject) => {
@@ -173,7 +189,7 @@ export function requestInBackground(params, method = 'post') {
           resolve(resp);
         }
       },
-      error: (jqXHR, textStatus) => {
+      error: (_, textStatus) => {
         reject(['http', textStatus]);
       },
     });
@@ -213,7 +229,7 @@ export async function parseCode(code, customOptions) {
       .catch(handleApiReject)
   );
   if (!response.parse) {
-    throw new CdError('No parse data returned.');
+    throw new CdError({ message: 'No parse data returned.' });
   }
 
   mw.loader.load(response.parse.modules);

@@ -2,9 +2,9 @@
  * @typedef {object} ErrorData
  * @property {'network'|'api'|'parse'|'internal'} [type='internal'] Error type/category.
  * @property {string} [code] Error code.
- * @property {object} [apiResponse] API response.
- * @property {object} [apiError] API error code.
- * @property {object} [details] Additional details.
+ * @property {ApiRejectResponse} [apiResponse] API response.
+ * @property {string} [apiError] API error code.
+ * @property {{ [x: string]: any }} [details] Additional details.
  * @property {string} [message] Error message for the user if they will see it.
  */
 
@@ -14,7 +14,7 @@
  * @augments Error
  */
 class CdError extends Error {
-  /** @type {MakeRequired<ErrorData, 'type'>} */
+  /** @type {Expand<MakeRequired<ErrorData, 'type'>>} */
   data;
 
   /**
