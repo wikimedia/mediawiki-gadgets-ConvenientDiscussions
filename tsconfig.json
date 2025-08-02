@@ -6,8 +6,8 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    //"allowJs": true,
-    "checkJs": false,
+    "allowJs": true,
+    "checkJs": true,
     "noEmit": true,
     "strictNullChecks": true,
     "noImplicitOverride": true,
@@ -19,12 +19,12 @@
     "declaration": false,
     "declarationMap": false,
     "sourceMap": false,
-    "outDir": "./dist",
-    "rootDir": "./src"
+    "outDir": "./dist"
   },
   "include": [
     "src/**/*",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "test-jsdoc-types.js"
   ],
   "exclude": [
     "node_modules",
