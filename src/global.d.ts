@@ -283,10 +283,10 @@ declare global {
       interface Constructor {
         /**
          * @param step Number of milliseconds to wait before proceeding,
-         * promise that must be resolved before proceeding, or a function to execute.
-         * See {@link Process.first first} for more information.
+         *   promise that must be resolved before proceeding, or a function to execute.
+         *   See {@link Process.first first} for more information.
          * @param context Execution context of the function. The context is ignored if the step
-         * is a number or promise.
+         *   is a number or promise.
          */
         new<C = null>(step?: StepOverride<C>, context?: C): Process;
       }
