@@ -141,21 +141,26 @@ const config = tseslint.config(
     },
   },
 
+  // Configuration for .d.ts files
   {
-    plugins: {
-      '@typescript-eslint': tseslint,
-    },
     files: ['**/*.d.ts'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
     rules: {
       ...tseslint.configs.recommended.rules,
       '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
-    },
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-        extraFileExtensions: ['.d.ts'],
-      },
+      // Disable some rules that are not applicable to declaration files
+      '@typescript-eslint/no-unused-vars': 'off',
+      'jsdoc/require-jsdoc': 'off',
+      'import/order': 'off',
     },
   },
 );
