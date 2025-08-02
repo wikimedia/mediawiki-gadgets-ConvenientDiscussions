@@ -1,5 +1,4 @@
 // import babelParser from '@babel/eslint-parser';
-import eslint from '@eslint/js';
 import importPlugin from 'eslint-plugin-import';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
 import noOneTimeVarsPlugin from 'eslint-plugin-no-one-time-vars';
@@ -54,8 +53,8 @@ const config = tseslint.config(
     },
     rules: {
       // Start with recommended rules
-      ...eslint.configs.recommended.rules,
-      ...tseslint.configs.recommended.rules,
+      //...eslint.configs.recommended.rules,
+      //...tseslint.configs.recommended.rules,
 
       // Handled by TypeScript
       'no-undef': 'off',
@@ -129,39 +128,39 @@ const config = tseslint.config(
   },
 
   // Environment configs
-  {
-    files: ['**/*.js'],
-    ...tseslint.configs.disableTypeChecked,
-    languageOptions: {
-      globals: {
-        // Browser globals
-        window: 'readonly',
-        document: 'readonly',
-      },
-    },
-  },
+  // {
+  //   files: ['**/*.js'],
+  //   ...tseslint.configs.disableTypeChecked,
+  //   languageOptions: {
+  //     globals: {
+  //       // Browser globals
+  //       window: 'readonly',
+  //       document: 'readonly',
+  //     },
+  //   },
+  // },
 
   // Configuration for .d.ts files
   {
-    files: ['**/*.d.ts'],
+    files: ['**/*.ts'],
     languageOptions: {
       parser: tseslint.parser,
-      parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
-      },
+      // parserOptions: {
+      //   project: './tsconfig.json',
+      //   tsconfigRootDir: import.meta.dirname,
+      // },
     },
-    plugins: {
-      '@typescript-eslint': tseslint.plugin,
-    },
-    rules: {
-      ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
-      // Disable some rules that are not applicable to declaration files
-      '@typescript-eslint/no-unused-vars': 'off',
-      'jsdoc/require-jsdoc': 'off',
-      'import/order': 'off',
-    },
+    // plugins: {
+    //   '@typescript-eslint': tseslint.plugin,
+    // },
+    // rules: {
+    //   ...tseslint.configs.recommended.rules,
+    //   '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+    //   // Disable some rules that are not applicable to declaration files
+    //   '@typescript-eslint/no-unused-vars': 'off',
+    //   'jsdoc/require-jsdoc': 'off',
+    //   'import/order': 'off',
+    // },
   },
 );
 
