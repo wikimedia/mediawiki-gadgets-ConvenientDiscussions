@@ -689,6 +689,7 @@ class BootProcess {
       getElementByClassName: (/** @type {Element} */ el, className) =>
         el.querySelector(`.${className}`),
       rootElement: bootController.rootElement,
+      document,
       areThereOutdents: talkPageController.areThereOutdents.bind(talkPageController),
       processAndRemoveDtElements,
       removeDtButtonHtmlComments,

@@ -4,7 +4,7 @@ declare global {
   interface WorkerGlobalScope {
     Document: typeof DomHandlerDocument;
     Node: typeof DomHandlerNode;
-    document: DomHandlerDocument;
+    document?: DomHandlerDocument;
   }
 
   const Node: WorkerGlobalScope['Node'];

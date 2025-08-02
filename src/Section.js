@@ -1813,6 +1813,42 @@ class Section extends SectionSkeleton {
   }
 
   /**
+   * Locate the section in the source code and set the result to the {@link Section#source}
+   * property.
+   *
+   * It is expected that the section or page code is loaded (using {@link Page#loadCode}) before
+   * this method is called. Otherwise, the method will throw an error.
+   *
+   * @param {string|undefined} [sectionCode] Section code to use instead of the page code, to locate
+   *   the section in.
+   * @returns {SectionSource}
+   * @throws {CdError}
+   */
+  locateInCode(sectionCode) {
+    this.source = null;
+
+    const code = sectionCode || this.getSourcePage().code;
+    if (code === undefined) {
+      throw new CdError({
+        type: 'parse',
+        code: 'noCode',
+      });
+    }
+
+    const source = this.searchInCode(code, Boolean(sectionCode));
+    if (!source) {
+      throw new CdError({
+        type: 'parse',
+        code: 'locateSection',
+      });
+    }
+
+    this.source = source;
+
+    return source;
+  }
+
+  /**
    * Search for the section in the source code and return possible matches.
    *
    * @param {string} contextCode
@@ -1851,42 +1887,6 @@ class Section extends SectionSkeleton {
     }
 
     return sourcesWithScores.sort((m1, m2) => m2.score - m1.score)[0]?.source;
-  }
-
-  /**
-   * Locate the section in the source code and set the result to the {@link Section#source}
-   * property.
-   *
-   * It is expected that the section or page code is loaded (using {@link Page#loadCode}) before
-   * this method is called. Otherwise, the method will throw an error.
-   *
-   * @param {string|undefined} [sectionCode] Section code to use instead of the page code, to locate
-   *   the section in.
-   * @returns {SectionSource}
-   * @throws {CdError}
-   */
-  locateInCode(sectionCode) {
-    this.source = null;
-
-    const code = sectionCode || this.getSourcePage().code;
-    if (code === undefined) {
-      throw new CdError({
-        type: 'parse',
-        code: 'noCode',
-      });
-    }
-
-    const source = this.searchInCode(code, Boolean(sectionCode));
-    if (!source) {
-      throw new CdError({
-        type: 'parse',
-        code: 'locateSection',
-      });
-    }
-
-    this.source = source;
-
-    return source;
   }
 
   /**

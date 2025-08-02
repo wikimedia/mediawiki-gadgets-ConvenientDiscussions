@@ -75,6 +75,7 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
 /**
  * @typedef {object} CommentFormInitialStateExtension
  * @property {boolean} [focus]
+ * @property {string} [focusHeadline]
  * @property {Comment} [targetWithOutdentedReplies]
  */
 
@@ -315,6 +316,14 @@ class CommentForm extends EventEmitter {
    * @type {OO.ui.ButtonWidget}
    */
   submitButton;
+
+  /**
+   * Standard total width of button labels.
+   *
+   * @type {number}
+   * @private
+   */
+  buttonsTotalWidthStandard;
 
   /**
    * The area where service messages are displayed.
@@ -781,30 +790,21 @@ class CommentForm extends EventEmitter {
   createCheckboxes(initialState) {
     if (cd.user.isRegistered()) {
       if (this.isMode('edit')) {
-         ({
-          field: this.minorField,
-          input: this.minorCheckbox,
-        } = createCheckboxControl({
-          value: 'minor',
-          selected: initialState.minor ?? true,
-          label: cd.s('cf-minor'),
-          tabIndex: this.getTabIndex(20),
-        }));
+         ({ field: this.minorField, input: this.minorCheckbox } = createCheckboxControl({
+           value: 'minor',
+           selected: initialState.minor ?? true,
+           label: cd.s('cf-minor'),
+           tabIndex: this.getTabIndex(20),
+         }));
       }
 
-      ({
-        field: this.watchField,
-        input: this.watchCheckbox,
-      } = createCheckboxControl({
+      ({ field: this.watchField, input: this.watchCheckbox } = createCheckboxControl({
         value: 'watch',
-        selected: (
+        selected:
           initialState.watch ??
-          (
-            (this.watchOnReply && !this.isMode('edit')) ||
+          ((this.watchOnReply && !this.isMode('edit')) ||
             $('.mw-watchlink a[href*="action=unwatch"]').length ||
-            mw.user.options.get(cd.page.exists() ? 'watchdefault' : 'watchcreations')
-          )
-        ),
+            mw.user.options.get(cd.page.exists() ? 'watchdefault' : 'watchcreations')),
         label: cd.s('cf-watch'),
         tabIndex: this.getTabIndex(21),
       }));
@@ -816,40 +816,28 @@ class CommentForm extends EventEmitter {
         (subscribableSection?.subscribeId || this.isMode('addSection')) &&
         (!talkPageController.isSubscribingDisabled() || subscribableSection?.subscriptionState)
       ) {
-        ({
-          field: this.subscribeField,
-          input: this.subscribeCheckbox,
-        } = createCheckboxControl({
+        ({ field: this.subscribeField, input: this.subscribeCheckbox } = createCheckboxControl({
           value: 'subscribe',
-          selected: (
+          selected: Boolean(
             initialState.subscribe ??
             (
               (this.subscribeOnReply && !this.isMode('edit')) ||
               subscribableSection?.subscriptionState
             )
           ),
-          label: (
+          label:
             this.useTopicSubscription ||
-            (
-              this.isMode('addSection') ||
-              (
-                !this.isMode('addSubsection') &&
-                ((this.targetSection && this.targetSection.level <= 2))
-              )
-            )
-          ) ?
-            cd.s('cf-watchsection-topic') :
-            cd.s('cf-watchsection-subsection'),
+            this.isMode('addSection') ||
+            (!this.isMode('addSubsection') && this.targetSection && this.targetSection.level <= 2)
+              ? cd.s('cf-watchsection-topic')
+              : cd.s('cf-watchsection-subsection'),
           tabIndex: this.getTabIndex(22),
           title: cd.s('cf-watchsection-tooltip'),
         }));
       }
     }
 
-    ({
-      field: this.omitSignatureField,
-      input: this.omitSignatureCheckbox,
-    } = createCheckboxControl({
+    ({ field: this.omitSignatureField, input: this.omitSignatureCheckbox } = createCheckboxControl({
       value: 'omitSignature',
       selected: initialState.omitSignature ?? false,
       label: cd.s('cf-omitsignature'),
@@ -912,7 +900,7 @@ class CommentForm extends EventEmitter {
       classes: ['cd-button-ooui'],
       popup: {
         head: false,
-        $content: wrapHtml(
+        $content: /** @type {JQuery} */ (wrapHtml(
           cd.sParse(
             'cf-help-content',
             cd.config.mentionCharacter,
@@ -923,7 +911,7 @@ class CommentForm extends EventEmitter {
             tagName: 'div',
             targetBlank: true,
           }
-        ).contents(),
+        ).contents()),
         padded: true,
         align: 'center',
         width: 400,
@@ -1429,7 +1417,7 @@ class CommentForm extends EventEmitter {
   /**
    * Test if a target comment or section exists in the wikitext.
    *
-   * @returns {Promise}
+   * @returns {Promise<import('./CommentSource').default|import('./SectionSource').default|import('./PageSource').default>}
    * @private
    */
   checkCode() {
@@ -2146,6 +2134,7 @@ class CommentForm extends EventEmitter {
    * @private
    */
   initAutocomplete() {
+    /** @type {Comment[]} */
     let commentsInSection = [];
     if (this.targetSection) {
       commentsInSection = this.targetSection.getBase().comments;
@@ -2168,22 +2157,28 @@ class CommentForm extends EventEmitter {
       .map((comment) => comment.author)
       .concat(
         // User links in the section
-        commentsInSection.flatMap((comment) => (
+        commentsInSection.flatMap((comment) =>
           comment.$elements
             .find('a')
-            .filter((_, /** @type {HTMLAnchorElement} */ el) => (
-              cd.g.userLinkRegexp.test(el.title) &&
-              !el.closest(settings.get('reformatComments') ? '.cd-comment-author' : '.cd-signature')
-            ))
+            .filter(
+              (_, /** @type {HTMLAnchorElement} */ el) =>
+                cd.g.userLinkRegexp.test(el.title) &&
+                !el.closest(
+                  settings.get('reformatComments') ? '.cd-comment-author' : '.cd-signature'
+                )
+            )
             .get()
             .map((/** @type {HTMLAnchorElement} */ el) => Parser.processLink(el)?.userName)
             .filter(defined)
             .map((/** @type {string} */ userName) => userRegistry.get(userName))
-        ))
+        )
       )
-      .concat(pageOwner)
+      .concat(pageOwner || [])
       .filter(defined)
-      .sort((u1, u2) => u2.isRegistered() - u1.isRegistered() || (u2.name > u1.name ? -1 : 1))
+      .sort(
+        (u1, u2) =>
+          Number(u2.isRegistered()) - Number(u1.isRegistered()) || (u2.name > u1.name ? -1 : 1)
+      )
       .filter((u) => u !== cd.user)
       .map((u) => u.name);
 
@@ -2261,7 +2256,7 @@ class CommentForm extends EventEmitter {
         this.cancelButton.setLabel(cd.s('cf-cancel'));
       }
     } else {
-      this.buttonsTotalWidthStandard = [
+      this.buttonsTotalWidthStandard = /** @type {(keyof CommentForm)[]} */ ([
         'submitButton',
         'previewButton',
         'viewChangesButton',
@@ -2269,11 +2264,11 @@ class CommentForm extends EventEmitter {
         'advancedButton',
         'helpPopupButton',
         'settingsButton',
-      ]
-        .map((name) => this[name]?.$element)
+      ])
+        .map((name) => /** @type {JQuery<HTMLElement> | undefined} */ (this[name]?.$element))
         .filter(defined)
         .filter(($el) => $el.is(':visible'))
-        .reduce((width, $el) => width + $el.outerWidth(true), 0);
+        .reduce((width, $el) => width + ($el.outerWidth(true) || 0), 0);
       if (formWidth < this.buttonsTotalWidthStandard + additive) {
         this.$element.addClass('cd-commentForm-short');
         this.submitButton.setLabel(this.submitButtonLabelShort);
@@ -2469,20 +2464,15 @@ class CommentForm extends EventEmitter {
 
   /**
    * @typedef {object} HandleErrorOptions
-   * @property {'parse'|'api'|'network'|'javascript'|'ui'} options.type Type of the error:
-   *   * `'parse'` for parse errors defined in the script,
-   *   * `'api'` for MediaWiki API errors,
-   *   * `'network'` for network errors defined in the script,
-   *   * `'javascript'` for JavaScript errors,
-   *   * `'ui'` for UI errors.
+   * @property {import('./shared/CdError').ErrorType} options.type Error type.
    * @property {string} [options.code] Code of the error. (Either `code`, `apiResponse`, or
    *   `message` should be specified.)
-   * @property {object} [options.details] Additional details about the error.
-   * @property {object} [options.apiResponse] Data object received from the MediaWiki server.
-   *   (Either `code`, `apiResponse`, or `message` should be specified.)
+   * @property {{ [x: string]: any }} [options.details] Additional details about the error.
+   * @property {ApiAnyResponse} [options.apiResponse] Data object received from the MediaWiki
+   *   server. (Either `code`, `apiResponse`, or `message` should be specified.)
    * @property {string} [options.message] Text of the error. (Either `code`, `apiResponse`, or
    *   `message` should be specified.)
-   * @property {'error'|'notice'|'warning'} [options.messageType='error'] Message type if not
+   * @property {'error' | 'notice' | 'warning'} [options.messageType='error'] Message type if not
    *   `'error'`.
    * @property {any} [options.logMessage] Data or text to display in the browser console.
    * @property {boolean} [options.cancel=false] Cancel the form and show the message as a

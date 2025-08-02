@@ -4,15 +4,14 @@ import { isElement, isText } from './utils-general';
 /**
  * Tree walker that walks on both element and text nodes.
  *
- * @template {AnyNode} N
- * @augments TreeWalker<ElementFor<N>|TextFor<N>>
+ * @augments TreeWalker<ElementLike | TextLike>
  */
 class ElementsAndTextTreeWalker extends TreeWalker {
   /**
    * Create an elements and text {@link TreeWalker tree walker}.
    *
-   * @param {ElementFor<N>|TextFor<N>} root
-   * @param {ElementFor<N>|TextFor<N>} [startNode]
+   * @param {ElementLike | TextLike} root
+   * @param {ElementLike | TextLike} [startNode]
    */
   constructor(root, startNode) {
     super(root, (node) => isText(node) || isElement(node), false, startNode);

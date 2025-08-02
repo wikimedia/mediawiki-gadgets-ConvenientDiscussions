@@ -2,14 +2,14 @@
  * This file has types for the code shared between the main and worker parts of the script.
  */
 
-import { Document as DomHandlerDocument } from 'domhandler';
 
 import BootProcess from '../BootProcess';
+import BrowserComment from '../Comment';
+import Section from '../Section';
 import WorkerCommentWorker from '../worker/CommentWorker';
 import WorkerSectionWorker from '../worker/SectionWorker';
 import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
-import CommentSkeleton from './CommentSkeleton';
-import SectionSkeleton from './SectionSkeleton';
+import { HeadingTarget, SignatureTarget, Target } from './Parser';
 
 declare global {
   type MessageFromWorkerParse = {
@@ -43,7 +43,6 @@ declare global {
   interface WindowOrWorkerGlobalScope {
     convenientDiscussions: ConvenientDiscussions | ConvenientDiscussionsWorker;
     cd?: WindowOrWorkerGlobalScope['convenientDiscussions'];
-    document: Document | DomHandlerDocument;
     Node: {
       ELEMENT_NODE: number;
       TEXT_NODE: number;
@@ -262,17 +261,19 @@ declare global {
   type TextLike = AnyText;
 
   type ElementFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Element : Element;
+  type DocumentFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Document : Document;
   type HTMLElementFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Element : HTMLElement;
   type TextFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Text : Text;
 
   interface ParsingContext<T extends AnyNode> {
     // Classes
-    CommentClass: new (parser: Parser<T>, signature: SignatureTarget, targets: Target[]) => CommentSkeleton<T>;
-    SectionClass: new (parser: Parser<T>, heading: HeadingTarget, targets: Target[], subscriptions: Subscriptions) => SectionSkeleton<T>;
+    CommentClass: new (parser: Parser<T>, signature: SignatureTarget<T>, targets: Target<T>[]) => T extends import('domhandler').Node ? CommentWorker : BrowserComment;
+    SectionClass: new (parser: Parser<T>, heading: HeadingTarget<T>, targets: Target<T>[], subscriptions: Subscriptions) => T extends import('domhandler').Node ? SectionWorker : Section;
 
     // Properties
     childElementsProp: string;
     rootElement: ElementFor<T>;
+    document: DocumentFor<T>;
 
     // Non-DOM methods
     areThereOutdents: () => boolean;

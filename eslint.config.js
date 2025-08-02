@@ -1,10 +1,11 @@
-import babelParser from '@babel/eslint-parser';
-import js from '@eslint/js';
+// import babelParser from '@babel/eslint-parser';
+import eslint from '@eslint/js';
 import importPlugin from 'eslint-plugin-import';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
 import noOneTimeVarsPlugin from 'eslint-plugin-no-one-time-vars';
+import tseslint from 'typescript-eslint';
 
-export default [
+const config = tseslint.config(
   // Base configuration for all files
   {
     ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js'],
@@ -13,12 +14,14 @@ export default [
   // Main configuration
   {
     languageOptions: {
-      ecmaVersion: 2018,
+      // ecmaVersion: 2018,
       sourceType: 'module',
-      parser: babelParser,
-      parserOptions: {
-        requireConfigFile: false,
-      },
+      // parser: babelParser,
+      // parserOptions: {
+      //   requireConfigFile: false,
+      // },
+      ecmaVersion: 2022,
+      parserOptions: { project: true },
       globals: {
         CONFIG_FILE_NAME: 'readonly',
         IS_DEV: 'readonly',
@@ -51,7 +54,8 @@ export default [
     },
     rules: {
       // Start with recommended rules
-      ...js.configs.recommended.rules,
+      ...eslint.configs.recommended.rules,
+      ...tseslint.configs.recommended.rules,
 
       // Handled by TypeScript
       'no-undef': 'off',
@@ -127,6 +131,7 @@ export default [
   // Environment configs
   {
     files: ['**/*.js'],
+    ...tseslint.configs.disableTypeChecked,
     languageOptions: {
       globals: {
         // Browser globals
@@ -135,4 +140,24 @@ export default [
       },
     },
   },
-];
+
+  {
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    files: ['**/*.d.ts'],
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+    },
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+        extraFileExtensions: ['.d.ts'],
+      },
+    },
+  },
+);
+
+export default config;

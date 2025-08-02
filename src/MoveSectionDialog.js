@@ -317,7 +317,7 @@ class MoveSectionDialog extends ProcessDialog {
           await this.editSourcePage(source, target);
         } catch (error) {
           if (error instanceof CdError) {
-            this.abort(.../** @type {Parameters<MoveSectionDialog['abort']>} */ (error.data));
+            this.abort(.../** @type {Parameters<MoveSectionDialog['abort']>} */ (error.data.details));
           } else {
             throw error;
           }
@@ -441,16 +441,16 @@ class MoveSectionDialog extends ProcessDialog {
         if (type === 'api') {
           if (code === 'invalid') {
             // Should be filtered before submit anyway.
-            throw new CdError({ data: [cd.sParse('msd-error-invalidpagename'), false] });
+            throw new CdError({ details: [cd.sParse('msd-error-invalidpagename'), false] });
           } else {
-            throw new CdError({ data: [cd.sParse('error-api', code), true] });
+            throw new CdError({ details: [cd.sParse('error-api', code), true] });
           }
         } else if (type === 'network') {
-          throw new CdError({ data: [cd.sParse('error-network'), true] });
+          throw new CdError({ details: [cd.sParse('error-network'), true] });
         }
       } else {
         console.warn(error);
-        throw new CdError({ data: [cd.sParse('error-javascript'), false] });
+        throw new CdError({ details: [cd.sParse('error-javascript'), false] });
       }
     }
 
@@ -526,18 +526,18 @@ class MoveSectionDialog extends ProcessDialog {
       if (error instanceof CdError) {
         const { type, details } = error.data;
         if (type === 'network') {
-          throw new CdError({ data: [genericMessage + ' ' + cd.sParse('error-network'), true] });
+          throw new CdError({ details: [genericMessage + ' ' + cd.sParse('error-network'), true] });
         } else {
-          let { code, message, logMessage } = details;
+          let { code, message, logMessage } = /** @type {NonNullable<typeof details>} */ (details);
           if (code === 'editconflict') {
             message += ' ' + cd.sParse('msd-error-editconflict-retry');
           }
           console.warn(logMessage);
-          throw new CdError({ data: [genericMessage + ' ' + message, true] });
+          throw new CdError({ details: [genericMessage + ' ' + message, true] });
         }
       } else {
         console.warn(error);
-        throw new CdError({ data: [genericMessage + ' ' + cd.sParse('error-javascript'), false] });
+        throw new CdError({ details: [genericMessage + ' ' + cd.sParse('error-javascript'), false] });
       }
     }
   }

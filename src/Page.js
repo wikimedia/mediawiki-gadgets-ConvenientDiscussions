@@ -143,7 +143,7 @@ export default class Page {
 
     /**
      * Page's source code object. This is mostly for polymorphism with {@link CommentSource} and
-     * {@link SectionSource}; the source code is in {@link Page#code}.
+     * {@link SectionSource}.
      *
      * @type {PageSource}
      */
@@ -375,7 +375,7 @@ export default class Page {
   /**
    * Make a parse request (see {@link https://www.mediawiki.org/wiki/API:Parsing_wikitext}).
    *
-   * @param {object} [customOptions]
+   * @param {import('types-mediawiki/api_params').ApiParseParams} [customOptions]
    * @param {boolean} [inBackground=false] Make a request that won't set the process on hold when
    *   the tab is in the background.
    * @param {boolean} [markAsRead=false] Mark the current page as read in the watchlist.
@@ -383,7 +383,7 @@ export default class Page {
    * @throws {CdError}
    */
   async parse(customOptions, inBackground = false, markAsRead = false) {
-    const defaultOptions = {
+    const options = /** @type {import('types-mediawiki/api_params').ApiParseParams} */ ({
       action: 'parse',
 
       // If we know that this page is a redirect, use its target. Otherwise, use the regular name.
@@ -395,8 +395,9 @@ export default class Page {
       prop: ['text', 'revid', 'modules', 'jsconfigvars', 'sections', 'subtitle', 'categorieshtml'],
       parsoid: cd.g.isParsoidUsed,
       ...cd.g.apiErrorFormatHtml,
-    };
-    const options = { ...defaultOptions, ...customOptions };
+
+      ...customOptions,
+    });
 
     // `page` and `oldid` can not be used together.
     if (customOptions?.oldid) {
@@ -426,10 +427,10 @@ export default class Page {
    * Get a list of revisions of the page (the `redirects` API parameter is set to `true` by
    * default).
    *
-   * @param {object} [customOptions={}]
+   * @param {Partial<import('types-mediawiki/api_params').ApiQueryRevisionsParams>} [customOptions={}]
    * @param {boolean} [inBackground=false] Make a request that won't set the process on hold when
    *   the tab is in the background.
-   * @returns {Promise.<Array>}
+   * @returns {Promise.<Revision[]>}
    */
   async getRevisions(customOptions = {}, inBackground = false) {
     const options = /** @type {import('types-mediawiki/api_params').ApiQueryRevisionsParams} */ ({
@@ -463,10 +464,11 @@ export default class Page {
   /**
    * Make an edit API request ({@link https://www.mediawiki.org/wiki/API:Edit}).
    *
-   * @param {object} customOptions See {@link https://www.mediawiki.org/wiki/API:Edit}. At least
-   *   `text` should be set. `summary` is recommended. `baserevid` and `starttimestamp` are needed
-   *   to avoid edit conflicts. `baserevid` can be taken from {@link Page#revisionId};
-   *   `starttimestamp` can be taken from {@link Page#queryTimestamp}.
+   * @param {import('types-mediawiki/api_params').ApiEditPageParams} customOptions See
+   *   {@link https://www.mediawiki.org/wiki/API:Edit}. At least `text` should be set. `summary` is
+   *   recommended. `baserevid` and `starttimestamp` are needed to avoid edit conflicts. `baserevid`
+   *   can be taken from {@link Page#revisionId}; `starttimestamp` can be taken from
+   *   {@link Page#queryTimestamp}.
    * @returns {Promise.<string>} Timestamp of the edit in the ISO format or `'nochange'` if nothing
    *   has changed.
    */
@@ -505,9 +507,11 @@ export default class Page {
           throw error;
         } else {
           const error = apiResponse?.errors[0];
+          /** @type {string | undefined} */
           let message;
           let isRawMessage = false;
           let logMessage;
+          /** @type {string | undefined} */
           let code;
           if (error) {
             code = error.code;
@@ -535,7 +539,7 @@ export default class Page {
 
           throw new CdError({
             type: 'api',
-            code: 'error',
+            code: 'fail',
             apiResponse: response,
             details: { code, message, isRawMessage, logMessage },
           });
@@ -549,7 +553,7 @@ export default class Page {
       const code = response.edit.captcha ? 'captcha' : undefined;
       throw new CdError({
         type: 'api',
-        code: 'error',
+        code: 'captcha',
         apiResponse: response,
         details: {
           code,
@@ -593,7 +597,7 @@ export default class Page {
   /**
    * Get the URL of the page with the specified parameters.
    *
-   * @param {object} [parameters]
+   * @param {import('types-mediawiki/mw/Uri').QueryParams} [parameters]
    * @returns {string}
    */
   getUrl(parameters) {
@@ -637,7 +641,7 @@ export default class Page {
     } catch (error) {
       if (
         error instanceof CdError &&
-        ['missingtitle', 'notwikitext'].includes(error.data.apiError)
+        ['missingtitle', 'notwikitext'].includes(error.data.apiErrorCode)
       ) {
         return new Map();
       } else {
@@ -869,7 +873,7 @@ export default class Page {
    * which relate to the current page, so we don't actually need any meaningful data. Used for
    * polymorphism with {@link Comment#getIdentifyingData} and {@link Section#getIdentifyingData}.
    *
-   * @returns {object}
+   * @returns {null}
    */
   getIdentifyingData() {
     return null;

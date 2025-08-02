@@ -118,6 +118,8 @@ export function isInputFocused() {
  * @property {number} bottom
  * @property {number} left
  * @property {number} right
+ * @property {number} width
+ * @property {number} height
  * @property {number} outerTop
  * @property {number} outerBottom
  * @property {number} outerLeft
@@ -125,7 +127,7 @@ export function isInputFocused() {
  */
 
 /**
- * @typedef {DOMRect|ExtendedDOMRect} AnyDOMRect
+ * @typedef {DOMRect | ExtendedDOMRect} AnyDOMRect
  */
 
 /**
@@ -157,7 +159,7 @@ export function getExtendedRect(el) {
 /**
  * Given bounding client rectangle(s), determine whether the element is visible.
  *
- * @param {...DOMRect} rects
+ * @param {...AnyDOMRect} rects
  * @returns {boolean} `true` if visible, `false` if not.
  */
 export function getVisibilityByRects(...rects) {

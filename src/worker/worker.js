@@ -90,15 +90,15 @@ function removeDtButtonHtmlComments() {
 /**
  * Find comment signatures and section headings on the page.
  *
- * @param {Parser} parser
- * @returns {import('../shared/Parser').Target[]}
+ * @param {Parser<import('domhandler').Node>} parser
+ * @returns {import('../shared/Parser').Target<import('domhandler').Node>[]}
  * @private
  */
 function findTargets(parser) {
   parser.init();
   parser.processAndRemoveDtMarkup();
 
-  return /** @type {import('../shared/Parser').Target[]} */ (parser.findHeadings())
+  return /** @type {import('../shared/Parser').Target<import('domhandler').Node>[]} */ (parser.findHeadings())
     .concat(parser.findSignatures())
     .sort((t1, t2) => parser.context.follows(t1.element, t2.element) ? 1 : -1);
 }
@@ -106,8 +106,8 @@ function findTargets(parser) {
 /**
  * Parse the comments and modify the related parts of the DOM.
  *
- * @param {Parser} parser
- * @param {import('../shared/Parser').Target[]} targets
+ * @param {Parser<import('domhandler').Node>} parser
+ * @param {import('../shared/Parser').Target<import('domhandler').Node>[]} targets
  * @private
  */
 function processComments(parser, targets) {
@@ -127,8 +127,8 @@ function processComments(parser, targets) {
 /**
  * Parse the sections and modify some parts of them.
  *
- * @param {Parser} parser
- * @param {import('../shared/Parser').Target[]} targets
+ * @param {Parser<import('domhandler').Node>} parser
+ * @param {import('../shared/Parser').Target<import('domhandler').Node>[]} targets
  * @private
  */
 function processSections(parser, targets) {
@@ -165,7 +165,7 @@ export function keepSafeValues(obj, unsafeKeys) {
  * Prepare comments and sections for transferring to the main process. Remove unnecessary content
  * and properties, hide dynamic content, add properties.
  *
- * @param {Parser} parser
+ * @param {Parser<import('domhandler').Node>} parser
  * @private
  */
 function prepareCommentsAndSections(parser) {
@@ -194,6 +194,7 @@ function parse() {
     getAllTextNodes,
     getElementByClassName: (el, className) => (/** @type {import('domhandler').Element} */ (el).getElementsByClassName(className, 1))[0] || null,
     rootElement: /** @type {NonNullable<typeof rootElement>} */ (rootElement),
+    document,
     areThereOutdents: () => {
       areThereOutdents ??= Boolean(
         /** @type {NonNullable<typeof rootElement>} */ (rootElement).getElementsByClassName(cd.config.outdentClass, 1).length

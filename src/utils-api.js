@@ -119,9 +119,9 @@ export function handleApiReject(codeOrArr, response) {
         code: 'error',
         apiResponse,
 
-        // `error` or `errors` is chosen by the API depending on `errorformat` being ''html'` in
+        // `error` or `errors` is chosen by the API depending on `errorformat` being 'html' in
         // requests.
-        apiError: apiResponse?.error?.code || apiResponse?.errors?.[0].code,
+        apiErrorCode: apiResponse?.error?.code || apiResponse?.errors?.[0].code,
       });
     }
   }
@@ -389,7 +389,7 @@ export async function saveOptions(options, isGlobal = false) {
   if (resp?.[action] !== 'success') {
     throw new CdError({
       type: 'api',
-      code: 'noSuccess',
+      code: 'fail',
       details: { action },
     });
   }
@@ -429,7 +429,7 @@ export async function saveGlobalOption(name, value) {
     await saveOptions({ [name]: value }, true);
   } catch (error) {
     // The site doesn't support global preferences.
-    if (error instanceof CdError && error.data.apiError === 'badvalue') {
+    if (error instanceof CdError && error.data.apiErrorCode === 'badvalue') {
       await saveLocalOption(name, value);
     } else {
       throw error;

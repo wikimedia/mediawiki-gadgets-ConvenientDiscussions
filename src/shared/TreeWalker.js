@@ -101,7 +101,7 @@ class TreeWalker {
     }
 
     do {
-      node = node[prop];
+      node = node[/** @type {keyof node} */ (prop)];
     } while (node && !this.acceptNode(node));
     if (node) {
       this.currentNode = node;
@@ -166,13 +166,13 @@ class TreeWalker {
     let node = startNode || this.currentNode;
 
     do {
-      if (node[this.firstChildProp]) {
-        node = node[this.firstChildProp];
+      if (node[/** @type {keyof node} */ (this.firstChildProp)]) {
+        node = node[/** @type {keyof node} */ (this.firstChildProp)];
       } else {
-        while (node && !node[this.nextSiblingProp] && node.parentNode !== this.root) {
+        while (node && !node[/** @type {keyof node} */ (this.nextSiblingProp)] && node.parentNode !== this.root) {
           node = node.parentNode;
         }
-        node &&= node[this.nextSiblingProp];
+        node &&= node[/** @type {keyof node} */ (this.nextSiblingProp)];
       }
     } while (node && !this.acceptNode(node));
     if (node) {
@@ -195,10 +195,10 @@ class TreeWalker {
     }
 
     do {
-      let test = /** @type {NodeLike | null} */ (node[this.previousSiblingProp]);
+      let test = /** @type {NodeLike | null} */ (node[/** @type {keyof node} */ (this.previousSiblingProp)]);
       if (test) {
         node = test;
-        while ((test = node[this.lastChildProp])) {
+        while ((test = node[/** @type {keyof node} */ (this.lastChildProp)])) {
           node = test;
         }
       } else {

@@ -9,7 +9,7 @@ import { keepSafeValues } from './worker';
 /**
  * Comment class used in the worker scope.
  *
- * @extends {CommentSkeleton<import('domhandler').Node>}
+ * @augments {CommentSkeleton<import('domhandler').Node>}
  */
 export default class CommentWorker extends CommentSkeleton {
   /**
@@ -71,9 +71,9 @@ export default class CommentWorker extends CommentSkeleton {
    * Create a comment worker instance.
    *
    * @param {import('../shared/Parser').default<import('domhandler').Node>} parser
-   * @param {import('../shared/Parser').SignatureTarget<import('domhandler').Element>} signature
+   * @param {import('../shared/Parser').SignatureTarget<import('domhandler').Node>} signature
    *   Signature object returned by {@link Parser#findSignatures}.
-   * @param {import('../shared/Parser').Target<import('domhandler').Element>[]} targets
+   * @param {import('../shared/Parser').Target<import('domhandler').Node>[]} targets
    * @throws {CdError}
    */
   constructor(parser, signature, targets) {
