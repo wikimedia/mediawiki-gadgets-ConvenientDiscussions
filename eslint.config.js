@@ -127,6 +127,35 @@ const config = tseslint.config(
     },
   },
 
+  // Configuration for JavaScript files with TypeScript-aware JSDoc linting
+  {
+    files: ['**/*.js'],
+    languageOptions: {
+      parser: tseslint.parser,
+      // parserOptions: {
+      //   project: true,
+      //   ecmaVersion: 2022,
+      //   sourceType: 'module',
+      // },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
+    rules: {
+      // Enable TypeScript-aware JSDoc type checking
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-misused-promises': 'warn',
+      '@typescript-eslint/await-thenable': 'warn',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
+      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+      '@typescript-eslint/prefer-optional-chain': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/prefer-as-const': 'warn',
+      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+    },
+  },
+
   // Environment configs
   // {
   //   files: ['**/*.js'],
