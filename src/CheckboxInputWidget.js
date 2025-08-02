@@ -5,9 +5,11 @@
  * @augments OO.ui.CheckboxInputWidget
  */
 class CheckboxInputWidget extends OO.ui.CheckboxInputWidget {
-  // eslint-disable-next-line jsdoc/require-jsdoc
-  constructor(...args) {
-    super(...args);
+  /**
+   * @param {OO.ui.CheckboxInputWidget.ConfigOptions} config
+   */
+  constructor(config) {
+    super(config);
 
     this.$input.on('change', () => {
       this.emit('manualChange', this.$input.prop('checked'));
