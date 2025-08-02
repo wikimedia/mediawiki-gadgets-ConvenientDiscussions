@@ -1,4 +1,5 @@
 // import babelParser from '@babel/eslint-parser';
+import eslint from '@eslint/js';
 import importPlugin from 'eslint-plugin-import';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
 import noOneTimeVarsPlugin from 'eslint-plugin-no-one-time-vars';
@@ -53,8 +54,8 @@ const config = tseslint.config(
     },
     rules: {
       // Start with recommended rules
-      //...eslint.configs.recommended.rules,
-      //...tseslint.configs.recommended.rules,
+      ...eslint.configs.recommended.rules,
+      ...tseslint.configs.recommended.rules,
 
       // Handled by TypeScript
       'no-undef': 'off',
@@ -127,69 +128,35 @@ const config = tseslint.config(
     },
   },
 
-  // Configuration for JavaScript files with TypeScript-aware JSDoc linting
+  // Environment configs
   {
     files: ['**/*.js'],
+    ...tseslint.configs.disableTypeChecked,
     languageOptions: {
-      parser: tseslint.parser,
-      // parserOptions: {
-      //   project: true,
-      //   ecmaVersion: 2022,
-      //   sourceType: 'module',
-      // },
-    },
-    plugins: {
-      '@typescript-eslint': tseslint.plugin,
-    },
-    rules: {
-      // Enable TypeScript-aware JSDoc type checking
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-misused-promises': 'warn',
-      '@typescript-eslint/await-thenable': 'warn',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
-      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
-      '@typescript-eslint/prefer-optional-chain': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/prefer-as-const': 'warn',
-      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+      },
     },
   },
 
-  // Environment configs
-  // {
-  //   files: ['**/*.js'],
-  //   ...tseslint.configs.disableTypeChecked,
-  //   languageOptions: {
-  //     globals: {
-  //       // Browser globals
-  //       window: 'readonly',
-  //       document: 'readonly',
-  //     },
-  //   },
-  // },
-
-  // Configuration for .d.ts files
   {
-    files: ['**/*.ts'],
-    languageOptions: {
-      parser: tseslint.parser,
-      // parserOptions: {
-      //   project: './tsconfig.json',
-      //   tsconfigRootDir: import.meta.dirname,
-      // },
+    plugins: {
+      '@typescript-eslint': tseslint,
     },
-    // plugins: {
-    //   '@typescript-eslint': tseslint.plugin,
-    // },
-    // rules: {
-    //   ...tseslint.configs.recommended.rules,
-    //   '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
-    //   // Disable some rules that are not applicable to declaration files
-    //   '@typescript-eslint/no-unused-vars': 'off',
-    //   'jsdoc/require-jsdoc': 'off',
-    //   'import/order': 'off',
-    // },
+    files: ['**/*.d.ts'],
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+    },
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+        extraFileExtensions: ['.d.ts'],
+      },
+    },
   },
 );
 

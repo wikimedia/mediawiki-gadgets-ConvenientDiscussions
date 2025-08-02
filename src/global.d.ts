@@ -40,7 +40,7 @@ declare global {
     index?: number;
     contentmodel: string;
     redirects?: Array<{ title: string }>;
-    revisions?: Revision[];
+    revisions?: Array<Revision>;
   }
 
   interface Revision {
@@ -139,7 +139,7 @@ declare global {
   type MultilineTextInputControl = GenericControl<'multilineText'>;
 
   type MultitagControl = GenericControl<'multitag'> & {
-    uiToData?: (value: string[]) => Array<string|string[]>;
+    uiToData?: (value: string[]) => (string|string[])[];
   };
 
   type NumberControl = GenericControl<'number'>;
@@ -188,12 +188,12 @@ declare global {
   interface JQuery {
     cdRemoveNonElementNodes(): void;
     cdScrollTo(
-      alignment: 'top' | 'center' | 'bottom',
-      smooth?: boolean,
+      alignment: 'top' | 'center' | 'bottom' = 'top',
+      smooth = true,
       callback?: () => void,
     ): this;
-    cdIsInViewport(partially?: boolean): boolean;
-    cdScrollIntoView(alignment?: 'top'|'center'|'bottom', smooth?: boolean, callback?: () => void): this;
+    cdIsInViewport(partially = false): boolean;
+    cdScrollIntoView(alignment: 'top'|'center'|'bottom' = 'top', smooth = true, callback?: () => void): this;
     cdGetText(): string;
     cdAddCloseButton(): this;
     cdRemoveCloseButton(): this;
@@ -283,10 +283,10 @@ declare global {
       interface Constructor {
         /**
          * @param step Number of milliseconds to wait before proceeding,
-         *   promise that must be resolved before proceeding, or a function to execute.
-         *   See {@link Process.first first} for more information.
+         * promise that must be resolved before proceeding, or a function to execute.
+         * See {@link Process.first first} for more information.
          * @param context Execution context of the function. The context is ignored if the step
-         *   is a number or promise.
+         * is a number or promise.
          */
         new<C = null>(step?: StepOverride<C>, context?: C): Process;
       }
