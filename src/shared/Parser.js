@@ -26,10 +26,6 @@ import {
 import { parseTimestamp } from './utils-timestamp';
 
 /**
- * @typedef {import('./ElementsTreeWalker').default} ElementsTreeWalker
- */
-
-/**
  * @template {AnyNode} N
  * @typedef {object} HeadingTarget
  * @property {'heading'} type
@@ -125,7 +121,7 @@ class Parser {
    *
    * @param {SignatureTarget<N>} signature
    * @param {Target<N>[]} targets
-   * @returns {import('./CommentSkeleton').default<N>}
+   * @returns {InstanceType<typeof this.context.CommentClass>}
    */
   createComment(signature, targets) {
     return new this.context.CommentClass(this, signature, targets);
@@ -137,7 +133,7 @@ class Parser {
    * @param {HeadingTarget<N>} heading
    * @param {Target<N>[]} targets
    * @param {import('../Subscriptions').default} [subscriptions]
-   * @returns {import('./SectionSkeleton').default<N>}
+   * @returns {InstanceType<typeof this.context.SectionClass>}
    */
   createSection(heading, targets, subscriptions) {
     return new this.context.SectionClass(this, heading, targets, subscriptions);
@@ -441,7 +437,7 @@ class Parser {
     const signatureContainer = /** @type {ElementFor<N>} */ (signatureNodes[0].parentElement);
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const startElementNextSibling = signatureNodes[0].nextSibling;
-    const element = self.document.createElement('span');
+    const element = document.createElement('span');
     element.classList.add('cd-signature');
     signatureNodes.reverse().forEach((node) => this.context.appendChild(element, node));
     this.context.insertBefore(signatureContainer, element, startElementNextSibling);

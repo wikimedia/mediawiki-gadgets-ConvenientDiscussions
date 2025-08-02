@@ -1452,7 +1452,7 @@ class Comment extends CommentSkeleton {
    *   into account).
    * @param {number} bottom Bottom coordonate of the comment (calculated without taking floating
    *   elements into account).
-   * @param {object[]} [floatingRects=controller.getFloatingElements().map(getExtendedRect)]
+   * @param {import('./utils-window').ExtendedDOMRect[]} [floatingRects=controller.getFloatingElements().map(getExtendedRect)]
    *   {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect Element#getBoundingClientRect}
    *   results for floating elements from `convenientDiscussions.g.floatingElements`. It may be
    *   calculated in advance for many elements in one sequence to save time.
@@ -2342,6 +2342,7 @@ class Comment extends CommentSkeleton {
       }
     });
 
+    /** @type {number[]} */
     const currentLineNumbers = [];
     let cleanDiffBody = '';
     $(wrapDiffBody(body))

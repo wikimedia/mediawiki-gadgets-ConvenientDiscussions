@@ -1,7 +1,6 @@
 import CdError from './CdError';
 import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker';
 import ElementsTreeWalker from './ElementsTreeWalker';
-import Parser from './Parser';
 import cd from './cd';
 import { generateFixedPosTimestamp, genericGetOldestOrNewestByDateProp, isElement, isHeadingNode, isInline, isMetadataNode, isText, spacesToUnderlines, unique } from './utils-general';
 

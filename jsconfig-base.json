@@ -8,8 +8,6 @@
     "strictNullChecks": true,
     "noImplicitOverride": true,
     "strict": true,
-    "strictPropertyInitialization": false,
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true
+    "strictPropertyInitialization": false
   }
 }

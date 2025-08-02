@@ -1,3 +1,3 @@
 /**
- * @typedef {mw.Api.RejectArgTuple[1]} ApiRejectResponse
+ * @typedef {Exclude<mw.Api.RejectArgTuple[1], mw.Rest.HttpErrorData>} ApiRejectResponse
  */

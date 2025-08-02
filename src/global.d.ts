@@ -20,19 +20,6 @@ declare global {
   type StringsByKey = { [key: string]: string };
   type ValidKey = string | number;
 
-  interface Revision {
-    revid: number;
-    parentid: number;
-    slots?: {
-      main: {
-        contentmodel: string;
-        contentformat: string;
-        content: string;
-        nosuchsection: boolean;
-      };
-    };
-  }
-
   interface ApiResponseQueryPage {
     title: string;
     pageid: number;
@@ -53,7 +40,20 @@ declare global {
     index?: number;
     contentmodel: string;
     redirects?: Array<{ title: string }>;
-    revisions?: Revision[];
+    revisions?: Array<Revision>;
+  }
+
+  interface Revision {
+    revid: number;
+    parentid: number;
+    slots?: {
+      main: {
+        contentmodel: string;
+        contentformat: string;
+        content: string;
+        nosuchsection: boolean;
+      };
+    };
   }
 
   interface FromTo {

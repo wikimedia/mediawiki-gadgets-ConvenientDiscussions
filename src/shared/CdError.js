@@ -1,11 +1,51 @@
 /**
- * @typedef {object} ErrorData
- * @property {'network'|'api'|'parse'|'internal'} [type='internal'] Error type/category.
+ * Error type:
+ * * `'internal'` for errors defined in the script related to the script's internal logic,
+ * * `'network'` for network errors defined in the script,
+ * * `'api'` for MediaWiki API errors,
+ * * `'parse'` for parse errors defined in the script,
+ * * `'ui'` for UI errors,
+ * * `'javascript'` for JavaScript errors.
+ *
+ * @typedef {'internal' | 'network' | 'api' | 'parse' | 'ui' | 'javascript'} ErrorType
+ */
+
+/**
+ * @typedef {object} ErrorDataServerDefinedApiError
+ * @property {'api'} type
+ * @property {'error'} code
+ * @property {import('types-mediawiki/mw/Api').ApiResponse} apiResponse
+ * @property {string} apiErrorCode
+ */
+
+/**
+ * @typedef {object} ErrorDataOkButEmptyError
+ * @property {'api'} type
+ * @property {'error'} code
+ * @property {'OK response but empty result (check HTTP headers?)'} apiResponse
+ * @property {'ok-but-empty'} apiErrorCode
+ */
+
+/**
+ * @typedef {object} ErrorDataLocallyDefined
+ * @property {ErrorType} [type='internal'] Error type.
  * @property {string} [code] Error code.
+ * @property {string} [message] Error message for the user if they will see it.
+ */
+
+/**
+ * @typedef {object} ErrorDataCustomProps
  * @property {ApiRejectResponse} [apiResponse] API response.
- * @property {string} [apiError] API error code.
+ * @property {string} [apiErrorCode] API error code.
  * @property {{ [x: string]: any }} [details] Additional details.
  * @property {string} [message] Error message for the user if they will see it.
+ */
+
+/**
+ * @typedef {Expand<
+ *   & (ErrorDataServerDefinedApiError | ErrorDataOkButEmptyError | ErrorDataLocallyDefined)
+ *   & ErrorDataCustomProps
+ * >} ErrorData
  */
 
 /**
@@ -27,7 +67,7 @@ class CdError extends Error {
     super(
       data.type +
       (data.code ? `/${data.code}` : '') +
-      (data.apiError ? `/${data.apiError}` : '') +
+      (data.apiErrorCode ? `/${data.apiErrorCode}` : '') +
       (data.message ? `: ${data.message}` : '')
     );
     this.name = 'CdError';

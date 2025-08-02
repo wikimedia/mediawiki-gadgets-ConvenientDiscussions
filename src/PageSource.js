@@ -9,6 +9,13 @@ import { findFirstTimestamp } from './utils-window';
  */
 export default class PageSource {
   /**
+   * Page's source code.
+   *
+   * @type {string}
+   */
+  code;
+
+  /**
    * Whether new topics go on top on this page. Filled upon running
    * {@link PageSource#guessNewTopicPlacement}.
    *
@@ -34,6 +41,15 @@ export default class PageSource {
   }
 
   /**
+   * Set the page's source code.
+   *
+   * @param {string} code
+   */
+  setCode(code) {
+    this.code = code;
+  }
+
+  /**
    * Modify the page code string in accordance with an action. The `'addSection'` action is
    * presumed.
    *
@@ -48,31 +64,30 @@ export default class PageSource {
    * }}
    */
   modifyContext({ commentCode, commentForm }) {
-    const originalContextCode = this.page.code;
-    if (!originalContextCode) {
+    if (this.code === undefined) {
       throw new CdError({
         type: 'internal',
-        message: 'Context (page) code is not set.',
+        message: 'Can\'t modify the context: context (page) code is not set.',
       });
     }
 
     let contextCode;
     if (commentForm.isNewTopicOnTop()) {
-      const firstSectionStartIndex = maskDistractingCode(originalContextCode)
+      const firstSectionStartIndex = maskDistractingCode(this.code)
         .search(/^(=+).*\1[ \t\x01\x02]*$/m);
       contextCode = (
         (
           firstSectionStartIndex === -1 ?
-            (originalContextCode ? originalContextCode + '\n' : '') :
-            originalContextCode.slice(0, firstSectionStartIndex)
+            (this.code ? this.code + '\n' : '') :
+            this.code.slice(0, firstSectionStartIndex)
         ) +
         commentCode +
         '\n' +
-        originalContextCode.slice(firstSectionStartIndex)
+        this.code.slice(firstSectionStartIndex)
       );
     } else {
       contextCode = (
-        (commentForm.isNewSectionApi() ? '' : (originalContextCode + '\n').trimStart()) +
+        (commentForm.isNewSectionApi() ? '' : (this.code + '\n').trimStart()) +
         commentCode
       );
     }
@@ -93,17 +108,15 @@ export default class PageSource {
    * @private
    */
   guessNewTopicPlacement() {
-    const page = this.page;
-
-    if (page.code === undefined) {
+    if (this.code === undefined) {
       throw new CdError({
-        message: 'Can\'t analyze the new topics placement: Page#code is undefined.',
+        message: 'Can\'t analyze the placement of new topics: page code is not set.',
       });
     }
 
-    let areNewTopicsOnTop = cd.config.areNewTopicsOnTop?.(page.name, page.code) || null;
+    let areNewTopicsOnTop = cd.config.areNewTopicsOnTop?.(this.page.name, this.code) || null;
 
-    const adjustedCode = maskDistractingCode(page.code);
+    const adjustedCode = maskDistractingCode(this.code);
     const sectionHeadingRegexp = PageSource.getTopicHeadingRegexp();
 
     if (areNewTopicsOnTop === null) {
@@ -112,7 +125,7 @@ export default class PageSource {
       let difference = 0;
       let sectionHeadingMatch;
       while ((sectionHeadingMatch = sectionHeadingRegexp.exec(adjustedCode))) {
-        const timestamp = findFirstTimestamp(page.code.slice(sectionHeadingMatch.index));
+        const timestamp = findFirstTimestamp(this.code.slice(sectionHeadingMatch.index));
         const { date } = timestamp && parseTimestamp(timestamp) || {};
         if (date) {
           if (previousDate) {
@@ -122,7 +135,7 @@ export default class PageSource {
         }
       }
       areNewTopicsOnTop = difference === 0 && mw.config.get('wgServerName') === 'ru.wikipedia.org' ?
-        page.namespaceId % 2 === 0 :
+        this.page.namespaceId % 2 === 0 :
         difference > 0;
     }
 
@@ -144,21 +157,26 @@ export default class PageSource {
    * @returns {number}
    */
   findProperPlaceForSection(referenceDate = new Date()) {
+    if (this.code === undefined) {
+      throw new CdError({
+        message: 'Can\'t find the proper place for a section: page code is not set.',
+      });
+    }
+
     const { areNewTopicsOnTop, firstSectionStartIndex } = this.guessNewTopicPlacement();
-    const code = /** @type {string} */ (this.page.code);
 
     if (!referenceDate) {
-      return areNewTopicsOnTop ? firstSectionStartIndex || 0 : code.length;
+      return areNewTopicsOnTop ? firstSectionStartIndex || 0 : this.code.length;
     }
 
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const adjustedCode = maskDistractingCode(code);
+    const adjustedCode = maskDistractingCode(this.code);
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const sectionHeadingRegexp = PageSource.getTopicHeadingRegexp();
     let sectionHeadingMatch;
     const sections = [];
     while ((sectionHeadingMatch = sectionHeadingRegexp.exec(adjustedCode))) {
-      const timestamp = findFirstTimestamp(code.slice(sectionHeadingMatch.index));
+      const timestamp = findFirstTimestamp(this.code.slice(sectionHeadingMatch.index));
       const { date } = timestamp && parseTimestamp(timestamp) || {};
       sections.push({
         date,
@@ -174,7 +192,7 @@ export default class PageSource {
           (!areNewTopicsOnTop && date && date > referenceDate)
       )?.index ||
 
-      code.length
+      this.code.length
     );
   }
 
