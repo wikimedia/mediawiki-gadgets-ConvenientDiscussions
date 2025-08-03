@@ -21,9 +21,7 @@
 /**
  * @typedef {object} ErrorDataOkButEmptyError
  * @property {'api'} type
- * @property {'error'} code
- * @property {'OK response but empty result (check HTTP headers?)'} apiResponse
- * @property {'ok-but-empty'} apiErrorCode
+ * @property {'ok-but-empty'} code
  */
 
 /**
@@ -72,6 +70,13 @@ class CdError extends Error {
     );
     this.name = 'CdError';
     this.data = /** @type {MakeRequired<ErrorData, 'type'>} */ (data);
+  }
+
+  /**
+   * @returns {this is ErrorDataServerDefinedApiError}
+   */
+  isServerDefinedApiError() {
+    return this.data.type === 'api' && this.data.code !== 'ok-but-empty';
   }
 }
 

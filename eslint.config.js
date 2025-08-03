@@ -152,7 +152,7 @@ const config = tseslint.config(
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/array-type': ['error', { default: 'generic' }],
+      '@typescript-eslint/array-type': ['error', { default: 'array' }],
       // Disable some rules that are not applicable to declaration files
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',

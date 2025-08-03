@@ -1,0 +1,55 @@
+diff --git a/node_modules/@types/oojs-ui/MessageDialog.d.ts b/node_modules/@types/oojs-ui/MessageDialog.d.ts
+index 8edb265..071162a 100644
+--- a/node_modules/@types/oojs-ui/MessageDialog.d.ts
++++ b/node_modules/@types/oojs-ui/MessageDialog.d.ts
+@@ -58,7 +58,7 @@ declare namespace OO.ui {
+             message: JQuery | Deferrable<string> | null;
+         }
+ 
+-        type Props = Dialog.Props;
++        interface Props extends Dialog.Props {}
+ 
+         interface Prototype extends Dialog.Prototype {
+             getSetupProcess(data?: SetupDataMap & Record<string, any>): Process;
+diff --git a/node_modules/@types/oojs-ui/PageLayout.d.ts b/node_modules/@types/oojs-ui/PageLayout.d.ts
+index f028bd2..ed85114 100644
+--- a/node_modules/@types/oojs-ui/PageLayout.d.ts
++++ b/node_modules/@types/oojs-ui/PageLayout.d.ts
+@@ -24,7 +24,7 @@ declare namespace OO.ui {
+ 
+         type Static = PanelLayout.Static;
+ 
+-        type Props = PanelLayout.Props;
++        interface Props extends PanelLayout.Props {}
+ 
+         interface Prototype extends PanelLayout.Prototype {
+             /**
+diff --git a/node_modules/@types/oojs-ui/ProcessDialog.d.ts b/node_modules/@types/oojs-ui/ProcessDialog.d.ts
+index 6de242c..c9e1067 100644
+--- a/node_modules/@types/oojs-ui/ProcessDialog.d.ts
++++ b/node_modules/@types/oojs-ui/ProcessDialog.d.ts
+@@ -65,9 +65,9 @@ declare namespace OO.ui {
+ 
+         type Static = Dialog.Static;
+ 
+-        type Props = Dialog.Props;
++        interface Props extends Dialog.Props {}
+ 
+-        type Prototype = Dialog.Prototype;
++        interface Prototype extends Dialog.Prototype {}
+ 
+         interface Constructor {
+             /** @param config Configuration options */
+diff --git a/node_modules/@types/oojs-ui/RadioOptionWidget.d.ts b/node_modules/@types/oojs-ui/RadioOptionWidget.d.ts
+index 39599da..44bfb2a 100644
+--- a/node_modules/@types/oojs-ui/RadioOptionWidget.d.ts
++++ b/node_modules/@types/oojs-ui/RadioOptionWidget.d.ts
+@@ -16,7 +16,7 @@ declare namespace OO.ui {
+ 
+         type Static = OptionWidget.Static;
+ 
+-        type Props = OptionWidget.Props;
++        interface Props extends OptionWidget.Props {}
+ 
+         type Prototype = OptionWidget.Prototype;
+ 

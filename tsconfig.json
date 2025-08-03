@@ -1,10 +1,1 @@
 // This allows to lint *.d.ts files.
-{
-  "compilerOptions": {
-    "noEmit": true,
-    "strictNullChecks": true,
-    "noImplicitOverride": true,
-    "strict": true
-  },
-  "include": ["src/**/*.d.ts"]
-}
