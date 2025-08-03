@@ -601,7 +601,7 @@ const globalProperties = {
     'timeline',
   ],
 
-  inputPropsAffectingCoords: [
+  inputPropsAffectingCoords: /** @type {(keyof CSSStyleDeclaration)[]} */ ([
     'borderBottomStyle',
     'borderBottomWidth',
     'borderLeftStyle',
@@ -635,7 +635,7 @@ const globalProperties = {
     'textTransform',
     'width',
     'wordSpacing',
-  ],
+  ]),
 
   settingsOptionName: /** @type {const} */ ('userjs-convenientDiscussions-settings'),
   localSettingsOptionName: /** @type {const} */ (`userjs-${localOptionsPrefix}-localSettings`),

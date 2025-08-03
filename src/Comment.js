@@ -1312,6 +1312,8 @@ class Comment extends CommentSkeleton {
    *   offset will stay wrong.
    */
 
+
+
   /**
    * @overload
    * @param {GetOffsetOptions} [options]
@@ -1636,22 +1638,28 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Add the underlay and overlay if they are missing, update their styles, recalculate their offset
-   * and redraw if the comment has been moved or do nothing if everything is right.
-   *
-   * @param {object} [options={}]
-   * @param {boolean} [options.add=true] Add the layers in case they are created. If set to `false`,
-   *   it is expected that the layers created during this procedure, if any, will be added
+   * @typedef {object} ConfigureLayersOptionsExtension
+   * @property {boolean} [options.add=true] Add the layers in case they are created. If set to
+   *   `false`, it is expected that the layers created during this procedure, if any, will be added
    *   afterwards (otherwise there would be layers without a parent element which would lead to
    *   bugs).
-   * @param {boolean} [options.update=true] Update the layers' offset in case the comment is moved.
-   *   If set to `false`, it is expected that the offset will be updated afterwards.
-   * @param {object[]} [options.floatingRects]
+   * @property {boolean} [options.update=true] Update the layers' offset in case the comment is
+   *   moved. If set to `false`, it is expected that the offset will be updated afterwards.
+   * @property {import('./utils-window').ExtendedDOMRect[]} [options.floatingRects]
    *   {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect Element#getBoundingClientRect}
    *   results for floating elements from `convenientDiscussions.g.floatingElements`. It may be
    *   calculated in advance for many elements in one sequence to save time.
-   * @param {boolean} [options.considerFloating] Whether to take floating elements around the
-   *   comment into account. Deemed `true` if `options.floatingRects` is set.
+   */
+
+  /**
+   * @typedef {GetOffsetOptions & ConfigureLayersOptionsExtension} ConfigureLayersOptions
+   */
+
+  /**
+   * Add the underlay and overlay if they are missing, update their styles, recalculate their offset
+   * and redraw if the comment has been moved or do nothing if everything is right.
+   *
+   * @param {ConfigureLayersOptions} [options={}]
    * @returns {?boolean} Is the comment moved or created. `null` if we couldn't determine (for
    *   example, if the element is invisible).
    */
@@ -4684,7 +4692,14 @@ class Comment extends CommentSkeleton {
    * Parse a comment ID in the DiscussionTools format.
    *
    * @param {string} id Comment ID in the DiscussionTools format.
-   * @returns {?object}
+   * @returns {{
+   *   author: string
+   *   date: Date
+   *   parentAuthor?: string
+   *   parentDate?: Date
+   *   sectionIdBeginning: string
+   *   index?: number
+   * } | null}
    */
   static parseDtId(id) {
     const match = id.match(this.dtIdRegexp);
@@ -4692,7 +4707,7 @@ class Comment extends CommentSkeleton {
       return null;
     }
 
-    const parseTimestamp = (/** @type {number} */  startIndex) => {
+    const parseTimestamp = (/** @type {number} */ startIndex) => {
       let date;
       if (match[startIndex + 1]) {
         date = new Date(
@@ -4707,11 +4722,12 @@ class Comment extends CommentSkeleton {
       } else {
         date = new Date(match[startIndex + 6]);
       }
-      return [underlinesToSpaces(match[startIndex]), date];
+
+      return { author: underlinesToSpaces(match[startIndex]), date };
     };
 
-    const [author, date] = parseTimestamp(1);
-    const [parentAuthor, parentDate] = match[8] ? parseTimestamp(8) : [];
+    const { author, date } = parseTimestamp(1);
+    const { author: parentAuthor, date: parentDate } = match[8] ? parseTimestamp(8) : {};
 
     return {
       author,

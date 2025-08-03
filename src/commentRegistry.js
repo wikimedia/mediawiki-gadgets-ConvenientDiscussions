@@ -686,9 +686,10 @@ class CommentRegistry extends EventEmitter {
         // example, level 1 comments without a parent and their children) separately.
         const sectionComments = comments
           .filter((comment) => comment.logicalLevel === 0)
-          .reduce((arr, child) => (
-            this.searchForNewCommentsInSubtree(child, arr, newCommentIndexes)
-          ), []);
+          .reduce((arr, child) =>
+            this.searchForNewCommentsInSubtree(child, arr, newCommentIndexes),
+            /** @type {import('./updateChecker').CommentWorkerMatched[]} */ ([])
+          );
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const threadComments = comments.filter((comment) => !sectionComments.includes(comment));
         this.addNewCommentsNote(parent, sectionComments, 'section', newCommentIndexes);
@@ -716,7 +717,7 @@ class CommentRegistry extends EventEmitter {
     const descendantComments = parent instanceof Comment
       ? childComments.reduce(
           (arr, child) => this.searchForNewCommentsInSubtree(child, arr, newCommentIndexes),
-          []
+          /** @type {import('./updateChecker').CommentWorkerMatched[]} */ ([])
         )
       : childComments;
 

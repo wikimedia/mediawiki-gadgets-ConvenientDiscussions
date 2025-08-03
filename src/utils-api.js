@@ -116,12 +116,10 @@ export function handleApiReject(codeOrArr, response) {
       const apiResponse = /** @type {import('types-mediawiki/mw/Api').ApiResponse} */ (response);
       throw new CdError({
         type: 'api',
-        code: 'error',
-        apiResponse,
-
         // `error` or `errors` is chosen by the API depending on `errorformat` being 'html' in
         // requests.
-        apiErrorCode: apiResponse?.error?.code || apiResponse?.errors?.[0].code,
+        code: (apiResponse?.error || apiResponse?.errors?.[0]).code,
+        apiResponse,
       });
     }
   }
@@ -131,8 +129,8 @@ export function handleApiReject(codeOrArr, response) {
  * Split an array into batches of 50 (500 if the user has the `apihighlimits` right) to use in API
  * requests.
  *
- * @param {Array.<*>} arr
- * @returns {Array.<Array.<*>>}
+ * @param {any[]} arr
+ * @returns {any[][]}
  */
 export function splitIntoBatches(arr) {
   // Current user's rights are only set on an `userinfo` request which is performed late (see "We
@@ -147,15 +145,15 @@ export function splitIntoBatches(arr) {
     // the modules are ready.
   }
   const limit = (
-    currentUserRights ?
-      currentUserRights.includes('apihighlimits') :
+    currentUserRights
+      ? currentUserRights.includes('apihighlimits')
       // No idea why wgUserGroups is said to be `null` for non-logged-in users on
       // https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#mw.config. I see it always
       // containing ['*'].
-      (mw.config.get('wgUserGroups') || []).includes('sysop')
-  ) ?
-    500 :
-    50;
+      : (mw.config.get('wgUserGroups') || []).includes('sysop')
+  )
+    ? 500
+    : 50;
 
   return arr.reduce((result, item, index) => {
     const chunkIndex = Math.floor(index / limit);

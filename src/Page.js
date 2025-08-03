@@ -641,7 +641,7 @@ export default class Page {
     } catch (error) {
       if (
         error instanceof CdError &&
-        ['missingtitle', 'notwikitext'].includes(error.data.apiErrorCode)
+        ['missingtitle', 'notwikitext'].includes(error.data.code)
       ) {
         return new Map();
       } else {

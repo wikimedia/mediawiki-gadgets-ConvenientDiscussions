@@ -39,8 +39,8 @@ declare global {
     normalizedTitle?: string;
     index?: number;
     contentmodel: string;
-    redirects?: Array<{ title: string }>;
-    revisions?: Array<Revision>;
+    redirects?: { title: string }[];
+    revisions?: Revision[];
   }
 
   interface Revision {
@@ -94,10 +94,10 @@ declare global {
 
   interface ApiResponseQueryContentAllUsers {
     query?: {
-      allusers: Array<{
+      allusers: {
         userid: number;
         name: string;
-      }>;
+      }[];
     };
   }
 
@@ -188,12 +188,12 @@ declare global {
   interface JQuery {
     cdRemoveNonElementNodes(): void;
     cdScrollTo(
-      alignment: 'top' | 'center' | 'bottom' = 'top',
-      smooth = true,
+      alignment?: 'top' | 'center' | 'bottom',
+      smooth?: boolean,
       callback?: () => void,
     ): this;
-    cdIsInViewport(partially = false): boolean;
-    cdScrollIntoView(alignment: 'top'|'center'|'bottom' = 'top', smooth = true, callback?: () => void): this;
+    cdIsInViewport(partially?: boolean): boolean;
+    cdScrollIntoView(alignment?: 'top'|'center'|'bottom', smooth?: boolean, callback?: () => void): this;
     cdGetText(): string;
     cdAddCloseButton(): this;
     cdRemoveCloseButton(): this;
