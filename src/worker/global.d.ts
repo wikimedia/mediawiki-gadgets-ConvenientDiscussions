@@ -1,10 +1,14 @@
 import { Document as DomHandlerDocument, Node as DomHandlerNode } from 'domhandler';
+import { ConvenientDiscussionsWorker } from '../shared/cd';
 
 declare global {
   interface WorkerGlobalScope {
     Document: typeof DomHandlerDocument;
     Node: typeof DomHandlerNode;
     document?: DomHandlerDocument;
+
+    convenientDiscussions: ConvenientDiscussionsWorker;
+    cd?: WorkerGlobalScope['convenientDiscussions'];
   }
 
   const Node: WorkerGlobalScope['Node'];

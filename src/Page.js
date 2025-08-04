@@ -29,10 +29,6 @@ import { handleApiReject, requestInBackground } from './utils-api';
  */
 
 /**
- * @typedef {{ [key: string]: string }} StringsByKey
- */
-
-/**
  * A wiki page (a page for which the
  * {@link https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#All_pages_(user/page-specific) wgIsArticle}
  * config value is `true`) in both of its facets – a rendered instance in case of the current page

@@ -2,6 +2,7 @@
 
 import CheckboxInputWidget from './CheckboxInputWidget';
 import TextInputWidget from './TextInputWidget';
+import ConvenientDiscussions from './shared/cd';
 
 declare global {
   const IS_TEST: boolean;
@@ -17,7 +18,6 @@ declare global {
 
   type Direction = 'ltr' | 'rtl';
   type ListType = 'dl' | 'ul' | 'ol';
-  type StringsByKey = { [key: string]: string };
   type ValidKey = string | number;
 
   // Helper type to check if a string is present in the array
@@ -183,6 +183,9 @@ declare global {
   }
 
   interface Window {
+    convenientDiscussions: ConvenientDiscussions;
+    cd?: Window['convenientDiscussions'];
+
     // Basically we don't have a situation where getSelection() can return `null`, judging by
     // https://developer.mozilla.org/en-US/docs/Web/API/Window/getSelection.
     getSelection(): Selection;

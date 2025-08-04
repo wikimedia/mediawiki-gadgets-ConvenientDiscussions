@@ -36,7 +36,7 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  *   content language, e.g. `[0-9]`.
  * @property {string | undefined} uiDigits Regular expression matching a single digit in user
  *   (interface) language, e.g. `[0-9]`.
- * @property {{ [name: string]: string }} contentLanguageMessages
+ * @property {StringsByKey} contentLanguageMessages
  * @property {{ [name: string]: string[] }} specialPageAliases Some special page aliases in the
  *   wiki's language.
  * @property {?string} contentTimezone Timezone of the wiki.
@@ -130,6 +130,7 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  * @property {import('../Comment').default[]} comments
  * @property {import('../Section').default[]} sections
  * @property {import('../settings').default} settings
+ * @property {boolean} isRunning
  */
 
 /**

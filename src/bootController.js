@@ -258,7 +258,7 @@ class BootController {
 
     const areLanguagesEqual = mw.config.get('wgContentLanguage') === mw.config.get('wgUserLanguage');
     if (areLanguagesEqual) {
-      const userLanguageConfigMessages = {};
+      const userLanguageConfigMessages = /** @type {StringsByKey} */ ({});
       Object.keys(cd.config.messages)
         .filter((name) => userLanguageMessageNames.includes(name))
         .forEach((name) => {
@@ -531,11 +531,11 @@ class BootController {
   }
 
   /**
-   * @typedef {{ [lang: string]: string }} DateFormats
+   * @typedef {StringsByKey} DateFormats
    */
 
   /**
-   * @typedef {{ [lang: string]: string }} DigitsData
+   * @typedef {StringsByKey} DigitsData
    */
 
   /**

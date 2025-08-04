@@ -70,7 +70,7 @@ function setStrings() {
     // @ts-ignore
     require('../dist/convenientDiscussions-i18n/en.js');
   }
-  const strings = Object.keys(cd.i18n.en).reduce((/** @type {{ [name: string]: string }} */ acc, name) => {
+  const strings = Object.keys(cd.i18n.en).reduce((/** @type {StringsByKey} */ acc, name) => {
     acc[name] = cd.i18n[
       contentStrings.some((contentStringName) => (
         name === contentStringName ||
@@ -234,9 +234,11 @@ function getConfig() {
     if (IS_TEST) {
       key += '.test';
     }
-    const configUrl = /** @type {{ [key: string]: string }} */ (configUrls)[key] || configUrls[mw.config.get('wgServerName')];
+    const configUrl =
+      /** @type {StringsByKey} */ (configUrls)[key] ||
+      /** @type {StringsByKey} */ (configUrls)[mw.config.get('wgServerName')];
     if (configUrl) {
-      const rejectWithMsg = (error) => {
+      const rejectWithMsg = (/** @type {any} */ error) => {
         reject(['Convenient Discussions can\'t run: couldn\'t load the configuration.', error]);
       };
 
@@ -249,12 +251,9 @@ function getConfig() {
         });
         return;
       }
-      mw.loader.getScript(configUrl).then(
-        () => {
-          resolve();
-        },
-        rejectWithMsg
-      );
+      mw.loader.getScript(configUrl).then(() => {
+        resolve();
+      }, rejectWithMsg);
     } else {
       resolve();
     }

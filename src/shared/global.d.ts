@@ -12,6 +12,8 @@ import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
 import { HeadingTarget, SignatureTarget, Target } from './Parser';
 
 declare global {
+  type StringsByKey = { [key: string]: string; };
+
   type MessageFromWorkerParse = {
     type: 'parse',
     revisionId: number,
