@@ -13,7 +13,7 @@
 /**
  * @typedef {object} ErrorDataServerDefinedApiError
  * @property {'api'} type
- * @property {'error'} code
+ * @property {'server'} code
  * @property {import('types-mediawiki/mw/Api').ApiResponse} apiResponse
  * @property {string} apiErrorCode
  */

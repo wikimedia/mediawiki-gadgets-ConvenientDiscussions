@@ -427,10 +427,11 @@ export default class Page {
    * Get a list of revisions of the page (the `redirects` API parameter is set to `true` by
    * default).
    *
+   * @template {string[]} [T=['ids', 'timestamp', 'flags', 'comment', 'user']]
    * @param {Partial<import('types-mediawiki/api_params').ApiQueryRevisionsParams>} [customOptions={}]
    * @param {boolean} [inBackground=false] Make a request that won't set the process on hold when
    *   the tab is in the background.
-   * @returns {Promise.<Revision[]>}
+   * @returns {Promise<Revision<T>[]>}
    */
   async getRevisions(customOptions = {}, inBackground = false) {
     const options = /** @type {import('types-mediawiki/api_params').ApiQueryRevisionsParams} */ ({
@@ -450,7 +451,7 @@ export default class Page {
           .post(/** @type {import('types-mediawiki/api_params').UnknownApiParams} */ (options))
           .catch(handleApiReject);
     const response = /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (await request);
-    const revisions = response.query?.pages?.[0]?.revisions;
+    const revisions = /** @type {Revision<T>[]} */ (response.query?.pages?.[0]?.revisions);
     if (!revisions) {
       throw new CdError({
         type: 'api',
@@ -473,6 +474,7 @@ export default class Page {
    *   has changed.
    */
   async edit(customOptions) {
+    /** @type {ApiResponseEdit} */
     let response;
     try {
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -499,13 +501,13 @@ export default class Page {
           }
         )
         .catch(handleApiReject);
-      response = /** @type {ApiResponseEdit} */ (await request);
+      response = await request;
     } catch (error) {
       if (error instanceof CdError) {
         const { type, apiResponse } = error.data;
         if (type === 'network') {
           throw error;
-        } else {
+        } else if (error.isServerDefinedApiError()) {
           const error = apiResponse?.errors[0];
           /** @type {string | undefined} */
           let message;
@@ -540,7 +542,7 @@ export default class Page {
           throw new CdError({
             type: 'api',
             code: 'fail',
-            apiResponse: response,
+            apiResponse,
             details: { code, message, isRawMessage, logMessage },
           });
         }

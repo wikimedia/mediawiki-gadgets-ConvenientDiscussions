@@ -52,11 +52,14 @@ class BootController {
   $contentColumn;
 
   /**
-   * @type {{
-   *   startMargin: number;
-   *   start: number;
-   *   end: number;
-   * }}
+   * @typedef {object} ContentColumnOffsets
+   * @property {number} startMargin The left margin of the content column.
+   * @property {number} start The left offset of the content column.
+   * @property {number} end The right offset of the content column.
+   */
+
+  /**
+   * @type {ContentColumnOffsets}
    * @private
    */
   contentColumnOffsets;
@@ -222,31 +225,29 @@ class BootController {
       'colon-separator', 'nextdiff', 'timezone-utc', 'pagetitle',
     ]
       .concat(
-        mw.loader.getState('ext.discussionTools.init') ?
-          [
-            'discussiontools-topicsubscription-button-subscribe',
-            'discussiontools-topicsubscription-button-subscribe-tooltip',
-            'discussiontools-topicsubscription-button-unsubscribe',
-            'discussiontools-topicsubscription-button-unsubscribe-tooltip',
-            'discussiontools-topicsubscription-notify-subscribed-title',
-            'discussiontools-topicsubscription-notify-subscribed-body',
-            'discussiontools-topicsubscription-notify-unsubscribed-title',
-            'discussiontools-topicsubscription-notify-unsubscribed-body',
-            'discussiontools-newtopicssubscription-button-subscribe-label',
-            'discussiontools-newtopicssubscription-button-subscribe-tooltip',
-            'discussiontools-newtopicssubscription-button-unsubscribe-label',
-            'discussiontools-newtopicssubscription-button-unsubscribe-tooltip',
-            'discussiontools-newtopicssubscription-notify-subscribed-title',
-            'discussiontools-newtopicssubscription-notify-subscribed-body',
-            'discussiontools-newtopicssubscription-notify-unsubscribed-title',
-            'discussiontools-newtopicssubscription-notify-unsubscribed-body',
-          ] :
-          []
+        mw.loader.getState('ext.discussionTools.init')
+          ? [
+              'discussiontools-topicsubscription-button-subscribe',
+              'discussiontools-topicsubscription-button-subscribe-tooltip',
+              'discussiontools-topicsubscription-button-unsubscribe',
+              'discussiontools-topicsubscription-button-unsubscribe-tooltip',
+              'discussiontools-topicsubscription-notify-subscribed-title',
+              'discussiontools-topicsubscription-notify-subscribed-body',
+              'discussiontools-topicsubscription-notify-unsubscribed-title',
+              'discussiontools-topicsubscription-notify-unsubscribed-body',
+              'discussiontools-newtopicssubscription-button-subscribe-label',
+              'discussiontools-newtopicssubscription-button-subscribe-tooltip',
+              'discussiontools-newtopicssubscription-button-unsubscribe-label',
+              'discussiontools-newtopicssubscription-button-unsubscribe-tooltip',
+              'discussiontools-newtopicssubscription-notify-subscribed-title',
+              'discussiontools-newtopicssubscription-notify-subscribed-body',
+              'discussiontools-newtopicssubscription-notify-unsubscribed-title',
+              'discussiontools-newtopicssubscription-notify-unsubscribed-body',
+            ]
+          : []
       )
       .concat(
-        mw.loader.getState('ext.visualEditor.core') ?
-          ['visualeditor-educationpopup-dismiss'] :
-          []
+        mw.loader.getState('ext.visualEditor.core') ? ['visualeditor-educationpopup-dismiss'] : []
       )
       .concat(
         // Message names for date tokens in UI language
@@ -347,12 +348,10 @@ class BootController {
             meta: 'siteinfo',
             siprop: ['specialpagealiases', 'general'],
           })
-          .then((resp) => {
-            const specialPageAliases =
-              /** @type {import('./utils-api').ApiResponseSiteInfoSpecialPageAliases[]} */ (
-                resp.query.specialpagealiases
-              );
-            specialPageAliases
+          .then((response) => {
+            /** @type {import('./utils-api').ApiResponseSiteInfoSpecialPageAliases[]} */ (
+              response.query.specialpagealiases
+            )
               .filter((page) => specialPages.includes(page.realname))
               .forEach((page) => {
                 cd.g.specialPageAliases[page.realname] = page.aliases.slice(
@@ -360,7 +359,7 @@ class BootController {
                   page.aliases.indexOf(page.realname) + 1
                 );
               });
-            cd.g.contentTimezone = resp.query.general.timezone;
+            cd.g.contentTimezone = response.query.general.timezone;
           })
       );
     }
@@ -532,25 +531,42 @@ class BootController {
   }
 
   /**
+   * @typedef {{ [lang: string]: string }} DateFormats
+   */
+
+  /**
+   * @typedef {{ [lang: string]: string }} DigitsData
+   */
+
+  /**
    * Set the global variables related to date format.
    *
    * @private
    */
   initFormats() {
     const getFallbackLanguage = (/** @type {string} */ lang) =>
-      (languageFallbacks[lang] || ['en']).find(
-        (/** @type {string} */ fallback) => dateFormats[fallback]
-      );
+      (/** @type {LanguageFallbacks} */ (languageFallbacks)[lang] || []).find(
+        (fallback) => fallback in dateFormats
+      ) || 'en';
     const languageOrFallback = (/** @type {string} */ lang) =>
-      dateFormats[lang] ? lang : getFallbackLanguage(lang);
+      lang in dateFormats ? lang : getFallbackLanguage(lang);
 
     const contentLanguage = languageOrFallback(mw.config.get('wgContentLanguage'));
-    const userLanguage = languageOrFallback(mw.config.get('wgUserLanguage'));
+    const uiLanguage = languageOrFallback(mw.config.get('wgUserLanguage'));
 
-    cd.g.contentDateFormat = dateFormats[contentLanguage];
-    cd.g.uiDateFormat = dateFormats[userLanguage];
-    cd.g.contentDigits = mw.config.get('wgTranslateNumerals') ? digitsData[contentLanguage] : null;
-    cd.g.uiDigits = mw.config.get('wgTranslateNumerals') ? digitsData[userLanguage] : null;
+    if (contentLanguage) {
+      cd.g.contentDateFormat =
+        /** @type {DateFormats} */ (dateFormats)[contentLanguage];
+      cd.g.contentDigits = mw.config.get('wgTranslateNumerals')
+        ? /** @type {DigitsData} */ (digitsData)[contentLanguage]
+        : undefined;
+    }
+    if (uiLanguage) {
+      cd.g.uiDateFormat = /** @type {DateFormats} */ (dateFormats)[uiLanguage];
+      cd.g.uiDigits = mw.config.get('wgTranslateNumerals')
+        ? /** @type {DigitsData} */ (digitsData)[uiLanguage]
+        : undefined;
+    }
   }
 
   /**
@@ -675,11 +691,11 @@ class BootController {
   /**
    * Get the offset data related to `.$contentColumn`.
    *
-   * @param {boolean} [reset=false] Whether to bypass cache.
+   * @param {boolean} [bypassCache=false] Whether to bypass cache.
    * @returns {ContentColumnOffsets}
    */
-  getContentColumnOffsets(reset = false) {
-    if (!this.contentColumnOffsets || reset) {
+  getContentColumnOffsets(bypassCache = false) {
+    if (!this.contentColumnOffsets || bypassCache) {
       let startMargin = Math.max(
         parseFloat(
           this.$contentColumn.css(
@@ -702,12 +718,6 @@ class BootController {
         start: cd.g.contentDirection === 'ltr' ? left : left + width,
         end: cd.g.contentDirection === 'ltr' ? left + width : left,
       };
-
-      // This is set only on window resize event. The initial value is set in
-      // init.addTalkPageCss() through a style tag.
-      if (reset) {
-        $(document.documentElement).css('--cd-content-start-margin', startMargin + 'px');
-      }
     }
 
     return this.contentColumnOffsets;
@@ -988,6 +998,7 @@ class BootController {
     debug.stopTimer('start');
     debug.startTimer('load data');
 
+    /** @type {PromiseLike<any>[]} */
     let siteDataRequests = [];
 
     // Make some requests in advance if the API module is ready in order not to make 2 requests

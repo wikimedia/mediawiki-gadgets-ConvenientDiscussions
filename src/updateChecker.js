@@ -79,6 +79,19 @@ import visits from './visits';
  */
 
 /**
+ * Object type with numeric and named indexes for comparing comments. Different indexes are used to
+ * supply one object both to the event and to Comment#markAsChanged().
+ *
+ * @typedef {{
+ *   current: CommentWorkerMatched
+ *   old?: CommentWorkerMatched
+ *   new?: CommentWorkerMatched
+ *   0: CommentWorkerMatched
+ *   1?: CommentWorkerMatched
+ * }} CommentsData
+ */
+
+/**
  * Singleton responsible for polling for updates of the page in the background.
  *
  * @augments EventEmitter<EventMap>
@@ -284,10 +297,10 @@ class UpdateChecker extends EventEmitter {
    * @param {CommentWorkerMatched[]} candidates
    * @param {CommentWorkerMatched} target
    * @param {boolean} isTotalCountEqual
-   * @returns {Array<{
+   * @returns {{
    *   comment: CommentWorkerMatched;
    *   score: number;
-   * }>}
+   * }[]}
    * @private
    */
   sortCommentsByMatchScore(candidates, target, isTotalCountEqual) {
@@ -311,9 +324,9 @@ class UpdateChecker extends EventEmitter {
           Math.max(candidate.elementHtmls.length, target.elementHtmls.length)
         );
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-        const overlap = partsMatchedProportion === 1 ?
-          1 :
-          calculateWordOverlap(candidate.text, target.text);
+        const overlap = partsMatchedProportion === 1
+          ? 1
+          : calculateWordOverlap(candidate.text, target.text);
 
         return {
           comment: candidate,
@@ -374,14 +387,15 @@ class UpdateChecker extends EventEmitter {
       );
       const isTotalCountEqual = currentComments.length === otherComments.length;
       if (ccFiltered.length === 1) {
-        ccFiltered[0].match = ccFiltered[0].match ?
-          this.sortCommentsByMatchScore(
-            [ccFiltered[0].match, otherComment],
-            ccFiltered[0],
-            isTotalCountEqual
-          )[0].comment :
-          otherComment;
+        ccFiltered[0].match = ccFiltered[0].match
+          ? this.sortCommentsByMatchScore(
+              [ccFiltered[0].match, otherComment],
+              ccFiltered[0],
+              isTotalCountEqual
+            )[0].comment
+          : otherComment;
       } else if (ccFiltered.length > 1) {
+        /** @type {boolean} */
         let found;
         this.sortCommentsByMatchScore(ccFiltered, otherComment, isTotalCountEqual).forEach((match) => {
           // If the current comment already has a match (from a previous iteration of the
@@ -416,7 +430,8 @@ class UpdateChecker extends EventEmitter {
   }
 
   /**
-   * Check for new comments in a web worker, update the navigation panel, and schedule the next check.
+   * Check for new comments in a web worker, update the navigation panel, and schedule the next
+   * check.
    *
    * @private
    */
@@ -529,15 +544,15 @@ class UpdateChecker extends EventEmitter {
    * @private
    */
   checkForChangesSincePreviousVisit(currentComments, previousVisitRevisionId, submittedCommentId) {
-    const seenStorageItem = (new StorageItemWithKeys('seenRenderedChanges'))
-      .cleanUp((entry) => (
+    const seenStorageItem = /** @type {import('./StorageItemWithKeys').default} */ (new StorageItemWithKeys('seenRenderedChanges'))
+      .cleanUp((entry) =>
         (Math.min(...Object.values(entry).map((data) => data.seenTime)) || 0) <
         subtractDaysFromNow(60)
-      ));
+      );
     const seen = seenStorageItem.get(mw.config.get('wgArticleId'));
 
-    const changeList = [];
-    const markAsChangedData = [];
+    const changeList = /** @type {ChangesList} */ ([]);
+    const markAsChangedData = /** @type {MarkAsChangedData[]} */ ([]);
     currentComments.forEach((currentComment) => {
       if (currentComment.id === submittedCommentId) return;
 
@@ -556,7 +571,7 @@ class UpdateChecker extends EventEmitter {
           const comment = commentRegistry.getById(currentComment.id);
           if (!comment) return;
 
-          // Different indexes to supply one object both to the event and Comment#markAsChanged.
+          /** @type {CommentsData} */
           const commentsData = {
             old: oldComment,
             current: currentComment,
@@ -611,14 +626,14 @@ class UpdateChecker extends EventEmitter {
    * @private
    */
   checkForNewChanges(currentComments, lastCheckedRevisionId) {
-    const changeList = [];
-    const markAsChangedData = [];
+    const changeList = /** @type {ChangesList} */ ([]);
+    const markAsChangedData = /** @type {MarkAsChangedData[]} */ ([]);
     currentComments.forEach((currentComment) => {
       const newComment = currentComment.match;
       let comment;
       const events = {};
 
-      // Different indexes to supply one object both to the event and Comment#markAsChanged().
+      /** @type {CommentsData} */
       const commentsData = {
         current: currentComment,
         new: newComment,
@@ -686,7 +701,7 @@ class UpdateChecker extends EventEmitter {
        * @param {boolean} [changeList.events.unchanged]
        * @param {boolean} [changeList.events.deleted]
        * @param {boolean} [changeList.events.undeleted]
-       * @param {object} changeList.commentsData
+       * @param {CommentsData} changeList.commentsData
        * @global
        */
       mw.hook('convenientDiscussions.newChanges').fire(changeList);
@@ -700,14 +715,14 @@ class UpdateChecker extends EventEmitter {
    * @property {import('./Comment').default} comment
    * @property {boolean} isNewRevisionRendered
    * @property {number} comparedRevisionId
-   * @property {object} commentsData
+   * @property {CommentsData} commentsData
    * @private
    */
 
   /**
    * Mark comments as changed, verifying diffs if possible to decide whether to show the diff link.
    *
-   * @param {'changed'|'changedSince'} type
+   * @param {'changed' | 'changedSince'} type
    * @param {MarkAsChangedData[]} data
    * @param {number} olderRevisionId
    * @param {number} newerRevisionId
@@ -724,7 +739,9 @@ class UpdateChecker extends EventEmitter {
       data.some(({ comment }) => comment.getSourcePage().isCurrent())
     );
 
+    /** @type {Revision[]} */
     let revisions;
+    /** @type {string|undefined} */
     let compareBody;
     if (verifyDiffs) {
       try {
@@ -741,20 +758,14 @@ class UpdateChecker extends EventEmitter {
 
     data.forEach(({ comment, isNewRevisionRendered, comparedRevisionId, commentsData }) => {
       if (
-        verifyDiffs && compareBody !== undefined && revisions !== undefined ?
-          Boolean(
-            comment.scrubDiff(compareBody, revisions, commentsData)
-              .find('.diff-deletedline, .diff-addedline')
-              .length
-          ) :
-          true
+        !verifyDiffs ||
+        compareBody === undefined ||
+        revisions === undefined ||
+        comment
+          .scrubDiff(compareBody, revisions, commentsData)
+          .find('.diff-deletedline, .diff-addedline').length
       ) {
-        comment.markAsChanged(
-          type,
-          isNewRevisionRendered,
-          comparedRevisionId,
-          commentsData
-        );
+        comment.markAsChanged(type, isNewRevisionRendered, comparedRevisionId, commentsData);
       }
     });
   }

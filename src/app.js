@@ -13,7 +13,7 @@ import { addCommentLinksToSpecialSearch } from './addCommentLinks';
 import bootController from './bootController';
 import debug from './debug';
 import cd from './shared/cd';
-import { mergeRegexps, unique } from './shared/utils-general';
+import { mergeRegexps, typedKeysOf, unique } from './shared/utils-general';
 import { getFooter } from './utils-window';
 
 let config;
@@ -34,9 +34,10 @@ if (LANG_CODE) {
       .replace(/&lrm;/g, '\u200e')
   );
 
-  cd.i18n = {};
-  cd.i18n.en = require('../i18n/en.json');
-  Object.keys(cd.i18n.en).forEach((name) => {
+  cd.i18n = (/** @type {I18n} */ {
+    en: require('../i18n/en.json'),
+  });
+  typedKeysOf(cd.i18n.en).forEach((name) => {
     cd.i18n.en[name] = replaceEntities(cd.i18n.en[name]);
   });
   if (LANG_CODE !== 'en') {
@@ -48,7 +49,7 @@ if (LANG_CODE) {
         langObj[name] = replaceEntities(langObj[name]);
       });
     langObj.dayjsLocale = require(`dayjs/locale/${LANG_CODE}`);
-    langObj.dateFnsLocale = require(`date-fns/locale`)[LANG_CODE];
+    langObj.dateFnsLocale = require(`date-fns/locale/${LANG_CODE}`);
   }
 }
 
@@ -69,16 +70,18 @@ function setStrings() {
     // @ts-ignore
     require('../dist/convenientDiscussions-i18n/en.js');
   }
-  const strings = {};
-  Object.keys(cd.i18n.en).forEach((name) => {
-    const relevantLang = contentStrings.some((contentStringName) => (
-      name === contentStringName ||
-      (contentStringName.endsWith('-') && name.startsWith(contentStringName))
-    )) ?
-      cd.g.contentLanguage :
-      cd.g.userLanguage;
-    strings[name] = cd.i18n[relevantLang]?.[name] || cd.i18n.en[name];
-  });
+  const strings = Object.keys(cd.i18n.en).reduce((/** @type {{ [name: string]: string }} */ acc, name) => {
+    acc[name] = cd.i18n[
+      contentStrings.some((contentStringName) => (
+        name === contentStringName ||
+        (contentStringName.endsWith('-') && name.startsWith(contentStringName))
+      ))
+        ? cd.g.contentLanguage
+        : cd.g.userLanguage
+    ]?.[name] || cd.i18n.en[name];
+
+    return acc;
+  }, {});
 
   Object.keys(strings).forEach((name) => {
     mw.messages.set(`convenient-discussions-${name}`, strings[name]);
@@ -97,6 +100,7 @@ function maybeAddFooterSwitcher() {
   const url = new URL(location.href);
   url.searchParams.set('cdtalkpage', enable ? '1' : '0');
   const $li = $('<li>').attr('id', 'footer-togglecd');
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const $a = $('<a>')
     .attr('href', url.toString())
     .addClass('noprint')
@@ -202,11 +206,12 @@ async function go() {
  * @private
  */
 function setLanguages() {
-  const languageOrFallback = (/** @type {string} */ lang) => (
-    i18nList.includes(lang) ?
-      lang :
-      (languageFallbacks[lang] || []).find((/** @type {string} */ fallback) => i18nList.includes(fallback)) || 'en'
-  );
+  const languageOrFallback = (/** @type {string} */ lang) =>
+    i18nList.includes(lang)
+      ? lang
+      : (/** @type {LanguageFallbacks} */ (languageFallbacks)[lang] || []).find(
+          (/** @type {string} */ fallback) => i18nList.includes(fallback)
+        ) || 'en';
 
   cd.g.userLanguage = languageOrFallback(mw.config.get('wgUserLanguage'));
 
@@ -229,7 +234,7 @@ function getConfig() {
     if (IS_TEST) {
       key += '.test';
     }
-    const configUrl = configUrls[key] || configUrls[mw.config.get('wgServerName')];
+    const configUrl = /** @type {{ [key: string]: string }} */ (configUrls)[key] || configUrls[mw.config.get('wgServerName')];
     if (configUrl) {
       const rejectWithMsg = (error) => {
         reject(['Convenient Discussions can\'t run: couldn\'t load the configuration.', error]);

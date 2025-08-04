@@ -1,9 +1,12 @@
 # Instructions
 
+## About the project
+
+This is a JavaScript project with type checking supplied by TypeScript through types defined in JSDoc. However, it also has some type definitions in .d.ts files.
+
 ## General rules
 
-* When defining, redefining, or moving a class, always include all relevant methods. Avoid using placeholders like `// ... existing code ...` that might imply missing methods. Ensure the class definition is complete and accurate each time.
-* Don't modify code I didn't ask you to modify unless necessary to perform the task at hand. When in doubt, request me to provide answers, code, or documentation necessary for an adequate response.
+* Don't modify code I didn't ask you to modify unless strictly necessary to perform the task at hand. When in doubt, request me to provide answers, code, or documentation necessary for an adequate response.
 * Don't mess with code style.
 * Make sure to keep the original comments (including JSDoc comments and type hints like `/** @type {<type>} */`) to the code unless the relevant code is removed or I explicitly asked for the comments to be changed or removed. Don't remove JSDoc comments with `@overload` tag.
 * Avoid using one-time variables, unless they are used in template literals. E.g., instead of writing
@@ -27,6 +30,8 @@
 * Add an empty line before `return` statements at the end of blocks (function, `if` statement, etc.) unless it's the only statement in that block.
 * Use 2 spaces for indentation.
 * Use single quotes for strings.
+* Code comments should have one empty line before them.
+* When using inline code comments, place 2 spaces before them.
 
 ## JSDoc code style
 
