@@ -14,7 +14,7 @@ import { buildEditSummary, getQueryParamBooleanValue, underlinesToSpaces } from 
 import { wrapDiffBody, wrapHtml } from './utils-window';
 import WebpackWorker from './worker/worker-gate';
 
-const mwStringsCache = {};
+const mwStringsCache = /** @type {StringsByKey} */ ({});
 let isQqxMode;
 
 const serverName = mw.config.get('wgServerName');
@@ -69,6 +69,12 @@ const convenientDiscussions = {
    * @private
    */
   windowManagers: {},
+
+  /** @type {mw.Api | undefined} */
+  mwApi: undefined,
+
+  /** @type {Worker | undefined} */
+  worker: undefined,
 
   /**
    * @typedef {object} SOptions
@@ -161,6 +167,7 @@ const convenientDiscussions = {
     if (!params.length && mwStringsCache[name]) {
       return mwStringsCache[name];
     }
+
     let message;
     if (/^(discussiontools|visualeditor)-/.test(name)) {
       message = mw.messages.exists(name) ?
@@ -175,6 +182,7 @@ const convenientDiscussions = {
       // UploadDialog; messages can still be accessed for some silly reason).
       mwStringsCache[name] = message;
     }
+
     return message;
   },
 

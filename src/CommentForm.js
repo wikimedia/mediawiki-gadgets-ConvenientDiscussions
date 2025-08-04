@@ -878,7 +878,7 @@ class CommentForm extends EventEmitter {
    */
   createButtons() {
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const modeToSubmitButtonMessageName = /** @type {{ [key: string]: string }} */ ({
+    const modeToSubmitButtonMessageName = /** @type {StringsByKey} */ ({
       edit: 'save',
       addSection: 'addtopic',
       addSubsection: 'addsubsection',

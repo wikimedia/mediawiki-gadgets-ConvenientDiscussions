@@ -687,8 +687,8 @@ class Settings {
    * strings.
    *
    * @param {object} [options={}]
-   * @param {{ [key: string]: string }} [options.options] Object containing strings with the local
-   *   and global settings.
+   * @param {StringsByKey} [options.options] Object containing strings with the local and global
+   *   settings.
    * @param {boolean} [options.omitLocal=false] Whether to omit variables set via `cdLocal...`
    *   variables (they shouldn't be saved to the server).
    * @param {boolean} [options.reuse=false] If `options` is not set, reuse the cached user info
@@ -800,10 +800,10 @@ class Settings {
    * Get the value of a setting without loading from the server.
    *
    * @param {string} [name]
-   * @returns {SettingsValues[SettingName]|undefined|SettingsValues}
+   * @returns {SettingsValues[SettingName] | undefined | SettingsValues}
    */
   get(name) {
-    return name ? ((name in this.values) ? this.values[name] : undefined) : this.values;
+    return name ? (name in this.values ? this.values[name] : undefined) : this.values;
   }
 
   /**

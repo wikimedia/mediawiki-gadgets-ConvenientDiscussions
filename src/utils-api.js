@@ -36,7 +36,7 @@ import userRegistry from './userRegistry';
 /**
  * @typedef {object} ApiResponseParseTree
  * @property {object} parse
- * @property {object} parse.parsetree
+ * @property {string} parse.parsetree
  */
 
 /**
