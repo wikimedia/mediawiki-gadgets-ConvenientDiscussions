@@ -27,13 +27,15 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
 
 /**
  * @typedef {object} GlobalPropertiesExtension
+ * @property {string} contentLanguage Language code of the wiki's content language.
+ * @property {string} userLanguage Language code of the wiki's user (interface) language.
  * @property {string} contentDateFormat Format of date in content language, as used by MediaWiki.
  * @property {string} uiDateFormat Format of date in user (interface) language, as used by
  *   MediaWiki.
- * @property {string} contentDigits Regular expression matching a single digit in content language,
- *   e.g. `[0-9]`.
- * @property {string} uiDigits Regular expression matching a single digit in user (interface)
- *   language, e.g. `[0-9]`.
+ * @property {string | undefined} contentDigits Regular expression matching a single digit in
+ *   content language, e.g. `[0-9]`.
+ * @property {string | undefined} uiDigits Regular expression matching a single digit in user
+ *   (interface) language, e.g. `[0-9]`.
  * @property {{ [name: string]: string }} contentLanguageMessages
  * @property {{ [name: string]: string[] }} specialPageAliases Some special page aliases in the
  *   wiki's language.
@@ -71,6 +73,7 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  * @property {boolean} genderAffectsUserString
  * @property {string} summaryPostfix
  * @property {number} summaryLengthLimit
+ * @property {ReturnType<JQueryStatic['client']['profile']>} clientProfile
  * @property {'Ctrl' | 'Cmd'} cmdModifier
  * @property {typeof mw['util']['isIPv6Address']} isIPv6Address
  * @property {ApiErrorFormatHtml} apiErrorFormatHtml
@@ -94,10 +97,16 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  * @property {boolean} areUiAndLocalTimezoneSame
  * @property {boolean|undefined} areTimestampsDefault Whether timestamps in the default format are
  *   shown to the user.
+ * @property {RegExp | undefined} pageWhitelistRegexp
+ * @property {RegExp | undefined} pageBlacklistRegexp
  */
 
 /**
  * @typedef {typeof import('../convenientDiscussions').globalProperties & GlobalPropertiesExtension} GlobalProps
+ */
+
+/**
+ * @typedef {{ [lang: string]: { [name: string]: string } }} I18n
  */
 
 /**
@@ -106,8 +115,7 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  * @property {import('../User').default} user Current user's object.
  * @property {typeof import('../../config/default').default} config
  * @property {GlobalProps} g
- * @property {import('./CommentSkeleton').default[]} comments
- * @property {import('./SectionSkeleton').default[]} sections
+ * @property {I18n} i18n
  */
 
 /**

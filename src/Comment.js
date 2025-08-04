@@ -2143,16 +2143,16 @@ class Comment extends CommentSkeleton {
    *
    * @param {string} markerColor
    * @param {string} backgroundColor
-   * @param {Function} callback Function to run when the animation is concluded.
+   * @param {() => void} [callback] Function to run when the animation is concluded.
    * @private
    */
   animateToColors(markerColor, backgroundColor, callback) {
     const generateProperties = (/** @type {string} */ backgroundColor) => {
-      const properties = { backgroundColor };
+      const properties = /** @type {CSSStyleDeclaration} */ ({ backgroundColor });
 
       // jquery.color module can't animate to the transparent color.
       if (properties.backgroundColor === 'rgba(0, 0, 0, 0)') {
-        properties.opacity = 0;
+        properties.opacity = '0';
       }
 
       return properties;
@@ -2181,7 +2181,7 @@ class Comment extends CommentSkeleton {
    * Animate the comment's background and marker color back from the colors of a given type.
    *
    * @param {string} type
-   * @param {Function} callback
+   * @param {() => void} [callback]
    * @private
    */
   animateBack(type, callback) {
@@ -2229,7 +2229,7 @@ class Comment extends CommentSkeleton {
    *
    * @param {string} type
    * @param {number} delay
-   * @param {Function} [callback]
+   * @param {() => void} [callback]
    */
   flash(type, delay, callback) {
     this.configureLayers();
@@ -2283,17 +2283,21 @@ class Comment extends CommentSkeleton {
 
     /**
      * @typedef {object} SeenRenderedChange
-     * @property {StringsByKey} users
-     * @property {number} saveTime
+     * @property {string} htmlToCompare HTML content used for comparison.
+     * @property {number} seenTime Timestamp when the comment was seen, in milliseconds since the Unix epoch.
+     */
+
+    /**
+     * @typedef {{ [commentId: string]: SeenRenderedChange }} SeenRenderedChanges
      */
 
     if (this.isChanged && this.id) {
-      const seenStorageItem = /** @type {StorageItemWithKeys<SeenRenderedChange>} */ (
+      const seenStorageItem = /** @type {StorageItemWithKeys<SeenRenderedChanges>} */ (
         new StorageItemWithKeys('seenRenderedChanges')
       );
       const seen = seenStorageItem.get(mw.config.get('wgArticleId')) || {};
       seen[this.id] = {
-        htmlToCompare: this.htmlToCompare,
+        htmlToCompare: /** @type {string} */ (this.htmlToCompare),
         seenTime: Date.now(),
       };
       seenStorageItem.set(mw.config.get('wgArticleId'), seen).save();
@@ -2323,8 +2327,8 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Keep only those lines of a diff that are related to the comment.
    *
    * @param {string} body
-   * @param {object[]} revisions
-   * @param {import('./updateChecker').CommentWorkerMatched[]} commentsData
+   * @param {Revision[]} revisions
+   * @param {import('./updateChecker').CommentsData} commentsData
    * @returns {JQuery}
    */
   scrubDiff(body, revisions, commentsData) {
@@ -2333,10 +2337,10 @@ class Comment extends CommentSkeleton {
      */
     const lineNumbers = [[], []];
     revisions.forEach((revision, i) => {
-      const pageCode = revision.slots.main.content;
+      const pageCode = /** @type {NonNullable<typeof revision.slots>} */ (revision.slots).main.content;
       let source;
       try {
-        source = this.locateInCode(undefined, pageCode, commentsData[i]);
+        source = this.locateInCode(undefined, pageCode, commentsData[/** @type {0 | 1} */ (i)]);
       } catch {
         return;
       }
@@ -2398,7 +2402,7 @@ class Comment extends CommentSkeleton {
    *
    * @param {number} olderRevisionId
    * @param {number} newerRevisionId
-   * @param {object} commentsData
+   * @param {import('./updateChecker').CommentsData} commentsData
    * @throws {CdError}
    * @private
    */
@@ -2466,10 +2470,10 @@ class Comment extends CommentSkeleton {
 
   /**
    * @overload
-   * @param {'changed'|'changedSince'} type
+   * @param {'changed' | 'changedSince'} type
    * @param {boolean} isNewVersionRendered
    * @param {number} comparedRevisionId
-   * @param {object} commentsData
+   * @param {import('./updateChecker').CommentsData} commentsData
    *
    * @overload
    * @param {'deleted'} type
@@ -2479,15 +2483,15 @@ class Comment extends CommentSkeleton {
    * Update the comment's properties, add a small note next to the signature saying the comment has
    * been changed or deleted, and change the comment's styling if it has been.
    *
-   * @param {'changed'|'changedSince'|'deleted'} type Type of the mark.
+   * @param {'changed' | 'changedSince' | 'deleted'} type Type of the mark.
    * @param {boolean} [isNewVersionRendered] Is the new version of the comment rendered
    *   (successfully updated or, for `changedSince` type, has been a new one from the beginning).
    * @param {number} [comparedRevisionId] ID of the revision to compare with when the user clicks to
    *   see the diff.
-   * @param {object} [commentsData] Data of the comments as of the current revision and the revision
-   *   to compare with.
+   * @param {import('./updateChecker').CommentsData} [commentsData] Data of the comments as of the
+   *   current revision and the revision to compare with.
    */
-  async markAsChanged(type, isNewVersionRendered, comparedRevisionId, commentsData) {
+  markAsChanged(type, isNewVersionRendered, comparedRevisionId, commentsData) {
     let stringName;
     switch (type) {
       case 'changed':
@@ -2915,7 +2919,7 @@ class Comment extends CommentSkeleton {
 
   /**
    * @typedef {object} DiffMatch
-   * @property {object} revision
+   * @property {Revision} revision
    * @property {number} wordOverlap
    * @property {number} dateProximity
    */
@@ -2924,7 +2928,7 @@ class Comment extends CommentSkeleton {
    * Find matches of the comment with diffs that might have added it.
    *
    * @param {string[]} compareBodies
-   * @param {object[]} revisions
+   * @param {Revision[]} revisions
    * @returns {Promise.<DiffMatch[]>}
    */
   async findDiffMatches(compareBodies, revisions) {
@@ -2996,7 +3000,7 @@ class Comment extends CommentSkeleton {
   /**
    * Find the edit that added the comment.
    *
-   * @returns {Promise.<object>}
+   * @returns {Promise.<Revision>}
    * @throws {CdError}
    * @private
    */
@@ -3045,9 +3049,11 @@ class Comment extends CommentSkeleton {
           )
         )
       );
-      const matches = (
-        await this.findDiffMatches(responses.map((resp) => resp.compare.body), revisions)
-      ).sort((m1, m2) =>
+      const diffMatches = await this.findDiffMatches(
+        responses.map((resp) => resp.compare.body),
+        revisions
+      );
+      const matches = diffMatches.sort((m1, m2) =>
         m1.wordOverlap === m2.wordOverlap
           ? m1.dateProximity - m2.dateProximity
           : m2.wordOverlap - m1.wordOverlap
@@ -3545,10 +3551,12 @@ class Comment extends CommentSkeleton {
    * @overload
    * @param {HTMLElement} element
    * @param {HTMLElement} newElementOrHtml
+   * @returns {HTMLElement}
    *
    * @overload
    * @param {JQuery} element
    * @param {HTMLElement|string} newElementOrHtml
+   * @returns {HTMLElement}
    */
 
   /**
@@ -3988,7 +3996,7 @@ class Comment extends CommentSkeleton {
    * Get a comment relevant to this comment which means the comment itself. (Used for polymorphism
    * with {@link Section#getRelevantComment} and {@link Page#getRelevantComment}.)
    *
-   * @returns {Comment}
+   * @returns {Comment<Reformatted>}
    */
   getRelevantComment() {
     return this;

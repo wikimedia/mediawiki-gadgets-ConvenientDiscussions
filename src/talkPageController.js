@@ -587,7 +587,12 @@ class TalkPageController extends EventEmitter {
     // sleep(), because it seems like sometimes it doesn't have time to update.
     await sleep(cd.g.skin === 'vector-2022' ? 100 : 0);
 
-    bootController.getContentColumnOffsets(true);
+    // The initial value is set in init.addTalkPageCss() through a style tag.
+    $(document.documentElement).css(
+      '--cd-content-start-margin',
+      bootController.getContentColumnOffsets(true).startMargin + 'px'
+    );
+
     this.emit('resize');
     this.handleScroll();
   }

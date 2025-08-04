@@ -20,6 +20,9 @@ declare global {
   type StringsByKey = { [key: string]: string };
   type ValidKey = string | number;
 
+  // Helper type to check if a string is present in the array
+  type HasProperty<T extends readonly string[], K extends string> = K extends T[number] ? true : false;
+
   interface ApiResponseQueryPage {
     title: string;
     pageid: number;
@@ -43,7 +46,7 @@ declare global {
     revisions?: Revision[];
   }
 
-  interface Revision {
+  interface BaseRevision {
     revid: number;
     parentid: number;
     slots?: {
@@ -54,7 +57,23 @@ declare global {
         nosuchsection: boolean;
       };
     };
+    comment: string;
+    minor: boolean;
+    timestamp: string;
+    user: string;
   }
+
+  // Conditional type that adds properties based on the presence of strings in the array
+  type RevisionConditionalProperties<T extends readonly string[]> =
+    (HasProperty<T, 'ids'> extends true ? { ids: string; } : {}) &
+    (HasProperty<T, 'timestamp'> extends true ? { timestamp: string; } : {}) &
+    (HasProperty<T, 'flags'> extends true ? { minor: boolean; } : {}) &
+    (HasProperty<T, 'comment'> extends true ? { comment: string; } : {}) &
+    (HasProperty<T, 'user'> extends true ? { user: string; } : {});
+
+  // Generic Revision type that conditionally includes properties
+  type Revision<T extends readonly string[] = ['ids', 'timestamp', 'flags', 'comment', 'user']> =
+    Expand<BaseRevision & RevisionConditionalProperties<T>>;
 
   interface FromTo {
     from: string;
