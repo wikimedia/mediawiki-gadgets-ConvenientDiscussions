@@ -714,7 +714,7 @@ class Settings {
     let localSettings;
     try {
       localSettings = JSON.parse(options[cd.g.localSettingsOptionName]) || {};
-    } catch (error) {
+    } catch {
       localSettings = {};
     }
 
@@ -765,6 +765,7 @@ class Settings {
    * @overload
    * @param {string} name
    * @param {any} value
+   * @returns {void}
    *
    * @overload
    * @param {object} values
@@ -803,7 +804,11 @@ class Settings {
    * @returns {SettingsValues[SettingName] | undefined | SettingsValues}
    */
   get(name) {
-    return name ? (name in this.values ? this.values[name] : undefined) : this.values;
+    return name
+      ? name in this.values
+        ? this.values[/** @type {SettingName} */ (name)]
+        : undefined
+      : this.values;
   }
 
   /**
@@ -816,13 +821,13 @@ class Settings {
     if (!cd.user.isRegistered()) return;
 
     if (cd.config.useGlobalPreferences) {
-      const globalSettings = {};
-      const localSettings = {};
+      const globalSettings = /** @type {Partial<DocumentedSettingsValues>} */ ({});
+      const localSettings = /** @type {Partial<DocumentedSettingsValues>} */ ({});
       typedKeysOf(settings).forEach((key) => {
         if (this.scheme.local.includes(key)) {
-          localSettings[key] = settings[key];
+          /** @type {typeof settings[key]} */ (localSettings[key]) = settings[key];c
         } else {
-          globalSettings[key] = settings[key];
+          /** @type {typeof settings[key]} */ (globalSettings[key]) = settings[key];
         }
       });
 
@@ -839,8 +844,8 @@ class Settings {
    * Update a setting value, saving it to the server and changing it for the current session as
    * well. This should be done cautiously, because many settings only have effect on page reload.
    *
-   * @param {string} key The key of the settings to save.
-   * @param {*} value The value to set.
+   * @param {SettingName} key The key of the settings to save.
+   * @param {any} value The value to set.
    * @returns {Promise.<void>}
    */
   async saveSettingOnTheFly(key, value) {

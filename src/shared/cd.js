@@ -106,7 +106,7 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  */
 
 /**
- * @typedef {{ [lang: string]: { [name: string]: string } }} I18n
+ * @typedef {{ [lang: string]: StringsByKey }} I18n
  */
 
 /**
