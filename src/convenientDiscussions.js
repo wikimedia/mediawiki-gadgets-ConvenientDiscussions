@@ -15,6 +15,7 @@ import { wrapDiffBody, wrapHtml } from './utils-window';
 import WebpackWorker from './worker/worker-gate';
 
 const mwStringsCache = /** @type {StringsByKey} */ ({});
+/** @type {boolean} */
 let isQqxMode;
 
 const serverName = mw.config.get('wgServerName');
