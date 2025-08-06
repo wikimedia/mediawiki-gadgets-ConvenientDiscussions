@@ -177,7 +177,12 @@ class CommentSource {
   excludeIndentationAndIntro() {
     if (this.comment.level === 0) return;
 
-    const replaceIndentation = (s, before, chars, after = '') => {
+    const replaceIndentation = (
+      /** @type {string} */ s,
+      /** @type {string} */ before,
+      /** @type {string} */ chars,
+      after = ''
+    ) => {
       if (typeof after === 'number') {
         after = '';
       }
@@ -263,13 +268,13 @@ class CommentSource {
    * @private
    */
   adjustSignature() {
-    const movePartToSignature = (s) => {
+    const movePartToSignature = (/** @type {string} */ s) => {
       this.signatureDirtyCode = s + this.signatureDirtyCode;
       this.endIndex -= s.length;
 
       return '';
     };
-    const movePartsToSignature = (regexps) => {
+    const movePartsToSignature = (/** @type {RegExp[]} */ regexps) => {
       regexps.forEach((regexp) => {
         this.code = this.code.replace(regexp, movePartToSignature);
       });
@@ -568,7 +573,11 @@ class CommentSource {
    * comment into while taking outdent templates into account.
    *
    * @param {string} adjustedChunkCodeAfter
-   * @returns {object}
+   * @returns {{
+   *   adjustedCodeBetween: string;
+   *   indentationAfter: string;
+   *   isNextLine: boolean;
+   * }}
    * @private
    */
   matchProperPlaceRegexps(adjustedChunkCodeAfter) {
@@ -916,9 +925,11 @@ class CommentSource {
 
       // \x01 are later used in CommentSource#matchProperPlaceRegexps. \x02 is not used, it's
       // just for consistency
-      const makeIndentationMarkers = (indentationLength, totalLength) => (
-        '\x01'.repeat(indentationLength) + ' '.repeat(totalLength - indentationLength - 1) + '\x02'
-      );
+      const makeIndentationMarkers = (
+        /** @type {number} */ indentationLength,
+        /** @type {number} */ totalLength
+      ) =>
+        '\x01'.repeat(indentationLength) + ' '.repeat(totalLength - indentationLength - 1) + '\x02';
 
       if (closedDiscussionPairRegexp) {
         adjustedCode = adjustedCode.replace(
@@ -927,25 +938,28 @@ class CommentSource {
         );
       }
 
+      /** @type {RegExpMatchArray | null} */
       let match;
       while ((match = closedDiscussionSingleRegexp.exec(adjustedCode))) {
-        adjustedCode = (
+        adjustedCode =
           adjustedCode.slice(0, match.index) +
-
           // Fill the space that the first met template occupies with spaces, and put the specified
           // number of marker characters at the first positions. This will be later used in
           // CommentSource#matchProperPlaceRegexps.
-          (new TextMasker(adjustedCode.slice(match.index)))
+          new TextMasker(adjustedCode.slice(match.index))
             .maskTemplatesRecursively(undefined, true)
-            .withText((code) => (
+            .withText((code) =>
               code.replace(
-                /\x01\d+_template_(\d+)\x02/,  // No global flag - we only need the first occurrence
-                (m, n) => makeIndentationMarkers(match[1].length, n.length)
+                /\x01\d+_template_(\d+)\x02/, // No global flag - we only need the first occurrence
+                (m, n) =>
+                  makeIndentationMarkers(
+                    /** @type {RegExpMatchArray} */ (match)[1].length,
+                    n.length
+                  )
               )
-            ))
+            )
             .unmask()
-            .getText()
-        );
+            .getText();
       }
     }
 

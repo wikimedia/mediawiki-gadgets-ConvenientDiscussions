@@ -92,7 +92,7 @@ class BootController {
   /** @type {boolean} */
   talkPage;
 
-  /** @type {Array<Promise|JQuery.Promise>} */
+  /** @type {JQuery.Promise<any>} */
   siteDataRequests;
 
   /**
@@ -191,7 +191,7 @@ class BootController {
    * _For internal use._ Load messages needed to parse and generate timestamps as well as some site
    * data.
    *
-   * @returns {Array<Promise|JQuery.Promise>} There should be at least one promise in the array.
+   * @returns {JQuery.Promise<any>[]} There should be at least one promise in the array.
    */
   getSiteData() {
     this.siteDataRequests ||= this.loadSiteData();
@@ -202,7 +202,7 @@ class BootController {
   /**
    * Load messages needed to parse and generate timestamps as well as some site data.
    *
-   * @returns {JQuery.Promise[]} There should be at least one promise in the array.
+   * @returns {JQuery.Promise<any>[]} There should be at least one promise in the array.
    * @private
    */
   loadSiteData() {
@@ -270,10 +270,12 @@ class BootController {
     // We need this object to pass it to the web worker.
     cd.g.contentLanguageMessages = {};
 
-    const setContentLanguageMessages = (/** @type {StringsByKey} */ messages) => {
+    const setContentLanguageMessages = (/** @type {{ [key: string]: string | undefined }} */ messages) => {
       Object.keys(messages).forEach((name) => {
-        mw.messages.set('(content)' + name, messages[name]);
-        cd.g.contentLanguageMessages[name] = messages[name];
+        if (messages[name] !== undefined) {
+          mw.messages.set('(content)' + name, messages[name]);
+          cd.g.contentLanguageMessages[name] = messages[name];
+        }
       });
     };
 
@@ -290,6 +292,7 @@ class BootController {
 
     // I hope we won't be scolded too much for making two message requests in parallel (if the user
     // and content language are different).
+    /** @type {JQuery.Promise<any>[]} */
     const requests = [];
     if (areLanguagesEqual) {
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -998,7 +1001,7 @@ class BootController {
     debug.stopTimer('start');
     debug.startTimer('load data');
 
-    /** @type {PromiseLike<any>[]} */
+    /** @type {JQuery.Promise<any>[]} */
     let siteDataRequests = [];
 
     // Make some requests in advance if the API module is ready in order not to make 2 requests
@@ -1041,9 +1044,9 @@ class BootController {
       'oojs-ui.styles.icons-interactions',
       'oojs-ui.styles.icons-movement',
       'user.options',
-      mw.loader.getState('ext.confirmEdit.CaptchaInputWidget') ?
-        'ext.confirmEdit.CaptchaInputWidget' :
-        undefined,
+      mw.loader.getState('ext.confirmEdit.CaptchaInputWidget')
+        ? 'ext.confirmEdit.CaptchaInputWidget'
+        : undefined,
     ].filter(defined);
 
     // mw.loader.using() delays the execution even if all modules are ready (if CD is used as a
@@ -1369,6 +1372,7 @@ class BootController {
     delete newQuery.dtnewcommentssince;
     delete newQuery.dtinthread;
 
+    /** @type {'pushState' | 'replaceState' | undefined} */
     let methodName;
     if (newQuery.diff || newQuery.oldid) {
       methodName = 'pushState';

@@ -2,7 +2,7 @@
 import { isText } from 'domhandler';
 
 import CommentSkeleton from '../shared/CommentSkeleton';
-import { isHeadingNode, isMetadataNode } from '../shared/utils-general';
+import { isElement, isHeadingNode, isMetadataNode } from '../shared/utils-general';
 
 import { keepSafeValues } from './worker';
 
@@ -199,14 +199,18 @@ export default class CommentWorker extends CommentSkeleton {
    * @private
    */
   processReferenceElements(element) {
-    element
-      .filterRecursively((/** @type {import('domhandler').Element} */ node) =>
-        ['autonumber', 'reference', 'references'].some((name) => node.classList.contains(name)) ||
-        isMetadataNode(node)
+    /** @type {import('domhandler').Element[]} */ (
+      element.filterRecursively(
+        (node) =>
+          isElement(node) &&
+          (['autonumber', 'reference', 'references'].some((name) =>
+            node.classList.contains(name)
+          ) ||
+            isMetadataNode(node))
       )
-      .forEach((/** @type {import('domhandler').Element} */ el) => {
-        this.hideElement(el);
-      });
+    ).forEach((el) => {
+      this.hideElement(el);
+    });
   }
 
   /**

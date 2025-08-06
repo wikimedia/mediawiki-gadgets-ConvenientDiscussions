@@ -89,7 +89,7 @@ class SectionSource {
    *
    * @param {object} options
    * @param {import('./Section').default} options.section
-   * @param {string[]} options.sectionHeadingMatch
+   * @param {RegExpMatchArray} options.sectionHeadingMatch
    * @param {string} options.contextCode
    * @param {string} options.adjustedContextCode
    * @param {boolean} options.isInSectionContext
@@ -214,7 +214,7 @@ class SectionSource {
   /**
    * Collect data for the match, including section text, first chunk text, indexes, etc.
    *
-   * @param {object} sectionHeadingMatch
+   * @param {RegExpMatchArray} sectionHeadingMatch
    * @param {string} contextCode
    * @param {string} adjustedContextCode
    * @throws {CdError}
@@ -280,9 +280,10 @@ class SectionSource {
       firstChunkMatch[1].length
     );
 
-    const startIndex = sectionHeadingMatch.index;
+    const startIndex = /** @type {number} */ (sectionHeadingMatch.index);
     const endIndex = startIndex + code.length;
-    const contentStartIndex = sectionHeadingMatch.index + sectionHeadingMatch[0].length;
+    const contentStartIndex =
+      /** @type {number} */ (sectionHeadingMatch.index) + sectionHeadingMatch[0].length;
     const firstChunkEndIndex = startIndex + firstChunkCode.length;
 
     let firstChunkContentEndIndex = firstChunkEndIndex;

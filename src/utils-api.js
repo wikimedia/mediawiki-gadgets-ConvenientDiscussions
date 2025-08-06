@@ -107,18 +107,20 @@ export function handleApiReject(codeOrArr, response) {
     case 'http':
       throw new CdError({ type: 'network' });
     case 'ok-but-empty':
-      throw new CdError({ type: 'api', code });
+      throw new CdError({ type: 'server', code });
     case 'query-missing':
       throw new CdError({ type: 'internal', code });
     case 'token-missing':
       throw new CdError({ type: 'internal', code });
     default: {
       const apiResponse = /** @type {import('types-mediawiki/mw/Api').ApiResponse} */ (response);
+      const error = apiResponse?.error || apiResponse?.errors?.[0];
       throw new CdError({
         type: 'api',
         // `error` or `errors` is chosen by the API depending on `errorformat` being 'html' in
         // requests.
-        code: (apiResponse?.error || apiResponse?.errors?.[0]).code,
+        code: error.code,
+        html: error.html,
         apiResponse,
       });
     }
@@ -129,8 +131,9 @@ export function handleApiReject(codeOrArr, response) {
  * Split an array into batches of 50 (500 if the user has the `apihighlimits` right) to use in API
  * requests.
  *
- * @param {any[]} arr
- * @returns {any[][]}
+ * @template T
+ * @param {T[]} arr
+ * @returns {T[][]}
  */
 export function splitIntoBatches(arr) {
   // Current user's rights are only set on an `userinfo` request which is performed late (see "We
@@ -161,7 +164,7 @@ export function splitIntoBatches(arr) {
     result[chunkIndex].push(item);
 
     return result;
-  }, []);
+  }, /** @type {T[][]} */ ([]));
 }
 
 /**
@@ -427,7 +430,7 @@ export async function saveGlobalOption(name, value) {
     await saveOptions({ [name]: value }, true);
   } catch (error) {
     // The site doesn't support global preferences.
-    if (error instanceof CdError && error.data.apiErrorCode === 'badvalue') {
+    if (error instanceof CdError && error.data.code === 'badvalue') {
       await saveLocalOption(name, value);
     } else {
       throw error;
@@ -507,7 +510,7 @@ export async function getPagesExistence(titles) {
     pages.push(...query.pages || []);
   }
 
-  const normalizedToOriginal = {};
+  const normalizedToOriginal = /** @type {StringsByKey} */ ({});
   normalized.forEach((page) => {
     normalizedToOriginal[page.to] = page.from;
   });
