@@ -401,8 +401,8 @@ function toPrimitive(val) {
  * treated as unexistent (this helps to compare values retrieved from the local storage as JSON:
  * `JSON.stringify()` removes all `undefined` values as well).
  *
- * @param {object} object1 First object.
- * @param {object} object2 Second object.
+ * @param {any} object1 First object.
+ * @param {any} object2 Second object.
  * @returns {boolean}
  */
 export function areObjectsEqual(object1, object2) {
@@ -419,7 +419,12 @@ export function areObjectsEqual(object1, object2) {
     object1.constructor === object2.constructor &&
 
     keys1.length === keys2.length &&
-    keys1.every((key) => areObjectsEqual(object1[key], object2[key]))
+    keys1.every((key) =>
+      areObjectsEqual(
+        /** @type {UnknownsByKey} */ (object1[key]),
+        /** @type {UnknownsByKey} */ (object2[key])
+      )
+    )
   );
 }
 
@@ -441,13 +446,13 @@ export function removeDirMarks(text, replaceWithSpace = false) {
  * _For internal use._ Filter out values of an object that can't be safely passed to worker (see
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm}).
  *
- * @param {object} obj
+ * @param {UnknownsByKey} obj
  * @param {string[]} [allowedFuncNames=[]] Names of the properties that should be passed to the
  *   worker despite their values are functions (they are passed in a stringified form).
- * @returns {object}
+ * @returns {UnknownsByKey}
  */
 export function keepWorkerSafeValues(obj, allowedFuncNames = []) {
-  const newObj = Object.assign({}, obj);
+  const newObj = { ...obj };
   Object.keys(newObj).forEach((key) => {
     const val = newObj[key];
     if (
@@ -456,7 +461,7 @@ export function keepWorkerSafeValues(obj, allowedFuncNames = []) {
       !(val instanceof RegExp || val instanceof Date)
     ) {
       try {
-        if (!areObjectsEqual(val, JSON.parse(JSON.stringify(val)))) {
+        if (!areObjectsEqual(/** @type {UnknownsByKey} */ (val), JSON.parse(JSON.stringify(val)))) {
           delete newObj[key];
         }
       } catch {
@@ -511,9 +516,8 @@ function calculateArrayOverlap(arr1, arr2) {
  */
 export function calculateWordOverlap(s1, s2, caseInsensitive = false) {
   const regexp = new RegExp(`[${cd.g.letterPattern}]{2,}`, 'g');
-  const strToArr = (s) => (
-    ((caseInsensitive ? s.toLowerCase() : s).match(regexp) || []).filter(unique)
-  );
+  const strToArr = (/** @type {string} */ s) =>
+    ((caseInsensitive ? s.toLowerCase() : s).match(regexp) || []).filter(unique);
   return calculateArrayOverlap(strToArr(s1), strToArr(s2));
 }
 
@@ -781,8 +785,8 @@ export function countOccurrences(string, regexp) {
  * Wait for a specified number of milliseconds (a wrapper around
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/setTimeout setTimeout()}).
  *
- * @param {number} [ms] Nubmer of milliseconds to sleep.
- * @returns {Promise}
+ * @param {number} [ms] Number of milliseconds to sleep.
+ * @returns {Promise<void>}
  */
 export function sleep(ms) {
   return new Promise((resolve) => {
@@ -825,7 +829,7 @@ export function getDbnameForHostname(hostname) {
         console.log(`/^(${wikimediaNonChapters.join('|')})$/`);
         console.log(JSON.stringify(specialCases));
    */
-  const specialCases = {
+  const specialCases = /** @type {StringsByKey} */ ({
     'api.wikimedia.org': 'apiportalwiki',
     'be-tarask.wikipedia.org': 'be_x_oldwiki',
     'ee.wikimedia.org': 'etwikimedia',
@@ -836,13 +840,13 @@ export function getDbnameForHostname(hostname) {
     'test.wikidata.org': 'testwikidatawiki',
     'www.wikidata.org': 'wikidatawiki',
     'www.wikifunctions.org': 'wikifunctionswiki',
-  };
+  });
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const languagedProjectsRegexp = /^([^.]+)\.(wikibooks|wikinews|wikiquote|wikisource|wikiversity|wikivoyage|wiktionary|wikimedia|wikipedia)\./;
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const wikimediaNonChaptersRegexp = /^(advisory|commons|donate|foundation|incubator|login|meta|outreach|quality|species|strategy|usability|vote)$|^wikimania/;
 
-  if (specialCases[hostname]) {
+  if (hostname in specialCases) {
     return specialCases[hostname];
   }
 
@@ -937,7 +941,7 @@ export function getQueryParamBooleanValue(param) {
  * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map Map}
  * objects.
  *
- * @template {Map} M
+ * @template {Map<unknown, unknown>} M
  * @param {M[]} maps
  * @returns {M}
  */

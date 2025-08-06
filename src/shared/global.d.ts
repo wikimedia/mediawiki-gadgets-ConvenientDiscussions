@@ -12,7 +12,9 @@ import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
 import { HeadingTarget, SignatureTarget, Target } from './Parser';
 
 declare global {
-  type StringsByKey = { [key: string]: string; };
+  type StringsByKey = { [key: string]: string };
+  type NumbersByKey = { [key: string]: number };
+  type StringArraysByKey = { [key: string]: string[] };
 
   type MessageFromWorkerParse = {
     type: 'parse',

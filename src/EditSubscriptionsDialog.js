@@ -150,7 +150,8 @@ class EditSubscriptionsDialog extends ProcessDialog {
         await this.initPromise;
         pages = await getPageTitles(this.subscriptions.getPageIds());
       } catch (error) {
-        this.handleError(error, 'ewsd-error-processing', false);
+        this.handleError(/** @type {Error} */ (error), 'ewsd-error-processing', false);
+
         return;
       }
 
@@ -227,7 +228,9 @@ class EditSubscriptionsDialog extends ProcessDialog {
     this.updateSize();
     this.pushPending();
 
+    /** @type {StringArraysByKey} */
     const sections = {};
+    /** @type {string[]} */
     const pageTitles = [];
     this.input
       .getValue()
@@ -250,7 +253,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
     try {
       ({ normalized, redirects, pages } = await getPageIds(pageTitles) || {});
     } catch (error) {
-      this.handleError(error, 'ewsd-error-processing', true);
+      this.handleError(/** @type {Error | CdError} */ (error), 'ewsd-error-processing', true);
       return;
     }
 
@@ -264,6 +267,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
         delete sections[page.from];
       });
 
+    /** @type {NumbersByKey} */
     const titleToId = {};
     pages
       .filter((page) => page.pageid !== undefined)
@@ -271,6 +275,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
         titleToId[page.title] = page.pageid;
       });
 
+    /** @type {Record<number, import('./Subscriptions').SubscriptionsData>} */
     const allPagesData = {};
     Object.keys(sections)
       .filter((key) => titleToId[key])
@@ -289,9 +294,10 @@ class EditSubscriptionsDialog extends ProcessDialog {
           this.handleError(error, 'ewsd-error-processing', true);
         }
       } else {
-        this.handleError(error);
+        this.handleError(/** @type {Error} */ (error));
       }
       this.actions.setAbilities({ save: true });
+
       return;
     }
 

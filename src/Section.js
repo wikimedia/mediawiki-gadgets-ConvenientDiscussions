@@ -1633,7 +1633,7 @@ class Section extends SectionSkeleton {
     }
 
     /**
-     * @type {Partial<SectionSkeleton<Node>}
+     * @type {Partial<SectionSkeleton<Node>>}
      */
     const oldSectionDummy = {
       headlineElement: $('<span>').html(

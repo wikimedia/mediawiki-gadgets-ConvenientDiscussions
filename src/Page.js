@@ -420,11 +420,22 @@ export default class Page {
   }
 
   /**
+   * @template {string[]} T
+   * @typedef {object} GetRevisionsOptionsExtension
+   * @property {T} [rvprop]
+   */
+
+  /**
+   * @template {string[]} [T=['ids', 'timestamp', 'flags', 'comment', 'user']]
+   * @typedef {GetRevisionsOptionsExtension<T> & import('types-mediawiki/api_params').ApiQueryRevisionsParams} GetRevisionsOptions
+   */
+
+  /**
    * Get a list of revisions of the page (the `redirects` API parameter is set to `true` by
    * default).
    *
    * @template {string[]} [T=['ids', 'timestamp', 'flags', 'comment', 'user']]
-   * @param {Partial<import('types-mediawiki/api_params').ApiQueryRevisionsParams>} [customOptions={}]
+   * @param {GetRevisionsOptions<T>} [customOptions={}]
    * @param {boolean} [inBackground=false] Make a request that won't set the process on hold when
    *   the tab is in the background.
    * @returns {Promise<Revision<T>[]>}
@@ -480,7 +491,8 @@ export default class Page {
           cd.getApi().assertCurrentUser({
             action: 'edit',
 
-            // If we know that this page is a redirect, use its target. Otherwise, use the regular name.
+            // If we know that this page is a redirect, use its target. Otherwise, use the regular
+            // name.
             title: this.realName || this.name,
 
             notminor: !customOptions.minor,
@@ -500,19 +512,19 @@ export default class Page {
       response = await request;
     } catch (error) {
       if (error instanceof CdError) {
-        const { type, apiResponse } = error.data;
+        const { type } = error.data;
         if (type === 'network') {
           throw error;
-        } else if (error.isServerDefinedApiError()) {
-          const error = apiResponse?.errors[0];
+        } else {
+          const apiResponse = error.data.apiResponse;
           /** @type {string | undefined} */
           let message;
           let isRawMessage = false;
           let logMessage;
           /** @type {string | undefined} */
           let code;
-          if (error) {
-            code = error.code;
+          if (error.isServerDefinedApiError()) {
+            code = error.getCode();
             switch (code) {
               case 'editconflict': {
                 message = cd.sParse('error-editconflict');
@@ -525,7 +537,7 @@ export default class Page {
               }
 
               default: {
-                message = error.html;
+                message = error.getHtml();
                 isRawMessage = message.includes('<table') || message.includes('<div');
               }
             }
@@ -537,7 +549,7 @@ export default class Page {
 
           throw new CdError({
             type: 'api',
-            code: 'fail',
+            code,
             apiResponse,
             details: { code, message, isRawMessage, logMessage },
           });

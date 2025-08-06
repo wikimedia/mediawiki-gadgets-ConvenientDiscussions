@@ -1598,7 +1598,7 @@ class CommentForm extends EventEmitter {
           props[propName] = computedStyle[propName];
 
           return props;
-        }, /** @type {{ [key: string]: CSSStyleDeclaration }} */ ({})),
+        }, /** @type {{ [key: string | symbol]: any }} */ ({})),
       })
       .append($span)
       .appendTo(document.body);
@@ -1760,9 +1760,9 @@ class CommentForm extends EventEmitter {
   /**
    * Handle `paste` and `drop` events.
    *
-   * @param {JQuery.DropEvent | JQuery.TriggeredEvent<ClipboardEvent>} event
+   * @param {JQuery.TriggeredEvent} event
    */
-  handlePasteDrop(event) {
+  handlePasteDrop = (event) => {
     const originalEvent = /** @type {ClipboardEvent | DragEvent} */ (event.originalEvent);
     const data =
       'clipboardData' in originalEvent ? originalEvent.clipboardData : originalEvent.dataTransfer;
@@ -1778,7 +1778,7 @@ class CommentForm extends EventEmitter {
 
       this.suggestConvertToWikitext(html, data.getData('text/plain')?.replace(/\r/g, ''));
     }
-  }
+  };
 
   /**
    * Add event listeners to form elements.
@@ -1961,7 +1961,7 @@ class CommentForm extends EventEmitter {
       .on('dragleave drop blur', () => {
         this.commentInput.$element.removeClass('cd-input-acceptFile');
       })
-      .on('paste drop', this.handlePasteDrop.bind(this))
+      .on('paste', this.handlePasteDrop)
       .on('tribute-replaced', (event) => {
         if (
           /** @type {CustomEvent<TributeReplacedEvent>} */ (event.originalEvent).detail.instance
@@ -2535,7 +2535,10 @@ class CommentForm extends EventEmitter {
             message = cd.sParse('cf-error-delete-repliesinsection');
             break;
           case 'commentLinks-commentNotFound':
-            message = cd.sParse('cf-error-commentlinks-commentnotfound', details.id);
+            message = cd.sParse(
+              'cf-error-commentlinks-commentnotfound',
+              /** @type {{ id: string }} */ (details).id
+            );
             break;
         }
         break;
@@ -2674,7 +2677,13 @@ class CommentForm extends EventEmitter {
    *
    * @param {'submit'|'viewChanges'} action
    * @param {import('./CommentFormOperation').default} operation Operation the form is undergoing.
-   * @returns {Promise.<object|undefined>}
+   * @returns {Promise<
+   *   | {
+   *       contextCode: string;
+   *       commentCode?: string;
+   *     }
+   *   | undefined
+   * >}
    * @private
    */
   async buildSource(action, operation) {
@@ -2695,10 +2704,11 @@ class CommentForm extends EventEmitter {
       } catch (error) {
         if (error instanceof CdError) {
           this.handleError(
-            Object.assign({
+            {
               message: cd.sParse('cf-error-getpagecode'),
               operation,
-            }, error.data)
+              ...error.data,
+            }
           );
         } else {
           this.handleError({
@@ -3055,7 +3065,9 @@ class CommentForm extends EventEmitter {
       url.searchParams.delete('cdaddtopic');
       url.searchParams.delete('section');
       url.searchParams.delete('action');
-      url.hash = bootData.commentIds[0];
+      if (bootData?.commentIds?.length) {
+        url.hash = bootData.commentIds[0];
+      }
       location.href = url.toString();
       if (location.pathname + location.search === url.pathname + url.search) {
         location.reload();
@@ -3158,7 +3170,7 @@ class CommentForm extends EventEmitter {
    * @param {string} code Code to save.
    * @param {import('./CommentFormOperation').default} operation Operation the form is undergoing.
    * @param {boolean} [suppressTag=false]
-   * @returns {Promise.<object|null>}
+   * @returns {Promise<string|null>}
    * @private
    */
   async editPage(code, operation, suppressTag = false) {
@@ -3202,7 +3214,8 @@ class CommentForm extends EventEmitter {
             operation,
           });
         } else {
-          let /** @type {'notice'|undefined} */ messageType;
+          /** @type {'notice' | undefined} */
+          let messageType;
           let { code, message, isRawMessage, logMessage } = details;
           if (code === 'editconflict') {
             message += ' ' + cd.sParse('cf-notice-editconflict-retrying');
@@ -3382,7 +3395,9 @@ class CommentForm extends EventEmitter {
     // be watched/unwatched using a checkbox in a form just sent. The server doesn't manage to
     // update the value quickly enough, so it returns the old value, but we must display the new
     // one.
-    const bootData = { submittedCommentForm: this };
+    const bootData = /** @type {import('./BootProcess').PassedData} */ ({
+      submittedCommentForm: this,
+    });
 
     this.updateSubscriptionStatus(editTimestamp, commentCode, bootData);
 
@@ -3718,10 +3733,10 @@ class CommentForm extends EventEmitter {
       const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
         Autocomplete.config
       ).mentions.transform.call({ item: this.parentComment.author.getName() });
-      if (data.usePipeTrickCheck()) {
+      if (/** @type {NonNullable<typeof data.usePipeTrickCheck>} */ (data.usePipeTrickCheck)()) {
         data.content = '';
       }
-      data.cmdModify();
+      /** @type {NonNullable<typeof data.cmdModify>} */ (data.cmdModify)();
       const text = data.start + data.content + data.end;
       this.commentInput
         .selectRange(0)
@@ -3745,7 +3760,7 @@ class CommentForm extends EventEmitter {
       const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
         Autocomplete.config
       ).mentions.transform.call({ item: selection });
-      if (data.usePipeTrickCheck()) {
+      if (/** @type {NonNullable<typeof data.usePipeTrickCheck>} */ (data.usePipeTrickCheck)()) {
         data.content = '';
       }
       this.commentInput.cdInsertContent(data.start + data.content + data.end);
@@ -3934,7 +3949,7 @@ class CommentForm extends EventEmitter {
   /**
    * Get the name of the correlated property of the form's target based on the form's mode.
    *
-   * @returns {string}
+   * @returns {CommentFormMode}
    * @private
    */
   getModeTargetProperty() {

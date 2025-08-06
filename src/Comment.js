@@ -16,7 +16,7 @@ import CommentSkeleton from './shared/CommentSkeleton';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
 import TreeWalker from './shared/TreeWalker';
 import cd from './shared/cd';
-import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './shared/utils-general';
+import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './shared/utils-general';
 import { formatDate, formatDateNative } from './shared/utils-timestamp';
 import { extractNumeralAndConvertToNumber, removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
@@ -1334,7 +1334,7 @@ class Comment extends CommentSkeleton {
    * occasionally.
    *
    * @param {GetOffsetOptions<boolean>} [options={}]
-   * @returns {?(CommentOffset|boolean)} Offset object. If the comment is not visible, returns
+   * @returns {CommentOffset|boolean|null} Offset object. If the comment is not visible, returns
    *   `null`. If `options.set` is `true`, returns a boolean value indicating if the comment has
    *   moved instead of the offset.
    */
@@ -2327,7 +2327,7 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Keep only those lines of a diff that are related to the comment.
    *
    * @param {string} body
-   * @param {Revision[]} revisions
+   * @param {Revision<['content']>[]} revisions
    * @param {import('./updateChecker').CommentsData} commentsData
    * @returns {JQuery}
    */
@@ -2474,9 +2474,11 @@ class Comment extends CommentSkeleton {
    * @param {boolean} isNewVersionRendered
    * @param {number} comparedRevisionId
    * @param {import('./updateChecker').CommentsData} commentsData
+   * @returns {void}
    *
    * @overload
    * @param {'deleted'} type
+   * @returns {void}
    */
 
   /**
@@ -2535,21 +2537,22 @@ class Comment extends CommentSkeleton {
                   /** @type {number} */ (
                     type === 'changedSince' ? currentRevisionId : comparedRevisionId
                   ),
-                  commentsData
+                  /** @type {NonNullable<typeof commentsData>} */ (commentsData)
                 );
               } catch (error) {
                 let text = cd.sParse('comment-diff-error');
+                /** @type {string | undefined} */
+                let code;
                 if (error instanceof CdError) {
-                  const { type, message } = error.data;
+                  const message = error.getMessage();
                   if (message) {
                     text = message;
-                  } else if (type === 'network') {
+                  } else if (error.getType() === 'network') {
                     text += ' ' + cd.sParse('error-network');
                   }
+                  code = error.getCode();
                 }
-                mw.notify(wrapHtml(text), {
-                  type: error.data?.code === 'emptyDiff' ? 'info' : 'error',
-                });
+                mw.notify(wrapHtml(text), { type: code === 'emptyDiff' ? 'info' : 'error' });
               }
               /** @type {Button} */ (diffLink).setPending(false);
             },
@@ -2878,7 +2881,7 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Generate a JQuery object containing an edit summary, diff body, and link to
    * the next diff.
    *
-   * @returns {Promise.<JQuery>}
+   * @returns {Promise<JQuery>}
    */
   async generateDiffView() {
     const edit = await this.findEdit();
@@ -2902,7 +2905,7 @@ class Comment extends CommentSkeleton {
           .append(
             cd.sParse('cld-summary'),
             cd.mws('colon-separator'),
-            wrapHtml(edit.parsedcomment, { targetBlank: true }).addClass('comment')
+            wrapHtml(edit.revision.parsedcomment, { targetBlank: true }).addClass('comment')
           ),
         wrapDiffBody(edit.diffBody)
       );
@@ -2918,89 +2921,9 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * @typedef {object} DiffMatch
-   * @property {Revision} revision
-   * @property {number} wordOverlap
-   * @property {number} dateProximity
-   */
-
-  /**
-   * Find matches of the comment with diffs that might have added it.
-   *
-   * @param {string[]} compareBodies
-   * @param {Revision[]} revisions
-   * @returns {Promise.<DiffMatch[]>}
-   */
-  async findDiffMatches(compareBodies, revisions) {
-    // Only analyze added lines except for headings. `diff-empty` is not always present, so we stick
-    // to colspan="2" as an indicator.
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const regexp =
-      /<td [^>]*colspan="2" class="[^"]*\bdiff-side-deleted\b[^"]*"[^>]*>\s*<\/td>\s*<td [^>]*class="[^"]*\bdiff-marker\b[^"]*"[^>]*>\s*<\/td>\s*<td [^>]*class="[^"]*\bdiff-addedline\b[^"]*"[^>]*>\s*<div[^>]*>(?!=)(.+?)<\/div>\s*<\/td>/g;
-
-    const commentFullText = this.getText(false) + ' ' + this.signatureText;
-    const matches = [];
-    for (let i = 0; i < compareBodies.length; i++) {
-      const diffBody = compareBodies[i];
-
-      // Currently even empty diffs have newlines and a comment.
-      if (!diffBody) continue;
-
-      const revision = revisions[i];
-
-      // Compare diff _parts_ with added text in case multiple comments were added with the edit.
-      let match;
-      let diffOriginalText = '';
-      let diffText = '';
-      let bestDiffPartWordOverlap = 0;
-      while ((match = regexp.exec(diffBody))) {
-        const diffPartText = removeWikiMarkup(decodeHtmlEntities(match[1]));
-        const diffPartWordOverlap = calculateWordOverlap(diffPartText, commentFullText);
-        if (diffPartWordOverlap > bestDiffPartWordOverlap) {
-          bestDiffPartWordOverlap = diffPartWordOverlap;
-        }
-        diffText += diffPartText + '\n';
-        diffOriginalText += match[1] + '\n';
-      }
-      if (!diffOriginalText.trim()) continue;
-
-      revision.diffBody = diffBody;
-
-      let wordOverlap = Math.max(
-        calculateWordOverlap(diffText, commentFullText),
-        bestDiffPartWordOverlap
-      );
-
-      // Parse wikitext if there is no full overlap and there are templates inside.
-      if (wordOverlap < 1 && diffOriginalText.includes('{{')) {
-        try {
-          diffOriginalText = $('<div>')
-            .append((await parseCode(diffOriginalText, { title: cd.page.name })).html)
-            .cdGetText();
-        } catch {
-          throw new CdError({
-            type: 'parse',
-          });
-        }
-        wordOverlap = calculateWordOverlap(diffOriginalText, commentFullText);
-      }
-
-      matches.push({
-        revision,
-        wordOverlap,
-        dateProximity: Math.abs(
-          /** @type {Date} */ (this.date).getTime() - new Date(revision.timestamp).setSeconds(0)
-        ),
-      });
-    }
-
-    return matches;
-  }
-
-  /**
    * Find the edit that added the comment.
    *
-   * @returns {Promise.<Revision>}
+   * @returns {Promise<DiffMatch>}
    * @throws {CdError}
    * @private
    */
@@ -3049,21 +2972,21 @@ class Comment extends CommentSkeleton {
           )
         )
       );
-      const diffMatches = await this.findDiffMatches(
+      let diffMatches = await this.findDiffMatches(
         responses.map((resp) => resp.compare.body),
         revisions
       );
-      const matches = diffMatches.sort((m1, m2) =>
+      diffMatches.sort((m1, m2) =>
         m1.wordOverlap === m2.wordOverlap
           ? m1.dateProximity - m2.dateProximity
           : m2.wordOverlap - m1.wordOverlap
       );
       if (
-        !matches.length ||
+        !diffMatches.length ||
         (
-          matches[1] &&
-          matches[0].wordOverlap === matches[1].wordOverlap &&
-          matches[0].dateProximity === matches[1].dateProximity
+          diffMatches[1] &&
+          diffMatches[0].wordOverlap === diffMatches[1].wordOverlap &&
+          diffMatches[0].dateProximity === diffMatches[1].dateProximity
         )
       ) {
         throw new CdError({
@@ -3071,11 +2994,91 @@ class Comment extends CommentSkeleton {
         });
       }
 
-      // Cache a successful result.
-      this.addingEdit = matches[0].revision;
+      // Cache the successful result.
+      this.addingEdit = diffMatches[0];
     }
 
     return this.addingEdit;
+  }
+
+  /**
+   * @typedef {object} DiffMatch
+   * @property {Revision} revision
+   * @property {string} diffBody
+   * @property {number} wordOverlap
+   * @property {number} dateProximity
+   */
+
+  /**
+   * Find matches of the comment with diffs that might have added it.
+   *
+   * @param {string[]} compareBodies
+   * @param {Revision[]} revisions
+   * @returns {Promise<DiffMatch[]>}
+   */
+  async findDiffMatches(compareBodies, revisions) {
+    // Only analyze added lines except for headings. `diff-empty` is not always present, so we stick
+    // to colspan="2" as an indicator.
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const regexp =
+      /<td [^>]*colspan="2" class="[^"]*\bdiff-side-deleted\b[^"]*"[^>]*>\s*<\/td>\s*<td [^>]*class="[^"]*\bdiff-marker\b[^"]*"[^>]*>\s*<\/td>\s*<td [^>]*class="[^"]*\bdiff-addedline\b[^"]*"[^>]*>\s*<div[^>]*>(?!=)(.+?)<\/div>\s*<\/td>/g;
+
+    const commentFullText = this.getText(false) + ' ' + this.signatureText;
+    const matches = [];
+    for (let i = 0; i < compareBodies.length; i++) {
+      const diffBody = compareBodies[i];
+
+      // Currently even empty diffs have newlines and a comment.
+      if (!diffBody) continue;
+
+      const revision = revisions[i];
+
+      // Compare diff _parts_ with added text in case multiple comments were added with the edit.
+      let match;
+      let diffOriginalText = '';
+      let diffText = '';
+      let bestDiffPartWordOverlap = 0;
+      while ((match = regexp.exec(diffBody))) {
+        const diffPartText = removeWikiMarkup(decodeHtmlEntities(match[1]));
+        const diffPartWordOverlap = calculateWordOverlap(diffPartText, commentFullText);
+        if (diffPartWordOverlap > bestDiffPartWordOverlap) {
+          bestDiffPartWordOverlap = diffPartWordOverlap;
+        }
+        diffText += diffPartText + '\n';
+        diffOriginalText += match[1] + '\n';
+      }
+      if (!diffOriginalText.trim()) continue;
+
+      let wordOverlap = Math.max(
+        calculateWordOverlap(diffText, commentFullText),
+        bestDiffPartWordOverlap
+      );
+
+      // Parse wikitext if there is no full overlap and there are templates inside.
+      if (wordOverlap < 1 && diffOriginalText.includes('{{')) {
+        try {
+          diffOriginalText = $('<div>')
+            .append((await parseCode(diffOriginalText, { title: cd.page.name })).html)
+            .cdGetText();
+        } catch {
+          throw new CdError({
+            type: 'parse',
+          });
+        }
+        wordOverlap = calculateWordOverlap(diffOriginalText, commentFullText);
+      }
+
+      matches.push({
+        revision,
+        diffBody,
+        wordOverlap,
+        dateProximity: Math.abs(
+          /** @type {Date} */ (this.date).getTime() - new Date(revision.timestamp).setSeconds(0)
+        ),
+      });
+    }
+
+    return matches;
   }
 
   /**
@@ -3085,19 +3088,19 @@ class Comment extends CommentSkeleton {
    * @returns {Promise.<string>}
    */
   async getDiffLink(format = 'standard') {
-    const edit = await this.findEdit();
+    const editRevisionId = (await this.findEdit()).revision.revid;
     if (format === 'standard') {
-      const urlEnding = decodeURI(cd.page.getArchivedPage().getUrl({ diff: edit.revid }));
+      const urlEnding = decodeURI(cd.page.getArchivedPage().getUrl({ diff: editRevisionId }));
 
       return `${cd.g.server}${urlEnding}`;
     } else if (format === 'short') {
-      return `${cd.g.server}/?diff=${edit.revid}`;
+      return `${cd.g.server}/?diff=${editRevisionId}`;
     }
 
     const specialPageName =
       mw.config.get('wgFormattedNamespaces')[-1] + ':' + cd.g.specialPageAliases.Diff[0];
 
-    return `[[${specialPageName}/${edit.revid}]]`;
+    return `[[${specialPageName}/${editRevisionId}]]`;
   }
 
   /**
@@ -3156,17 +3159,16 @@ class Comment extends CommentSkeleton {
   async thank() {
     /** @type {import('./CommentButton').default} */ (this.thankButton).setPending(true);
 
-    let edit;
+    let editRevisionId;
     try {
-      [edit] = await Promise.all(
-        [
-          this.findEdit(),
-          cd.g.genderAffectsUserString ? loadUserGenders([this.author]) : undefined,
-          mw.loader.using(['mediawiki.diff', 'mediawiki.diff.styles']),
-        ].filter(defined)
-      );
+      const [edit] = await Promise.all([
+        this.findEdit(),
+        cd.g.genderAffectsUserString ? loadUserGenders([this.author]) : undefined,
+        mw.loader.using(['mediawiki.diff', 'mediawiki.diff.styles']),
+      ]);
+      editRevisionId = edit.revision.revid;
     } catch (error) {
-      this.thankFail(error);
+      this.thankFail(/** @type {Error|CdError} */ (error));
       return;
     }
 
@@ -3175,7 +3177,7 @@ class Comment extends CommentSkeleton {
         'thank-confirm',
         this.author.getName(),
         this.author,
-        this.getSourcePage().getArchivedPage().getUrl({ diff: edit.revid })
+        this.getSourcePage().getArchivedPage().getUrl({ diff: editRevisionId })
       ),
       {
         tagName: 'div',
@@ -3193,13 +3195,13 @@ class Comment extends CommentSkeleton {
           .postWithEditToken(
             cd.getApi().assertCurrentUser({
               action: 'thank',
-              rev: edit.revid,
+              rev: editRevisionId,
               source: cd.config.scriptCodeName,
             })
           )
           .catch(handleApiReject);
       } catch (error) {
-        this.thankFail(error);
+        this.thankFail(/** @type {Error|CdError} */ (error));
         return;
       }
 
@@ -3207,7 +3209,7 @@ class Comment extends CommentSkeleton {
       this.setThanked();
 
       Comment.thanksStorage
-        .set(edit.revid, {
+        .set(editRevisionId, {
           id: /** @type {string} */ (this.dtId || this.id),
           thankTime: Date.now(),
         })
@@ -3215,7 +3217,7 @@ class Comment extends CommentSkeleton {
 
       try {
         await mw.loader.using('ext.thanks');
-        mw.thanks.thanked.push(edit.revid);
+        mw.thanks.thanked.push(editRevisionId);
       } catch {
         // This isn't critical (affects only the "thanked" label in history), so we don't do
         // anything
@@ -3474,7 +3476,7 @@ class Comment extends CommentSkeleton {
    * offset.
    *
    * @param {boolean} partially Return `true` even if only a part of the comment is in the viewport.
-   * @param {object} [offset=this.getOffset()] Prefetched offset.
+   * @param {CommentOffset|null} [offset=this.getOffset()] Prefetched offset.
    * @returns {?boolean}
    */
   isInViewport(partially = false, offset = this.getOffset()) {
@@ -3591,7 +3593,7 @@ class Comment extends CommentSkeleton {
     // When we set .$elements, the setter automatically sets .elements. But not vice versa except
     // when .$elements is not ready yet.
     if (element instanceof HTMLElement) {
-      this.elements.splice(this.elements.indexOf(element[0]), 1, newElement);
+      this.elements.splice(this.elements.indexOf(element), 1, newElement);
     } else {
       this.$elements = this.$elements.not(nativeElement).add(newElement);
     }
