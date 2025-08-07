@@ -121,7 +121,15 @@ class Tribute {
     direction = 'ltr'
   }) {
     this.menuSelected = 0;
-    this.current = {};
+    this.current = /** @type {{
+      collection: TributeCollection | null,
+      trigger: string | null,
+      externalTrigger: boolean | null,
+      element: HTMLElement | null,
+      triggerPos: number | null
+      mentionText: string | null,
+      filteredItems: TributeItem[] | null,
+    }} */ ({});
     this.inputEvent = false;
     this.isActive = false;
     this.menuContainer = menuContainer;

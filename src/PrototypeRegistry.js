@@ -5,13 +5,13 @@
  * @template {string} T List of prototype IDs.
  */
 class PrototypeRegistry {
-  elements = /** @type {{ [id in T]: HTMLElement }} */ ({});
+  elements = /** @type {{ [id in T]: Element }} */ ({});
 
   /**
    * Register a prototype.
    *
    * @param {T} id
-   * @param {HTMLElement} prototype
+   * @param {Element} prototype
    */
   add(id, prototype) {
     this.elements[id] = prototype;
@@ -21,10 +21,10 @@ class PrototypeRegistry {
    * Get a prototype or an instance of a widget.
    *
    * @param {T} id
-   * @returns {HTMLElement}
+   * @returns {Element}
    */
   get(id) {
-    return /** @type {HTMLElement} */ (this.elements[id].cloneNode(true));
+    return /** @type {Element} */ (this.elements[id].cloneNode(true));
   }
 }
 

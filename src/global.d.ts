@@ -63,6 +63,46 @@ declare global {
     user: string;
   }
 
+  export interface APIResponseTemplateData {
+    pages: Pages;
+  }
+
+  export interface Pages {
+    [x: string]: TemplateData;
+  }
+
+  interface TemplateData {
+    title:       string;
+    ns:          number;
+    description: StringsByKey;
+    params:      { [key: string]: Param };
+    format:      string;
+    paramOrder:  string[];
+    sets:        any[];
+    maps:        Maps;
+  }
+
+  interface Maps {
+  }
+
+  interface Param {
+    description:     StringsByKey | null;
+    type:            string;
+    label:           StringsByKey | null;
+    required:        boolean;
+    suggested:       boolean;
+    deprecated:      boolean;
+    aliases:         any[];
+    autovalue:       null | string;
+    default:         null;
+    suggestedvalues: string[];
+    example:         StringsByKey | null;
+  }
+
+  // Generic Revision type that conditionally includes properties
+  type Revision<T extends readonly string[] = ['ids', 'timestamp', 'flags', 'comment', 'user']> =
+    Expand<BaseRevision & RevisionConditionalProperties<T>>;
+
   // Conditional type that adds properties based on the presence of strings in the array
   type RevisionConditionalProperties<T extends readonly string[]> =
     & (HasProperty<T, 'ids'> extends true ? { ids: string; } : {})
@@ -71,10 +111,6 @@ declare global {
     & (HasProperty<T, 'comment'> extends true ? { comment: string; } : {})
     & (HasProperty<T, 'user'> extends true ? { user: string; } : {})
     & (HasProperty<T, 'parsedcomment'> extends true ? { parsedcomment: string; } : {});
-
-  // Generic Revision type that conditionally includes properties
-  type Revision<T extends readonly string[] = ['ids', 'timestamp', 'flags', 'comment', 'user']> =
-    Expand<BaseRevision & RevisionConditionalProperties<T>>;
 
   interface FromTo {
     from: string;
@@ -92,6 +128,7 @@ declare global {
     batchcomplete?: boolean;
     continue?: object;
   }
+
 
   interface ApiResponseQueryContentPages {
     query?: {
@@ -235,7 +272,7 @@ declare global {
     cdMarginLeft: number;
     cdMarginRight: number;
     cdCallback?: Function;
-    cdInput?: OO.ui.TextInputWidget;
+    cdInput?: TextInputWidget;
   }
 
   namespace mw {
