@@ -739,7 +739,7 @@ class UpdateChecker extends EventEmitter {
       data.some(({ comment }) => comment.getSourcePage().isCurrent())
     );
 
-    /** @type {Revision[]} */
+    /** @type {Revision<['content']>[]} */
     let revisions;
     /** @type {string|undefined} */
     let compareBody;

@@ -293,7 +293,7 @@ export default class Page {
    * @param {import('./CommentForm').default} [_] Not used.
    * @param {boolean} [tolerateMissing=true] Return `null` if the page is missing instead of
    *   throwing an error.
-   * @returns {Promise<?string>}
+   * @returns {Promise<PageSource|null>}
    * @throws {CdError}
    */
   async loadCode(_, tolerateMissing = true) {
@@ -358,14 +358,14 @@ export default class Page {
 
     // It's more convenient to unify regexps to have \n as the last character of anything, not
     // (?:\n|$), and it doesn't seem to affect anything substantially.
-    this.code = content + '\n';
+    this.source.setCode(content + '\n');
 
     this.revisionId = revision.revid;
     this.redirectTarget = redirectTarget;
     this.realName = redirectTarget || this.name;
     this.queryTimestamp = /** @type {string} */ (queryTimestamp);
 
-    return this.code;
+    return this.source;
   }
 
   /**
@@ -512,11 +512,10 @@ export default class Page {
       response = await request;
     } catch (error) {
       if (error instanceof CdError) {
-        const { type } = error.data;
-        if (type === 'network') {
+        if (error.getType() === 'network') {
           throw error;
         } else {
-          const apiResponse = error.data.apiResponse;
+          const apiResponse = error.getApiResponse();
           /** @type {string | undefined} */
           let message;
           let isRawMessage = false;

@@ -80,7 +80,7 @@ export default {
    * _For internal use._ Setup the TOC data and, for sidebar TOC, update its content. (Executed at
    * every page load.)
    *
-   * @param {object[]} [sections] TOC sections object.
+   * @param {{ [key: string]: any }[]} [sections] TOC sections object.
    * @param {boolean} [hideToc] Whether the TOC should be hidden.
    */
   setup(sections, hideToc) {

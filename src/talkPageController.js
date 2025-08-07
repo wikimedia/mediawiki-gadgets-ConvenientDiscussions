@@ -696,7 +696,7 @@ class TalkPageController extends EventEmitter {
   /**
    * Handle a click on an "Add topic" button excluding those added by the script.
    *
-   * @param {MouseEvent | KeyboardEvent} event
+   * @param {JQuery.TriggeredEvent} event
    * @private
    */
   handleAddTopicButtonClick(event) {
@@ -727,7 +727,7 @@ class TalkPageController extends EventEmitter {
         params: $form
           .find('input[name="preloadparams[]"]')
           .get()
-          .map((/** @type {HTMLInputElement} */ el) => el.value),
+          .map((el) => /** @type {HTMLInputElement} */ (el).value),
         summary: $form.find('input[name="summary"]').val(),
         noHeadline: Boolean($form.find('input[name="nosummary"]').val()),
         omitSignature: false,
@@ -1117,6 +1117,7 @@ class TalkPageController extends EventEmitter {
    * @private
    */
   showRegularNotification(comments) {
+    /** @type {import('./updateChecker').CommentWorkerMatched[]} */
     let filteredComments = [];
     if (settings.get('notifications') === 'all') {
       filteredComments = comments;
@@ -1233,6 +1234,7 @@ class TalkPageController extends EventEmitter {
    * @private
    */
   showDesktopNotification(comments) {
+    /** @type {import('./updateChecker').CommentWorkerMatched[]} */
     let filteredComments = [];
     if (settings.get('desktopNotifications') === 'all') {
       filteredComments = comments;
