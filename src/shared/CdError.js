@@ -26,7 +26,7 @@
  */
 
 /**
- * @template {ErrorType} [Type='internal']
+ * @template {ErrorType} [Type=ErrorType]
  * @typedef {object} ErrorDataBase
  * @property {ErrorType} [type='internal']
  * @property {string} [code]
@@ -45,7 +45,7 @@
 /**
  * Script's custom error class.
  *
- * @template {ErrorType} [Type='internal']
+ * @template {ErrorType} [Type=ErrorType]
  * @augments Error
  */
 class CdError extends Error {

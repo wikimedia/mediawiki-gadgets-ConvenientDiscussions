@@ -11,6 +11,8 @@ import { handleApiReject } from './utils-api';
  * @typedef {'mentions'|'commentLinks'|'wikilinks'|'templates'|'tags'} AutocompleteType
  */
 
+/** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
+
 /**
  * @typedef {NonNullable<Autocomplete.config>} AutocompleteStaticConfig
  */
@@ -61,8 +63,8 @@ class Autocomplete {
    *
    * @param {object} options
    * @param {AutocompleteType[]} options.types Which values should be autocompleted.
-   * @param {OO.ui.TextInputWidget[]} options.inputs Inputs to attach the autocomplete to. Please
-   *   note that these should be CD's {@link TextInputWidget}s, not
+   * @param {import('./TextInputWidget').default[]} options.inputs Inputs to attach the autocomplete
+   *   to. Please note that these should be CD's {@link TextInputWidget}s, not
    *   {@link OO.ui.TextInputWidget OO.ui.TextInputWidget}s, since we use CD's method
    *   {@link TextInputWidget#cdInsertContent} on the inputs here. This is not essential, so if you
    *   borrow the source code, you can replace it with native
@@ -98,7 +100,7 @@ class Autocomplete {
     /**
      * Inputs that have the autocomplete attached.
      *
-     * @type {OO.ui.TextInputWidget[]}
+     * @type {import('./TextInputWidget').default[]}
      * @private
      */
     this.inputs = inputs;
@@ -248,7 +250,8 @@ class Autocomplete {
                 return;
               }
 
-              // Type "[[Text", then delete and type "<s" quickly.
+              // To see the issue we're trying to prevent here, remove this line, type "[[Text",
+              // then delete and type "<s" quickly.
               if (!this.tribute.current || this.tribute.current.trigger !== '@') return;
 
               this.mentions.cache = values.slice();
@@ -421,85 +424,7 @@ class Autocomplete {
         selectTemplate: (item, event) => {
           if (item) {
             if (this.useTemplateData && event.shiftKey && !event.altKey) {
-              const input = this.tribute.current.element.cdInput;
-
-              setTimeout(() => {
-                input
-                  .setDisabled(true)
-                  .pushPending();
-
-                cd.getApi().get({
-                  action: 'templatedata',
-                  titles: `Template:${item.original.key}`,
-                  redirects: true,
-                })
-                  .then(
-                    (response) => {
-                      if (!response.pages) {
-                        throw 'No data.';
-                      } else if (!Object.keys(response.pages).length) {
-                        throw 'Template missing.';
-                      } else {
-                        return response;
-                      }
-                    },
-                    handleApiReject
-                  )
-                  .then(
-                    (response) => {
-                      const pages = response.pages;
-
-                      let paramsString = '';
-                      let firstValueIndex = 0;
-                      Object.keys(pages).forEach((key) => {
-                        const template = pages[key];
-                        const params = template.params || [];
-
-                        // Parameter names
-                        (template.paramOrder || Object.keys(params))
-
-                          .filter((param) => params[param].required || params[param].suggested)
-                          .forEach((param) => {
-                            if (template.format === 'block') {
-                              paramsString += `\n| ${param} = `;
-                            } else {
-                              if (isNaN(param)) {
-                                paramsString += `|${param}=`;
-                              } else {
-                                paramsString += `|`;
-                              }
-                            }
-                            firstValueIndex ||= paramsString.length;
-                          });
-                        if (template.format === 'block' && paramsString) {
-                          paramsString += '\n';
-                        }
-                      });
-
-                      // Remove leading "|".
-                      paramsString = paramsString.slice(1);
-
-                      input
-                        .setDisabled(false)
-                        .cdInsertContent(paramsString)
-                        .selectRange(
-                          // Current caret index
-                          input.getRange().to +
-
-                          firstValueIndex -
-                          1
-                      );
-                    },
-                    () => {
-                      input
-                        .setDisabled(false)
-                        .focus();
-                    }
-                  )
-                  .always(() => {
-                    input.popPending();
-                  });
-              });
+              setTimeout(() => this.autocompleteTemplateData(item));
             }
 
             return item.original.transform();
@@ -777,6 +702,91 @@ class Autocomplete {
   }
 
   /**
+   * Get autocomplete data for a template.
+   *
+   * @param {import('./tribute/Tribute').TributeItem} item
+   * @returns {Promise<void>}
+   */
+  async autocompleteTemplateData(item) {
+    const input = /** @type {import('./TextInputWidget').default} */ (
+      /** @type {HTMLElement} */ (this.tribute.current.element).cdInput
+    );
+
+    input
+      .setDisabled(true)
+      .pushPending();
+
+    /** @type {APIResponseTemplateData} */
+    let response;
+    try {
+      response = await cd.getApi().get({
+        action: 'templatedata',
+        titles: `Template:${item.original.key}`,
+        redirects: true,
+      }).catch(handleApiReject);
+      if (!response.pages) {
+        throw 'No data.';
+      } else if (!Object.keys(response.pages).length) {
+        throw 'Template missing.';
+      }
+    } catch {
+      input
+        .setDisabled(false)
+        .focus();
+      input.popPending();
+      // throw new CdError({
+      //   type: 'api',
+      //   message: cd.s('cf-autocomplete-templates-error', item.original.key),
+      // });
+
+      return;
+    }
+
+    const pages = response.pages;
+    let paramsString = '';
+    let firstValueIndex = 0;
+    Object.keys(pages).forEach((key) => {
+      const template = pages[key];
+      const params = template.params || [];
+
+      // Parameter names
+      (template.paramOrder || Object.keys(params))
+
+        .filter((param) => params[param].required || params[param].suggested)
+        .forEach((param) => {
+          if (template.format === 'block') {
+            paramsString += `\n| ${param} = `;
+          } else {
+            if (isNaN(Number(param))) {
+              paramsString += `|${param}=`;
+            } else {
+              paramsString += `|`;
+            }
+          }
+          firstValueIndex ||= paramsString.length;
+        });
+      if (template.format === 'block' && paramsString) {
+        paramsString += '\n';
+      }
+    });
+
+    // Remove leading "|".
+    paramsString = paramsString.slice(1);
+
+    input
+      .setDisabled(false)
+      .cdInsertContent(paramsString)
+      .selectRange(
+        // Current caret index
+        /** @type {number} */ (input.getRange().to) +
+
+        firstValueIndex -
+        1
+      )
+      .popPending();
+  }
+
+  /**
    * Get the active autocomplete menu element.
    *
    * @returns {Element|undefined}
@@ -801,6 +811,7 @@ class Autocomplete {
     // eslint-disable-next-line no-async-promise-executor
     const promise = new Promise(async (resolve, reject) => {
       await sleep(this.delay);
+
       try {
         if (promise !== this.currentPromise) {
           throw new CdError();
@@ -908,39 +919,37 @@ class Autocomplete {
     // eslint-disable-next-line no-async-promise-executor
     const promise = new Promise(async (resolve, reject) => {
       await sleep(this.delay);
+
       try {
         if (promise !== this.currentPromise) {
           throw new CdError();
         }
 
-        cd.getApi().get({
+        const response = /** @type {OpenSearchResults} */ (await cd.getApi().get({
           action: 'opensearch',
           search: text,
           redirects: 'return',
           limit: 10,
-        }).then(
-          (response) => {
-            resolve(
-              response[1]?.map((name) => {
-                if (mw.config.get('wgCaseSensitiveNamespaces').length) {
-                  const title = mw.Title.newFromText(name);
-                  if (
-                    !title ||
-                    !mw.config.get('wgCaseSensitiveNamespaces').includes(title.getNamespaceId())
-                  ) {
-                    name = this.useOriginalFirstCharCase(name, text);
-                  }
-                } else {
-                  name = this.useOriginalFirstCharCase(name, text);
-                }
-                return name.replace(/^/, colonPrefix ? ':' : '');
-              })
-            );
-          },
-          (error) => {
-            handleApiReject(error);
+        }).catch(handleApiReject));
+
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+        const results = response[1]?.map((/** @type {string} */ name) => {
+          if (mw.config.get('wgCaseSensitiveNamespaces').length) {
+            const title = mw.Title.newFromText(name);
+            if (
+              !title ||
+              !mw.config.get('wgCaseSensitiveNamespaces').includes(title.getNamespaceId())
+            ) {
+              name = this.useOriginalFirstCharCase(name, text);
+            }
+          } else {
+            name = this.useOriginalFirstCharCase(name, text);
           }
-        );
+
+          return name.replace(/^/, colonPrefix ? ':' : '');
+        });
+
+        resolve(results);
       } catch (error) {
         reject(error);
       }
@@ -965,36 +974,32 @@ class Autocomplete {
     // eslint-disable-next-line no-async-promise-executor
     const promise = new Promise(async (resolve, reject) => {
       await sleep(this.delay);
+
       try {
         if (promise !== this.currentPromise) {
           throw new CdError();
         }
 
-        cd.getApi().get({
+        const response = /** @type {OpenSearchResults} */ (await cd.getApi().get({
           action: 'opensearch',
           search: text.startsWith(':') ? text.slice(1) : 'Template:' + text,
           redirects: 'return',
           limit: 10,
-        }).then(
-          (response) => {
-            cd.debug.startTimer('getRelevantTemplateNames');
-            // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-            const templates = response[1]
-              ?.filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
-              .map((name) => text.startsWith(':') ? name : name.slice(name.indexOf(':') + 1))
-              .map((name) => (
-                mw.config.get('wgCaseSensitiveNamespaces').includes(10) ?
-                  name :
-                  this.useOriginalFirstCharCase(name, text)
-              ));
-            cd.debug.logAndResetEverything();
+        }).catch(handleApiReject));
 
-            resolve(templates);
-          },
-          (error) => {
-            handleApiReject(error);
-          }
-        );
+        cd.debug.startTimer('getRelevantTemplateNames');
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+        const results = response[1]
+          ?.filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
+          .map((name) => text.startsWith(':') ? name : name.slice(name.indexOf(':') + 1))
+          .map((name) => (
+            mw.config.get('wgCaseSensitiveNamespaces').includes(10) ?
+              name :
+              this.useOriginalFirstCharCase(name, text)
+          ));
+        cd.debug.logAndResetEverything();
+
+        resolve(results);
       } catch (error) {
         reject(error);
       }

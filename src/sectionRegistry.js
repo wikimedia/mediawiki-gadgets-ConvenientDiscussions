@@ -1,9 +1,16 @@
-import cd from './shared/cd';
 import settings from './settings';
-import talkPageController from './talkPageController';
+import cd from './shared/cd';
 import { areObjectsEqual, calculateWordOverlap, generateFixedPosTimestamp, spacesToUnderlines } from './shared/utils-general';
+import talkPageController from './talkPageController';
 import { getExtendedRect, getVisibilityByRects } from './utils-window';
 import visits from './visits';
+
+/**
+ * @typedef {{
+ *   section: import('./Section').default;
+ *   score: number;
+ * }} SectionMatch
+ */
 
 // TODO: Make it extend a generic registry.
 
@@ -184,12 +191,10 @@ class SectionRegistry {
    * @param {string} options.id
    * @param {string[]} options.ancestors
    * @param {?string} [options.oldestCommentId]
-   * @returns {?{
-   *   section: import('./Section').default;
-   *   score: number;
-   * }}
+   * @returns {?SectionMatch}
    */
   search({ index, headline, id, ancestors, oldestCommentId }) {
+    /** @type {SectionMatch[]} */
     const matches = [];
     this.items.some((section) => {
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -223,14 +228,12 @@ class SectionRegistry {
       return score >= 3.5;
     });
 
-    let bestMatch;
-    matches.forEach((match) => {
-      if (!bestMatch || match.score > bestMatch.score) {
-        bestMatch = match;
-      }
-    });
-
-    return bestMatch || null;
+    return (
+      matches.reduce(
+        (best, match) => (!best || match.score > best.score ? match : best),
+        /** @type {SectionMatch|undefined} */ (undefined)
+      ) || null
+    );
   }
 
   /**

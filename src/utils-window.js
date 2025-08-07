@@ -234,12 +234,19 @@ export function getFooter() {
 }
 
 /**
+ * @typedef {{
+ *   higherNode: Node;
+ *   higherOffset: number;
+ * }} HigherNodeAndOffsetInSelection
+ */
+
+/**
  * Given a {@link https://developer.mozilla.org/en-US/docs/Web/API/Selection selection}, get a
  * node and offset that are higher in the document, regardless if they belong to an anchor node or
  * focus node.
  *
  * @param {Selection} selection
- * @returns {{ higherNode: Node | null, higherOffset: number } | null}
+ * @returns {HigherNodeAndOffsetInSelection | null}
  */
 export function getHigherNodeAndOffsetInSelection(selection) {
   if (!selection.anchorNode) {
@@ -252,7 +259,7 @@ export function getHigherNodeAndOffsetInSelection(selection) {
   );
 
   return {
-    higherNode: isAnchorHigher ? selection.anchorNode : selection.focusNode,
+    higherNode: isAnchorHigher ? selection.anchorNode : /** @type {Node} */ (selection.focusNode),
     higherOffset: isAnchorHigher ? selection.anchorOffset : selection.focusOffset,
   };
 }

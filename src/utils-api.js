@@ -88,7 +88,7 @@ let cachedUserInfoRequest;
  * rejects:
  * https://phabricator.wikimedia.org/source/mediawiki/browse/master/resources/src/mediawiki.api/index.js;137c7de7a44534704762105323192d2d1bfb5765$269
  *
- * @param {ApiErrorCode|[ApiErrorCode, ApiRejectResponse]} codeOrArr
+ * @param {ApiErrorCode | [ApiErrorCode, ApiRejectResponse]} codeOrArr
  * @param {ApiRejectResponse} [response]
  * @returns {never}
  * @throws {CdError}

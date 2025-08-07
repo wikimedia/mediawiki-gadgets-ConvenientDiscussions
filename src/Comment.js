@@ -150,7 +150,7 @@ class Comment extends CommentSkeleton {
   marginHighlightable;
 
   /**
-   * @typedef {this extends Comment<true> ? HTMLElement : undefined} HTMLElementIfReformatted
+   * @typedef {Reformatted extends true ? HTMLElement : never} HTMLElementIfReformatted
    */
 
   /**
@@ -164,7 +164,7 @@ class Comment extends CommentSkeleton {
   menuElement;
 
   /**
-   * @typedef {this extends Comment<true> ? JQuery<HTMLElementIfReformatted> : undefined} JQueryIfReformatted
+   * @typedef {Reformatted extends true ? JQuery<HTMLElementIfReformatted> : never} JQueryIfReformatted
    */
 
   /**
@@ -2914,7 +2914,7 @@ class Comment extends CommentSkeleton {
   /**
    * Open a copy link dialog (rarely, copy a link to the comment without opening a dialog).
    *
-   * @param {MouseEvent | KeyboardEvent} event
+   * @param {JQuery.TriggeredEvent} event
    */
   async copyLink(event) {
     talkPageController.showCopyLinkDialog(this, event);
@@ -3003,7 +3003,7 @@ class Comment extends CommentSkeleton {
 
   /**
    * @typedef {object} DiffMatch
-   * @property {Revision} revision
+   * @property {Revision<['ids', 'comment', 'parsedcomment', 'timestamp']>} revision
    * @property {string} diffBody
    * @property {number} wordOverlap
    * @property {number} dateProximity
@@ -3013,7 +3013,7 @@ class Comment extends CommentSkeleton {
    * Find matches of the comment with diffs that might have added it.
    *
    * @param {string[]} compareBodies
-   * @param {Revision[]} revisions
+   * @param {Revision<['ids', 'comment', 'parsedcomment', 'timestamp']>[]} revisions
    * @returns {Promise<DiffMatch[]>}
    */
   async findDiffMatches(compareBodies, revisions) {
@@ -3311,7 +3311,10 @@ class Comment extends CommentSkeleton {
 
     const selection = window.getSelection();
     if (selection.containsNode(endBoundary, true)) {
-      const { higherNode, higherOffset } = getHigherNodeAndOffsetInSelection(selection);
+      const { higherNode, higherOffset } =
+        /** @type {import('./utils-window').HigherNodeAndOffsetInSelection} */ (
+          getHigherNodeAndOffsetInSelection(selection)
+        );
       selection.setBaseAndExtent(higherNode, higherOffset, endBoundary, 0);
     }
 
@@ -4053,7 +4056,7 @@ class Comment extends CommentSkeleton {
    * Set the {@link Comment#isNew} and {@link Comment#isSeen} properties for the comment given the
    * list of the current page visits.
    *
-   * @param {number[]} currentPageVisits
+   * @param {string[]} currentPageVisits
    * @param {number} currentTime
    * @param {Comment} [unseenComment] Unseen comment passed from the previous session.
    * @returns {boolean} Whether there is a time conflict.
@@ -4076,9 +4079,9 @@ class Comment extends CommentSkeleton {
     // Add 60 seconds to the comment time because it doesn't have seconds whereas the visit time
     // has. See also timeConflict in BootProcess#processVisits(). Unseen comment might be not new if
     // it's a changed old comment.
-    this.isNew = Boolean(commentTime + 60 > currentPageVisits[0] || unseenComment?.isNew);
+    this.isNew = Boolean(commentTime + 60 > Number(currentPageVisits[0]) || unseenComment?.isNew);
     this.isSeen = Boolean(
-      (commentTime + 60 <= currentPageVisits[currentPageVisits.length - 1] || this.isOwn) &&
+      (commentTime + 60 <= Number(currentPageVisits[currentPageVisits.length - 1]) || this.isOwn) &&
         !unseenComment
     );
 

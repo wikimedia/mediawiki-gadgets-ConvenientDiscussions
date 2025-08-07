@@ -200,7 +200,7 @@ class CommentRegistry extends EventEmitter {
   /**
    * Set the {@link Comment#isNew} and {@link Comment#isSeen} properties to comments.
    *
-   * @param {object} currentPageData Visits data for the current page.
+   * @param {string[]} currentPageData Visits data for the current page.
    * @param {number} currentTime Unix timestamp.
    * @param {boolean} markAsReadRequested Whether to mark all previously shown comments on the page
    *   as read.
@@ -264,6 +264,7 @@ class CommentRegistry extends EventEmitter {
     });
 
     let floatingRects;
+    /** @type {Comment[]} */
     const comments = [];
     const rootBottom = bootController.$root[0].getBoundingClientRect().bottom + window.scrollY;
     let notMovedCount = 0;
@@ -353,7 +354,7 @@ class CommentRegistry extends EventEmitter {
     const commentInViewport = this.findInViewport();
     if (!commentInViewport) return;
 
-    const registerIfInViewport = (comment) => {
+    const registerIfInViewport = (/** @type {Comment} */ comment) => {
       const isInViewport = comment.isInViewport();
       if (isInViewport) {
         comment.registerSeen();
@@ -596,15 +597,22 @@ class CommentRegistry extends EventEmitter {
   }
 
   /**
+   * @typedef {Expand<
+   *   ReturnType<typeof Comment.parseDtId> & { comment: Comment | undefined }
+   * >} DtIdComponents
+   */
+
+  /**
    * Get a comment by a comment ID in the DiscussionTools format.
    *
+   * @template {boolean} [ReturnComponents=false]
    * @param {string} id
-   * @param {boolean} [returnComponents=false] Whether to return the constituents of the ID (as an
-   *   object) together with a comment.
-   * @returns {?(Comment|object)}
+   * @param {ReturnComponents} [returnComponents] Whether to return the constituents of the ID (as
+   *   an object) together with a comment.
+   * @returns {(ReturnComponents extends true ? DtIdComponents : Comment) | null}
    */
-  getByDtId(id, returnComponents = false) {
-    const data = Comment.parseDtId(id);
+  getByDtId(id, returnComponents) {
+    const data = /** @type {DtIdComponents} */ (Comment.parseDtId(id));
     if (!data) {
       return null;
     }
@@ -627,12 +635,17 @@ class CommentRegistry extends EventEmitter {
       comment = comments.length === 1 ? comments[0] : comments[data.index || 0];
     }
 
+    /**
+     * @typedef {ReturnComponents extends true ? DtIdComponents : Comment} DtIdComponentsOrComment
+     */
+
     if (returnComponents) {
       data.comment = comment;
-      return data;
+
+      return /** @type {DtIdComponentsOrComment} */ (data);
     }
 
-    return comment;
+    return /** @type {DtIdComponentsOrComment} */ (comment) || null;
   }
 
   /**
@@ -642,12 +655,10 @@ class CommentRegistry extends EventEmitter {
    * @param {boolean} [impreciseDate=false] (For CD IDs.) Comment date is inferred from the edit
    *   date (but these may be different). If `true`, we allow the time on the page to be 1-3 minutes
    *   less than the edit time.
-   * @returns {?Comment}
+   * @returns {Comment | null}
    */
   getByAnyId(id, impreciseDate = false) {
-    return Comment.isId(id) ?
-      this.getById(id, impreciseDate) :
-      this.getByDtId(id);
+    return Comment.isId(id) ? this.getById(id, impreciseDate) : this.getByDtId(id);
   }
 
   /**
@@ -796,6 +807,7 @@ class CommentRegistry extends EventEmitter {
     });
 
     // Check existence of user and user talk pages and apply respective changes to elements.
+    /** @type {Record<string, HTMLAnchorElement[]>} */
     const pageNamesToLinks = {};
     pagesToCheckExistence.forEach((page) => {
       pageNamesToLinks[page.pageName] ||= [];
@@ -851,14 +863,20 @@ class CommentRegistry extends EventEmitter {
     const selection = window.getSelection();
     let comment;
     if (selection.toString().trim()) {
-      const { higherNode } = getHigherNodeAndOffsetInSelection(selection);
+      const { higherNode } =
+        /** @type {import('./utils-window').HigherNodeAndOffsetInSelection} */ (
+          getHigherNodeAndOffsetInSelection(selection)
+        );
       const treeWalker = new TreeWalker(bootController.rootElement, undefined, false, higherNode);
       let commentIndex;
       do {
-        commentIndex = treeWalker.currentNode.dataset?.cdCommentIndex;
+        commentIndex =
+          treeWalker.currentNode instanceof HTMLElement
+            ? treeWalker.currentNode.dataset?.cdCommentIndex
+            : undefined;
       } while (commentIndex === undefined && treeWalker.parentNode());
       if (commentIndex !== undefined) {
-        comment = this.items[commentIndex];
+        comment = this.items[Number(commentIndex)];
         if (comment) {
           if (!comment.isSelected) {
             this.resetSelectedComment();
@@ -923,7 +941,7 @@ class CommentRegistry extends EventEmitter {
         const index = /** @type {HTMLElement} */ (signature.closest('.cd-comment-part')).dataset
           .cdCommentIndex;
         if (index !== undefined) {
-          this.items[index].isTableComment = true;
+          this.items[Number(index)].isTableComment = true;
         }
       });
   }
@@ -1016,7 +1034,7 @@ class CommentRegistry extends EventEmitter {
           firstMoved = undefined
       ) {
         const topTag = currentTopElement.tagName;
-        const bottomInnerTags = {};
+        const bottomInnerTags = /** @type {Record<'DD' | 'LI', 'DD' | 'LI'>} */ ({});
         if (topTag === 'UL') {
           bottomInnerTags.DD = 'LI';
         } else if (topTag === 'DL') {
@@ -1042,8 +1060,11 @@ class CommentRegistry extends EventEmitter {
             while (currentBottomElement.childNodes.length) {
               let child = /** @type {ChildNode} */ (currentBottomElement.firstChild);
               if (child instanceof HTMLElement) {
-                if (bottomInnerTags[child.tagName]) {
-                  child = this.changeElementType(child, bottomInnerTags[child.tagName]);
+                if (child.tagName in bottomInnerTags) {
+                  child = this.changeElementType(
+                    child,
+                    bottomInnerTags[/** @type {keyof typeof bottomInnerTags} */ (child.tagName)]
+                  );
                 }
                 firstMoved ??= /** @type {HTMLElement} */ (child);
               } else if (firstMoved === undefined && child.textContent.trim()) {
@@ -1106,6 +1127,7 @@ class CommentRegistry extends EventEmitter {
    * visually connect threads broken by some intervention.
    */
   connectBrokenThreads() {
+    /** @type {Element[]} */
     const items = [];
 
     bootController.rootElement
@@ -1120,7 +1142,7 @@ class CommentRegistry extends EventEmitter {
     bootController.rootElement
       .querySelectorAll('dd.cd-comment-part:not(.cd-comment-part-last) + dd > .cd-comment-part:first-child, li.cd-comment-part:not(.cd-comment-part-last) + li > .cd-comment-part:first-child')
       .forEach((el) => {
-        items.push(el.parentElement);
+        items.push(/** @type {HTMLElement} */ (el.parentElement));
       });
 
     // https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases#202009202110_Example
@@ -1147,7 +1169,7 @@ class CommentRegistry extends EventEmitter {
       bootController.rootElement
         .querySelectorAll(`.cd-commentLevel > li + li > .${cd.config.outdentClass}, .cd-commentLevel > dd + dd > .${cd.config.outdentClass}`)
         .forEach((el) => {
-          items.push(el.parentElement);
+          items.push(/** @type {HTMLElement} */ (el.parentElement));
         });
       bootController.rootElement
         .querySelectorAll(`.cd-commentLevel > li + .cd-comment-outdented, .cd-commentLevel > dd + .cd-comment-outdented`)

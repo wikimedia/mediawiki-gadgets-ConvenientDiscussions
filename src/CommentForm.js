@@ -4464,3 +4464,7 @@ class CommentForm extends EventEmitter {
 }
 
 export default CommentForm;
+
+/**
+ * @typedef {ConstructorParameters<typeof CommentForm>[0]} CommentFormConfig
+ */

@@ -1365,9 +1365,14 @@ class Section extends SectionSkeleton {
        *
        * @type {import('./CommentForm').default|undefined}
        */
-      this.replyForm = commentFormRegistry.setupCommentForm(this, {
-        mode: 'replyInSection',
-      }, initialState, commentForm);
+      this.replyForm = commentFormRegistry.setupCommentForm(
+        this,
+        {
+          mode: 'replyInSection',
+        },
+        initialState,
+        commentForm
+      );
     }
 
     if (this.$addSubsectionButtonsContainer) {
@@ -1402,9 +1407,14 @@ class Section extends SectionSkeleton {
        *
        * @type {import('./CommentForm').default|undefined}
        */
-      this.addSubsectionForm = commentFormRegistry.setupCommentForm(this, {
-        mode: 'addSubsection',
-      }, initialState, commentForm);
+      this.addSubsectionForm = commentFormRegistry.setupCommentForm(
+        this,
+        {
+          mode: 'addSubsection',
+        },
+        initialState,
+        commentForm
+      );
 
       this.addSubsectionButtonLastDescendant?.hide();
 
