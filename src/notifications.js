@@ -13,7 +13,7 @@ import talkPageController from './talkPageController';
  * Notification object created by running
  * {@link https://doc.wikimedia.org/mediawiki-core/master/js/mw.notification.html#.notify mw.notification.notify(...)}.
  *
- * @typedef {object} Notification
+ * @typedef {ReturnType<mw['notification']['notify']>} Notification
  * @see https://doc.wikimedia.org/mediawiki-core/master/js/Notification.html
  */
 

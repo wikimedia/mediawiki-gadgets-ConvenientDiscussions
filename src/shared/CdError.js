@@ -15,7 +15,7 @@
  * @typedef {object} ErrorDataServerDefinedApiError
  * @property {'api'} type
  * @property {string} code
- * @property {import('types-mediawiki/mw/Api').ApiResponse} apiResponse
+ * @property {ApiRejectResponse} apiResponse
  * @property {string} html
  */
 
@@ -122,6 +122,15 @@ class CdError extends Error {
     return /** @type {Type extends 'api' ? ApiRejectResponse : undefined} */ (
       this.isServerDefinedApiError() ? this.data.apiResponse : undefined
     );
+  }
+
+  /**
+   * Get additional data supplied to the error instance.
+   *
+   * @returns {{ [x: string]: any } | undefined}
+   */
+  getDetails() {
+    return this.data.details;
   }
 }
 

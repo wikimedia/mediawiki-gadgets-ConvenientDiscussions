@@ -3065,7 +3065,7 @@ class CommentForm extends EventEmitter {
       url.searchParams.delete('cdaddtopic');
       url.searchParams.delete('section');
       url.searchParams.delete('action');
-      if (bootData?.commentIds?.length) {
+      if (bootData?.commentIds?.[0]) {
         url.hash = bootData.commentIds[0];
       }
       location.href = url.toString();
@@ -3206,7 +3206,7 @@ class CommentForm extends EventEmitter {
       delete this.captchaInput;
 
       if (error instanceof CdError) {
-        const { type, details, apiResponse } = error.data;
+        const type = error.getType();
         if (type === 'network') {
           this.handleError({
             type,
@@ -3214,9 +3214,13 @@ class CommentForm extends EventEmitter {
             operation,
           });
         } else {
+          const apiResponse = error.getApiResponse();
+          const details = error.getDetails();
+
           /** @type {'notice' | undefined} */
           let messageType;
-          let { code, message, isRawMessage, logMessage } = details;
+          const code = error.getCode();
+          let { message, isRawMessage, logMessage } = details;
           if (code === 'editconflict') {
             message += ' ' + cd.sParse('cf-notice-editconflict-retrying');
             messageType = 'notice';
