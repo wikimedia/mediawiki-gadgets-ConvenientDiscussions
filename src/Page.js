@@ -550,7 +550,8 @@ export default class Page {
             type: 'api',
             code,
             apiResponse,
-            details: { code, message, isRawMessage, logMessage },
+            message,
+            details: { isRawMessage, logMessage },
           });
         }
       } else {
@@ -559,13 +560,12 @@ export default class Page {
     }
 
     if (response.edit.result !== 'Success') {
-      const code = response.edit.captcha ? 'captcha' : undefined;
+      const code = response.edit.captcha ? 'captcha' : 'fail';
       throw new CdError({
         type: 'api',
-        code: 'captcha',
+        code,
         apiResponse: response,
         details: {
-          code,
           isRawMessage: true,
           logMessage: [code, response],
         },

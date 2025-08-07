@@ -587,19 +587,21 @@ class MoveSectionDialog extends ProcessDialog {
       // already edited the source page.
       const genericMessage = cd.sParse('msd-error-editingsourcepage');
       if (error instanceof CdError) {
-        const { type, details } = error.data;
-        if (type === 'network') {
+        const { details } = error.data;
+        if (error.getType() === 'network') {
           throw new CdError({
-            data: [genericMessage + ' ' + cd.sParse('error-network'), false, true],
+            details: [genericMessage + ' ' + cd.sParse('error-network'), false, true],
           });
         } else {
-          const { message, logMessage } = details;
+          const { logMessage } = details;
           console.warn(logMessage);
-          throw new CdError({ data: [genericMessage + ' ' + message, false, true] });
+          throw new CdError({ details: [genericMessage + ' ' + error.getMessage(), false, true] });
         }
       } else {
         console.warn(error);
-        throw new CdError({ data: [genericMessage + ' ' + cd.sParse('error-javascript'), false, true] });
+        throw new CdError({
+          details: [genericMessage + ' ' + cd.sParse('error-javascript'), false, true],
+        });
       }
     }
   }

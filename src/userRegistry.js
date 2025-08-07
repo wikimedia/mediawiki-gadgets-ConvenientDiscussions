@@ -4,11 +4,11 @@
  * @module userRegistry
  */
 
-import cd from './shared/cd';
-import CdError from './shared/CdError';
-import { subtractDaysFromNow, ucFirst, underlinesToSpaces } from './shared/utils-general';
 import StorageItem from './StorageItem';
 import User from './User';
+import CdError from './shared/CdError';
+import cd from './shared/cd';
+import { subtractDaysFromNow, ucFirst, underlinesToSpaces } from './shared/utils-general';
 import { handleApiReject } from './utils-api';
 
 export default {
@@ -139,7 +139,7 @@ export default {
         throw new CdError({
           type: 'api',
           code: 'noData',
-          apiData: response,
+          apiResponse: response,
         });
       }
 
