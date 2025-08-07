@@ -3220,7 +3220,8 @@ class CommentForm extends EventEmitter {
           /** @type {'notice' | undefined} */
           let messageType;
           const code = error.getCode();
-          let { message, isRawMessage, logMessage } = details;
+          let message = error.getMessage();
+          let { isRawMessage, logMessage } = details;
           if (code === 'editconflict') {
             message += ' ' + cd.sParse('cf-notice-editconflict-retrying');
             messageType = 'notice';

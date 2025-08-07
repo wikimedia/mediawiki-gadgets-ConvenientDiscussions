@@ -107,7 +107,7 @@ export function handleApiReject(codeOrArr, response) {
     case 'http':
       throw new CdError({ type: 'network' });
     case 'ok-but-empty':
-      throw new CdError({ type: 'server', code });
+      throw new CdError({ type: 'response', code: 'noData' });
     case 'query-missing':
       throw new CdError({ type: 'internal', code });
     case 'token-missing':
@@ -177,17 +177,17 @@ export function splitIntoBatches(arr) {
 export function requestInBackground(params, method = 'post') {
   return new Promise((resolve, reject) => {
     cd.getApi()[method](params, {
-      success: (resp) => {
-        if (resp.error) {
+      success: (response) => {
+        if (response.error) {
           // Workaround for cases when an options request is made on an idle page whose tokens
           // expire. A re-request of such tokens is generally successful, but _this_ callback is
           // executed after each response, so we aren't rejecting to avoid misleading error messages
           // being shown to the user.
-          if (resp.error.code !== 'badtoken') {
-            reject(['api', resp]);
+          if (response.error.code !== 'badtoken') {
+            reject(['api', response]);
           }
         } else {
-          resolve(resp);
+          resolve(response);
         }
       },
       error: (_, textStatus) => {

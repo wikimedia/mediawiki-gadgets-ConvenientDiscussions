@@ -2,13 +2,14 @@
  * Error type:
  * * `'internal'` for errors defined in the script related to the script's internal logic
  * * `'network'` for network errors defined in the script, whether on the client or server
- * * `'api'` for MediaWiki API errors
- * * `'server'` for server errors defined in the script (currently only `'ok-but-empty'`)
+ * * `'api'` for MediaWiki API errors defined on the server
+ * * `'response'` for errors defined in the script when there is something wrong with the MediaWiki
+ *   API response, excluding MediaWiki API errors defined on the server
  * * `'parse'` for parse errors defined in the script
  * * `'ui'` for UI errors (e.g. when the user does something wrong and we can't handle it silently)
  * * `'javascript'` for JavaScript errors
  *
- * @typedef {'internal' | 'network' | 'api' | 'server' | 'parse' | 'ui' | 'javascript'} ErrorType
+ * @typedef {'internal' | 'network' | 'api' | 'response' | 'parse' | 'ui' | 'javascript'} ErrorType
  */
 
 /**
@@ -20,9 +21,10 @@
  */
 
 /**
- * @typedef {object} ErrorDataOkButEmptyError
- * @property {'server'} type
- * @property {'ok-but-empty'} code
+ * @typedef {object} ErrorDataResponseError
+ * @property {'response'} type
+ * @property {string} code
+ * @property {ApiRejectResponse} [apiResponse]
  */
 
 /**
@@ -38,7 +40,7 @@
  * @template {ErrorType} Type
  * @typedef {Expand<
  *   & ErrorDataBase<Type>
- *   & (ErrorDataServerDefinedApiError | ErrorDataOkButEmptyError | {})
+ *   & (ErrorDataServerDefinedApiError | ErrorDataResponseError | {})
  * >} ErrorData
  */
 
