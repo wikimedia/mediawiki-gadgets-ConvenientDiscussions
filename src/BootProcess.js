@@ -843,7 +843,7 @@ class BootProcess {
    * If a DT's comment form is present (for example, on `&action=edit&section=new` pages), remove it
    * and later replace it with ours, keeping the input.
    *
-   * @returns {?object}
+   * @returns {import('./CommentForm').CommentFormInitialState|null}
    * @private
    */
   hideDtNewTopicForm() {
@@ -860,7 +860,7 @@ class BootProcess {
     const $headline = $dtNewTopicForm
       .find('.ext-discussiontools-ui-newTopic-sectionTitle input[type="text"]');
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const headline = $headline.val();
+    const headline = /** @type {string} */ ($headline.val());
     $headline.val('');
 
     const $comment = $dtNewTopicForm.find('textarea');

@@ -2495,7 +2495,6 @@ class CommentForm extends EventEmitter {
     type,
     code,
     details,
-    apiResponse,
     message,
     messageType = 'error',
     logMessage,
