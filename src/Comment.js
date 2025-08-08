@@ -2417,7 +2417,7 @@ class Comment extends CommentSkeleton {
     ]);
     if (!revisions || body === undefined) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'noData',
       });
     }
@@ -3132,7 +3132,11 @@ class Comment extends CommentSkeleton {
         break;
       }
 
-      case 'api':
+      case 'network': {
+        text = cd.sParse('error-diffnotfound') + ' ' + cd.sParse('error-network');
+        break;
+      }
+
       default: {
         if (code === 'noData') {
           text = cd.sParse('error-diffnotfound') + ' ' + cd.sParse('error-diffnotfound-history', historyUrl);
@@ -3140,11 +3144,6 @@ class Comment extends CommentSkeleton {
           text = cd.sParse('thank-error');
           console.warn(error);
         }
-        break;
-      }
-
-      case 'network': {
-        text = cd.sParse('error-diffnotfound') + ' ' + cd.sParse('error-network');
         break;
       }
     }

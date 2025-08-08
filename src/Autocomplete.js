@@ -735,7 +735,7 @@ class Autocomplete {
         .focus();
       input.popPending();
       // throw new CdError({
-      //   type: 'api',
+      //   type: 'response',
       //   message: cd.s('cf-autocomplete-templates-error', item.original.key),
       // });
 
