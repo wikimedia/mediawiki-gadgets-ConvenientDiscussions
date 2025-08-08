@@ -16,6 +16,7 @@ import cd from './shared/cd';
 import { mergeRegexps, typedKeysOf, unique } from './shared/utils-general';
 import { getFooter } from './utils-window';
 
+/** @type {typeof import('../config/default').default} */
 let config;
 
 if (LANG_CODE) {
@@ -264,17 +265,21 @@ function getConfig() {
  * Load and add localization strings to the `cd.i18n` object. Use fallback languages if default
  * languages are unavailable.
  *
- * @returns {Promise.<any[]|void>}
+ * @returns {Promise<any[]|void>}
  * @private
  */
 function getStrings() {
   // We assume it's OK to fall back to English if the translation is unavailable for any reason.
-  return Promise.all([cd.g.userLanguage, cd.g.contentLanguage]
-    .filter(unique)
-    .filter((lang) => lang !== 'en' && !cd.i18n?.[lang])
-    .map((lang) =>
-      mw.loader.getScript(`https://commons.wikimedia.org/w/index.php?title=User:Jack_who_built_the_house/convenientDiscussions-i18n/${lang}.js&action=raw&ctype=text/javascript`)
-    )).catch(() => {});
+  return Promise.all(
+    [cd.g.userLanguage, cd.g.contentLanguage]
+      .filter(unique)
+      .filter((lang) => lang !== 'en' && !cd.i18n?.[lang])
+      .map((lang) =>
+        mw.loader.getScript(
+          `https://commons.wikimedia.org/w/index.php?title=User:Jack_who_built_the_house/convenientDiscussions-i18n/${lang}.js&action=raw&ctype=text/javascript`
+        )
+      )
+  ).catch(() => {});
 }
 
 /**
@@ -358,7 +363,7 @@ function getStringsPromise() {
   )
     // If no language fallbacks are employed, we can do without requesting additional i18ns.
     // cd.getStringsPromise may be set in the configuration file.
-    ? !cd.i18n && (cd.getStringsPromise || getStrings())
+    ? !cd.i18n && (cd.getStringsPromise || getStrings()) || Promise.resolve()
 
     : getStrings();
 }

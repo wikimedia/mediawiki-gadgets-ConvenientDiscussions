@@ -92,7 +92,7 @@ class BootController {
   /** @type {boolean} */
   talkPage;
 
-  /** @type {JQuery.Promise<any>} */
+  /** @type {JQuery.Promise<any>[]} */
   siteDataRequests;
 
   /**

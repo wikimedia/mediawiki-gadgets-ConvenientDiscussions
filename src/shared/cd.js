@@ -131,6 +131,7 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  * @property {import('../Section').default[]} sections
  * @property {import('../settings').default} settings
  * @property {boolean} isRunning
+ * @property {typeof import('../app').getStringsPromise} getStringsPromise
  */
 
 /**

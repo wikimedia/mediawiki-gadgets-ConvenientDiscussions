@@ -2464,6 +2464,7 @@ class CommentForm extends EventEmitter {
 
   /**
    * @typedef {object} HandleErrorOptions
+   * @property {CdError} options.error
    * @property {import('./shared/CdError').ErrorType} options.type Error type.
    * @property {string} [options.code] Code of the error. (Either `code`, `apiResponse`, or
    *   `message` should be specified.)
@@ -2490,6 +2491,7 @@ class CommentForm extends EventEmitter {
    * @param {HandleErrorOptions} options
    */
   handleError({
+    error,
     type,
     code,
     details,
@@ -2505,7 +2507,7 @@ class CommentForm extends EventEmitter {
     switch (type) {
       case 'parse': {
         const editUrl = cd.g.server + cd.page.getUrl({ action: 'edit' });
-        switch (code) {
+        switch (error.getCode()) {
           case 'locateComment':
             message = cd.sParse('error-locatecomment', editUrl, cd.page.name);
             break;
@@ -2545,27 +2547,28 @@ class CommentForm extends EventEmitter {
       }
 
       case 'api': {
-        // Error messages related to error codes from API should rewrite our generic messages.
-        switch (code) {
+        // Error messages from the API should override our generic messages.
+        switch (error.getCode()) {
           case 'missing': {
             message = cd.sParse('cf-error-pagedoesntexist');
             break;
           }
-
-          case 'error': {
-            const error = apiResponse.errors[0];
-            switch (error.code) {
-              case 'missingtitle':
-                message = cd.sParse('cf-error-pagedoesntexist');
-                break;
-              default:
-                message = error.html;
-            }
-            break;
-          }
         }
 
-        logMessage ||= [code, apiResponse];
+        logMessage ||= [code, error.getApiResponse()];
+        break;
+      }
+
+      case 'response': {
+        switch (error.getCode()) {
+          case 'missingtitle':
+            message = cd.sParse('cf-error-pagedoesntexist');
+            break;
+          default:
+            message = error.getHtml();
+        }
+
+        logMessage ||= [code, error.getApiResponse()];
         break;
       }
 
