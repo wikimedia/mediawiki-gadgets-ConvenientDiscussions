@@ -1,5 +1,3 @@
-/// <reference path="../shared/global.d.ts" />
-
 /**
  * Web worker entry point.
  *
@@ -11,9 +9,10 @@
  * @module worker
  */
 
-/// <reference types="types-mediawiki" />
 // This line allows references to MediaWiki types (the `mw` object; e.g. cd.g.isIPv6Address) to work
 // in the worker context.
+/// <reference types="types-mediawiki" />
+/// <reference types="../shared/global.d.ts" />
 
 import './extendDomhandler';
 
@@ -24,19 +23,16 @@ import debug from '../debug';
 import CdError from '../shared/CdError';
 import CommentSkeleton from '../shared/CommentSkeleton';
 import Parser from '../shared/Parser';
-import cdTemp from '../shared/cd';
 
 import CommentWorker from './CommentWorker';
 import SectionWorker from './SectionWorker';
+import cd from './cd';
 
 let isFirstRun = true;
 /** @type {number | undefined} */
 let alarmTimeout;
 /** @type {import('domhandler').Element | undefined} */
 let rootElement;
-
-/** @type {import('../shared/cd').ConvenientDiscussionsWorker} */
-const cd = /** @type {import('../shared/cd').ConvenientDiscussionsWorker} */ (cdTemp);
 
 cd.debug = debug;
 debug.init();
@@ -50,7 +46,7 @@ debug.init();
 function setAlarm(interval) {
   clearTimeout(alarmTimeout);
   alarmTimeout = setTimeout(() => {
-    postMessage({ type: 'wakeUp' });
+    postMessage(/** @type {Message} */ ({ type: 'wakeUp' }));
   }, interval);
 }
 
@@ -148,7 +144,7 @@ function processSections(parser, targets) {
 /**
  * Keep only those values of an object whose names are not in the unsafe keys list.
  *
- * @param {{ [key: string]: any }} obj
+ * @param {AnyByKey} obj
  * @param {string[]} unsafeKeys
  * @private
  */

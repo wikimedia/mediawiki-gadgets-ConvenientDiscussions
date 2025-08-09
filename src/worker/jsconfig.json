@@ -1,8 +1,11 @@
 {
   "extends": "../../jsconfig-base.json",
   "compilerOptions": {
-    "lib": ["ES2021", "WebWorker"]
+    "lib": ["ES2021", "WebWorker"],
+
+    // Something drags Node's types into worker.js (e.g. setTimeout starts to return
+    // NodeJS.Timeout), no idea what. Reset the types to empty to avoid this.
+    "types": []
   },
-  "include": ["./**/*", "../shared/**/*"],
-  "exclude": ["../src/worker/domhandler.d.ts"]
+  "include": ["**/*", "../shared/**/*"]
 }

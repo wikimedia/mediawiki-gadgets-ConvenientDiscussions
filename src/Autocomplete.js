@@ -147,9 +147,9 @@ class Autocomplete {
   /**
    * @template {any} [T=any]
    * @typedef {object} Value
-   * @property {string} key
+   * @property {string} [key]
    * @property {T} item
-   * @property {(() => import('./tribute/Tribute').TransformData) | undefined} transform
+   * @property {(() => import('./tribute/Tribute').TransformData) | undefined} [transform]
    */
 
   /**

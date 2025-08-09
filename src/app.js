@@ -11,8 +11,8 @@ import languageFallbacks from '../data/languageFallbacks.json';
 
 import { addCommentLinksToSpecialSearch } from './addCommentLinks';
 import bootController from './bootController';
+import cd from './cd';
 import debug from './debug';
-import cd from './shared/cd';
 import { mergeRegexps, typedKeysOf, unique } from './shared/utils-general';
 import { getFooter } from './utils-window';
 
@@ -356,7 +356,7 @@ async function app() {
  * @returns {Promise<any[]|void>}
  * @private
  */
-function getStringsPromise() {
+export function getStringsPromise() {
   return (
     cd.g.userLanguage === mw.config.get('wgUserLanguage') &&
     cd.g.contentLanguage === mw.config.get('wgContentLanguage')

@@ -817,6 +817,7 @@ class CommentSource {
       });
     }
 
+    /** @type {string} */
     let contextCode;
     switch (/** @type {'reply' | 'edit'} */ (action)) {
       case 'reply': {

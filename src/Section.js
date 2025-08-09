@@ -1797,7 +1797,7 @@ class Section extends SectionSkeleton {
           if (
             !(
               error instanceof CdError &&
-              ['noSuchSection', 'locateSection'].includes(error.data.code || '')
+              ['noSuchSection', 'locateSection'].includes(error.getCode() || '')
             )
           ) {
             throw error;
@@ -1810,9 +1810,10 @@ class Section extends SectionSkeleton {
       }
     } catch (error) {
       if (error instanceof CdError) {
-        throw new CdError(Object.assign({}, {
+        throw new CdError({
           message: cd.sParse('cf-error-getpagecode'),
-        }, error.data));
+          ...error.data,
+        });
       } else {
         throw error;
       }
@@ -2057,7 +2058,7 @@ class Section extends SectionSkeleton {
    * Get the data identifying the section when restoring a comment form. (Used for polymorphism with
    * {@link Comment#getRelevantComment} and {@link Page#getIdentifyingData}.)
    *
-   * @returns {{ [key: string]: any }}
+   * @returns {AnyByKey}
    */
   getIdentifyingData() {
     return {

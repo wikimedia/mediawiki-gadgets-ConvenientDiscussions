@@ -376,7 +376,7 @@ class CommentFormRegistry extends EventEmitter {
    * Given identifying data (created by e.g. {@link Comment#getIdentifyingData}), get a comment or
    * section on the page or the page itself.
    *
-   * @param {{ [key: string]: any } | null} targetData
+   * @param {AnyByKey | null} targetData
    * @returns {import('./Comment').default | import('./Section').default | import('./Page').default | undefined}
    * @private
    */

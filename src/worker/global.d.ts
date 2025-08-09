@@ -11,10 +11,10 @@ declare global {
     cd?: WorkerGlobalScope['convenientDiscussions'];
   }
 
-  const Node: WorkerGlobalScope['Node'];
+  var Node: WorkerGlobalScope['Node'];
 
   // Remove optionality as a hack
-  const document: NonNullable<WorkerGlobalScope['document']>;
+  var document: NonNullable<WorkerGlobalScope['document']>;
 }
 
 export {};

@@ -3,10 +3,10 @@ import digitsData from '../data/digits.json';
 import languageFallbacks from '../data/languageFallbacks.json';
 
 import addCommentLinks from './addCommentLinks';
+import cd from './cd';
 import debug from './debug';
 import pageRegistry from './pageRegistry';
 import settings from './settings';
-import cd from './shared/cd';
 import { defined, getContentLanguageMessages, getQueryParamBooleanValue, isProbablyTalkPage, sleep, unique } from './shared/utils-general';
 import { dateTokenToMessageNames } from './shared/utils-timestamp';
 import userRegistry from './userRegistry';
@@ -558,8 +558,7 @@ class BootController {
     const uiLanguage = languageOrFallback(mw.config.get('wgUserLanguage'));
 
     if (contentLanguage) {
-      cd.g.contentDateFormat =
-        /** @type {DateFormats} */ (dateFormats)[contentLanguage];
+      cd.g.contentDateFormat = /** @type {DateFormats} */ (dateFormats)[contentLanguage];
       cd.g.contentDigits = mw.config.get('wgTranslateNumerals')
         ? /** @type {DigitsData} */ (digitsData)[contentLanguage]
         : undefined;
