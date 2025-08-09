@@ -210,7 +210,7 @@ function setLanguages() {
   const languageOrFallback = (/** @type {string} */ lang) =>
     i18nList.includes(lang)
       ? lang
-      : (/** @type {LanguageFallbacks} */ (languageFallbacks)[lang] || []).find(
+      : (/** @type {LanguageFallbacks} */ (languageFallbacks)[lang])?.find(
           (/** @type {string} */ fallback) => i18nList.includes(fallback)
         ) || 'en';
 

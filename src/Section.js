@@ -2275,11 +2275,11 @@ class Section extends SectionSkeleton {
     delete this.queryTimestamp;
   }
 
-  /** @type {PrototypeRegistry<
-   *   | 'replyButton'
-   *   | 'addSubsectionButton'
-   *   | 'copyLinkButton'
-   * >} */
+  /** @type {PrototypeRegistry<{
+   *   replyButton: HTMLElement
+   *   addSubsectionButton: HTMLElement
+   *   copyLinkButton: HTMLElement
+   * }>} */
   static prototypes = new PrototypeRegistry();
 
   /**

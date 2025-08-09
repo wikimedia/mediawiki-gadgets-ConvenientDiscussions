@@ -966,7 +966,7 @@ class TalkPageController extends EventEmitter {
    * Show a copy link dialog.
    *
    * @param {import('./Comment').default|import('./Section').default} object Comment or section to copy a link to.
-   * @param {JQuery.TriggeredEvent} event
+   * @param {JQuery.TriggeredEvent | MouseEvent | KeyboardEvent} event
    */
   showCopyLinkDialog(object, event) {
     if (bootController.isPageOverlayOn()) return;

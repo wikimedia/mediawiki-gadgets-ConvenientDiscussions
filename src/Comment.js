@@ -391,7 +391,7 @@ class Comment extends CommentSkeleton {
   /**
    * The comment's coordinates.
    *
-   * @type {?CommentOffset}
+   * @type {CommentOffset | undefined}
    */
   offset;
 
@@ -399,7 +399,7 @@ class Comment extends CommentSkeleton {
    * The comment's rough coordinates (without taking into account floating elements around the
    * comment).
    *
-   * @type {?CommentOffset}
+   * @type {CommentOffset | undefined}
    */
   roughOffset;
 
@@ -1317,11 +1317,11 @@ class Comment extends CommentSkeleton {
   /**
    * @overload
    * @param {GetOffsetOptions} [options]
-   * @returns {?CommentOffset}
+   * @returns {CommentOffset | undefined}
    *
    * @overload
    * @param {GetOffsetOptions<true>} [options]
-   * @returns {?boolean}
+   * @returns {boolean | undefined}
    */
 
   /**
@@ -1334,9 +1334,9 @@ class Comment extends CommentSkeleton {
    * occasionally.
    *
    * @param {GetOffsetOptions<boolean>} [options={}]
-   * @returns {CommentOffset|boolean|null} Offset object. If the comment is not visible, returns
-   *   `null`. If `options.set` is `true`, returns a boolean value indicating if the comment has
-   *   moved instead of the offset.
+   * @returns {CommentOffset|boolean|undefined} Offset object. If the comment is not visible,
+   *   returns `undefined`. If `options.set` is `true`, returns a boolean value indicating if the
+   *   comment has moved instead of the offset.
    */
   getOffset(options = {}) {
     options.considerFloating ??= Boolean(options.floatingRects);
@@ -1355,8 +1355,8 @@ class Comment extends CommentSkeleton {
     let rectBottom = this.elements.length === 1 ? rectTop : Comment.getCommentPartRect(lastElement);
 
     if (!getVisibilityByRects(rectTop, rectBottom)) {
-      this.setOffset(null, options);
-      return null;
+      this.setOffset(undefined, options);
+      return;
     }
 
     // Seems like caching this value significantly helps performance at least in Chrome. But need to
@@ -1428,7 +1428,7 @@ class Comment extends CommentSkeleton {
    * If `options.set` is `true`, set the offset to the `offset` (if `options.considerFloating` is
    * `true`) or `roughOffset` (if `options.considerFloating` is `false`) property.
    *
-   * @param {?CommentOffset} offset
+   * @param {CommentOffset|undefined} offset
    * @param {GetOffsetOptions<boolean>} options
    * @private
    */
@@ -1660,17 +1660,15 @@ class Comment extends CommentSkeleton {
    * and redraw if the comment has been moved or do nothing if everything is right.
    *
    * @param {ConfigureLayersOptions} [options={}]
-   * @returns {?boolean} Is the comment moved or created. `null` if we couldn't determine (for
-   *   example, if the element is invisible).
+   * @returns {boolean | undefined} Is the comment moved or created. `undefined` if we couldn't
+   *   determine (for example, if the element is invisible).
    */
   configureLayers(options = {}) {
     options.add ??= true;
     options.update ??= true;
 
     const isMoved = this.computeLayersOffset(options);
-    if (isMoved === null) {
-      return null;
-    }
+    if (isMoved === null) return;
 
     // Configure the layers only if they were unexistent or the comment position has changed, to
     // save time.
@@ -1695,13 +1693,13 @@ class Comment extends CommentSkeleton {
    * Calculate the underlay and overlay offset and set it to the `layersOffset` property.
    *
    * @param {GetOffsetOptions} [options={}]
-   * @returns {?boolean} Is the comment moved. `null` if it is invisible.
+   * @returns {boolean | undefined} Is the comment moved. `null` if it is invisible.
    * @private
    */
   computeLayersOffset(options = {}) {
     const layersContainerOffset = this.getLayersContainerOffset();
     if (!layersContainerOffset) {
-      return null;
+      return undefined;
     }
 
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -1720,7 +1718,7 @@ class Comment extends CommentSkeleton {
         height: this.offset.bottom - this.offset.top,
       };
     } else {
-      this.layersOffset = null;
+      this.layersOffset = undefined;
     }
 
     return hasMoved;
@@ -2914,7 +2912,7 @@ class Comment extends CommentSkeleton {
   /**
    * Open a copy link dialog (rarely, copy a link to the comment without opening a dialog).
    *
-   * @param {JQuery.TriggeredEvent} event
+   * @param {JQuery.TriggeredEvent | MouseEvent | KeyboardEvent} event
    */
   async copyLink(event) {
     talkPageController.showCopyLinkDialog(this, event);
@@ -4435,13 +4433,14 @@ class Comment extends CommentSkeleton {
     });
   }
 
-  /** @type {PrototypeRegistry<
-   *   | 'headerWrapperElement'
-   *   | 'goToParentButtonSvg'
-   *   | 'collapseChildThreadsButtonSvg'
-   *   | 'expandChildThreadsButtonSvg'
-   *   | 'underlay'
-   *   | 'overlay'>} */
+  /** @type {PrototypeRegistry<{
+   *   headerWrapperElement: HTMLElement
+   *   goToParentButtonSvg: SVGElement
+   *   collapseChildThreadsButtonSvg: SVGElement
+   *   expandChildThreadsButtonSvg: SVGElement
+   *   underlay: HTMLElement
+   *   overlay: HTMLElement
+   * }>} */
   static prototypes = new PrototypeRegistry();
 
   /**

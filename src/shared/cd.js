@@ -92,10 +92,10 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  *   interface.
  * @property {string[]} uiTimestampMatchingGroups Codes of date (in interface language) components
  *   for the timestamp parser function.
- * @property {?(string|number)} uiTimezone Timezone per user preferences: standard timezone name or
- *   offset in minutes. `'UTC'` is always used instead of `0`.
+ * @property {string | number | undefined} uiTimezone Timezone per user preferences: standard
+ *   timezone name or offset in minutes. `'UTC'` is always used instead of `0`.
  * @property {boolean} areUiAndLocalTimezoneSame
- * @property {boolean|undefined} areTimestampsDefault Whether timestamps in the default format are
+ * @property {boolean | undefined} areTimestampsDefault Whether timestamps in the default format are
  *   shown to the user.
  * @property {RegExp | undefined} pageWhitelistRegexp
  * @property {RegExp | undefined} pageBlacklistRegexp

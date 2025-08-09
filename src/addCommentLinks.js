@@ -36,7 +36,10 @@ let switchRelevantButton;
 /** @type {import('./LegacySubscriptions').default} */
 let subscriptions;
 
-/** @type {PrototypeRegistry<'wrapperRegular' | 'wrapperRelevant'>} */
+/** @type {PrototypeRegistry<{
+ *   wrapperRegular: HTMLElement
+ *   wrapperRelevant: HTMLElement
+ * }>} */
 const prototypes = new PrototypeRegistry();
 
 /**
@@ -49,6 +52,7 @@ async function init() {
   bootController.initGlobals();
   await settings.init();
 
+  /** @type {PromiseLike<any>[]} */
   const requests = [...bootController.getSiteData()];
   if (cd.user.isRegistered() && !settings.get('useTopicSubscription')) {
     // Loading the subscriptions is not critical, as opposed to messages, so we catch the possible
@@ -456,7 +460,7 @@ function processWatchlist($content) {
  */
 function processContributions($content) {
   bootController.initTimestampParsingTools('user');
-  if (cd.g.uiTimezone === null) return;
+  if (cd.g.uiTimezone === undefined) return;
 
   [
     ...$content[0].querySelectorAll('.mw-contributions-list > li:not(.mw-tag-mw-new-redirect)')
@@ -530,7 +534,7 @@ function processContributions($content) {
  */
 function processHistory($content) {
   bootController.initTimestampParsingTools('user');
-  if (cd.g.uiTimezone === null) return;
+  if (cd.g.uiTimezone === undefined) return;
 
   const link = cd.page.getUrl();
   [
@@ -613,7 +617,7 @@ function processDiff($diff) {
   if (!cd.g.uiTimestampRegexp) {
     bootController.initTimestampParsingTools('user');
   }
-  if (cd.g.uiTimezone === null) return;
+  if (cd.g.uiTimezone === undefined) return;
 
   const $root = $diff || bootController.$content;
   const root = $root[0];
