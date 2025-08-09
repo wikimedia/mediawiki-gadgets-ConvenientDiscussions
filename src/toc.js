@@ -20,7 +20,37 @@ import updateChecker from './updateChecker';
 import { getLinkedAnchor } from './utils-window';
 import visits from './visits';
 
-export default {
+/**
+ * @typedef {Pick<TocItem, 'level' | 'number' | '$element'>} TocItemShort
+ */
+
+/**
+ * Table of contents class.
+ */
+class Toc {
+  constructor() {
+    /** @type {JQuery | null} */
+    this.$element = null;
+
+    /** @type {TocItem[] | null} */
+    this.items = null;
+
+    /** @type {boolean | null} */
+    this.floating = null;
+
+    /** @type {boolean} */
+    this.canBeModified = false;
+
+    /** @type {Promise<void> | undefined} */
+    this.visitsPromise = undefined;
+
+    /** @type {Promise<void> | undefined} */
+    this.updateTocSectionsPromise = undefined;
+
+    /** @type {(() => void) | undefined} */
+    this.resolveUpdateTocSectionsPromise = undefined;
+  }
+
   /**
    * _For internal use._ Initialize the TOC. (Executed only once.)
    *
@@ -59,7 +89,7 @@ export default {
         this.addNewComments(bySection);
       })
       .on('sectionsUpdate', this.addNewSections.bind(this));
-  },
+  }
 
   /**
    * Hide the TOC if the relevant cookie is set. This method duplicates
@@ -74,7 +104,7 @@ export default {
     if (mw.cookie.get('hidetoc') === '1') {
       this.$element.find('.toctogglecheckbox').prop('checked', true);
     }
-  },
+  }
 
   /**
    * _For internal use._ Setup the TOC data and, for sidebar TOC, update its content. (Executed at
@@ -91,7 +121,7 @@ export default {
 
     this.floating = null;
     this.visitsPromise = new Promise((resolve) => {
-      visits.once('process', resolve);
+      visits.once('process', () => resolve());
     });
 
     if (this.isInSidebar() && sections) {
@@ -102,13 +132,13 @@ export default {
         this.resolveUpdateTocSectionsPromise = resolve;
       });
     }
-  },
+  }
 
   /**
    * Get a TOC item by ID.
    *
    * @param {string} id
-   * @returns {?TocItem}
+   * @returns {TocItem | null}
    */
   getItem(id) {
     if (!this.isPresent()) {
@@ -132,7 +162,7 @@ export default {
     }
 
     return this.items.find((item) => item.id === id) || null;
-  },
+  }
 
   /**
    * Mark sections that the user is subscribed to.
@@ -151,7 +181,7 @@ export default {
       .forEach((section) => {
         section.updateTocLink();
       });
-  },
+  }
 
   /**
    * Add the number of comments to each section link.
@@ -197,12 +227,12 @@ export default {
     if (cd.g.isDtVisualEnhancementsEnabled) {
       this.$element.find('.ext-discussiontools-init-sidebar-meta').remove();
     }
-  },
+  }
 
   /**
    * Handle a click on an added section link.
    *
-   * @param {MouseEvent|KeyboardEvent} event
+   * @param {MouseEvent | KeyboardEvent} event
    * @private
    */
   handleSectionClick(event) {
@@ -212,7 +242,7 @@ export default {
         getLinkedAnchor(/** @type {HTMLAnchorElement} */ (event.currentTarget)) || undefined,
       pushState: true,
     });
-  },
+  }
 
   /**
    * Add a collapse/expand toggle to a 2-level section.
@@ -246,7 +276,7 @@ export default {
     if (newSectionTocIds.includes(upperLevelMatch.$element.attr('id'))) {
       button.click();
     }
-  },
+  }
 
   /**
    * Add a new, not yet rendered section (loaded in the background) section to the table of
@@ -259,10 +289,6 @@ export default {
    * @private
    */
   addNewSection(section, currentTree, $topUl, newSectionTocIds) {
-    /**
-     * @typedef {Pick<TocItem, 'level' | 'number' | '$element'>} TocItemShort
-     */
-
     let item = /** @type {TocItemShort|undefined} */ (section.match?.getTocItem());
     const level = /** @type {number} */ (section.tocLevel);
     if (!item) {
@@ -347,7 +373,7 @@ export default {
 
     currentTree[level - 1] = item;
     currentTree.splice(level);
-  },
+  }
 
   /**
    * Add links to new, not yet rendered sections (loaded in the background) to the table of
@@ -422,13 +448,13 @@ export default {
     if (!this.isInSidebar()) {
       talkPageController.restoreRelativeScrollPosition(true);
     }
-  },
+  }
 
   /**
    * Get the element to add a comment list after for a section.
    *
    * @param {import('./Section').default | import('./updateChecker').SectionWorkerMatched} section Section.
-   * @returns {?object}
+   * @returns {object | null}
    * @private
    */
   getTargetElementForSection(section) {
@@ -457,12 +483,12 @@ export default {
     }
 
     return $target?.[0] || null;
-  },
+  }
 
   /**
    * Handle a click on a comment link.
    *
-   * @param {KeyboardEvent|MouseEvent} event
+   * @param {KeyboardEvent | MouseEvent} event
    * @private
    */
   handleCommentClick(event) {
@@ -484,7 +510,7 @@ export default {
         pushState: true,
       });
     }
-  },
+  }
 
   /**
    * Add a comment list (an `ul` element) to a section.
@@ -610,7 +636,7 @@ export default {
     }
 
     /** @type {HTMLElement} */ (target.parentElement).insertBefore(ul, target.nextSibling);
-  },
+  }
 
   /**
    * Add links to new comments (either already displayed or loaded in the background) to the table
@@ -648,7 +674,7 @@ export default {
     if (!this.isInSidebar()) {
       talkPageController.restoreRelativeScrollPosition(true);
     }
-  },
+  }
 
   /**
    * Is the table of contents located in the sidebar.
@@ -658,7 +684,7 @@ export default {
    */
   isInSidebar() {
     return cd.g.skin === 'vector-2022';
-  },
+  }
 
   /**
    * Is the table of contents floating (it or its parent has a `float` CSS).
@@ -675,7 +701,7 @@ export default {
     }
 
     return this.floating;
-  },
+  }
 
   /**
    * Is the table of contents present on the page.
@@ -684,7 +710,7 @@ export default {
    */
   isPresent() {
     return Boolean(this.$element.length);
-  },
+  }
 
   /**
    * Get the bottom offset of the table of contents.
@@ -693,5 +719,7 @@ export default {
    */
   getBottomOffset() {
     return this.$element.offset().top + this.$element.outerHeight();
-  },
-};
+  }
+}
+
+export default new Toc();
