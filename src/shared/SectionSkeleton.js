@@ -63,7 +63,7 @@ class SectionSkeleton {
   /**
    * Oldest comment in the section.
    *
-   * @type {?import('./CommentSkeleton').default<N>}
+   * @type {import('./CommentSkeleton').default<N> | undefined}
    */
   oldestComment;
 

@@ -54,7 +54,7 @@ class Section extends SectionSkeleton {
   lastElementInFirstChunk = this.lastElementInFirstChunk;
 
   /**
-   * @type {?import('./Comment').default}
+   * @type {import('./Comment').default | undefined}
    * @override
    */
   oldestComment = this.oldestComment;
@@ -94,7 +94,7 @@ class Section extends SectionSkeleton {
    * Presumed code of the section (based on the section ID) as of the time of the last request.
    * Filled upon running {@link Section#loadCode}.
    *
-   * @type {string|undefined}
+   * @type {string | undefined}
    */
   presumedCode;
 
@@ -102,7 +102,7 @@ class Section extends SectionSkeleton {
    * ID of the revision that has {@link Section#code}. Filled upon running {@link Section#loadCode}.
    *
    * @name revisionId
-   * @type {number|undefined}
+   * @type {number | undefined}
    */
   revisionId;
 
@@ -111,7 +111,7 @@ class Section extends SectionSkeleton {
    * {@link Section#loadCode}.
    *
    * @name queryTimestamp
-   * @type {string|undefined}
+   * @type {string | undefined}
    */
   queryTimestamp;
 
@@ -126,7 +126,7 @@ class Section extends SectionSkeleton {
    * When checking for updates, this has the match of the section to the section analyzed in the
    * worker scope.
    *
-   * @type {import('./updateChecker').SectionWorkerMatched|undefined}
+   * @type {import('./updateChecker').SectionWorkerMatched | undefined}
    */
   match;
 
@@ -134,14 +134,14 @@ class Section extends SectionSkeleton {
    * When checking for updates, this has the score of the {@link Section#match} of the section to
    * the section analyzed in the worker scope.
    *
-   * @type {number|undefined}
+   * @type {number | undefined}
    */
   matchScore;
 
   /**
    * Section's source code object.
    *
-   * @type {?SectionSource|undefined}
+   * @type {?SectionSource | undefined}
    */
   source;
 
@@ -157,14 +157,14 @@ class Section extends SectionSkeleton {
    * "Add subsection to <i>topic</i>" button at the end of the section (under the reply button of
    * the last descendant section; shows up on hover of the reply button).
    *
-   * @type {Button|undefined}
+   * @type {Button | undefined}
    */
   addSubsectionButtonLastDescendant;
 
   /**
    * Popup with the list of users who have posted in the section.
    *
-   * @type {OO.ui.PopupWidget|undefined}
+   * @type {OO.ui.PopupWidget | undefined}
    */
   authorsPopup;
 
@@ -366,14 +366,14 @@ class Section extends SectionSkeleton {
     /**
      * Reply button at the bottom of the first chunk of the section.
      *
-     * @type {Button|undefined}
+     * @type {Button | undefined}
      */
     this.replyButton = button;
 
     /**
      * Reply button wrapper and part-time reply comment form wrapper, an item element.
      *
-     * @type {JQuery|undefined}
+     * @type {JQuery | undefined}
      */
     this.$replyButtonWrapper = $(wrapper);
 
@@ -383,7 +383,7 @@ class Section extends SectionSkeleton {
      * created by the script only when there is no suitable element that already exists. If there
      * is, it can contain other elements (and comments) too.
      *
-     * @type {JQuery|undefined}
+     * @type {JQuery | undefined}
      */
     this.$replyButtonContainer = $(container);
   }
@@ -437,14 +437,14 @@ class Section extends SectionSkeleton {
      * "Add subsection to <i>section</i>" button at the end of the first chunk of the section (shows
      * up on hover of the reply button).
      *
-     * @type {Button|undefined}
+     * @type {Button | undefined}
      */
     this.addSubsectionButton = button;
 
     /**
      * "Add subsection" buttons container.
      *
-     * @type {JQuery|undefined}
+     * @type {JQuery | undefined}
      */
     this.$addSubsectionButtonsContainer = $(container);
   }
@@ -911,21 +911,21 @@ class Section extends SectionSkeleton {
     /**
      * Latest comment in a 2-level section.
      *
-     * @type {import('./Comment').default|null|undefined}
+     * @type {import('./Comment').default | null | undefined}
      */
     this.latestComment = latestComment;
 
     /**
      * Metadata element in the {@link Section#barElement bar element}.
      *
-     * @type {HTMLElement|undefined}
+     * @type {HTMLElement | undefined}
      */
     this.metadataElement = metadataElement;
 
     /**
      * Comment count wrapper element in the {@link Section#metadataElement metadata element}.
      *
-     * @type {HTMLElement|undefined}
+     * @type {HTMLElement | undefined}
      * @protected
      */
     this.commentCountWrapper = commentCountWrapper;
@@ -933,7 +933,7 @@ class Section extends SectionSkeleton {
     /**
      * Author count button in the {@link Section#metadataElement metadata element}.
      *
-     * @type {Button|undefined}
+     * @type {Button | undefined}
      * @protected
      */
     this.authorCountButton = authorCountButton;
@@ -941,7 +941,7 @@ class Section extends SectionSkeleton {
     /**
      * Latest comment date wrapper element in the {@link Section#metadataElement metadata element}.
      *
-     * @type {Element|undefined}
+     * @type {Element | undefined}
      * @protected
      */
     this.latestCommentWrapper = latestCommentWrapper;
@@ -950,7 +950,7 @@ class Section extends SectionSkeleton {
       /**
        * Metadata element in the {@link Section#$bar bar element}.
        *
-       * @type {JQuery|undefined}
+       * @type {JQuery | undefined}
        */
       this.$metadata = $(metadataElement);
     }
@@ -959,7 +959,7 @@ class Section extends SectionSkeleton {
       /**
        * Comment count wrapper element in the {@link Section#$metadata metadata element}.
        *
-       * @type {JQuery|undefined}
+       * @type {JQuery | undefined}
        * @protected
        */
       this.$commentCountWrapper = $(commentCountWrapper);
@@ -969,7 +969,7 @@ class Section extends SectionSkeleton {
       /**
        * Author count button element in the {@link Section#$metadata metadata element}.
        *
-       * @type {JQuery|undefined}
+       * @type {JQuery | undefined}
        */
       this.$authorCountButton = $(authorCountButton.element);
     }
@@ -978,7 +978,7 @@ class Section extends SectionSkeleton {
       /**
        * Latest comment date wrapper element in the {@link Section#$metadata metadata element}.
        *
-       * @type {JQuery|undefined}
+       * @type {JQuery | undefined}
        */
       this.$latestCommentWrapper = $(latestCommentWrapper);
     }
@@ -1045,7 +1045,7 @@ class Section extends SectionSkeleton {
      * that it is created only when the user hovers over or clicks a dummy button, which fires a
      * {@link Section#moreMenuSelectCreated moreMenuSelectCreated hook}.
      *
-     * @type {OO.ui.ButtonMenuSelectWidget|undefined}
+     * @type {OO.ui.ButtonMenuSelectWidget | undefined}
      */
     this.actions.moreMenuSelect = moreMenuSelect;
 
@@ -1156,7 +1156,7 @@ class Section extends SectionSkeleton {
       /**
        * Copy link button widget in the {@link Section#actionsElement actions element}.
        *
-       * @type {Button|undefined}
+       * @type {Button | undefined}
        */
       copyLinkButton,
 
@@ -1204,7 +1204,7 @@ class Section extends SectionSkeleton {
     /**
      * Bar element under a 2-level section heading.
      *
-     * @type {JQuery|undefined}
+     * @type {JQuery | undefined}
      */
     this.$bar = $(barElement);
   }
@@ -1261,7 +1261,7 @@ class Section extends SectionSkeleton {
     /**
      * List of new comments in the section. ("New" actually means "unseen at the moment of load".)
      *
-     * @type {import('./Comment').default[]|undefined}
+     * @type {import('./Comment').default[] | undefined}
      */
     this.newComments = this.comments.filter((comment) => comment.isSeen === false);
 
@@ -1302,7 +1302,7 @@ class Section extends SectionSkeleton {
        * The section subscribe ID, either in the DiscussionTools format or just a headline if legacy
        * subscriptions are used.
        *
-       * @type {string|undefined}
+       * @type {string | undefined}
        */
       this.subscribeId = this.headline;
 
@@ -1363,7 +1363,7 @@ class Section extends SectionSkeleton {
       /**
        * Reply form related to the section.
        *
-       * @type {import('./CommentForm').default|undefined}
+       * @type {import('./CommentForm').default | undefined}
        */
       this.replyForm = commentFormRegistry.setupCommentForm(
         this,
@@ -1405,7 +1405,7 @@ class Section extends SectionSkeleton {
       /**
        * "Add subsection" form related to the section.
        *
-       * @type {import('./CommentForm').default|undefined}
+       * @type {import('./CommentForm').default | undefined}
        */
       this.addSubsectionForm = commentFormRegistry.setupCommentForm(
         this,
@@ -1830,7 +1830,7 @@ class Section extends SectionSkeleton {
    * It is expected that the section or page code is loaded (using {@link Page#loadCode}) before
    * this method is called. Otherwise, the method will throw an error.
    *
-   * @param {string|undefined} [sectionCode] Section code to use instead of the page code, to locate
+   * @param {string | undefined} [sectionCode] Section code to use instead of the page code, to locate
    *   the section in.
    * @returns {SectionSource}
    * @throws {CdError}
@@ -1864,7 +1864,7 @@ class Section extends SectionSkeleton {
    *
    * @param {string} contextCode
    * @param {boolean} isInSectionContext
-   * @returns {SectionSource|undefined}
+   * @returns {SectionSource | undefined}
    * @private
    */
   searchInCode(contextCode, isInSectionContext) {
@@ -1923,7 +1923,7 @@ class Section extends SectionSkeleton {
   /**
    * @overload
    * @param {true} forceLevel2 Guarantee a 2-level section is returned.
-   * @returns {Section|null} The base section, or `null` if no level 2 section is found.
+   * @returns {Section | null} The base section, or `null` if no level 2 section is found.
    *
    * @overload
    * @param {false} [forceLevel2=false] Return the closest level 2 ancestor, or the section itself
@@ -2009,7 +2009,7 @@ class Section extends SectionSkeleton {
   /**
    * Get the TOC item for the section if present.
    *
-   * @returns {?import('./TocItem').default}
+   * @returns {import('./TocItem').default | undefined}
    */
   getTocItem() {
     return toc.getItem(this.id);
@@ -2113,7 +2113,7 @@ class Section extends SectionSkeleton {
     let realLastElement = this.lastElement;
 
     for (
-      let lastElement = /** @type {HTMLElement|Element|null} */ (
+      let lastElement = /** @type {HTMLElement|Element | null} */ (
         this.lastElement.nextElementSibling
       );
       lastElement instanceof HTMLElement &&
