@@ -28,28 +28,27 @@ import visits from './visits';
  * Table of contents class.
  */
 class Toc {
-  constructor() {
-    /** @type {JQuery | null} */
-    this.$element = null;
+  /** @type {JQuery | undefined} */
+  $element;
 
-    /** @type {TocItem[] | null} */
-    this.items = null;
+  /** @type {TocItem[] | undefined} */
+  items;
 
-    /** @type {boolean | null} */
-    this.floating = null;
+  /** @type {boolean | undefined} */
+  floating;
 
-    /** @type {boolean} */
-    this.canBeModified = false;
+  /** @type {boolean} */
+  canBeModified = false;
 
-    /** @type {Promise<void> | undefined} */
-    this.visitsPromise = undefined;
+  /** @type {Promise<void> | undefined} */
+  visitsPromise;
 
-    /** @type {Promise<void> | undefined} */
-    this.updateTocSectionsPromise = undefined;
+  /** @type {Promise<void> | undefined} */
+  updateTocSectionsPromise;
 
-    /** @type {(() => void) | undefined} */
-    this.resolveUpdateTocSectionsPromise = undefined;
-  }
+  /** @type {(() => void) | undefined} */
+  resolveUpdateTocSectionsPromise;
+
 
   /**
    * _For internal use._ Initialize the TOC. (Executed only once.)
@@ -115,11 +114,8 @@ class Toc {
    */
   setup(sections, hideToc) {
     this.$element = this.isInSidebar() ? $('.vector-toc') : bootController.$root.find('.toc');
-
-    /** @type {TocItem[]|null} */
-    this.items = null;
-
-    this.floating = null;
+    this.items = undefined;
+    this.floating = undefined;
     this.visitsPromise = new Promise((resolve) => {
       visits.once('process', () => resolve());
     });
@@ -680,7 +676,6 @@ class Toc {
    * Is the table of contents located in the sidebar.
    *
    * @returns {boolean}
-   * @private
    */
   isInSidebar() {
     return cd.g.skin === 'vector-2022';
@@ -694,9 +689,10 @@ class Toc {
    * @returns {boolean}
    */
   isFloating() {
-    if (this.floating === null) {
+    if (this.floating === undefined) {
       this.floating = Boolean(
-        !this.isInSidebar() && this.$element.closest($(talkPageController.getFloatingElements())).length
+        !this.isInSidebar() &&
+          this.$element.closest($(talkPageController.getFloatingElements())).length
       );
     }
 

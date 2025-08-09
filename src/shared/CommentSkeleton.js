@@ -1839,11 +1839,11 @@ class CommentSkeleton {
   /**
    * Get the oldest comment in a list.
    *
-   * @template {CommentSkeleton<N>} T
+   * @template {CommentSkeleton<AnyNode>} T
    * @template {boolean} AD
    * @param {T[]} comments
    * @param {AD} allowDateless
-   * @returns {?T & (AD extends false ? { date: Date } : {})}
+   * @returns {(T & (AD extends false ? { date: Date } : {})) | undefined}
    */
   static getOldest(comments, allowDateless) {
     return genericGetOldestOrNewestByDateProp(comments, 'oldest', allowDateless);
@@ -1852,11 +1852,11 @@ class CommentSkeleton {
   /**
    * Get the oldest comment in a list.
    *
-   * @template {CommentSkeleton<N>} T
+   * @template {CommentSkeleton<AnyNode>} T
    * @template {boolean} AD
    * @param {T[]} comments
    * @param {AD} allowDateless
-   * @returns {?T & (AD extends false ? { date: Date } : {})}
+   * @returns {(T & (AD extends false ? { date: Date } : {})) | undefined}
    */
   static getNewest(comments, allowDateless) {
     return genericGetOldestOrNewestByDateProp(comments, 'newest', allowDateless);

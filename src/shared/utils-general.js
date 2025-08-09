@@ -962,10 +962,10 @@ export function mergeMaps(maps) {
  * @param {T[]} items
  * @param {'oldest'|'newest'} which
  * @param {AD} allowDateless
- * @returns {?(T & (AD extends false ? { date: Date } : {}))}
+ * @returns {(T & (AD extends false ? { date: Date } : {})) | undefined}
  */
 export function genericGetOldestOrNewestByDateProp(items, which, allowDateless) {
-  return /** @type {?(T & (AD extends false ? { date: Date } : {}))} */ (items.reduce(
+  return /** @type {T & (AD extends false ? { date: Date } : {}) | undefined} */ (items.reduce(
     (candidate, item) =>
       (
         ((item.date || allowDateless) && !candidate) ||
@@ -980,7 +980,7 @@ export function genericGetOldestOrNewestByDateProp(items, which, allowDateless) 
       ) ?
         item :
         candidate,
-    /** @type {?T} */ (null)
+    /** @type {T | undefined} */ (undefined)
   ));
 }
 
