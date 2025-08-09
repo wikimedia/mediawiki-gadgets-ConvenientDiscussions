@@ -14,33 +14,39 @@ import { HeadingTarget, SignatureTarget, Target } from './Parser';
 declare global {
   type StringsByKey = { [key: string]: string };
   type NumbersByKey = { [key: string]: number };
+  type AnyByKey = { [key: string]: any };
   type StringArraysByKey = { [key: string]: string[] };
 
-  type MessageFromWorkerParse = {
-    type: 'parse',
-    revisionId: number,
-    resolverId: number,
-    comments: CommentWorker[],
-    sections: SectionWorker[],
-  };
+  interface Message {
+    type: string;
+    [key: string]: any;
+  }
 
-  type MessageFromWindowParse = {
-    type: 'parse',
-    revisionId: number,
-    resolverId: number,
-    text: string,
-    g: ConvenientDiscussions['g'],
-    config: ConvenientDiscussions['config'],
-  };
+  interface MessageFromWorkerParse extends Message {
+    type: 'parse';
+    revisionId: number;
+    resolverId: number;
+    comments: CommentWorker[];
+    sections: SectionWorker[];
+  }
 
-  type MessageFromWindowSetAlarm = {
-    type: 'setAlarm',
-    interval: number,
-  };
+  interface MessageFromWindowParse extends Message {
+    type: 'parse';
+    revisionId: number;
+    resolverId: number;
+    text: string;
+    g: ConvenientDiscussions['g'];
+    config: ConvenientDiscussions['config'];
+  }
 
-  type MessageFromWindowRemoveAlarm = {
-    type: 'removeAlarm',
-  };
+  interface MessageFromWindowSetAlarm extends Message {
+    type: 'setAlarm';
+    interval: number;
+  }
+
+  interface MessageFromWindowRemoveAlarm extends Message {
+    type: 'removeAlarm';
+  }
 
   type MessageFromWindow = MessageFromWindowParse | MessageFromWindowSetAlarm | MessageFromWindowRemoveAlarm;
 

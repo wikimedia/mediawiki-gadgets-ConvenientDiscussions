@@ -1,75 +1,90 @@
+import { isKeyOf, typedKeysOf } from './shared/utils-general';
+
 /**
  * A number of methods to simplify measuring time that it takes to run certain routines as well as
  * counting the number of times certain instructions run.
  *
  * @module debug
  */
-export default {
+class Debug {
+  /**
+   * Total time for every timer.
+   *
+   * @type {NumbersByKey}
+   */
+  timerTotal = {};
+
+  /**
+   * Timer start timestamps for every timer.
+   *
+   * @type {NumbersByKey}
+   * @private
+   */
+  timerStartTimestamps = {};
+
+  /**
+   * The number of times a timer has run.
+   *
+   * @type {NumbersByKey}
+   */
+  timerRunCount = {};
+
+  /**
+   * Total time for all timer runs, ignoring {@link module:debug.resetTimer timer resets} (but not
+   * {@link module:debug.fullResetTimer full resets}).
+   *
+   * @type {NumbersByKey}
+   */
+  timerAllRunsTotal = {};
+
+  /**
+   * An array to keep any values sequentially.
+   *
+   * @type {any[]}
+   */
+  array = [];
+
+  /**
+   * An object to keep any values by key.
+   *
+   * @type {AnyByKey}
+   */
+  object = {};
+
+  /**
+   * An object to keep values of counters.
+   *
+   * @type {NumbersByKey}
+   */
+  counters;
+
   /**
    * Init/reset all properties of the debug object.
    */
   init() {
-    /**
-     * Total time for every timer.
-     *
-     * @type {object}
-     */
     this.timerTotal = {};
-
-    /**
-     * Timer start timestamps for every timer.
-     *
-     * @type {object}
-     * @private
-     */
     this.timerStartTimestamps = {};
-
-    /**
-     * The number of times a timer has run.
-     *
-     * @type {object}
-     */
     this.timerRunCount = {};
-
-    /**
-     * Total time for all timer runs, ignoring {@link module:debug.resetTimer timer resets} (but not
-     * {@link module:debug.fullResetTimer full resets}).
-     *
-     * @type {object}
-     */
     this.timerAllRunsTotal = {};
-
     this.initCounters();
 
-    /**
-     * An array to keep any values sequentially.
-     *
-     * @type {Array.<*>}
-     */
     this.array = [];
-
-    /**
-     * An object to keep any values by key.
-     *
-     * @type {object}
-     */
     this.object = {};
-  },
+  }
 
   /**
    * Init counters object to have incrementation work with any of its properties without the need to
    * assign 0 to it first.
    */
   initCounters() {
-    /**
-     * An object to keep values of counters.
-     *
-     * @type {Proxy|object}
-     */
-    this.counters = typeof Proxy === 'undefined' ?
-      {} :
-      new Proxy({}, { get: (obj, prop) => prop in obj ? obj[prop] : 0 });
-  },
+    this.counters =
+      typeof Proxy === 'undefined'
+        ? {}
+        : new Proxy(
+            /** @type {AnyByKey} */ ({}),
+            { get: (obj, prop) => isKeyOf(prop, obj) ? obj[prop] : 0 }
+          );
+  }
 
   /**
    * Start the specified timer.
@@ -79,7 +94,7 @@ export default {
   startTimer(label) {
     this.timerTotal[label] ??= 0;
     this.timerStartTimestamps[label] = performance.now();
-  },
+  }
 
   /**
    * Stop the specified timer.
@@ -98,7 +113,7 @@ export default {
 
     this.timerRunCount[label] ??= 0;
     this.timerRunCount[label]++;
-  },
+  }
 
   /**
    * Reset the total time value for the timer.
@@ -110,7 +125,7 @@ export default {
       this.stopTimer(label);
     }
     delete this.timerTotal[label];
-  },
+  }
 
   /**
    * Remove all data associated with the timer.
@@ -121,7 +136,7 @@ export default {
     this.resetTimer(label);
     delete this.timerAllRunsTotal[label];
     delete this.timerRunCount[label];
-  },
+  }
 
   /**
    * Log and reset the specified timer.
@@ -136,7 +151,7 @@ export default {
       console.debug(`${label}: ${this.timerTotal[label].toFixed(1)}`);
       this.resetTimer(label);
     }
-  },
+  }
 
   /**
    * Log and reset all timers, as well as counters and other collected values.
@@ -152,7 +167,7 @@ export default {
       this.logAndResetTimer(label);
     });
 
-    const counterLabels = Object.keys(this.counters);
+    const counterLabels = typedKeysOf(this.counters);
     if (sort) {
       counterLabels.sort();
     }
@@ -170,7 +185,7 @@ export default {
       console.debug(`object: `, this.object);
       this.object = {};
     }
-  },
+  }
 
   /**
    * Get the {@link module:debug.timerTotal total time} for a timer.
@@ -180,7 +195,7 @@ export default {
    */
   getTimerTotal(label) {
     return this.timerTotal[label];
-  },
+  }
 
   /**
    * Log the average time one run of the specified timer takes. All runs of the timer are taken into
@@ -193,9 +208,9 @@ export default {
       console.error(`No data for timer ${label}`);
       return;
     }
-    const average = this.timerAllRunsTotal[label] / this.timerRunCount[label];
-    console.debug(`${label}: ${average.toFixed(3)} average for ${this.timerRunCount[label]} runs`);
-  },
+    const average = (this.timerAllRunsTotal[label] / this.timerRunCount[label]).toFixed(3);
+    console.debug(`${label}: ${average} average for ${this.timerRunCount[label]} runs`);
+  }
 
   /**
    * Increment the specified counter.
@@ -204,5 +219,7 @@ export default {
    */
   incrementCounter(label) {
     this.counters[label]++;
-  },
+  }
 };
+
+export default new Debug();

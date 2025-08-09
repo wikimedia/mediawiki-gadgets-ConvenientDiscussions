@@ -21,11 +21,11 @@ import userRegistry from './userRegistry';
  *   DT).
  * @property {string} categorieshtml HTML for the page's categories.
  * @property {string} [parsedsummary] HTML for the summary that was supplied.
- * @property {{ [key: string]: any }[]} sections Section data for the page.
+ * @property {AnyByKey[]} sections Section data for the page.
  * @property {number} revid
  * @property {string[]} modules
  * @property {string[]} modulestyles
- * @property {{ [name: string]: any }} jsconfigvars
+ * @property {AnyByKey} jsconfigvars
  */
 
 /**
@@ -244,7 +244,7 @@ export async function parseCode(code, customOptions) {
 
 /**
  * @typedef {object} UserInfo
- * @property {{ [key: string]: any }} options
+ * @property {AnyByKey} options
  * @property {string} visits
  * @property {string} subscriptions
  */

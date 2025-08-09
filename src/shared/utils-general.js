@@ -999,6 +999,16 @@ export function typedKeysOf(obj) {
 }
 
 /**
+ * @template {AnyByKey} T
+ * @param {string | number | symbol} key
+ * @param {T} obj
+ * @returns {key is keyof T}
+ */
+export function isKeyOf(key, obj) {
+  return key in obj;
+}
+
+/**
  * Get the UNIX time of the moment that is `number` of days before now.
  *
  * @param {number} number

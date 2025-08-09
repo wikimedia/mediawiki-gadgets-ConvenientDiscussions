@@ -57,7 +57,7 @@ import { createSvg, getFooter, wrapHtml } from './utils-window';
  * @typedef {(
  *   & import('./utils-oojs').ControlOptionsBase
  *   & { name: SettingName | 'removeData' }
- *   & { [x: string]: any }
+ *   & AnyByKey
  * )} UiControlData
  */
 
@@ -728,7 +728,7 @@ class Settings {
   /**
    * Get the properties of an object corresponding to settings with an optional prefix.
    *
-   * @param {{ [key: string]: any }} source
+   * @param {AnyByKey} source
    * @param {string} [prefix]
    * @param {Partial<SettingsValues>} [defaults=this.scheme.default]
    * @returns {Partial<SettingsValues>}

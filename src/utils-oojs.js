@@ -158,7 +158,7 @@ import { copyText } from './utils-window';
  * and also a window close by pressing Esc).
  *
  * @param {string|JQuery} message
- * @param {{ [key: string]: any }} [options={}]
+ * @param {AnyByKey} [options={}]
  * @returns {Promise.<'accept' | 'reject' | undefined>} `undefined` is possible when pressing Esc, I
  *   think.
  */
@@ -554,7 +554,7 @@ export function createTitleControl(options) {
  * @param {T} type Control type identifier
  * @param {ControlTypeToWidget[T]} input The input widget
  * @param {GenericFieldOptions} [fieldOptions={}] Configuration for the field layout
- * @param {{ [key: string]: any }} [data={}] Additional data to attach to the control
+ * @param {AnyByKey} [data={}] Additional data to attach to the control
  * @returns {GenericControl<T>}
  */
 export function createGenericControl(type, input, fieldOptions = {}, data = {}) {
@@ -577,11 +577,11 @@ export function createGenericControl(type, input, fieldOptions = {}, data = {}) 
  * @typedef {object} OoJsClassSpecificProps
  * @property {OO.ConstructorLike} [parent] The parent constructor.
  * @property {OO.ConstructorLike} [super] The super constructor.
- * @property {{ [key: string]: any }} static An object containing static properties.
+ * @property {AnyByKey} static An object containing static properties.
  */
 
 /**
- * @typedef {Constructor & OoJsClassSpecificProps & { [key: string]: any }} OoJsClassLike
+ * @typedef {Constructor & OoJsClassSpecificProps & AnyByKey} OoJsClassLike
  */
 
 /**

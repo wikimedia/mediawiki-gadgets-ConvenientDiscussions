@@ -80,7 +80,7 @@ export default {
    * _For internal use._ Setup the TOC data and, for sidebar TOC, update its content. (Executed at
    * every page load.)
    *
-   * @param {{ [key: string]: any }[]} [sections] TOC sections object.
+   * @param {AnyByKey[]} [sections] TOC sections object.
    * @param {boolean} [hideToc] Whether the TOC should be hidden.
    */
   setup(sections, hideToc) {
@@ -499,8 +499,7 @@ export default {
     // Should never be the case
     if (!target) return;
 
-    // Was 6 initially, then became 5, now 4.
-    const itemLimit = 4;
+    const ITEM_LIMIT = 4;
 
     // jQuery is too expensive here given that very many comments may be added.
     const ul = document.createElement('ul');
@@ -509,105 +508,101 @@ export default {
     ul.className = 'getParent' in comments[0] ? 'cd-toc-newCommentList' : 'cd-toc-addedCommentList';
 
     let moreTooltipText = '';
-    comments.forEach(
-      (
-        /** @type {import('./updateChecker').CommentWorkerMatched|Comment} */ comment,
-        /** @type {number} */ i
-      ) => {
-        const parent = 'getParent' in comment ? comment.getParent() : comment.parent;
+    comments.forEach((comment, i) => {
+      const parent = 'getParent' in comment ? comment.getParent() : comment.parent;
 
-        const addAsItem = i < itemLimit - 1 || comments.length === itemLimit;
+      const addAsItem = i < ITEM_LIMIT - 1 || comments.length === ITEM_LIMIT;
 
-        let date;
-        let nativeDate;
-        if (comment.date) {
-          nativeDate = formatDateNative(comment.date);
-          date =
-            addAsItem && settings.get('timestampFormat') !== 'default'
-              ? formatDate(comment.date)
-              : nativeDate;
-        } else {
-          date = cd.s('navpanel-newcomments-unknowndate');
-        }
-
-
-        const dateIfNeeded = settings.get('timestampFormat') === 'default' ? date : '';
-        const text =
-          // Names
-          (
-            parent?.author && comment.level > 1
-              ? cd.s('navpanel-newcomments-names', comment.author.getName(), parent.author.getName())
-              : comment.author.getName()
-          ) +
-
-          // RTL mark if needed
-          (cd.g.contentDirection === 'rtl' ? '\u200f' : '') +
-
-          cd.mws('comma-separator') +
-          dateIfNeeded;
-
-        // If there are itemLimit comments or less, show all of them. If there are more, show
-        // `itemLimit - 1` and "N more". (Because showing `itemLimit - 1` and then "1 more" is
-        // stupid.)
-        if (addAsItem) {
-          const li = document.createElement('li');
-          ul.appendChild(li);
-
-          const a = document.createElement('a');
-          a.href = `#${'dtId' in comment ? comment.dtId : comment.id}`;
-          if (this.isInSidebar()) {
-            a.className = 'vector-toc-link cd-toc-link-sidebar';
-          }
-          a.onclick = this.handleCommentClick.bind(this);
-
-          let timestampSpan;
-          if (settings.get('timestampFormat') !== 'default' && comment.date) {
-            timestampSpan = document.createElement('span');
-            timestampSpan.textContent = date;
-            if (nativeDate) {
-              timestampSpan.title = nativeDate;
-            }
-            new LiveTimestamp(timestampSpan, comment.date, false).init();
-          }
-
-          if (this.isInSidebar()) {
-            const textDiv = document.createElement('div');
-            textDiv.className = 'vector-toc-text cd-toc-commentLinkText-sidebar';
-            textDiv.textContent = text;
-            if (timestampSpan) {
-              textDiv.appendChild(timestampSpan);
-            }
-            a.appendChild(textDiv);
-            li.appendChild(a);
-          } else {
-            const bulletSpan = document.createElement('span');
-            const numberClass = this.isInSidebar() ? 'vector-toc-numb' : 'tocnumber';
-            bulletSpan.className = `${numberClass} cd-toc-bullet`;
-            bulletSpan.innerHTML = cd.sParse('bullet');
-            li.appendChild(bulletSpan);
-
-            const textSpan = document.createElement('span');
-            textSpan.className = 'toctext';
-            a.textContent = text;
-            if (timestampSpan) {
-              a.appendChild(timestampSpan);
-            }
-            textSpan.appendChild(a);
-            li.appendChild(textSpan);
-          }
-        } else {
-          // In a tooltip, always show the date in the default format — we won't be auto-updating
-          // relative dates there due to low benefit.
-          moreTooltipText += text + (dateIfNeeded ? '' : nativeDate) + '\n';
-        }
+      let date;
+      let nativeDate;
+      if (comment.date) {
+        nativeDate = formatDateNative(comment.date);
+        date =
+          addAsItem && settings.get('timestampFormat') !== 'default'
+            ? formatDate(comment.date)
+            : nativeDate;
+      } else {
+        date = cd.s('navpanel-newcomments-unknowndate');
       }
-    );
 
-    if (comments.length > itemLimit) {
+
+      const dateIfNeeded = settings.get('timestampFormat') === 'default' ? date : '';
+      const text =
+        // Names
+        (
+          parent?.author && comment.level > 1
+            ? cd.s('navpanel-newcomments-names', comment.author.getName(), parent.author.getName())
+            : comment.author.getName()
+        ) +
+
+        // RTL mark if needed
+        (cd.g.contentDirection === 'rtl' ? '\u200f' : '') +
+
+        cd.mws('comma-separator') +
+        dateIfNeeded;
+
+      // If there are itemLimit comments or less, show all of them. If there are more, show
+      // `itemLimit - 1` and "N more". (Because showing `itemLimit - 1` and then "1 more" is
+      // stupid.)
+      if (addAsItem) {
+        const li = document.createElement('li');
+        ul.appendChild(li);
+
+        const a = document.createElement('a');
+        const id = 'dtId' in comment ? comment.dtId : comment.id
+        a.href = `#${id}`;
+        if (this.isInSidebar()) {
+          a.className = 'vector-toc-link cd-toc-link-sidebar';
+        }
+        a.onclick = this.handleCommentClick.bind(this);
+
+        let timestampSpan;
+        if (settings.get('timestampFormat') !== 'default' && comment.date) {
+          timestampSpan = document.createElement('span');
+          timestampSpan.textContent = date;
+          if (nativeDate) {
+            timestampSpan.title = nativeDate;
+          }
+          new LiveTimestamp(timestampSpan, comment.date, false).init();
+        }
+
+        if (this.isInSidebar()) {
+          const textDiv = document.createElement('div');
+          textDiv.className = 'vector-toc-text cd-toc-commentLinkText-sidebar';
+          textDiv.textContent = text;
+          if (timestampSpan) {
+            textDiv.appendChild(timestampSpan);
+          }
+          a.appendChild(textDiv);
+          li.appendChild(a);
+        } else {
+          const bulletSpan = document.createElement('span');
+          const numberClass = this.isInSidebar() ? 'vector-toc-numb' : 'tocnumber';
+          bulletSpan.className = `${numberClass} cd-toc-bullet`;
+          bulletSpan.innerHTML = cd.sParse('bullet');
+          li.appendChild(bulletSpan);
+
+          const textSpan = document.createElement('span');
+          textSpan.className = 'toctext';
+          a.textContent = text;
+          if (timestampSpan) {
+            a.appendChild(timestampSpan);
+          }
+          textSpan.appendChild(a);
+          li.appendChild(textSpan);
+        }
+      } else {
+        // In a tooltip, always show the date in the default format — we won't be auto-updating
+        // relative dates there due to low benefit.
+        moreTooltipText += text + (dateIfNeeded ? '' : nativeDate) + '\n';
+      }
+    });
+
+    if (comments.length > ITEM_LIMIT) {
       const span = document.createElement('span');
       span.className = 'cd-toc-more';
       span.title = moreTooltipText.trim();
-      span.textContent = cd.s('toc-more', String(comments.length - (itemLimit - 1)));
+      span.textContent = cd.s('toc-more', String(comments.length - (ITEM_LIMIT - 1)));
 
       const li = document.createElement('li');
       li.appendChild(span);

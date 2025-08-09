@@ -1,6 +1,6 @@
 /**
- * Module that returns the {@link convenientDiscussions} object in the relevant context (window or
- * worker).
+ * Module that returns the {@link convenientDiscussions} object in the context shared between window
+ * or worker).
  *
  * @module cd
  */

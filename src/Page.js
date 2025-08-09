@@ -267,20 +267,20 @@ export default class Page {
    * @param {import('./CommentForm').default} [_] Not used.
    * @param {true} [tolerateMissing=true] Return `null` if the page is missing instead of throwing
    *   an error.
-   * @returns {Promise<?string>} A promise resolving to the wikitext of the page, or `null` if the
-   *   page is missing.
+   * @returns {Promise<PageSource|null>} A promise resolving to the wikitext of the page, or `null`
+   *   if the page is missing.
    *
    * @overload
    * @param {import('./CommentForm').default} [_] Not used.
    * @param {false} tolerateMissing Return `null` if the page is missing instead of throwing an
    *   error.
-   * @returns {Promise<string>} A promise resolving to the wikitext of the page.
+   * @returns {Promise<PageSource>} A promise resolving to the wikitext of the page.
    *
    * @overload
    * @param {import('./CommentForm').default} [_] Not used.
    * @param {boolean} [tolerateMissing=true] Return `null` if the page is missing instead of
    *   throwing an error.
-   * @returns {Promise<string>} A promise resolving to the wikitext of the page.
+   * @returns {Promise<PageSource>} A promise resolving to the wikitext of the page.
    */
 
   /**

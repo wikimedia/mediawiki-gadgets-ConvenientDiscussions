@@ -31,7 +31,7 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
  */
 
 /**
- * @typedef {import('./CommentSource').default|import('./SectionSource').default|import('./PageSource').default} NonNullableSource
+ * @typedef {import('./CommentSource').default|import('./SectionSource').default|import('./PageSource').default} Source
  */
 
 /**
@@ -53,8 +53,8 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
 /**
  * @typedef {object} CommentFormData
  * @property {CommentFormMode} mode
- * @property {{ [key: string]: any }|null} targetData
- * @property {{ [key: string]: any }|undefined} targetWithOutdentedRepliesData
+ * @property {AnyByKey|null} targetData
+ * @property {AnyByKey|undefined} targetWithOutdentedRepliesData
  * @property {PreloadConfig} preloadConfig
  * @property {boolean|undefined} newTopicOnTop
  * @property {string|undefined} headline
@@ -383,10 +383,14 @@ class CommentForm extends EventEmitter {
   containerListType = null;
 
   /**
+   * @typedef {Promise<import('./CommentSource').default|import('./SectionSource').default|import('./PageSource').default|null|void>} CheckCodeRequest
+   */
+
+  /**
    * Request to test if a comment or section exists in the code made by
    * {@link CommentForm#checkCode}.
    *
-   * @type {Promise|undefined}
+   * @type {CheckCodeRequest|undefined}
    * @private
    */
   checkCodeRequest;
@@ -1417,7 +1421,7 @@ class CommentForm extends EventEmitter {
   /**
    * Test if a target comment or section exists in the wikitext.
    *
-   * @returns {Promise<import('./CommentSource').default|import('./SectionSource').default|import('./PageSource').default>}
+   * @returns {CheckCodeRequest}
    * @private
    */
   checkCode() {
@@ -1436,7 +1440,7 @@ class CommentForm extends EventEmitter {
       });
     }
 
-    return this.checkCodeRequest;
+    return /** @type {NonNullable<typeof this.checkCodeRequest>} */ (this.checkCodeRequest);
   }
 
   /**
@@ -1511,7 +1515,8 @@ class CommentForm extends EventEmitter {
     if (!preloadPage) return;
 
     try {
-      let code = await preloadPage.loadCode();
+      const source = await preloadPage.loadCode();
+      let code = source?.code;
       if (!code) return;
 
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -1553,10 +1558,11 @@ class CommentForm extends EventEmitter {
     } catch (error) {
       if (error instanceof CdError) {
         this.handleError(
-          Object.assign({}, error.data, {
+          {
+            ...error.data,
             cancel: true,
             operation,
-          })
+          }
         );
       } else {
         this.handleError({
@@ -2464,15 +2470,15 @@ class CommentForm extends EventEmitter {
 
   /**
    * @typedef {object} HandleErrorOptions
-   * @property {CdError} options.error
    * @property {import('./shared/CdError').ErrorType} options.type Error type.
+   * @property {CdError} [options.error]
    * @property {string} [options.code] Code of the error. (Either `code`, `apiResponse`, or
    *   `message` should be specified.)
    * @property {{ [x: string]: any }} [options.details] Additional details about the error.
    * @property {ApiAnyResponse} [options.apiResponse] Data object received from the MediaWiki
    *   server. (Either `code`, `apiResponse`, or `message` should be specified.)
-   * @property {string} [options.message] Text of the error. (Either `code`, `apiResponse`, or
-   *   `message` should be specified.)
+   * @property {string | JQuery} [options.message] Text of the error. (Either `code`, `apiResponse`,
+   *   or `message` should be specified.)
    * @property {'error' | 'notice' | 'warning'} [options.messageType='error'] Message type if not
    *   `'error'`.
    * @property {any} [options.logMessage] Data or text to display in the browser console.
@@ -2495,6 +2501,7 @@ class CommentForm extends EventEmitter {
     type,
     code,
     details,
+    apiResponse,
     message,
     messageType = 'error',
     logMessage,
@@ -2502,8 +2509,9 @@ class CommentForm extends EventEmitter {
     isRawMessage = false,
     operation,
   }) {
+    message = (error ? error.getMessage() : message) || '';
     let /** @type {JQuery|undefined} */ $message;
-    switch (type) {
+    switch (error.getType()) {
       case 'parse': {
         const editUrl = cd.g.server + cd.page.getUrl({ action: 'edit' });
         switch (error.getCode()) {
@@ -2538,7 +2546,7 @@ class CommentForm extends EventEmitter {
           case 'commentLinks-commentNotFound':
             message = cd.sParse(
               'cf-error-commentlinks-commentnotfound',
-              /** @type {{ id: string }} */ (details).id
+              /** @type {{ id: string }} */ (error.getDetails()).id
             );
             break;
         }
@@ -2554,7 +2562,7 @@ class CommentForm extends EventEmitter {
           }
         }
 
-        logMessage ||= [code, error.getApiResponse()];
+        logMessage ||= error;
         break;
       }
 
@@ -2567,13 +2575,13 @@ class CommentForm extends EventEmitter {
             message = error.getHtml();
         }
 
-        logMessage ||= [code, error.getApiResponse()];
+        logMessage ||= error;
         break;
       }
 
       case 'network':
       case 'javascript': {
-        message = (message ? message + ' ' : '') + cd.sParse(`error-${type}`);
+        message = message + ' ' + cd.sParse(`error-${error.getType()}`);
         break;
       }
     }
@@ -2684,7 +2692,7 @@ class CommentForm extends EventEmitter {
    *       contextCode: string;
    *       commentCode?: string;
    *     }
-   *   | undefined
+   *   | void
    * >}
    * @private
    */
@@ -2723,12 +2731,11 @@ class CommentForm extends EventEmitter {
       }
     }
 
+    /** @type {string} */
     let contextCode;
     let commentCode;
     try {
-      ({ contextCode, commentCode } = /** @type {NonNullableSource} */ (
-        this.target.source
-      ).modifyContext({
+      ({ contextCode, commentCode } = /** @type {Source} */ (this.target.source).modifyContext({
         // Ugly solution to avoid overcomplication of code: for replies, we need to get
         // CommentSource#isReplyOutdented set for `action === 'reply'` which we don't have so far.
         // So let CommentSource#modifyContext() compute it. In the rest of cases just get the
@@ -2819,6 +2826,7 @@ class CommentForm extends EventEmitter {
       (!this.autopreview && (isAuto || this.isBeingSubmitted()))
     ) {
       operation?.close();
+
       return;
     }
 
@@ -2841,6 +2849,7 @@ class CommentForm extends EventEmitter {
               this.preview(true, operation);
             }, isTooEarly ? 1000 - (Date.now() - lastPreviewTimestamp) : 100);
           }
+
           return;
         }
       }
@@ -2877,12 +2886,11 @@ class CommentForm extends EventEmitter {
       }));
     } catch (error) {
       if (error instanceof CdError) {
-        this.handleError(
-          Object.assign({}, error.data, {
-            message: cd.sParse('cf-error-preview'),
-            operation,
-          })
-        );
+        this.handleError({
+          ...error.data,
+          message: cd.sParse('cf-error-preview'),
+          operation,
+        });
       } else {
         this.handleError({
           type: 'javascript',
@@ -2969,7 +2977,7 @@ class CommentForm extends EventEmitter {
     const operation = this.operations.add('viewChanges');
 
     const { contextCode } = await this.buildSource('viewChanges', operation) || {};
-    if (operation.isClosed()) return;
+    if (contextCode === undefined) return;
 
     mw.loader.load('mediawiki.diff.styles');
 
@@ -3222,6 +3230,7 @@ class CommentForm extends EventEmitter {
           /** @type {'notice' | undefined} */
           let messageType;
           const code = error.getCode();
+          /** @type {string | JQuery | undefined} */
           let message = error.getMessage();
           let { isRawMessage, logMessage } = details;
           if (code === 'editconflict') {
@@ -3273,11 +3282,11 @@ class CommentForm extends EventEmitter {
    * Subscribe and unsubscribe from topics.
    *
    * @param {string} editTimestamp
-   * @param {string} commentCode
    * @param {import('./BootProcess').PassedData} bootData
+   * @param {string|undefined} commentCode
    * @private
    */
-  updateSubscriptionStatus(editTimestamp, commentCode, bootData) {
+  updateSubscriptionStatus(editTimestamp, bootData, commentCode) {
     if (!this.subscribeCheckbox) return;
 
     if (this.subscribeCheckbox.isSelected()) {
@@ -3294,7 +3303,7 @@ class CommentForm extends EventEmitter {
       ) {
         let rawHeadline = this.headlineInput?.getValue().trim();
         if (!rawHeadline && !this.isSectionOpeningCommentEdited()) {
-          [, rawHeadline] = commentCode.match(/^==(.*?)==[ \t]*$/m) || [];
+          [, rawHeadline] = /** @type {string} */ (commentCode).match(/^==(.*?)==[ \t]*$/m) || [];
         }
         const headline = rawHeadline && removeWikiMarkup(rawHeadline);
 
@@ -3391,7 +3400,7 @@ class CommentForm extends EventEmitter {
     const operation = this.operations.add('submit', undefined, clearMessages);
 
     const { contextCode, commentCode } = await this.buildSource('submit', operation) || {};
-    if (operation.isClosed()) return;
+    if (contextCode === undefined) return;
 
     const editTimestamp = await this.editPage(contextCode, operation, suppressTag);
 
@@ -3406,7 +3415,7 @@ class CommentForm extends EventEmitter {
       submittedCommentForm: this,
     });
 
-    this.updateSubscriptionStatus(editTimestamp, commentCode, bootData);
+    this.updateSubscriptionStatus(editTimestamp, bootData, commentCode);
 
     if (this.watchCheckbox?.isSelected() && $('#ca-watch').length) {
       $('#ca-watch')
@@ -4466,7 +4475,7 @@ class CommentForm extends EventEmitter {
    * @param {import('./CommentForm').CommentFormMode} mode
    */
   static forgetOnTarget(target, mode) {
-    delete target[this.getPropertyNameOnTarget(target, mode)];
+    delete target[/** @type {keyof typeof target} */ (this.getPropertyNameOnTarget(target, mode))];
   }
 }
 

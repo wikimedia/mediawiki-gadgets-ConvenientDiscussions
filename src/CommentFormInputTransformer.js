@@ -1,6 +1,7 @@
-import CdError from './shared/CdError';
 import TextMasker from './TextMasker';
+import CdError from './shared/CdError';
 import cd from './shared/cd';
+import { isKeyOf } from './shared/utils-general';
 import { escapePipesOutsideLinks, generateTagsRegexp } from './shared/utils-wikitext';
 
 /**
@@ -12,7 +13,7 @@ import { escapePipesOutsideLinks, generateTagsRegexp } from './shared/utils-wiki
 class CommentFormInputTransformer extends TextMasker {
   /**
    * @typedef {object} CommentFormTargetExtension
-   * @property {import('./CommentForm').NonNullableSource} source When
+   * @property {import('./CommentForm').Source} source When
    *   {@link CommentFormInputTransformer} is instantiated, `source` is never `null`.
    */
 
@@ -641,6 +642,12 @@ class CommentFormInputTransformer extends TextMasker {
    * @private
    */
   static linesToLists(lines, areItems = false) {
+    /**
+     * @typedef {object} AccumulatedList
+     * @property {Item[]} items
+     * @property {ListType | undefined} [type]
+     */
+    /** @type {AccumulatedList} */
     let accumulatedList = { items: /** @type {Item[]} */ ([]) };
     for (let i = 0; i <= lines.length; i++) {
       if (i === lines.length) {
@@ -651,13 +658,14 @@ class CommentFormInputTransformer extends TextMasker {
       } else {
         const text = lines[i].text;
         const firstChar = text[0] || '';
-        const listType = /** @type {ListType|undefined} */ (this.listTags[firstChar]);
+        const listType = isKeyOf(firstChar, this.listTags) ? this.listTags[firstChar] : undefined;
         if (
           this.isList(accumulatedList) &&
 
           // Met another list markup, so finalize the currently accumulated one.
           listType !== accumulatedList.type
         ) {
+          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
           const itemsCount = accumulatedList.items.length;
           this.linesToList(lines, i, accumulatedList, areItems);
 
@@ -669,14 +677,14 @@ class CommentFormInputTransformer extends TextMasker {
           // Start accumulating a list.
           accumulatedList.type = listType;
           accumulatedList.items.push({
-            type: this.itemTags[firstChar],
+            type: this.itemTags[/** @type {keyof typeof this.itemTags} */ (firstChar)],
             text: text.slice(1),
           });
         }
       }
     }
 
-    return /** @type {Array<Line|List>} */ (lines);
+    return /** @type {(Line | List)[]} */ (lines);
   }
 
   /**
@@ -722,7 +730,7 @@ class CommentFormInputTransformer extends TextMasker {
   /**
    * Convert an array of line and list objects to a string with HTML tags.
    *
-   * @param {Array<Line|List>} linesAndLists
+   * @param {(Line | List)[]} linesAndLists
    * @param {boolean} [areItems=false]
    * @returns {string}
    * @private

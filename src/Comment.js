@@ -67,12 +67,12 @@ import { createSvg, extractSignatures, getExtendedRect, getHigherNodeAndOffsetIn
  */
 
 /**
- * @typedef {RemoveMethods<import('./shared/SectionSkeleton').default<Node>>} SectionBase
+ * @typedef {RemoveMethods<import('./shared/SectionSkeleton').default<AnyNode>>} SectionBase
  */
 
 /**
  * @typedef {Omit<
- *   RemoveMethods<import('./shared/CommentSkeleton').default<Node>>,
+ *   RemoveMethods<import('./shared/CommentSkeleton').default<AnyNode>>,
  *   'children' | 'previousComments'
  * >} CommentBase
  */
@@ -4010,7 +4010,7 @@ class Comment extends CommentSkeleton {
    * Get the data identifying the comment when restoring a comment form. (Used for polymorphism with
    * {@link Section#getIdentifyingData} and {@link Page#getIdentifyingData}.)
    *
-   * @returns {{ [key: string]: any }}
+   * @returns {AnyByKey}
    */
   getIdentifyingData() {
     return { id: this.id };

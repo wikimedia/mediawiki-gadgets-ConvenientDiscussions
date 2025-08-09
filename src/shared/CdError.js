@@ -32,7 +32,7 @@
  * @typedef {object} ErrorDataBase
  * @property {ErrorType} [type='internal']
  * @property {string} [code]
- * @property {{ [x: string]: any }} [details]
+ * @property {AnyByKey} [details]
  * @property {string} [message]
  */
 
