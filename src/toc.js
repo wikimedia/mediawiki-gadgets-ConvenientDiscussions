@@ -49,7 +49,6 @@ class Toc {
   /** @type {(() => void) | undefined} */
   resolveUpdateTocSectionsPromise;
 
-
   /**
    * _For internal use._ Initialize the TOC. (Executed only once.)
    *
@@ -134,12 +133,10 @@ class Toc {
    * Get a TOC item by ID.
    *
    * @param {string} id
-   * @returns {TocItem | null}
+   * @returns {TocItem | undefined}
    */
   getItem(id) {
-    if (!this.isPresent()) {
-      return null;
-    }
+    if (!this.isPresent()) return;
 
     if (!this.items) {
       try {
@@ -157,7 +154,7 @@ class Toc {
       }
     }
 
-    return this.items.find((item) => item.id === id) || null;
+    return this.items.find((item) => item.id === id);
   }
 
   /**
@@ -244,7 +241,7 @@ class Toc {
    * Add a collapse/expand toggle to a 2-level section.
    *
    * @param {Element} ul
-   * @param {object} upperLevelMatch
+   * @param {TocItemShort} upperLevelMatch
    * @param {string[]} newSectionTocIds
    * @private
    */
@@ -269,7 +266,7 @@ class Toc {
 
     // If this section was previously added by us, the TOC will remember its state and try to
     // switch it on click, so we need to click again to get it back.
-    if (newSectionTocIds.includes(upperLevelMatch.$element.attr('id'))) {
+    if (newSectionTocIds.includes(upperLevelMatch.$element.attr('id') || '')) {
       button.click();
     }
   }

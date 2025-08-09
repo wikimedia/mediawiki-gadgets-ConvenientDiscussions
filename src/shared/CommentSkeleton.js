@@ -904,17 +904,17 @@ class CommentSkeleton {
    */
   wrapInlineParts() {
     const sequencesToBeEnclosed = [];
-    let start = null;
+    let start = undefined;
     let encloseThis = false;
     for (let i = 0; i <= this.parts.length; i++) {
       const part = this.parts[i];
       if (
         part &&
-        (start === null || (['back', 'start'].includes(part.step))) &&
+        (start === undefined || (['back', 'start'].includes(part.step))) &&
         !part.hasForeignComponents &&
         !part.isHeading
       ) {
-        if (start === null) {
+        if (start === undefined) {
           // Don't enclose nodes whose parent is an inline element.
           if (isInline(/** @type {ElementFor<N>} */ (part.node.parentElement))) {
             for (let j = i + 1; j < this.parts.length; j++) {
@@ -941,11 +941,11 @@ class CommentSkeleton {
           encloseThis = true;
         }
       } else {
-        if (start !== null) {
+        if (start !== undefined) {
           if (encloseThis) {
             sequencesToBeEnclosed.push({ start, end: i - 1 });
           }
-          start = null;
+          start = undefined;
           encloseThis = false;
         }
       }

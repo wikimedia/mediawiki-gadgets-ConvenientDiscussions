@@ -7,7 +7,7 @@ import cd from './cd';
 import debug from './debug';
 import pageRegistry from './pageRegistry';
 import settings from './settings';
-import { defined, getContentLanguageMessages, getQueryParamBooleanValue, isProbablyTalkPage, sleep, unique } from './shared/utils-general';
+import { defined, getContentLanguageMessages, getQueryParamBooleanValue, isKeyOf, isProbablyTalkPage, sleep, unique } from './shared/utils-general';
 import { dateTokenToMessageNames } from './shared/utils-timestamp';
 import userRegistry from './userRegistry';
 import { getUserInfo, splitIntoBatches } from './utils-api';
@@ -548,9 +548,9 @@ class BootController {
    */
   initFormats() {
     const getFallbackLanguage = (/** @type {string} */ lang) =>
-      (/** @type {LanguageFallbacks} */ (languageFallbacks)[lang] || []).find(
-        (fallback) => fallback in dateFormats
-      ) || 'en';
+      isKeyOf(lang, languageFallbacks)
+        ? languageFallbacks[lang].find((fallback) => isKeyOf(fallback, dateFormats))
+        : 'en';
     const languageOrFallback = (/** @type {string} */ lang) =>
       lang in dateFormats ? lang : getFallbackLanguage(lang);
 
@@ -897,9 +897,11 @@ class BootController {
       cd.g.uiTimestampMatchingGroups = this.getMatchingGroups(cd.g.uiDateFormat);
     }
 
+    // See https://www.mediawiki.org/wiki/Manual:Timezone#Timecorrection for the format of
+    // `timecorrection`
     const timezoneParts = mw.user.options.get('timecorrection')?.split('|');
 
-    cd.g.uiTimezone = ((timezoneParts && timezoneParts[2]) || Number(timezoneParts[1])) ?? null;
+    cd.g.uiTimezone = (timezoneParts?.[2] || Number(timezoneParts[1])) ?? undefined;
     if (cd.g.uiTimezone === 0) {
       cd.g.uiTimezone = 'UTC';
     }
