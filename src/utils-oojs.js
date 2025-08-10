@@ -206,7 +206,7 @@ export async function showConfirmDialog(message, options = {}) {
 /**
  * @typedef {ControlOptionsBase & {
  *   value: string;
- *   copyCallback: (successful: boolean, field: OO.ui.CopyTextLayout | OO.ui.ActionFieldLayout) => void;
+ *   copyCallback: (successful: boolean, input: OO.ui.TextInputWidget) => void;
  * }} CopyTextControlOptions
  */
 
@@ -415,11 +415,10 @@ export function createCopyTextControl({
       helpInline: Boolean(help),
     });
     field.on('copy', (successful) => {
-      copyCallback(successful, field);
+      copyCallback(successful, field.textInput);
     });
-    const input = field.textInput;
 
-    return { type: 'copyText', field, input };
+    return { type: 'copyText', field, input: field.textInput };
   } else {
     // MediaWiki versions before 1.34 do not have CopyTextLayout, so we use ActionFieldLayout
     // instead
@@ -430,16 +429,19 @@ export function createCopyTextControl({
       disabled,
     });
     button.on('click', () => {
-      copyCallback(copyText(input.getValue()), field);
-    });
-    const field = new OO.ui.ActionFieldLayout(input, button, {
-      align: 'top',
-      label,
-      help,
-      helpInline: Boolean(help),
+      copyCallback(copyText(input.getValue()), input);
     });
 
-    return { type: 'copyText', field, input };
+    return {
+      type: 'copyText',
+      field: new OO.ui.ActionFieldLayout(input, button, {
+        align: 'top',
+        label,
+        help,
+        helpInline: Boolean(help),
+      }),
+      input,
+    };
   }
 }
 

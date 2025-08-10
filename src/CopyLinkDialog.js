@@ -5,6 +5,22 @@ import { createCopyTextControl, es6ClassToOoJsClass } from './utils-oojs';
 import { mergeJquery, wrapHtml } from './utils-window';
 
 /**
+ * @typedef {object} CopyLinkDialogContent
+ * @property {object} copyMessages
+ * @property {string} copyMessages.success
+ * @property {string} copyMessages.fail
+ * @property {string | undefined} fragment
+ * @property {string} wikilink
+ * @property {string} currentPageWikilink
+ * @property {string} permanentWikilink
+ * @property {string} link
+ * @property {string} permanentLink
+ * @property {string} jsCall
+ * @property {string} jsBreakpoint
+ * @property {string | undefined} jsBreakpointTimestamp
+ */
+
+/**
  * Class used to create a "Copy link" dialog.
  *
  * @augments OO.ui.MessageDialog
@@ -58,7 +74,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
    * Create a "Copy link" dialog.
    *
    * @param {T} object
-   * @param {object} content
+   * @param {CopyLinkDialogContent} content
    */
   constructor(object, content) {
     super({
@@ -187,10 +203,10 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
    * Callback for copying text.
    *
    * @param {boolean} successful
-   * @param {OO.ui.CopyTextLayout} field
+   * @param {OO.ui.TextInputWidget} input
    * @protected
    */
-  async copyCallback(successful, field) {
+  copyCallback = (successful, input) => {
     if (successful) {
       mw.notify(this.content.copyMessages.success);
     } else {
@@ -198,10 +214,18 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
     }
 
     // Make external tools that react to text selection quiet
-    field.textInput.selectRange(0);
+    input.selectRange(0);
 
     this.close();
-  }
+  };
+
+  /**
+   * @typedef {object} DiffPanelContent
+   * @property {string} diffStandard
+   * @property {string} diffShort
+   * @property {string} diffWikilink
+   * @property {JQuery} $diffView
+   */
 
   /**
    * Create the "Diff" panel in the dialog.
@@ -216,29 +240,32 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
 
     let errorText;
     try {
-      this.diffStandard = await this.object.getDiffLink('standard');
-      this.diffShort = await this.object.getDiffLink('short');
-      this.diffWikilink = await this.object.getDiffLink('wikilink');
-      this.$diffView = await this.object.generateDiffView();
+      /** @type {DiffPanelContent} */
+      const diffPanelContent = {
+        diffStandard: await this.object.getDiffLink('standard'),
+        diffShort: await this.object.getDiffLink('short'),
+        diffWikilink: await this.object.getDiffLink('wikilink'),
+        $diffView: await this.object.generateDiffView(),
+      };
 
       await mw.loader.using(['mediawiki.diff', 'mediawiki.diff.styles']);
 
       this.diffPanel = new OO.ui.PanelLayout({
-        $content: this.createDiffPanelContent(),
+        $content: this.createDiffPanelContent(diffPanelContent),
         padded: false,
         expanded: false,
         scrollable: true,
       });
       this.contentStack.addItems([this.diffPanel]);
       this.readyDeferred.then(() => {
-        mw.hook('wikipage.content').fire(this.content.$diffView);
+        mw.hook('wikipage.content').fire(diffPanelContent.$diffView);
       });
     } catch (error) {
       if (error instanceof CdError) {
         const { type } = error.data;
-        errorText = type === 'network' ?
-          cd.s('cld-diff-error-network') :
-          cd.s('cld-diff-error');
+        errorText = type === 'network'
+          ? cd.s('cld-diff-error-network')
+          : cd.s('cld-diff-error');
       } else {
         errorText = cd.s('cld-diff-error-unknown');
         console.warn(error);
@@ -264,7 +291,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
       helpNotOnlyCd = wrapHtml(cd.sParse('cld-help-notonlycd'));
     }
 
-    const copyCallback = this.copyCallback.bind(this);
+    const copyCallback = this.copyCallback;
 
     this.controls.wikilink = createCopyTextControl({
       value: this.content.wikilink,
@@ -315,7 +342,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
         copyCallback,
       });
 
-      if (this.isComment()) {
+      if (this.content.jsBreakpointTimestamp) {
         this.controls.jsBreakpointTimestamp = createCopyTextControl({
           value: this.content.jsBreakpointTimestamp,
           label: 'JS conditional breakpoint (timestamp)',
@@ -339,29 +366,30 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
   /**
    * Create the content of the "Diff" panel in the dialog.
    *
+   * @param {DiffPanelContent} diffPanelContent
    * @returns {JQuery}
    * @protected
    */
-  createDiffPanelContent() {
-    const copyCallback = this.copyCallback.bind(this);
+  createDiffPanelContent(diffPanelContent) {
+    const copyCallback = this.copyCallback;
 
     this.standard = createCopyTextControl({
-      value: this.content.diffStandard,
-      disabled: !this.content.diffStandard,
+      value: diffPanelContent.diffStandard,
+      disabled: !diffPanelContent.diffStandard,
       label: cd.s('cld-diff'),
       copyCallback,
     });
 
     this.short = createCopyTextControl({
-      value: this.content.diffShort,
-      disabled: !this.content.diffShort,
+      value: diffPanelContent.diffShort,
+      disabled: !diffPanelContent.diffShort,
       label: cd.s('cld-shortdiff'),
       copyCallback,
     });
 
     this.wikilink = createCopyTextControl({
-      value: this.content.diffWikilink,
-      disabled: !this.content.diffWikilink,
+      value: diffPanelContent.diffWikilink,
+      disabled: !diffPanelContent.diffWikilink,
       label: cd.s('cld-diffwikilink'),
       copyCallback,
     });
@@ -370,7 +398,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
       this.controls.standard.field.$element,
       this.controls.short.field.$element,
       this.controls.wikilink.field.$element,
-      this.content.$diffView,
+      diffPanelContent.$diffView,
     );
   }
 }

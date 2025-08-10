@@ -805,25 +805,27 @@ class TalkPageController extends EventEmitter {
     if (!$content.is('#mw-content-text, .cd-commentForm-previewArea')) return;
 
     const goToCommentUrl = mw.util.getUrl('Special:GoToComment/');
-    const extractCommentId = (/** @type {HTMLAnchorElement} */ el) =>
+    const extractCommentId = (/** @type {HTMLElement} */ el) =>
       /** @type {string} */ ($(el).attr('href'))
       .replace(mw.util.escapeRegExp(goToCommentUrl), '#')
       .slice(1);
     $content
       .find(`a[href^="#"], a[href^="${goToCommentUrl}"]`)
-      .filter((_, /** @type {HTMLAnchorElement} */ el) =>
+      .filter((_, el) =>
         Boolean(
           // `onclick` and `cdCallback` may be added by us in other places
           !el.onclick && !el.cdCallback && commentRegistry.getByAnyId(extractCommentId(el), true)
         )
       )
       // eslint-disable-next-line jsdoc/require-param
-      .on('click', /** @this {HTMLAnchorElement} */ function (event) {
+      .on('click', function (event) {
         event.preventDefault();
-        commentRegistry.getByAnyId(extractCommentId(this), true)?.scrollTo({
-          expandThreads: true,
-          pushState: true,
-        });
+        commentRegistry
+          .getByAnyId(extractCommentId(this), true)
+          ?.scrollTo({
+            expandThreads: true,
+            pushState: true,
+          });
       });
   }
 
@@ -978,11 +980,13 @@ class TalkPageController extends EventEmitter {
       mw.config.get('wgFormattedNamespaces')[-1] +
       ':' +
       (
-        object.isComment() ?
-          'GoToComment/' :
-          cd.g.specialPageAliases.PermanentLink[0] + '/' + mw.config.get('wgRevisionId') + '#'
+        object.isComment()
+          ? 'GoToComment/'
+          : cd.g.specialPageAliases.PermanentLink[0] + '/' + mw.config.get('wgRevisionId') + '#'
       )
     );
+
+    /** @type {import('./CopyLinkDialog').CopyLinkDialogContent} */
     const content = {
       copyMessages: {
         success: cd.s('copylink-copied'),
@@ -1006,15 +1010,15 @@ class TalkPageController extends EventEmitter {
         `let c = convenientDiscussions.api.getCommentById('${object.id}');` :
         `let s = convenientDiscussions.api.getSectionById('${object.id}');`,
       jsBreakpoint: `this.id === '${object.id}'`,
-      jsBreakpointTimestamp: object.isComment() ?
-        `timestamp.element.textContent === '${object.timestampText}'` :
-        undefined,
+      jsBreakpointTimestamp: object.isComment()
+        ? `timestamp.element.textContent === '${object.timestampText}'`
+        : undefined,
     };
 
     // Undocumented feature allowing to copy a link of a default type without opening a dialog.
-    const relevantSetting = object.isComment() ?
-      settings.get('defaultCommentLinkType') :
-      settings.get('defaultSectionLinkType');
+    const relevantSetting = object.isComment()
+      ? settings.get('defaultCommentLinkType')
+      : settings.get('defaultSectionLinkType');
     if (!event.shiftKey && relevantSetting) {
       switch (relevantSetting) {
         case 'wikilink':

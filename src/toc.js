@@ -278,7 +278,7 @@ class Toc {
    * @param {import('./updateChecker').SectionWorkerMatched} section
    * @param {TocItemShort[]} currentTree
    * @param {JQuery} $topUl
-   * @param {string[]} newSectionTocIds
+   * @param {string[]} [newSectionTocIds]
    * @private
    */
   addNewSection(section, currentTree, $topUl, newSectionTocIds) {
@@ -345,7 +345,11 @@ class Toc {
         ) {
           // Ideally, it should also be removed when an added subsection is removed, but really not
           // important.
-          this.addToggleToSidebarToc(ul, upperLevelMatch, newSectionTocIds);
+          this.addToggleToSidebarToc(
+            ul,
+            upperLevelMatch,
+            /** @type {string[]} */ (newSectionTocIds)
+          );
         }
 
         upperLevelMatch.$element.append(ul);
@@ -432,6 +436,7 @@ class Toc {
         : 1;
     });
 
+    /** @type {TocItemShort[]} */
     const currentTree = [];
     const $topUl = this.$element.children('ul');
     sections.forEach((section) => {
@@ -457,12 +462,15 @@ class Toc {
     if ('getTocItem' in section) {
       $target = section.getTocItem()?.$link;
     } else {
+      /** @type {JQuery | undefined} */
       let $sectionLink;
       if (section.match) {
         $sectionLink = section.match.getTocItem()?.$link;
       } else {
         const id = CSS.escape(section.id);
-        $sectionLink = this.$element.find(`.cd-toc-addedSection a[href="#${id}"]`);
+        $sectionLink = /** @type {JQuery} */ (this.$element).find(
+          `.cd-toc-addedSection a[href="#${id}"]`
+        );
       }
 
       if ($sectionLink?.length) {
@@ -511,7 +519,7 @@ class Toc {
    * @template {boolean} Rendered
    * @param {Rendered extends true ? import('./Comment').default[] : import('./updateChecker').CommentWorkerMatched[]} comments
    *   Comment list.
-   * @param {Element} target Target element.
+   * @param {Element} [target] Target element.
    * @private
    */
   addCommentList(comments, target) {
@@ -689,6 +697,7 @@ class Toc {
     if (this.floating === undefined) {
       this.floating = Boolean(
         !this.isInSidebar() &&
+        this.isPresent() &&
         this.$element.closest($(talkPageController.getFloatingElements())).length
       );
     }

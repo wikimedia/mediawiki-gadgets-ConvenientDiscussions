@@ -2,16 +2,16 @@
  * Class for storing prototypes - skeletons/drafts of elements to be cloned instead of creating a
  * new one from scratch (which is often expensive).
  *
- * @template {{ [id: string]: Element }} T List of prototype IDs.
+ * @template {{ [id: string]: Element }} Ids List of prototype IDs.
  */
 class PrototypeRegistry {
-  elements = /** @type {T} */ ({});
+  elements = /** @type {Ids} */ ({});
 
   /**
    * Register a prototype.
    *
-   * @param {keyof T} id
-   * @param {T[keyof T]} prototype
+   * @param {keyof Ids} id
+   * @param {Ids[keyof Ids]} prototype
    */
   add(id, prototype) {
     this.elements[id] = prototype;
@@ -20,11 +20,12 @@ class PrototypeRegistry {
   /**
    * Get a prototype or an instance of a widget.
    *
-   * @param {keyof T} id
-   * @returns {T[keyof T]}
+   * @template {keyof Ids} T
+   * @param {T} id
+   * @returns {Ids[T]}
    */
   get(id) {
-    return /** @type {T[keyof T]}} */ (this.elements[id].cloneNode(true));
+    return /** @type {Ids[T]}} */ (this.elements[id].cloneNode(true));
   }
 }
 
