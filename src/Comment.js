@@ -4017,10 +4017,10 @@ class Comment extends CommentSkeleton {
   /**
    * Get the fragment for use in a comment wikilink.
    *
-   * @returns {?string}
+   * @returns {string | undefined}
    */
   getWikilinkFragment() {
-    return this.dtId || this.id || null;
+    return this.dtId || this.id;
   }
 
   /**
