@@ -31,7 +31,7 @@ class Thread extends mixInObject(
   /**
    * Click area of the thread line.
    *
-   * @type {?HTMLElement}
+   * @type {HTMLElement | undefined}
    * @private
    */
   clickArea;
@@ -39,7 +39,7 @@ class Thread extends mixInObject(
   /**
    * Thread line.
    *
-   * @type {?HTMLElement}
+   * @type {HTMLElement | undefined}
    * @private
    */
   line;
@@ -48,16 +48,24 @@ class Thread extends mixInObject(
    * Note in place of a collapsed thread that has a button to expand the thread.
    *
    * @private
-   * @type {?HTMLElement}
+   * @type {HTMLElement | undefined}
    */
-  expandNote = null;
+  expandNote;
+
+  /**
+   * `<ul>` element that contains the expand note.
+   *
+   * @private
+   * @type {HTMLUListElement | undefined}
+   */
+  expandNoteContainer;
 
   /**
    * Note in place of a collapsed thread that has a button to expand the thread.
    *
-   * @type {?JQuery}
+   * @type {JQuery | undefined}
    */
-  $expandNote = null;
+  $expandNote;
 
   /**
    * Top element of the thread.
@@ -413,7 +421,7 @@ class Thread extends mixInObject(
    * Has the mouse moved enough to consider it a navigation gesture and not a click with an
    * insignificant mouse movement between pressing and releasing a button.
    *
-   * @param {JQuery.MouseMoveEvent} event
+   * @param {MouseEvent | JQuery.MouseMoveEvent} event
    * @returns {boolean}
    */
   hasMouseMoved(event) {
@@ -440,6 +448,8 @@ class Thread extends mixInObject(
 
     delete this.navScrolledTo;
     this.navDeltaForDelta = 0;
+
+    /** @type {number} */
     this.navCurrentThreadEscapeDirection = 0;
 
     $(document)
@@ -478,6 +488,8 @@ class Thread extends mixInObject(
       target.scrollTo({
         alignment: target.logicalLevel === this.rootComment.logicalLevel ? 'top' : 'bottom',
       });
+
+      /** @type {import('./Comment').default} */
       this.navScrolledTo = target;
     }
   };
@@ -560,7 +572,11 @@ class Thread extends mixInObject(
 
     const steps =
       direction *
-      Math[direction === -this.navCurrentThreadEscapeDirection ? 'ceil' : 'floor'](absoluteSteps);
+      Math[
+        direction === -(/** @type {number} */ (this.navCurrentThreadEscapeDirection))
+          ? 'ceil'
+          : 'floor'
+      ](absoluteSteps);
     const comments = commentRegistry.getAll();
     let target = this.rootComment;
     for (
@@ -803,10 +819,15 @@ class Thread extends mixInObject(
       button.element.classList.remove('cd-thread-button-invisible');
     };
     if (cd.g.genderAffectsUserString) {
-      (loadUserGendersPromise || loadUserGenders(usersInThread)).then(setLabel, () => {
-        // Couldn't get the gender, use the genderless version.
-        setLabel(true);
-      });
+      (loadUserGendersPromise || loadUserGenders(usersInThread)).then(
+        () => {
+          setLabel();
+        },
+        () => {
+          // Couldn't get the gender, use the genderless version.
+          setLabel(true);
+        }
+      );
     } else {
       setLabel();
     }
@@ -831,19 +852,7 @@ class Thread extends mixInObject(
       firstElement.before(expandNote);
     }
 
-    /**
-     * Note in place of a collapsed thread that has a button to expand the thread.
-     *
-     * @type {?HTMLElement}
-     * @private
-     */
     this.expandNote = expandNote;
-
-    /**
-     * Note in place of a collapsed thread that has a button to expand the thread.
-     *
-     * @type {?JQuery}
-     */
     this.$expandNote = $(expandNote);
   }
 
@@ -953,10 +962,11 @@ class Thread extends mixInObject(
     }
 
     if (this.rootComment.isOpeningSection) {
-      /** @type {import('./Section').default} */ (this.rootComment.section).actions.moreMenuSelect
-        ?.getMenu()
-        .findItemFromData('editOpeningComment')
-        ?.setDisabled(true);
+      /** @type {OO.ui.MenuOptionWidget} */ (
+        /** @type {import('./Section').default} */ (this.rootComment.section).actions.moreMenuSelect
+          ?.getMenu()
+          .findItemFromData('editOpeningComment')
+      )?.setDisabled(true);
     }
 
     if (this.endElement !== this.visualEndElement) {
@@ -993,16 +1003,17 @@ class Thread extends mixInObject(
     /** @type {HTMLElement[]} */ (this.collapsedRange).forEach(this.maybeUnhideElement.bind(this));
 
     /** @type {HTMLElement} */ (this.expandNote).remove();
-    this.expandNote = null;
-    this.$expandNote = null;
+    this.expandNote = undefined;
+    this.$expandNote = undefined;
     this.expandNoteContainer?.remove();
-    this.expandNoteContainer = null;
+    this.expandNoteContainer = undefined;
 
     if (this.rootComment.isOpeningSection) {
-      /** @type {import('./Section').default} */ (this.rootComment.section).actions.moreMenuSelect
-        ?.getMenu()
-        .findItemFromData('editOpeningComment')
-        ?.setDisabled(false);
+      /** @type {OO.ui.MenuOptionWidget} */ (
+        /** @type {import('./Section').default} */ (this.rootComment.section).actions.moreMenuSelect
+          ?.getMenu()
+          .findItemFromData('editOpeningComment')
+      )?.setDisabled(false);
     }
 
     this.isCollapsed = false;
@@ -1090,23 +1101,35 @@ class Thread extends mixInObject(
     // start.
     const discussion = closedDiscussions?.find((el) => el.contains(end));
 
+    /** @type {(el: HTMLElement | undefined, child: HTMLElement | undefined) => boolean} */
     const isFinalChild = (parent, child) =>
-      parent &&
-      child &&
-      (
-        parent.lastElementChild === child ||
+      Boolean(
+        parent &&
+        child &&
         (
-          parent.lastElementChild === child.nextElementSibling &&
-          child.nextElementSibling.classList.contains('mw-notalk')
-        )
+          parent.lastElementChild === child ||
+          (
+            parent.lastElementChild === child.nextElementSibling &&
+            /** @type {HTMLElement} */ (child.nextElementSibling).classList.contains('mw-notalk'))
+          )
       );
+    /** @type {(el: HTMLElement | undefined) => HTMLElement | undefined} */
     const getParentIfItsFinalChild = (el) =>
-      el && isFinalChild(el.parentNode?.parentNode, el.parentNode) ? el.parentNode : null;
+      el &&
+      isFinalChild(
+        /** @type {HTMLElement | undefined} */ (el.parentNode?.parentNode),
+        /** @type {HTMLElement | undefined} */ (el.parentNode)
+      )
+        ? /** @type {HTMLElement} */ (el.parentNode)
+        : undefined;
+    /** @type {(ancestor: HTMLElement, descendant: HTMLElement | undefined, maxDepth: number) => boolean} */
     const isFinalDescendant = (ancestor, descendant, maxDepth) =>
-      maxDepth > 0 &&
-      (
-        isFinalChild(ancestor, descendant) ||
-        isFinalDescendant(ancestor, getParentIfItsFinalChild(descendant), maxDepth - 1)
+      Boolean(
+        maxDepth > 0 &&
+        (
+          isFinalChild(ancestor, descendant) ||
+          isFinalDescendant(ancestor, getParentIfItsFinalChild(descendant), maxDepth - 1)
+        )
       );
 
     if (
@@ -1123,6 +1146,13 @@ class Thread extends mixInObject(
       this.hideElement(discussion);
     }
   }
+
+  /**
+   * @typedef {object} ClickAreaOffset
+   * @property {number} top
+   * @property {number} left
+   * @property {number} height
+   */
 
   /**
    * Calculate the offset of the thread line.
@@ -1204,7 +1234,9 @@ class Thread extends mixInObject(
     // Should be below comment.getOffset() as Comment#isStartStretched is set inside that call.
     const commentMargins = needCalculateMargins ? comment.getMargins() : undefined;
 
+    /** @type {number | undefined} */
     let top;
+    /** @type {number | undefined} */
     let left;
     const dir = comment.getDirection();
     if (rectOrOffset) {
@@ -1221,7 +1253,9 @@ class Thread extends mixInObject(
       // errors (need to check).
       const bottomLeft = getLeft(/** @type {DOMRect} */ (rectBottom), commentMargins, dir);
 
-      return dir === 'ltr' ? bottomLeft >= left : bottomLeft <= left;
+      return dir === 'ltr'
+        ? bottomLeft >= /** @type {number} */ (left)
+        : bottomLeft <= /** @type {number} */ (left);
     };
     if (
       top === undefined ||
@@ -1230,6 +1264,7 @@ class Thread extends mixInObject(
       !areTopAndBottomAligned()
     ) {
       this.removeLine();
+
       return false;
     }
 
@@ -1248,7 +1283,8 @@ class Thread extends mixInObject(
       return !comment.getParent();
     }
 
-    this.clickAreaOffset = { top, left, height };
+    /** @type {ClickAreaOffset} */
+    this.clickAreaOffset = { top, left: /** @type {number} */ (left), height };
 
     if (!this.line) {
       this.createLine();
@@ -1270,13 +1306,14 @@ class Thread extends mixInObject(
    */
   updateClickAreaOffset() {
     const clickArea = /** @type {HTMLElement} */ (this.clickArea);
-    clickArea.style.left = this.clickAreaOffset.left + 'px';
-    clickArea.style.top = this.clickAreaOffset.top + 'px';
-    clickArea.style.height = this.clickAreaOffset.height + 'px';
+    const clickAreaOffset = /** @type {ClickAreaOffset} */ (this.clickAreaOffset);
+    clickArea.style.left = clickAreaOffset.left + 'px';
+    clickArea.style.top = clickAreaOffset.top + 'px';
+    clickArea.style.height = clickAreaOffset.height + 'px';
   }
 
   /**
-   * Remove the thread line if present and set the relevant properties to `null`.
+   * Remove the thread line if present and set the relevant properties to `undefined`.
    *
    * @private
    */
@@ -1284,7 +1321,7 @@ class Thread extends mixInObject(
     if (!this.line || !this.clickArea) return;
 
     this.clickArea.remove();
-    this.clickArea = this.clickAreaOffset = this.line = null;
+    this.clickArea = this.clickAreaOffset = this.line = undefined;
   }
 
   /**

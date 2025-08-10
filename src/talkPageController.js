@@ -21,9 +21,9 @@ import { copyText, getVisibilityByRects, wrapHtml } from './utils-window';
 /**
  * @typedef {object} EventMap
  * @property {[]} boot
- * @property {[event: MouseEvent]} mouseMove
+ * @property {[event: MouseEvent | JQuery.TriggeredEvent]} mouseMove
  * @property {[]} resize
- * @property {[event: KeyboardEvent]} keyDown
+ * @property {[event: KeyboardEvent | JQuery.TriggeredEvent]} keyDown
  * @property {[]} scroll
  * @property {[]} horizontalScroll
  * @property {[fragment: string]} popState
@@ -186,7 +186,7 @@ class TalkPageController extends EventEmitter {
       switchToAbsolute !== null &&
       !toc.isInSidebar() &&
       toc.isPresent() &&
-      scrollY < toc.getBottomOffset()
+      scrollY < /** @type {number} */ (toc.getBottomOffset())
     ) {
       this.saveScrollPosition(switchToAbsolute);
     } else {
@@ -318,7 +318,7 @@ class TalkPageController extends EventEmitter {
    */
   saveScrollPosition(saveTocHeight = true) {
     this.scrollData.offset = window.scrollY;
-    this.scrollData.tocHeight = (
+    this.scrollData.tocHeight =
       (saveTocHeight || this.scrollData.tocHeight) &&
       !toc.isInSidebar() &&
       toc.isPresent() &&
@@ -326,10 +326,9 @@ class TalkPageController extends EventEmitter {
       window.scrollY !== 0 &&
 
       // There is some content below the TOC in the viewport.
-      toc.getBottomOffset() < window.scrollY + window.innerHeight
-    ) ?
-      toc.$element.outerHeight() :
-      null;
+      /** @type {number} */ (toc.getBottomOffset()) < window.scrollY + window.innerHeight
+        ? toc.$element.outerHeight()
+        : null;
   }
 
   /**
@@ -342,7 +341,8 @@ class TalkPageController extends EventEmitter {
     if (this.scrollData.offset === null) return;
 
     if (this.scrollData.tocHeight) {
-      this.scrollData.offset += (toc.$element.outerHeight() || 0) - this.scrollData.tocHeight;
+      this.scrollData.offset +=
+        (/** @type {JQuery} */ (toc.$element).outerHeight() || 0) - this.scrollData.tocHeight;
     }
     window.scrollTo(0, this.scrollData.offset);
 
@@ -521,7 +521,7 @@ class TalkPageController extends EventEmitter {
   /**
    * _For internal use._ Handle a mouse move event (including `mousemove` and `mouseover`).
    *
-   * @param {MouseEvent} event
+   * @param {MouseEvent | JQuery.TriggeredEvent} event
    */
   handleMouseMove(event) {
     if (this.mouseMoveBlocked || this.isAutoScrolling() || bootController.isPageOverlayOn()) return;
@@ -600,7 +600,7 @@ class TalkPageController extends EventEmitter {
   /**
    * Handles `keydown` event on the document.
    *
-   * @param {KeyboardEvent} event
+   * @param {KeyboardEvent | JQuery.TriggeredEvent} event
    * @private
    */
   handleGlobalKeyDown(event) {
@@ -1338,10 +1338,9 @@ class TalkPageController extends EventEmitter {
    * Update the data about added comments (new comments added while the page was idle), update page
    * components accordingly, show notifications.
    *
-   * @param {import('./updateChecker').CommentWorkerMatched[]} all
-   * @param {import('./updateChecker').CommentWorkerMatched[]} relevant
+   * @param {import('./updateChecker').AddedComments} addedComments
    */
-  updateAddedComments(all, relevant) {
+  updateAddedComments({ all, relevant }) {
     this.addedCommentCount = all.length;
     this.areRelevantCommentsAdded = Boolean(relevant.length);
     if (relevant.length) {
@@ -1511,9 +1510,10 @@ class TalkPageController extends EventEmitter {
     $('#ca-addsection a').updateTooltipAccessKeys();
 
     // In case DT's new topic tool is enabled, remove the handler of the "Add topic" button.
-    const dtHandler = $._data(document.body, 'events').click
-      ?.find((event) => event.selector?.includes('data-mw-comment'))
-      ?.handler;
+    const dtHandler = $._data(document.body, 'events').click?.find(
+      (/** @type {JQuery.HandleObject<EventTarget, any>} */ event) =>
+        event.selector?.includes('data-mw-comment')
+    )?.handler;
     if (dtHandler) {
       $(document.body).off('click', dtHandler);
     }
