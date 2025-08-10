@@ -126,8 +126,6 @@ class Thread extends mixInObject(
    */
   constructor(rootComment) {
     super();
-    this.documentMouseMoveHandler = this.handleDocumentMouseMove.bind(this);
-    this.quitNavModeHandler = this.quitNavMode.bind(this);
 
     /**
      * Root comment of the thread.
@@ -326,7 +324,7 @@ class Thread extends mixInObject(
    * @param {boolean} [force=false]
    * @private
    */
-  handleClickAreaHover(event, force = false) {
+  handleClickAreaHover = (event, force = false) => {
     if (Thread.navMode && !force) return;
 
     const highlight = () => {
@@ -338,17 +336,17 @@ class Thread extends mixInObject(
     } else {
       this.highlightTimeout = setTimeout(highlight, 75);
     }
-  }
+  };
 
   /**
    * Handle the `mouseleave` event on the click area.
    *
    * @private
    */
-  handleClickAreaUnhover() {
+  handleClickAreaUnhover = () => {
     clearTimeout(this.highlightTimeout);
     this.clickArea?.classList.remove('cd-thread-clickArea-hovered');
-  }
+  };
 
   /**
    * Handle the `mousedown` event on the click area.
@@ -356,7 +354,7 @@ class Thread extends mixInObject(
    * @param {MouseEvent} event
    * @private
    */
-  handleClickAreaMouseDown(event) {
+  handleClickAreaMouseDown = (event) => {
     if (this.navMode) return;
 
     // Middle button
@@ -380,12 +378,12 @@ class Thread extends mixInObject(
         event.preventDefault();
         delete this.navFromY;
         delete this.navFromX;
-        $(document).off('mousemove.cd', this.documentMouseMoveHandler);
+        $(document).off('mousemove.cd', this.handleDocumentMouseMove);
       });
 
-      $(document).on('mousemove.cd', this.documentMouseMoveHandler);
+      $(document).on('mousemove.cd', this.handleDocumentMouseMove);
     }
-  }
+  };
 
   /**
    * Handle the `mouseup` event on the click area.
@@ -393,7 +391,7 @@ class Thread extends mixInObject(
    * @param {MouseEvent} event
    * @private
    */
-  handleClickAreaMouseUp(event) {
+  handleClickAreaMouseUp = (event) => {
     if (this.navMode && event.button === 0) {
       // `mouseup` event comes before `click`, so we need to block collapsing the thread is the user
       // clicked the left button to navigate threads.
@@ -409,13 +407,13 @@ class Thread extends mixInObject(
     if (event.button === 1 && this.navMode && !this.hasMouseMoved(event)) {
       this.rootComment.scrollTo({ alignment: 'top' });
     }
-  }
+  };
 
   /**
    * Has the mouse moved enough to consider it a navigation gesture and not a click with an
    * insignificant mouse movement between pressing and releasing a button.
    *
-   * @param {MouseEvent} event
+   * @param {JQuery.MouseMoveEvent} event
    * @returns {boolean}
    */
   hasMouseMoved(event) {
@@ -445,26 +443,26 @@ class Thread extends mixInObject(
     this.navCurrentThreadEscapeDirection = 0;
 
     $(document)
-      .on('mousemove.cd', this.documentMouseMoveHandler)
-      .one('mouseup.cd mousedown.cd', this.quitNavModeHandler);
+      .on('mousemove.cd', this.handleDocumentMouseMove)
+      .one('mouseup.cd mousedown.cd', this.quitNavMode);
     $(window)
-      .one('blur.cd', this.quitNavModeHandler);
+      .one('blur.cd', this.quitNavMode);
     $(document.body).addClass('cd-thread-navMode-updown');
   }
 
   /**
    * Handle the `mousemove` event when the navigation mode is active.
    *
-   * @param {MouseEvent} event
+   * @param {JQuery.MouseMoveEvent} event
    * @private
    */
-  handleDocumentMouseMove(event) {
+  handleDocumentMouseMove = (event) => {
     if (!this.navMode) {
       // This implies `this.navFromX !== undefined`; .navFromX is set in
       // .handleClickAreaMouseDown().
 
       if (this.hasMouseMoved(event)) {
-        $(document).off('mousemove.cd', this.documentMouseMoveHandler);
+        $(document).off('mousemove.cd', this.handleDocumentMouseMove);
         this.enterNavMode(
           /** @type {number} */ (this.navFromX),
           /** @type {number} */ (this.navFromY),
@@ -482,7 +480,7 @@ class Thread extends mixInObject(
       });
       this.navScrolledTo = target;
     }
-  }
+  };
 
   /**
    * Update the document cursor based on its position relative to the initial position in navigation
@@ -603,15 +601,15 @@ class Thread extends mixInObject(
    *
    * @private
    */
-  quitNavMode() {
+  quitNavMode = () => {
     Thread.navMode = this.navMode = false;
     delete this.navFromY;
     delete this.navFromX;
     $(document)
-      .off('mousemove.cd', this.documentMouseMoveHandler)
-      .off('mouseup.cd mousedown.cd', this.quitNavModeHandler);
+      .off('mousemove.cd', this.handleDocumentMouseMove)
+      .off('mouseup.cd mousedown.cd', this.quitNavMode);
     $(document.body).removeClass('cd-thread-navMode-updown cd-thread-navMode-up cd-thread-navMode-down');
-  }
+  };
 
   /**
    * Handle the `click` event on the click area.
@@ -619,7 +617,7 @@ class Thread extends mixInObject(
    * @param {MouseEvent} event
    * @private
    */
-  handleClickAreaClick(event) {
+  handleClickAreaClick = (event) => {
     if (this.blockClickEvent) {
       this.blockClickEvent = false;
       return;
@@ -630,7 +628,7 @@ class Thread extends mixInObject(
     ).classList.contains('cd-thread-clickArea-hovered')) return;
 
     this.onToggleClick(event);
-  }
+  };
 
   /**
    * Create a thread line with a click area around.
@@ -644,12 +642,12 @@ class Thread extends mixInObject(
 
     // Add some debouncing so that the user is not annoyed by the cursor changing its form when
     // moving across thread lines.
-    this.clickArea.onmouseenter = this.handleClickAreaHover.bind(this);
-    this.clickArea.onmouseleave = this.handleClickAreaUnhover.bind(this);
+    this.clickArea.onmouseenter = this.handleClickAreaHover;
+    this.clickArea.onmouseleave = this.handleClickAreaUnhover;
 
-    this.clickArea.onclick = this.handleClickAreaClick.bind(this);
-    this.clickArea.onmousedown = this.handleClickAreaMouseDown.bind(this);
-    this.clickArea.onmouseup = this.handleClickAreaMouseUp.bind(this);
+    this.clickArea.onclick = this.handleClickAreaClick;
+    this.clickArea.onmousedown = this.handleClickAreaMouseDown;
+    this.clickArea.onmouseup = this.handleClickAreaMouseUp;
 
     this.line = /** @type {HTMLElement} */ (this.clickArea.firstChild);
 
@@ -783,7 +781,7 @@ class Thread extends mixInObject(
     const element = Thread.prototypes.get('expandButton');
     const button = new Button({
       tooltip: cd.s('thread-expand-tooltip', cd.g.cmdModifier),
-      action: this.onToggleClick.bind(this),
+      action: this.onToggleClick,
       element,
       buttonElement: /** @type {HTMLElement} */ (element.firstChild),
       labelElement: /** @type {HTMLElement} */ (element.querySelector('.oo-ui-labelElement-label')),
@@ -855,7 +853,7 @@ class Thread extends mixInObject(
    * @param {MouseEvent | KeyboardEvent} event
    * @private
    */
-  onToggleClick(event) {
+  onToggleClick = (event) => {
     if (isCmdModifierPressed(event)) {
       this.toggleAllOflevel();
     } else if (event.altKey) {
@@ -863,7 +861,7 @@ class Thread extends mixInObject(
     } else {
       this.toggle();
     }
-  }
+  };
 
   /**
    * Expand or collapse all threads on the page. On expand, scroll to the root comment of this
