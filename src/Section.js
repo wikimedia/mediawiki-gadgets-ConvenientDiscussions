@@ -1688,7 +1688,7 @@ class Section extends SectionSkeleton {
   /**
    * Copy a link to the section or open a copy link dialog.
    *
-   * @param {JQuery.TriggeredEvent} event
+   * @param {JQuery.TriggeredEvent | MouseEvent | KeyboardEvent} event
    */
   copyLink(event) {
     talkPageController.showCopyLinkDialog(this, event);

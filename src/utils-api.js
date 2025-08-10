@@ -445,7 +445,7 @@ export async function saveGlobalOption(name, value) {
  * @param {import('./User').default[]} users
  * @param {boolean} [doRequestInBackground=false] Make a request that won't set the process on hold
  *   when the tab is in the background.
- * @returns {Promise.<void>}
+ * @returns {Promise<void>}
  */
 export async function loadUserGenders(users, doRequestInBackground = false) {
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars

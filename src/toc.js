@@ -146,7 +146,7 @@ class Toc {
           .filter((link) => link.getAttribute('href') !== '#')
           .map((link) => new TocItem(link, this));
       } catch (error) {
-        console.error("Couldn't find an element of a table of contents item.", ...error);
+        console.error("Couldn't find an element of a table of contents item.", error);
         this.items = [];
 
         // Override the setting value - we better not touch the TOC if something is broken there.
@@ -447,17 +447,17 @@ class Toc {
    * Get the element to add a comment list after for a section.
    *
    * @param {import('./Section').default | import('./updateChecker').SectionWorkerMatched} section Section.
-   * @returns {object | null}
+   * @returns {HTMLElement | undefined}
    * @private
    */
   getTargetElementForSection(section) {
     // There could be a collision of hrefs between the existing section and not yet rendered
     // section, so we compose the selector carefully.
-    let $sectionLink;
     let $target;
     if ('getTocItem' in section) {
-      $target = $sectionLink = section.getTocItem()?.$link;
+      $target = section.getTocItem()?.$link;
     } else {
+      let $sectionLink;
       if (section.match) {
         $sectionLink = section.match.getTocItem()?.$link;
       } else {
@@ -475,7 +475,7 @@ class Toc {
       }
     }
 
-    return $target?.[0] || null;
+    return $target?.[0];
   }
 
   /**
@@ -689,7 +689,7 @@ class Toc {
     if (this.floating === undefined) {
       this.floating = Boolean(
         !this.isInSidebar() &&
-          this.$element.closest($(talkPageController.getFloatingElements())).length
+        this.$element.closest($(talkPageController.getFloatingElements())).length
       );
     }
 
@@ -699,19 +699,24 @@ class Toc {
   /**
    * Is the table of contents present on the page.
    *
-   * @returns {boolean}
+   * @returns {this is { $element: JQuery<HTMLElement> }}
    */
   isPresent() {
-    return Boolean(this.$element.length);
+    return Boolean(this.$element?.length);
   }
 
   /**
    * Get the bottom offset of the table of contents.
    *
-   * @returns {number}
+   * @returns {number|undefined}
    */
   getBottomOffset() {
-    return this.$element.offset().top + this.$element.outerHeight();
+    if (!this.isPresent()) return;
+
+    return (
+      /** @type {JQuery.Coordinates} */ (this.$element.offset()).top +
+      /** @type {number} */ (this.$element.outerHeight())
+    );
   }
 }
 
