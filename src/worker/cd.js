@@ -1,3 +1,13 @@
 import cd from '../shared/cd';
 
-export default /** @type {import('../shared/cd').ConvenientDiscussionsWorker} */ (cd);
+/**
+ * @typedef {object} ConvenientDiscussionsWorkerExtension
+ * @property {CommentWorker[]} comments
+ * @property {SectionWorker[]} sections
+ */
+
+/**
+ * @typedef {import('../shared/cd').ConvenientDiscussionsBase & ConvenientDiscussionsWorkerExtension} ConvenientDiscussionsWorker
+ */
+
+export default /** @type {ConvenientDiscussionsWorker} */ (cd);

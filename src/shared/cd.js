@@ -106,16 +106,11 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  */
 
 /**
- * @typedef {{ [lang: string]: StringsByKey }} I18n
- */
-
-/**
  * @typedef {object} ConvenientDiscussionsExtension
  * @property {import('../CurrentPage').default} page Current page's object.
  * @property {import('../User').default} user Current user's object.
  * @property {typeof import('../../config/default').default} config
  * @property {GlobalProps} g
- * @property {I18n} i18n
  */
 
 /**
@@ -123,29 +118,6 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  *   & typeof import('../convenientDiscussions').convenientDiscussions
  *   & ConvenientDiscussionsExtension
  * )} ConvenientDiscussionsBase
- */
-
-/**
- * @typedef {object} ConvenientDiscussionsWindowExtension
- * @property {import('../Comment').default[]} comments
- * @property {import('../Section').default[]} sections
- * @property {import('../settings').default} settings
- * @property {boolean} isRunning
- * @property {typeof import('../app').getStringsPromise} getStringsPromise
- */
-
-/**
- * @typedef {object} ConvenientDiscussionsWorkerExtension
- * @property {CommentWorker[]} comments
- * @property {SectionWorker[]} sections
- */
-
-/**
- * @typedef {ConvenientDiscussionsBase & ConvenientDiscussionsWindowExtension} ConvenientDiscussions
- */
-
-/**
- * @typedef {ConvenientDiscussionsBase & ConvenientDiscussionsWorkerExtension} ConvenientDiscussionsWorker
  */
 
 const convenientDiscussions = context.convenientDiscussions;

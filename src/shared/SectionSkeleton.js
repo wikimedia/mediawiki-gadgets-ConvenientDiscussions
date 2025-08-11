@@ -354,17 +354,19 @@ class SectionSkeleton {
   /**
    * Get the parent section of the section.
    *
+   * @template {SectionBase} T
    * @param {boolean} [ignoreFirstLevel=true] Don't consider sections of the first level parent
    *   sections; stop at second level sections.
-   * @returns {?this}
+   * @param {T[]} [sections=cd.sections]
+   * @returns {?T}
    */
-  getParent(ignoreFirstLevel = true) {
+  getParent(ignoreFirstLevel = true, sections = cd.sections) {
     if (ignoreFirstLevel && this.level <= 2) {
       return null;
     }
 
     return (
-      /** @type {this} */ (cd.sections
+      /** @type {T | undefined} */ (sections
         .slice(0, this.index)
         .reverse()
         .find((section) => section.level < this.level)) ||
@@ -393,5 +395,9 @@ class SectionSkeleton {
     return this.cachedAncestors;
   }
 }
+
+/**
+ * @typedef {RemoveMethods<SectionSkeleton<AnyNode>>} SectionBase
+ */
 
 export default SectionSkeleton;
