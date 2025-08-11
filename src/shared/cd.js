@@ -16,7 +16,7 @@ const context = self;
  * @namespace convenientDiscussions
  * @global
  */
-context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientDiscussionsWorker} */ ({});
+context.convenientDiscussions ||= /** @type {ConvenientDiscussionsBase} */ ({});
 
 /**
  * @typedef {object} ApiErrorFormatHtml
@@ -111,6 +111,8 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussions | ConvenientD
  * @property {import('../User').default} user Current user's object.
  * @property {typeof import('../../config/default').default} config
  * @property {GlobalProps} g
+ * @property {import('./CommentSkeleton').default<AnyNode>[]} comments
+ * @property {import('./SectionSkeleton').default<AnyNode>[]} sections
  */
 
 /**
