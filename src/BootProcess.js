@@ -27,16 +27,6 @@ import { getAllTextNodes, wrapHtml } from './utils-window';
 import visits from './visits';
 
 /**
- * Get all text nodes under the root element in the window (not worker) context.
- *
- * @returns {Text[]}
- * @private
- */
-function getAllTextNodesUnderRoot() {
-  return getAllTextNodes(bootController.rootElement);
-}
-
-/**
  * Remove all html comments added by DiscussionTools related to reply buttons.
  *
  * @private
@@ -681,11 +671,9 @@ class BootProcess {
       CommentClass: Comment,
       SectionClass: Section,
       childElementsProp: 'children',
-
       follows: (/** @type {Node} */ n1, /** @type {Node} */ n2) =>
         Boolean(n2.compareDocumentPosition(n1) & Node.DOCUMENT_POSITION_FOLLOWING),
-
-      getAllTextNodes: getAllTextNodesUnderRoot,
+      getAllTextNodes: () => getAllTextNodes(bootController.rootElement),
       getElementByClassName: (/** @type {Element} */ el, className) =>
         el.querySelector(`.${className}`),
       rootElement: bootController.rootElement,
@@ -693,20 +681,6 @@ class BootProcess {
       areThereOutdents: talkPageController.areThereOutdents.bind(talkPageController),
       processAndRemoveDtElements,
       removeDtButtonHtmlComments,
-      /** @type {(el: Element | null, node: Node) => boolean} */
-      contains: (el, node) => Boolean(el && el.contains(node)),
-      /** @type {(parent: Element, node: Node, refNode: Node | null) => Node} */
-      insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode),
-      /** @type {(parent: Element, node: Node) => Node} */
-      appendChild: (parent, node) => parent.appendChild(node),
-      /** @type {(node: Node) => void} */
-      remove: (node) => {
-        if (node.parentNode) {
-          node.parentNode.removeChild(node);
-        }
-      },
-      /** @type {(parent: Element, node: Node) => Node} */
-      removeChild: (parent, node) => parent.removeChild(node),
     });
     this.parser.init();
     this.parser.processAndRemoveDtMarkup(this);

@@ -8,7 +8,7 @@ import BrowserComment from '../Comment';
 import Section from '../Section';
 import WorkerCommentWorker from '../worker/CommentWorker';
 import WorkerSectionWorker from '../worker/SectionWorker';
-import { ConvenientDiscussions, ConvenientDiscussionsWorker } from './cd';
+import { ConvenientDiscussionsBase } from './cd';
 import { HeadingTarget, SignatureTarget, Target } from './Parser';
 
 declare global {
@@ -35,8 +35,8 @@ declare global {
     revisionId: number;
     resolverId: number;
     text: string;
-    g: ConvenientDiscussions['g'];
-    config: ConvenientDiscussions['config'];
+    g: ConvenientDiscussionsBase['g'];
+    config: ConvenientDiscussionsBase['config'];
   }
 
   interface MessageFromWindowSetAlarm extends Message {
@@ -51,7 +51,7 @@ declare global {
   type MessageFromWindow = MessageFromWindowParse | MessageFromWindowSetAlarm | MessageFromWindowRemoveAlarm;
 
   interface WindowOrWorkerGlobalScope {
-    convenientDiscussions: ConvenientDiscussions | ConvenientDiscussionsWorker;
+    convenientDiscussions: ConvenientDiscussionsBase;
     cd?: WindowOrWorkerGlobalScope['convenientDiscussions'];
     Node: {
       ELEMENT_NODE: number;
@@ -127,11 +127,24 @@ declare global {
 
   type NodeLike = AnyNode;
   type ElementLike = AnyElement;
+  type HTMLElementLike = import('domhandler').Element | globalThis.HTMLElement;
   type TextLike = AnyText;
 
-  type ElementFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Element : Element;
-  type DocumentFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Document : Document;
-  type HTMLElementFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Element : HTMLElement;
+  type ElementFor<T extends AnyNode> = T extends import('domhandler').Node
+    ? import('domhandler').Element
+    : T extends Node
+      ? Element
+      : ElementLike;
+  type DocumentFor<T extends AnyNode> = T extends import('domhandler').Node
+    ? import('domhandler').Document
+    : T extends Node
+      ? Document
+      : DocumentLike;
+  type HTMLElementFor<T extends AnyNode> = T extends import('domhandler').Node
+    ? import('domhandler').Element
+    : T extends Node
+      ? HTMLElement
+      : HTMLElementLike;
   type TextFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Text : Text;
 
   interface ParsingContext<T extends AnyNode> {
@@ -150,14 +163,9 @@ declare global {
     removeDtButtonHtmlComments: () => void;
 
     // DOM methods
-    appendChild: (parent: ElementFor<T>, child: T) => void;
-    contains: (el: ElementFor<T>, node: T) => boolean;
     follows: (el1: T, el2: T) => boolean;
-    getAllTextNodes: () => TextFor<T>[];
-    getElementByClassName: (element: ElementFor<T>, className: string) => ElementFor<T> | null;
-    insertBefore: (parent: ElementFor<T>, node: T, referenceNode: T | null) => void;
-    remove: (node: T) => void;
-    removeChild: (parent: ElementFor<T>, child: T) => void;
+    getAllTextNodes: () => TextLike[];
+    getElementByClassName: (element: ElementLike, className: string) => ElementLike | null;
   }
 }
 

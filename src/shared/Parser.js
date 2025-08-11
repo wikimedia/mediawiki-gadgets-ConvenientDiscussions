@@ -21,7 +21,7 @@ import {
   parseWikiUrl,
   ucFirst,
   underlinesToSpaces,
-  unique,
+  unique
 } from './utils-general';
 import { parseTimestamp } from './utils-timestamp';
 
@@ -82,6 +82,9 @@ class Parser {
   constructor(context) {
     this.context = context;
     this.existingCommentIds = /** @type {string[]} */ ([]);
+
+    // Workaround to make this.constructor in methods to be type checked correctly
+    this.constructor = Parser;
   }
 
   /**
@@ -175,7 +178,7 @@ class Parser {
         .filter(unique),
       bootProcess
     );
-    this.context.removeDtButtonHtmlComments();
+    Parser.removeDtButtonHtmlComments();
   }
 
   /**
@@ -183,7 +186,7 @@ class Parser {
    * {@link https://en.wikipedia.org/wiki/User:Alexis_Jazz/Factotum Factotum}.
    *
    * @param {string} text
-   * @param {TextFor<N>} node
+   * @param {TextLike} node
    * @private
    */
   handleFactotumOutdents(text, node) {
@@ -191,13 +194,13 @@ class Parser {
       !/^┌─*┘$/.test(text) ||
       (
         node.parentElement &&
-        this.context.contains(node.parentElement, node) &&
+        Parser.contains(node.parentElement, node) &&
         node.parentElement.classList.contains(cd.config.outdentClass)
       ) ||
       (
         node.parentElement &&
         node.parentElement.parentElement &&
-        this.context.contains(node.parentElement.parentElement, node) &&
+        Parser.contains(node.parentElement.parentElement, node) &&
         node.parentElement.parentElement.classList.contains(cd.config.outdentClass)
       )
     ) {
@@ -208,19 +211,19 @@ class Parser {
     span.className = cd.config.outdentClass;
     span.textContent = text;
     if (isElement(node.nextSibling) && node.nextSibling.tagName === 'BR') {
-      this.context.remove(node.nextSibling);
+      Parser.remove(node.nextSibling);
     }
 
     // Don't have Node#replaceChild() in the worker.
     if (node.parentElement) {
-      this.context.insertBefore(node.parentElement, span, node);
+      Parser.insertBefore(node.parentElement, span, node);
     }
-    this.context.remove(node);
+    Parser.remove(node);
   }
 
   /**
    * @typedef {object} Timestamp
-   * @property {ElementFor<N>} element
+   * @property {HTMLElementFor<N>} element
    * @property {Date} date
    * @property {object} [match]
    * @memberof Parser
@@ -230,7 +233,7 @@ class Parser {
   /**
    * Find a timestamp in a text node.
    *
-   * @param {TextFor<N>} node
+   * @param {TextLike} node
    * @returns {?Timestamp}
    * @private
    */
@@ -243,7 +246,7 @@ class Parser {
     const parsedTimestamp = parseTimestamp(text);
     if (
       !parsedTimestamp ||
-      this.noSignatureElements.some((/** @type {ElementFor<N>} */ el) => this.context.contains(el, node))
+      this.noSignatureElements.some((el) => Parser.contains(el, node))
     ) {
       return null;
     }
@@ -258,9 +261,9 @@ class Parser {
     const afterNode = remainedText ? document.createTextNode(remainedText) : undefined;
     node.textContent = match[1];
     if (node.parentElement) {
-      this.context.insertBefore(node.parentElement, element, node.nextSibling);
+      Parser.insertBefore(node.parentElement, element, node.nextSibling);
       if (afterNode) {
-        this.context.insertBefore(node.parentElement, afterNode, element.nextSibling);
+        Parser.insertBefore(node.parentElement, afterNode, element.nextSibling);
       }
     }
 
@@ -271,11 +274,11 @@ class Parser {
    * @typedef {object} AuthorData
    * @property {string} name
    * @property {boolean} isLastLinkAuthorLink
-   * @property {ElementFor<N>} [notForeignLink]
-   * @property {ElementFor<N>} [talkNotForeignLink]
-   * @property {ElementFor<N>} [contribsNotForeignLink]
-   * @property {ElementFor<N>} [link]
-   * @property {ElementFor<N>} [talkLink]
+   * @property {ElementLike} [notForeignLink]
+   * @property {ElementLike} [talkNotForeignLink]
+   * @property {ElementLike} [contribsNotForeignLink]
+   * @property {ElementLike} [link]
+   * @property {ElementLike} [talkLink]
    */
 
   /**
@@ -286,10 +289,10 @@ class Parser {
    * @private
    */
   getSignatureFromTimestamp(timestamp) {
-    /** @type {ElementFor<N> | undefined} */
+    /** @type {ElementLike | undefined} */
     let unsignedElement;
     {
-      /** @type {ElementFor<N> | undefined} */
+      /** @type {ElementLike | null} */
       let el = timestamp.element;
       while (!unsignedElement && (el = el.parentElement) && isInline(el) !== false) {
         if (el.classList.contains(cd.config.unsignedClass)) {
@@ -322,9 +325,9 @@ class Parser {
     const authorData = /** @type {AuthorData} */ ({});
 
     let length = 0;
-    /** @type {ElementFor<N> | undefined} */
+    /** @type {NodeLike | undefined} */
     let firstSignatureElement;
-    /** @type {ElementFor<N>[]} */
+    /** @type {NodeLike[]} */
     let signatureNodes = [];
     if (unsignedElement) {
       firstSignatureElement = startElement;
@@ -335,7 +338,8 @@ class Parser {
 
     // Unsigned template may be of the "undated" kind - containing a timestamp but no author name,
     // so we need to walk the tree anyway.
-    let /** @type {ElementFor<N> | TextFor<N> | null} */ node = treeWalker.currentNode;
+    /** @type {ElementLike | TextLike | null} */
+    let node = treeWalker.currentNode;
     do {
       length += node.textContent.length;
       if (isElement(node)) {
@@ -439,8 +443,8 @@ class Parser {
     const startElementNextSibling = signatureNodes[0].nextSibling;
     const element = document.createElement('span');
     element.classList.add('cd-signature');
-    signatureNodes.reverse().forEach((node) => this.context.appendChild(element, node));
-    this.context.insertBefore(signatureContainer, element, startElementNextSibling);
+    signatureNodes.reverse().forEach((node) => Parser.appendChild(element, node));
+    Parser.insertBefore(signatureContainer, element, startElementNextSibling);
 
     return {
       element,
@@ -459,15 +463,17 @@ class Parser {
    * Find outputs of unsigned templates that we weren't able to find using the standard procedure
    * (in which case they are treated as normal signatures).
    *
-   * @returns {Partial<SignatureTarget<N>>[]}
+   * @returns {Partial<SignatureTarget<AnyNode>>[]}
+   * @private
    */
   findRemainingUnsigneds() {
     if (!cd.config.unsignedClass) {
       return [];
     }
 
-    const unsigneds = /** @type {Partial<SignatureTarget<N>>[]} */ ([]);
-    [...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass)]
+    /** @type {Partial<SignatureTarget<AnyNode>>[]} */
+    const unsigneds = [];
+    /** @type {HTMLElementLike[]} */ ([...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass)])
       .filter((element) => {
         // Only templates with no timestamp interest us.
         if (this.context.getElementByClassName(element, 'cd-timestamp')) {
@@ -476,7 +482,7 @@ class Parser {
 
         // Cases like https://ru.wikipedia.org/?diff=84883816
         for (
-          let /** @type {ElementFor<N> | null} */ el = element;
+          let /** @type {ElementLike | null} */ el = element;
           el && el !== this.context.rootElement;
           el = el.parentElement
         ) {
@@ -573,10 +579,10 @@ class Parser {
    * {@link https://ru.wikipedia.org/w/index.php?title=Википедия:Форум/Общий&oldid=103760740#201912010211_Mikhail_Ryazanov})
    * It has a branchy structure that requires a tricky algorithm to be parsed correctly.
    *
-   * @param {ElementFor<N>} element
+   * @param {ElementLike} element
    * @param {boolean} [onlyChildrenWithoutCommentLevel=false]
    * @returns {{
-   *   nodes: ElementFor<N>[];
+   *   nodes: ElementLike[];
    *   levelsPassed: number;
    * }}
    */
@@ -592,8 +598,8 @@ class Parser {
     do {
       nodes = children;
       children = nodes.reduce(
-        (arr, element) => arr.concat([...element[this.context.childElementsProp]]),
-        /** @type {ElementFor<N>[]} */ ([])
+        (arr, element) => arr.concat([...this.getChildElements(element)]),
+        /** @type {ElementLike[]} */ ([])
       );
       if (['DL', 'UL', 'OL'].includes(nodes[0].tagName)) {
         levelsPassed++;
@@ -629,7 +635,7 @@ class Parser {
     return [...this.context.rootElement.querySelectorAll('h1, h2, h3, h4, h5, h6')]
       .map((element) => {
         for (
-          let /** @type {ElementFor<N> | null} */ el = element;
+          let /** @type {ElementLike | null} */ el = element;
           el && el !== this.context.rootElement;
           el = el.parentElement
         ) {
@@ -643,8 +649,8 @@ class Parser {
       .filter(
         (element) =>
           element.getAttribute('id') !== 'mw-toc-heading' &&
-          !this.noSignatureElements.some((/** @type {ElementFor<N>} */ noSigEl) =>
-            this.context.contains(noSigEl, element)
+          !this.noSignatureElements.some((/** @type {ElementLike} */ noSigEl) =>
+            Parser.contains(noSigEl, element)
           )
       )
       .map((element) => ({
@@ -679,14 +685,14 @@ class Parser {
    * by splitting the parent node of the given node, moving all the following nodes into the second
    * node resulting from the split. If there is no following nodes, don't perform the split.
    *
-   * @param {N} node Reference node.
+   * @param {AnyNode} node Reference node.
    * @returns {{
-   *   parent: ElementFor<N>,
-   *   clone: ElementFor<N>,
+   *   parent: ElementLike,
+   *   clone: ElementLike,
    * }} The parent nodes resultant from the split (at least one).
    */
   splitParentAfterNode(node) {
-    const parent = /** @type {ElementFor<N>} */ (node.parentElement);
+    const parent = /** @type {ElementLike} */ (node.parentElement);
 
     // TypeScript things...
     const clone = isDomHandlerElement(parent)
@@ -695,10 +701,10 @@ class Parser {
 
     let lastChild;
     while ((lastChild = parent.lastChild) && lastChild !== node) {
-      this.context.insertBefore(clone, lastChild, /** @type {N} */ (clone.firstChild));
+      Parser.insertBefore(clone, lastChild, /** @type {N} */ (clone.firstChild));
     }
-    if (clone[this.context.childElementsProp].length > 0 && parent.parentElement) {
-      this.context.insertBefore(parent.parentElement, clone, parent.nextSibling);
+    if (this.getChildElements(clone).length > 0 && parent.parentElement) {
+      Parser.insertBefore(parent.parentElement, clone, parent.nextSibling);
     }
 
     return { parent, clone };
@@ -719,7 +725,7 @@ class Parser {
   /**
    * _For internal use._ Get a user name from a link, along with some other data about a page name.
    *
-   * @param {ElementFor<N>} element
+   * @param {ElementLike} element
    * @returns {?ProcessLinkReturn}
    */
   processLink(element) {
@@ -789,7 +795,7 @@ class Parser {
    * Given a link node, enrich the author data and return a boolean denoting whether the node is a
    * part of the signature.
    *
-   * @param {ElementFor<N>} link
+   * @param {ElementLike} link
    * @param {AuthorData} authorData
    * @returns {boolean}
    * @private
@@ -862,13 +868,80 @@ class Parser {
    */
   getNestingLevel(element) {
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const treeWalker = new ElementsTreeWalkerClass(this.context.rootElement, element);
+    const treeWalker = new ElementsTreeWalker(this.context.rootElement, element);
     let nestingLevel = 0;
     while (treeWalker.parentNode()) {
       nestingLevel++;
     }
 
     return nestingLevel;
+  }
+
+  /**
+   * Get the child elements of an element.
+   *
+   * @param {ElementLike} element
+   * @returns {ElementLike[]}
+   */
+  getChildElements(element) {
+    return /** @type {ElementLike[]} */ (
+      element[/** @type {keyof ElementLike} */ (this.context.childElementsProp)]
+    );
+  }
+
+  /**
+   * Appends a child node to a parent element.
+   *
+   * @param {ElementLike} parent The parent element
+   * @param {NodeLike} child The child node to append
+   * @returns {NodeLike}
+   */
+  static appendChild(parent, child) {
+    return parent.appendChild(/** @type {any} */ (child));
+  }
+
+  /**
+   * Checks if an element contains a node.
+   *
+   * @param {ElementLike | null} el The element to check the contents of
+   * @param {NodeLike} node The node contained or not
+   * @returns {boolean}
+   */
+  static contains(el, node) {
+    return Boolean(el && el.contains(/** @type {any} */ (node)));
+  }
+
+  /**
+   * Inserts a node before a reference node within a parent element.
+   *
+   * @param {ElementLike} parent The parent element
+   * @param {NodeLike} node The node to insert
+   * @param {NodeLike | null} referenceNode The reference node to insert before
+   * @returns {NodeLike}
+   */
+  static insertBefore(parent, node, referenceNode) {
+    return parent.insertBefore(/** @type {any} */ (node), /** @type {any} */ (referenceNode));
+  }
+
+  /**
+   * Removes a node from the document.
+   *
+   * @param {NodeLike} node The node to remove
+   * @returns {void}
+   */
+  static remove(node) {
+    /** @type {any} */ (node.parentNode)?.removeChild(node);
+  }
+
+  /**
+   * Removes a child node from a parent element.
+   *
+   * @param {ElementLike} parent The parent element
+   * @param {NodeLike} child The child node to remove
+   * @returns {NodeLike}
+   */
+  static removeChild(parent, child) {
+    return parent.removeChild(/** @type {any} */ (child));
   }
 
   /**
