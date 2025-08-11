@@ -1863,4 +1863,11 @@ class CommentSkeleton {
   }
 }
 
+/**
+ * @typedef {Omit<
+ *   RemoveMethods<CommentSkeleton<AnyNode>>,
+ *   'children' | 'previousComments'
+ * >} CommentBase
+ */
+
 export default CommentSkeleton;

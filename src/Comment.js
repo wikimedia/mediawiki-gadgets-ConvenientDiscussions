@@ -67,17 +67,6 @@ import { createSvg, extractSignatures, getExtendedRect, getHigherNodeAndOffsetIn
  */
 
 /**
- * @typedef {RemoveMethods<import('./shared/SectionSkeleton').default<AnyNode>>} SectionBase
- */
-
-/**
- * @typedef {Omit<
- *   RemoveMethods<import('./shared/CommentSkeleton').default<AnyNode>>,
- *   'children' | 'previousComments'
- * >} CommentBase
- */
-
-/**
  * @typedef {Map<
  *   import('./updateChecker').SectionWorkerMatched | import('./Section').default | null,
  *   import('./updateChecker').CommentWorkerMatched[] | Comment<boolean>[]
@@ -4609,16 +4598,16 @@ class Comment extends CommentSkeleton {
   /**
    * Turn a comment array into an object with sections or their IDs as keys.
    *
-   * @param {CommentBase[]} comments
-   * @returns {Map<SectionBase | null, CommentBase[]>}
+   * @param {import('./shared/CommentSkeleton').CommentBase[]} comments
+   * @returns {Map<import('./shared/CommentSkeleton').CommentBase | null, import('./shared/CommentSkeleton').CommentBase[]>}
    */
   static groupBySection(comments) {
-    const map = /** @type {Map<SectionBase | null, CommentBase[]>} */ (new Map());
+    const map = /** @type {Map<import('./shared/CommentSkeleton').CommentBase | null, import('./shared/CommentSkeleton').CommentBase[]>} */ (new Map());
     for (const comment of comments) {
       if (!map.has(comment.section)) {
         map.set(comment.section, []);
       }
-      /** @type {CommentBase[]} */ (map.get(comment.section)).push(comment);
+      /** @type {import('./shared/CommentSkeleton').CommentBase[]} */ (map.get(comment.section)).push(comment);
     }
 
     return map;
