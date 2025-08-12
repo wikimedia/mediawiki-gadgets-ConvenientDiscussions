@@ -49,10 +49,9 @@ function removeDtButtonHtmlComments() {
  * Deal with (remove or move in the DOM) the markup added to the page by DiscussionTools.
  *
  * @param {Element[]} elements
- * @param {import('./BootProcess').default} bootProcess
  * @private
  */
-function processAndRemoveDtElements(elements, bootProcess) {
+function processAndRemoveDtElements(elements) {
   // Reply Tool is officially incompatible with CD, so we don't care if it is enabled. New Topic
   // Tool doesn't seem to make difference for our purposes here.
   const moveNotRemove =
@@ -64,7 +63,7 @@ function processAndRemoveDtElements(elements, bootProcess) {
   /** @type {HTMLSpanElement | undefined} */
   let dtMarkupHavenElement;
   if (moveNotRemove) {
-    if (!bootProcess.isFirstRun()) {
+    if (!bootController.getBootProcess().isFirstRun()) {
       dtMarkupHavenElement = bootController.$content.children('.cd-dtMarkupHaven')[0];
     }
     if (dtMarkupHavenElement) {
@@ -82,7 +81,7 @@ function processAndRemoveDtElements(elements, bootProcess) {
     )
     .forEach((el, i) => {
       if (el.hasAttribute('data-mw-comment-start') && Comment.isDtId(el.id)) {
-        bootProcess.addDtCommentId(el.id);
+        bootController.getBootProcess().addDtCommentId(el.id);
       }
       if (moveNotRemove) {
         // DT gets the DOM offset of each of these elements upon initialization which can take a lot
@@ -671,11 +670,10 @@ class BootProcess {
       CommentClass: Comment,
       SectionClass: Section,
       childElementsProp: 'children',
-      follows: (/** @type {Node} */ n1, /** @type {Node} */ n2) =>
+      follows: (n1, n2) =>
         Boolean(n2.compareDocumentPosition(n1) & Node.DOCUMENT_POSITION_FOLLOWING),
       getAllTextNodes: () => getAllTextNodes(bootController.rootElement),
-      getElementByClassName: (/** @type {Element} */ el, className) =>
-        el.querySelector(`.${className}`),
+      getElementByClassName: (el, className) => el.querySelector(`.${className}`),
       rootElement: bootController.rootElement,
       document,
       areThereOutdents: talkPageController.areThereOutdents.bind(talkPageController),
@@ -683,10 +681,12 @@ class BootProcess {
       removeDtButtonHtmlComments,
     });
     this.parser.init();
-    this.parser.processAndRemoveDtMarkup(this);
-    this.targets = /** @type {import('./shared/Parser').Target<Node>[]} */ (this.parser.findHeadings())
+    this.parser.processAndRemoveDtMarkup();
+    this.targets = /** @type {import('./shared/Parser').Target<Node>[]} */ (
+      this.parser.findHeadings()
+    )
       .concat(this.parser.findSignatures())
-      .sort((t1, t2) => this.parser.context.follows(t1.element, t2.element) ? 1 : -1);
+      .sort((t1, t2) => (this.parser.context.follows(t1.element, t2.element) ? 1 : -1));
   }
 
   /**
@@ -817,19 +817,15 @@ class BootProcess {
    * If a DT's comment form is present (for example, on `&action=edit&section=new` pages), remove it
    * and later replace it with ours, keeping the input.
    *
-   * @returns {import('./CommentForm').CommentFormInitialState|null}
+   * @returns {import('./CommentForm').CommentFormInitialState | undefined}
    * @private
    */
   hideDtNewTopicForm() {
-    if (!cd.g.isDtNewTopicToolEnabled) {
-      return null;
-    }
+    if (!cd.g.isDtNewTopicToolEnabled) return;
 
     // `:visible` to exclude the form hidden previously.
     const $dtNewTopicForm = $('.ext-discussiontools-ui-newTopic:visible');
-    if (!$dtNewTopicForm.length) {
-      return null;
-    }
+    if (!$dtNewTopicForm.length) return;
 
     const $headline = $dtNewTopicForm
       .find('.ext-discussiontools-ui-newTopic-sectionTitle input[type="text"]');

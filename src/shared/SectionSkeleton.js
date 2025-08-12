@@ -9,7 +9,7 @@ import { defined, isElement, isHeadingNode, isMetadataNode, isText } from './uti
  * probably extract `SectionParser` from it). It is extended by {@link Section}. This class is the
  * only one used in the worker context for sections.
  *
- * @template {AnyNode} N
+ * @template {AnyNode} [N=AnyNode]
  */
 class SectionSkeleton {
   /**
@@ -96,7 +96,7 @@ class SectionSkeleton {
      * @returns {AnyElement | null}
      */
     const returnElementIfHElement = (/** @type {?AnyNode} */ node) =>
-      node && isHeadingNode(node, true) ? node : null;
+      node && isHeadingNode(node, true) ? /** @type {ElementLike} */ (node) : null;
 
     /**
      * `<hN>` element of the section (`<h1>`-`<h6>`).
@@ -240,20 +240,22 @@ class SectionSkeleton {
       nextNotDescendantHeadingElement = targets[nndheIndex]?.element;
     }
 
-    /** @typedef {ElementFor<N>} TreeWalkerAcceptedNode */
+    /** @typedef {ElementLike} TreeWalkerAcceptedNode */
     const treeWalker = new TreeWalker(
       this.parser.context.rootElement,
-      /** @type {(node: ElementFor<N>) => node is TreeWalkerAcceptedNode} */ (node) =>
+      /** @type {(node: NodeLike) => node is TreeWalkerAcceptedNode} */ (node) =>
         !isMetadataNode(node) &&
-        !node.classList.contains('cd-section-button-container'),
+        !/** @type {ElementLike} */ (node).classList.contains('cd-section-button-container'),
       true
     );
 
-    this.lastElement = this.getLastElement(nextNotDescendantHeadingElement, treeWalker);
+    this.lastElement = /** @type {ElementFor<N>} */ (
+      this.getLastElement(nextNotDescendantHeadingElement, treeWalker)
+    );
 
     this.lastElementInFirstChunk = nextHeadingElement === nextNotDescendantHeadingElement ?
       this.lastElement :
-      this.getLastElement(nextHeadingElement, treeWalker);
+      /** @type {ElementFor<N>} */ (this.getLastElement(nextHeadingElement, treeWalker));
 
     const targetsToComments = (/** @type {import('./Parser').Target<N>[]} */ targets) =>
       targets
@@ -293,12 +295,14 @@ class SectionSkeleton {
    * In this case, section 1 has paragraphs 1 and 2 as the first and last, and section 2 has
    * paragraphs 3 and 4 as such. Our code must capture that.
    *
-   * @param {ElementFor<N>|undefined} followingHeadingElement
-   * @param {import('./TreeWalker').default<ElementFor<N>>} treeWalker
-   * @returns {ElementFor<N>}
+   * @param {ElementLike | undefined} followingHeadingElement
+   * @param {import('./TreeWalker').default<ElementLike>} treeWalker
+   * @returns {ElementLike}
+   * @private
    */
   getLastElement(followingHeadingElement, treeWalker) {
-    let /** @type {ElementFor<N>} */ lastElement;
+    /** @type {ElementLike} */
+    let lastElement;
     if (followingHeadingElement) {
       treeWalker.currentNode = followingHeadingElement;
       while (!treeWalker.previousSibling()) {
@@ -306,20 +310,20 @@ class SectionSkeleton {
       }
       lastElement = treeWalker.currentNode;
     } else {
-      lastElement = /** @type {ElementFor<N>} */ (this.parser.context.rootElement.lastElementChild);
+      lastElement = /** @type {ElementLike} */ (this.parser.context.rootElement.lastElementChild);
     }
 
     // Some wrappers that include the section heading added by users
     while (
       lastElement &&
-      this.parser.context.contains(lastElement, this.headingElement) &&
+      this.parser.constructor.contains(lastElement, this.headingElement) &&
       lastElement !== this.headingElement
     ) {
-      lastElement = /** @type {ElementFor<N>} */ (lastElement.lastElementChild);
+      lastElement = /** @type {ElementLike} */ (lastElement.lastElementChild);
     }
 
     if (cd.config.reflistTalkClasses.some((name) => lastElement.classList?.contains(name))) {
-      lastElement = /** @type {ElementFor<N>} */ (lastElement.previousElementSibling);
+      lastElement = /** @type {ElementLike} */ (lastElement.previousElementSibling);
     }
 
     return lastElement;
@@ -354,11 +358,10 @@ class SectionSkeleton {
   /**
    * Get the parent section of the section.
    *
-   * @template {SectionBase} T
    * @param {boolean} [ignoreFirstLevel=true] Don't consider sections of the first level parent
    *   sections; stop at second level sections.
-   * @param {T[]} [sections=cd.sections]
-   * @returns {?T}
+   * @param {SectionSkeleton[]} [sections=cd.sections]
+   * @returns {?SectionSkeleton}
    */
   getParent(ignoreFirstLevel = true, sections = cd.sections) {
     if (ignoreFirstLevel && this.level <= 2) {
@@ -366,10 +369,10 @@ class SectionSkeleton {
     }
 
     return (
-      /** @type {T | undefined} */ (sections
+      sections
         .slice(0, this.index)
         .reverse()
-        .find((section) => section.level < this.level)) ||
+        .find((section) => section.level < this.level) ||
       null
     );
   }
@@ -378,16 +381,21 @@ class SectionSkeleton {
    * Get the chain of ancestors of the section as an array, starting with the parent section.
    *
    * The returned value is cached, so don't change the array in-place. (That's ugly, need to check
-   * if running .slice() on the array slows anything down. To be clear – this method is run very
+   * if running `.slice()` on the array slows anything down. To be clear – this method is run very
    * frequently.)
    *
    * @returns {this[]}
    */
   getAncestors() {
     if (!this.cachedAncestors) {
-      this.cachedAncestors = /** @type {this[]} */ ([]);
+      /** @type {this[]} */
+      this.cachedAncestors = [];
       let section;
-      for (section = this.getParent(); section; section = section.getParent()) {
+      for (
+        section = /** @type {this | null} */ (this.getParent());
+        section;
+        section = /** @type {this | null} */ (section.getParent())
+      ) {
         this.cachedAncestors.push(section);
       }
     }
@@ -397,7 +405,7 @@ class SectionSkeleton {
 }
 
 /**
- * @typedef {RemoveMethods<SectionSkeleton<AnyNode>>} SectionBase
+ * @typedef {RemoveMethods<SectionSkeleton>} SectionBase
  */
 
 export default SectionSkeleton;

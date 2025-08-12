@@ -3,7 +3,6 @@
  */
 
 
-import BootProcess from '../BootProcess';
 import BrowserComment from '../Comment';
 import Section from '../Section';
 import WorkerCommentWorker from '../worker/CommentWorker';
@@ -132,40 +131,53 @@ declare global {
 
   type ElementFor<T extends AnyNode> = T extends import('domhandler').Node
     ? import('domhandler').Element
-    : T extends Node
-      ? Element
-      : ElementLike;
+    : Element;
   type DocumentFor<T extends AnyNode> = T extends import('domhandler').Node
     ? import('domhandler').Document
-    : T extends Node
-      ? Document
-      : DocumentLike;
+    : Document;
   type HTMLElementFor<T extends AnyNode> = T extends import('domhandler').Node
     ? import('domhandler').Element
-    : T extends Node
-      ? HTMLElement
-      : HTMLElementLike;
-  type TextFor<T extends AnyNode> = T extends import('domhandler').Node ? import('domhandler').Text : Text;
+    : HTMLElement;
+  type TextFor<T extends AnyNode> = T extends import('domhandler').Node
+    ? import('domhandler').Text
+    : Text;
 
-  interface ParsingContext<T extends AnyNode> {
+  interface ParsingContext<N extends AnyNode> {
     // Classes
-    CommentClass: new (parser: Parser<T>, signature: SignatureTarget<T>, targets: Target<T>[]) => T extends import('domhandler').Node ? CommentWorker : BrowserComment;
-    SectionClass: new (parser: Parser<T>, heading: HeadingTarget<T>, targets: Target<T>[], subscriptions: Subscriptions) => T extends import('domhandler').Node ? SectionWorker : Section;
+    CommentClass: new (
+      parser: Parser<N>,
+      signature: SignatureTarget<N>,
+      targets: Target<N>[]
+    ) => N extends import('domhandler').Node
+      ? CommentWorker
+      : N extends Node
+        ? BrowserComment
+        : CommentSkeleton;
+    SectionClass: new (
+      parser: Parser<N>,
+      heading: HeadingTarget<N>,
+      targets: Target<N>[],
+      subscriptions: Subscriptions
+    ) => N extends import('domhandler').Node
+      ? SectionWorker
+      : N extends Node
+        ? Section
+        : SectionSkeleton;
 
     // Properties
     childElementsProp: string;
-    rootElement: ElementFor<T>;
-    document: DocumentFor<T>;
+    rootElement: ElementFor<N>;
+    document: DocumentFor<N>;
 
     // Non-DOM methods
     areThereOutdents: () => boolean;
-    processAndRemoveDtElements: (elements: ElementFor<T>[], bootProcess: BootProcess) => void;
+    processAndRemoveDtElements: (elements: ElementFor<N>[]) => void;
     removeDtButtonHtmlComments: () => void;
 
     // DOM methods
-    follows: (el1: T, el2: T) => boolean;
+    follows: (el1: N, el2: N) => boolean;
     getAllTextNodes: () => TextLike[];
-    getElementByClassName: (element: ElementLike, className: string) => ElementLike | null;
+    getElementByClassName: (element: ElementFor<N>, className: string) => ElementFor<N> | null;
   }
 }
 

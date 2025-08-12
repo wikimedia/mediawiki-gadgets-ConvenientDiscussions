@@ -205,16 +205,6 @@ function parse() {
       });
     },
     removeDtButtonHtmlComments,
-    /** @type {(el: import('domhandler').Element | null, node: import('domhandler').Node) => boolean} */
-    contains: (el, node) => Boolean(el && el.contains(node)),
-    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node, refNode: import('domhandler').Node | null) => unknown} */
-    insertBefore: (parent, node, refNode) => parent.insertBefore(node, refNode || undefined),
-    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
-    appendChild: (parent, node) => parent.appendChild(node),
-    /** @type {(node: import('domhandler').Node) => void} */
-    remove: (node) => node.remove(),
-    /** @type {(parent: import('domhandler').Element, node: import('domhandler').Node) => void} */
-    removeChild: (parent, node) => parent.removeChild(node),
   });
 
   const targets = findTargets(parser);

@@ -9,7 +9,7 @@ import { generateFixedPosTimestamp, genericGetOldestOrNewestByDateProp, isElemen
  * probably extract `CommentParser` from it). It is extended by {@link Comment}. This class is the
  * only one used in the worker context for comments.
  *
- * @template {AnyNode} N
+ * @template {AnyNode} [N=AnyNode]
  * @class
  */
 class CommentSkeleton {
@@ -27,7 +27,7 @@ class CommentSkeleton {
    * Keep in mind that elements may be replaced, and property values will need to be updated. See
    * {@link Comment#replaceElement}.
    *
-   * @type {ElementLike[]}
+   * @type {ElementFor<N>[]}
    */
   highlightables;
 
@@ -51,8 +51,8 @@ class CommentSkeleton {
 
   /**
    * @type {{
-   *   level?: ?CommentSkeleton<AnyNode>;
-   *   logicalLevel?: ?CommentSkeleton<AnyNode>;
+   *   level?: ?CommentSkeleton;
+   *   logicalLevel?: ?CommentSkeleton;
    * }}
    */
   cachedParent = {
@@ -118,7 +118,7 @@ class CommentSkeleton {
 
     // Identify all comment nodes and save a path to them. The parameter is the heading element
     // preceding the comment.
-    this.collectParts(this.followsHeading ? /** @type {import('./Parser').HeadingTarget<N>} */ (targets[signatureIndex - 1]).element : undefined);
+    this.collectParts(this.followsHeading ? targets[signatureIndex - 1].element : undefined);
 
     // Remove parts contained by other parts.
     this.removeNestedParts();
@@ -204,9 +204,9 @@ class CommentSkeleton {
     /**
      * _For internal use._ Elements containing all parts of the comment.
      *
-     * @type {ElementLike[]}
+     * @type {ElementFor<N>[]}
      */
-    this.elements = /** @type {CommentPart<ElementLike>[]} */ (this.parts).map((part) => part.node);
+    this.elements = this.parts.map((part) => /** @type {ElementFor<N>} */ (part.node));
 
     this.updateHighlightables();
     this.updateLevels();
@@ -247,7 +247,7 @@ class CommentSkeleton {
   /** @typedef {'start'|'back'|'up'|'dive'|'replaced'} Step */
 
   /**
-   * @template {AnyNode} [T=NodeLike]
+   * @template {AnyNode} [T=AnyNode]
    * @typedef {object} CommentPart
    * @property {T} node
    * @property {boolean} isTextNode
@@ -309,7 +309,8 @@ class CommentSkeleton {
 
     // As an optimization, avoid adding every text node of the comment to the array of its parts if
     // possible. Add their common container instead.
-    const parts = /** @type {CommentPart[]} */ ([]);
+    /** @type {CommentPart[]} */
+    const parts = [];
     const fiaParentElement = /** @type {ElementLike} */ (farthestInlineAncestor.parentElement);
     if (
       (
@@ -425,7 +426,10 @@ class CommentSkeleton {
       (
         element.tagName === 'HR' &&
         element.previousElementSibling &&
-        this.parser.context.getElementByClassName(element.previousElementSibling, 'cd-signature')
+        this.parser.context.getElementByClassName(
+          /** @type {ElementFor<N>} */ (element.previousElementSibling),
+          'cd-signature'
+        )
       ) ||
 
       cd.config.rejectNode?.(element, this.parser.context)
@@ -468,31 +472,27 @@ class CommentSkeleton {
     const previousElement = element.previousElementSibling;
     const nextElement = element.nextElementSibling;
     let result =
-      (
-        tagName === 'DL' &&
+      (tagName === 'DL' &&
         element.firstElementChild &&
-        element.firstElementChild.tagName === 'DT'
-      ) ||
-
+        element.firstElementChild.tagName === 'DT') ||
       // Cases like the first comment at
       // https://ru.wikipedia.org/wiki/Project:Выборы_арбитров/Лето_2021/Форум/Кандидаты#Abiyoyo.
       // But don't affect cases like the first comment at
       // https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases#List_inside_a_comment.
       //
-      (
-        ['DL', 'UL'].includes(tagName) &&
+      (['DL', 'UL'].includes(tagName) &&
         previousElement &&
         isHeadingNode(previousElement) &&
         nextElement &&
         !['DL', 'OL'].includes(nextElement.tagName) &&
-
         // Helps at https://ru.wikipedia.org/wiki/Википедия:Форум/Архив/Общий/2019/11#201911201924_Vcohen
         !this.isPartOfList(lastPartNode, true) &&
-
         // Helps at
         // https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases#202110061810_Example
-        !this.parser.context.getElementByClassName(element, 'cd-signature')
-      ) ||
+        !this.parser.context.getElementByClassName(
+          /** @type {ElementFor<N>} */ (element),
+          'cd-signature'
+        )) ||
       this.isOtherKindOfList(element);
 
     // "tagName !== 'OL'" helps in cases like
@@ -857,9 +857,10 @@ class CommentSkeleton {
   }
 
   /**
-   * _For internal use._ Collect the parts of the comment given a signature element.
+   * Collect the parts of the comment given a signature element.
    *
    * @param {ElementFor<N>} [precedingHeadingElement]
+   * @private
    */
   collectParts(precedingHeadingElement) {
     const treeWalker = new ElementsAndTextTreeWalker(
@@ -878,7 +879,9 @@ class CommentSkeleton {
   }
 
   /**
-   * _For internal use._ Remove comment parts that are inside of other parts.
+   * Remove comment parts that are inside of other parts.
+   *
+   * @private
    */
   removeNestedParts() {
     for (let i = this.parts.length - 1; i >= 0; i--) {
@@ -898,9 +901,10 @@ class CommentSkeleton {
   }
 
   /**
-   * _For internal use._ Wrap text and inline nodes into block elements.
+   * Wrap text and inline nodes into block elements.
    *
    * @returns {CommentPart[]}
+   * @private
    */
   wrapInlineParts() {
     const sequencesToBeEnclosed = [];
@@ -976,7 +980,9 @@ class CommentSkeleton {
   }
 
   /**
-   * _For internal use._ Remove unnecessary and incorrect parts from the collection.
+   * Remove unnecessary and incorrect parts from the collection.
+   *
+   * @private
    */
   filterParts() {
     this.parts = this.parts.filter((part) => !part.hasForeignComponents && !part.isTextNode);
@@ -1208,8 +1214,10 @@ class CommentSkeleton {
   }
 
   /**
-   * _For internal use._ Wrap numbered list into a `<div>` or `<dl>` & `<dd>` if the comment starts
-   * with numbered list items.
+   * Wrap numbered list into a `<div>` or `<dl>` & `<dd>` if the comment starts with numbered list
+   * items.
+   *
+   * @private
    */
   wrapNumberedList() {
     if (this.parts.length > 1) {
@@ -1521,7 +1529,7 @@ class CommentSkeleton {
       const closestLevelElement = lastAncestors[lastAncestors.length - 1];
 
       // Split parent elements until we reach the level element.
-      let parent = this.highlightables[this.highlightables.length - 1];
+      let parent = /** @type {ElementLike} */ (this.highlightables[this.highlightables.length - 1]);
       while (parent !== closestLevelElement) {
         parent = this.parser.splitParentAfterNode(parent).parent;
       }
@@ -1626,7 +1634,8 @@ class CommentSkeleton {
     /** @type {this[]} */
     const children = [];
     const prop = visual ? 'level' : 'logicalLevel';
-    cd.comments
+    const comments = /** @type {this[]} */ (/** @type {unknown} */ (cd.comments));
+    comments
       .slice(this.index + 1)
       .some((comment) => {
         if (
@@ -1653,13 +1662,18 @@ class CommentSkeleton {
           if (prop === 'logicalLevel' && this.parser.context.areThereOutdents()) {
             // Outdented comments that are separated from their parents by interjected comments of
             // higher level than the parent.
-            cd.comments
+            comments
               .slice(comment.index + 1)
               .some((comment) => {
-                if (comment.cachedParent?.logicalLevel === this) {
+                if (
+                  /** @type {CommentSkeleton<N> | null} */ (comment.cachedParent?.logicalLevel) ===
+                  this
+                ) {
                   children.push(comment);
+
                   return true;
                 }
+
                 return comment.section !== this.section;
               });
           }
@@ -1732,8 +1746,8 @@ class CommentSkeleton {
    * Update the width and border color of the outdent template to match our thread style changes.
    * Doesn't run in the worker.
    *
-   * @param {ElementFor<N>} element
-   * @param {import('./Parser').default<N>} parser
+   * @param {ElementLike} element
+   * @param {import('./Parser').default} parser
    */
   static updateOutdentStyle(element, parser) {
     if (cd.isWorker()) return;
@@ -1761,10 +1775,10 @@ class CommentSkeleton {
   }
 
   /**
-   * _For internal use._ Set {@link Comment#logicalLevel logical levels} to the comments taking into
-   * account `{{outdent}}` templates.
+   * _For internal use._ Set {@link CommentSkeleton#logicalLevel logical levels} to the comments
+   * taking into account `{{outdent}}` templates.
    *
-   * @param {import('./Parser').default<AnyNode>} parser
+   * @param {import('./Parser').default} parser
    */
   static processOutdents(parser) {
     if (!parser.context.areThereOutdents()) return;
@@ -1772,9 +1786,9 @@ class CommentSkeleton {
     [...parser.context.rootElement.getElementsByClassName(cd.config.outdentClass)]
       .reverse()
       .forEach((element) => {
-        /** @type {CommentSkeleton<AnyNode> | undefined} */
+        /** @type {CommentSkeleton | undefined} */
         let childComment;
-        /** @type {CommentSkeleton<AnyNode> | undefined} */
+        /** @type {CommentSkeleton | undefined} */
         let parentComment;
         const treeWalker = new ElementsTreeWalker(parser.context.rootElement, element);
         while (treeWalker.nextNode() && !childComment) {
@@ -1809,23 +1823,26 @@ class CommentSkeleton {
           childComment.isOutdented = true;
           childComment.elements[0].classList.add('cd-comment-outdented');
 
+          const narrowedParrentComment = parentComment;
+          const narrowedChildComment = childComment;
+
           // Update levels for comments that follow.
           cd.comments.slice(commentIndex).some((comment) => {
             // Since we traverse templates from the last to the first, childComment.level at
             // this stage is the same as childComment.logicalLevel before we traverse the child
             // comments. The same for parentComment.
             if (
-              comment.section !== parentComment.section ||
-              comment.logicalLevel < childComment.level ||
-              (comment !== childComment && comment.logicalLevel === childComment.level) ||
-              (comment.date && comment.date < childComment.date)
+              comment.section !== narrowedParrentComment.section ||
+              comment.logicalLevel < narrowedChildComment.level ||
+              (comment !== narrowedChildComment && comment.logicalLevel === narrowedChildComment.level) ||
+              (comment.date && comment.date < /** @type {Date} */ (narrowedChildComment.date))
             ) {
               return true;
             }
 
             comment.logicalLevel = (
-              (parentComment.level + 1) +
-              (comment.logicalLevel - childComment.level)
+              (narrowedParrentComment.level + 1) +
+              (comment.logicalLevel - narrowedChildComment.level)
             );
 
             return false;
@@ -1837,7 +1854,7 @@ class CommentSkeleton {
   /**
    * Get the oldest comment in a list.
    *
-   * @template {CommentSkeleton<AnyNode>} T
+   * @template {CommentSkeleton} T
    * @template {boolean} AD
    * @param {T[]} comments
    * @param {AD} allowDateless
@@ -1850,7 +1867,7 @@ class CommentSkeleton {
   /**
    * Get the oldest comment in a list.
    *
-   * @template {CommentSkeleton<AnyNode>} T
+   * @template {CommentSkeleton} T
    * @template {boolean} AD
    * @param {T[]} comments
    * @param {AD} allowDateless
@@ -1863,7 +1880,7 @@ class CommentSkeleton {
 
 /**
  * @typedef {Omit<
- *   RemoveMethods<CommentSkeleton<AnyNode>>,
+ *   RemoveMethods<CommentSkeleton>,
  *   'children' | 'previousComments'
  * >} CommentBase
  */
