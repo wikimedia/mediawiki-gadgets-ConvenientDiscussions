@@ -111,8 +111,8 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussionsBase} */ ({});
  * @property {import('../User').default} user Current user's object.
  * @property {typeof import('../../config/default').default} config
  * @property {GlobalProps} g
- * @property {import('./CommentSkeleton').default<AnyNode>[]} comments
- * @property {import('./SectionSkeleton').default<AnyNode>[]} sections
+ * @property {import('./CommentSkeleton').default[]} comments
+ * @property {import('./SectionSkeleton').default[]} sections
  */
 
 /**

@@ -389,7 +389,7 @@ class CommentRegistry extends EventEmitter {
   findInViewport(findClosestDirection) {
     // Reset the roughOffset property. It is used only within this method.
     this.items.forEach((comment) => {
-      comment.roughOffset = null;
+      comment.roughOffset = undefined;
     });
 
     const viewportTop = window.scrollY + cd.g.bodyScrollPaddingTop;

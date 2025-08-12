@@ -212,7 +212,7 @@ export default class CurrentPage extends Page {
    * Add an "Add section" form or not on page load depending on the URL and presence of a
    * DiscussionTools' "New topic" form.
    *
-   * @param {import('./CommentForm').CommentFormInitialState} dtFormData
+   * @param {import('./CommentForm').CommentFormInitialState} [dtFormData]
    */
   autoAddSection(dtFormData) {
     const { searchParams } = new URL(location.href);

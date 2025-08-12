@@ -26,7 +26,7 @@ import {
 import { parseTimestamp } from './utils-timestamp';
 
 /**
- * @template {AnyNode} N
+ * @template {AnyNode} [N=AnyNode]
  * @typedef {object} HeadingTarget
  * @property {'heading'} type
  * @property {HTMLElementFor<N>} element
@@ -35,15 +35,15 @@ import { parseTimestamp } from './utils-timestamp';
  */
 
 /**
- * @template {AnyNode} N
+ * @template {AnyNode} [N=AnyNode]
  * @typedef {object} SignatureTarget
  * @property {'signature'} type
  * @property {HTMLElementFor<N>} element
  * @property {HTMLElementFor<N>} timestampElement
  * @property {string} timestampText
  * @property {Date} date
- * @property {HTMLElementFor<N>} authorLink
- * @property {HTMLElementFor<N>} authorTalkLink
+ * @property {HTMLElementFor<N>} [authorLink]
+ * @property {HTMLElementFor<N>} [authorTalkLink]
  * @property {string} authorName
  * @property {boolean} isUnsigned
  * @property {boolean} isExtraSignature
@@ -52,7 +52,7 @@ import { parseTimestamp } from './utils-timestamp';
  */
 
 /**
- * @template {AnyNode} N
+ * @template {AnyNode} [N=AnyNode]
  * @typedef {HeadingTarget<N> | SignatureTarget<N>} Target
  */
 
@@ -61,7 +61,7 @@ import { parseTimestamp } from './utils-timestamp';
  * here means "extracting meaningful parts from the page" such as comments, sections, etc. Functions
  * related to wikitext parsing go in {@link module:wikitext}.
  *
- * @template {AnyNode} N
+ * @template {AnyNode} [N=AnyNode]
  */
 class Parser {
   /** @type {RegExp} */
@@ -150,35 +150,30 @@ class Parser {
    * CD already parses comment links from notifications (which seems to be this markup's purpose for
    * disabled DT) in `BootProcess#processTargets()`. Unless the elements prove useful to CD or other
    * scripts, it's better to get rid of them rather than deal with them one by one while parsing.
-   *
-   * @param {import('../BootProcess').default} [bootProcess]
    */
-  processAndRemoveDtMarkup(bootProcess) {
+  processAndRemoveDtMarkup() {
     this.context.processAndRemoveDtElements(
-      [...this.context.rootElement.getElementsByTagName('span')]
-        .filter(
-          (el) =>
-            el.hasAttribute('data-mw-comment-start') ||
-            el.hasAttribute('data-mw-comment-end') ||
-            // This, in fact, targets the one span at the top of the page, out of sections which makes
-            // comments taller (example:
-            // https://commons.wikimedia.org/w/index.php?title=User_talk:Jack_who_built_the_house/CD_test_page&oldid=876639400).
-            // Check for classes and content because in older DT versions, `data-mw-thread-id` was on
-            // the .mw-headline element.
-            (el.tagName === 'SPAN' &&
-              el.hasAttribute('data-mw-thread-id') &&
-              !el.classList.length &&
-              !el.textContent)
-        )
-        .concat([
-          ...this.context.rootElement.getElementsByClassName(
-            'ext-discussiontools-init-replylink-buttons'
-          ),
-        ])
-        .filter(unique),
-      bootProcess
+      /** @type {HTMLElementFor<N>[]} */ (
+        [...this.context.rootElement.getElementsByTagName('span')]
+          .filter(
+            (el) =>
+              el.hasAttribute('data-mw-comment-start') ||
+              el.hasAttribute('data-mw-comment-end') ||
+              // This, in fact, targets the one span at the top of the page, out of sections which makes
+              // comments taller (example:
+              // https://commons.wikimedia.org/w/index.php?title=User_talk:Jack_who_built_the_house/CD_test_page&oldid=876639400).
+              // Check for classes and content because in older DT versions, `data-mw-thread-id` was on
+              // the .mw-headline element.
+              (el.tagName === 'SPAN' &&
+                el.hasAttribute('data-mw-thread-id') &&
+                !el.classList.length &&
+                !el.textContent)
+          )
+          .concat([ ...this.getElementsByClassName('ext-discussiontools-init-replylink-buttons') ])
+          .filter(unique)
+      )
     );
-    Parser.removeDtButtonHtmlComments();
+    this.context.removeDtButtonHtmlComments();
   }
 
   /**
@@ -252,9 +247,9 @@ class Parser {
     }
 
     const { date, match } = parsedTimestamp;
-    const element = document.createElement('span');
+    const element = /** @type {HTMLElementFor<N>} */ (Parser.createElement('span'));
     element.classList.add('cd-timestamp');
-    element.appendChild(document.createTextNode(match[2]));
+    Parser.appendChild(element, Parser.createTextNode(match[2]));
     const remainedText = node.textContent.slice(
       /** @type {number} */ (match.index) + match[0].length
     );
@@ -289,12 +284,16 @@ class Parser {
    * @private
    */
   getSignatureFromTimestamp(timestamp) {
-    /** @type {ElementLike | undefined} */
+    /** @type {ElementFor<N> | undefined} */
     let unsignedElement;
     {
-      /** @type {ElementLike | null} */
+      /** @type {ElementFor<N> | null} */
       let el = timestamp.element;
-      while (!unsignedElement && (el = el.parentElement) && isInline(el) !== false) {
+      while (
+        !unsignedElement &&
+        (el = /** @type {ElementFor<N> | null} */ (el.parentElement)) &&
+        isInline(el) !== false
+      ) {
         if (el.classList.contains(cd.config.unsignedClass)) {
           unsignedElement = el;
         }
@@ -325,7 +324,7 @@ class Parser {
     const authorData = /** @type {AuthorData} */ ({});
 
     let length = 0;
-    /** @type {NodeLike | undefined} */
+    /** @type {ElementLike | undefined} */
     let firstSignatureElement;
     /** @type {NodeLike[]} */
     let signatureNodes = [];
@@ -441,18 +440,18 @@ class Parser {
     const signatureContainer = /** @type {ElementFor<N>} */ (signatureNodes[0].parentElement);
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const startElementNextSibling = signatureNodes[0].nextSibling;
-    const element = document.createElement('span');
+    const element = Parser.createElement('span');
     element.classList.add('cd-signature');
     signatureNodes.reverse().forEach((node) => Parser.appendChild(element, node));
     Parser.insertBefore(signatureContainer, element, startElementNextSibling);
 
     return {
-      element,
+      element: /** @type {HTMLElementFor<N>} */ (element),
       timestampElement: timestamp.element,
       timestampText: timestamp.element.textContent,
       date: timestamp.date,
-      authorLink: authorData.link,
-      authorTalkLink: authorData.talkLink,
+      authorLink: /** @type {HTMLElementFor<N>} */ (authorData.link),
+      authorTalkLink: /** @type {HTMLElementFor<N>} */ (authorData.talkLink),
       authorName: authorData.name,
       isUnsigned: Boolean(unsignedElement),
       isExtraSignature,
@@ -463,7 +462,7 @@ class Parser {
    * Find outputs of unsigned templates that we weren't able to find using the standard procedure
    * (in which case they are treated as normal signatures).
    *
-   * @returns {Partial<SignatureTarget<AnyNode>>[]}
+   * @returns {Partial<SignatureTarget>[]}
    * @private
    */
   findRemainingUnsigneds() {
@@ -471,9 +470,9 @@ class Parser {
       return [];
     }
 
-    /** @type {Partial<SignatureTarget<AnyNode>>[]} */
+    /** @type {Partial<SignatureTarget>[]} */
     const unsigneds = [];
-    /** @type {HTMLElementLike[]} */ ([...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass)])
+    /** @type {HTMLElementFor<N>[]} */ ([...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass)])
       .filter((element) => {
         // Only templates with no timestamp interest us.
         if (this.context.getElementByClassName(element, 'cd-timestamp')) {
@@ -494,7 +493,7 @@ class Parser {
         return true;
       })
       .forEach((element) => {
-        [...element.getElementsByTagName('a')].some((link) => {
+        /** @type {HTMLElementFor<N>[]} */ ([...element.getElementsByTagName('a')]).some((link) => {
           const { userName: authorName, linkType } = this.processLink(link) || {};
           if (authorName) {
             let authorLink;
@@ -632,12 +631,14 @@ class Parser {
    * @returns {HeadingTarget<N>[]}
    */
   findHeadings() {
-    return [...this.context.rootElement.querySelectorAll('h1, h2, h3, h4, h5, h6')]
+    return /** @type {HTMLElementFor<N>[]} */ ([
+      ...this.context.rootElement.querySelectorAll('h1, h2, h3, h4, h5, h6'),
+    ])
       .map((element) => {
         for (
-          let /** @type {ElementLike | null} */ el = element;
+          let /** @type {HTMLElementFor<N> | null} */ el = element;
           el && el !== this.context.rootElement;
-          el = el.parentElement
+          el = /** @type {HTMLElementFor<N>} */ (el.parentElement)
         ) {
           if (el.classList.contains('mw-heading')) {
             return el;
@@ -887,6 +888,50 @@ class Parser {
     return /** @type {ElementLike[]} */ (
       element[/** @type {keyof ElementLike} */ (this.context.childElementsProp)]
     );
+  }
+
+  /**
+   * Get elements under the root element by tag name.
+   *
+   * @param {string} name
+   * @returns {ElementLike[]}
+   */
+  getElementsByTagName(name) {
+    return /** @type {ElementLike[]} */ ([
+      ...this.context.rootElement.getElementsByTagName(name),
+    ]);
+  }
+
+  /**
+   * Get elements under the root element by class name.
+   *
+   * @param {string} name
+   * @returns {ElementLike[]}
+   */
+  getElementsByClassName(name) {
+    return /** @type {ElementLike[]} */ ([
+      ...this.context.rootElement.getElementsByClassName(name),
+    ]);
+  }
+
+  /**
+   * Create an element node.
+   *
+   * @param {string} name
+   * @returns {ElementLike}
+   */
+  static createElement(name) {
+    return document.createElement(name);
+  }
+
+  /**
+   * Create a text node.
+   *
+   * @param {string} text
+   * @returns {TextLike}
+   */
+  static createTextNode(text) {
+    return document.createTextNode(text);
   }
 
   /**
