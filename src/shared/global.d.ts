@@ -150,9 +150,7 @@ declare global {
       targets: Target<N>[]
     ) => N extends import('domhandler').Node
       ? CommentWorker
-      : N extends Node
-        ? BrowserComment
-        : CommentSkeleton;
+      : BrowserComment;
     SectionClass: new (
       parser: Parser<N>,
       heading: HeadingTarget<N>,
@@ -160,9 +158,7 @@ declare global {
       subscriptions: Subscriptions
     ) => N extends import('domhandler').Node
       ? SectionWorker
-      : N extends Node
-        ? Section
-        : SectionSkeleton;
+      : Section;
 
     // Properties
     childElementsProp: string;
@@ -176,7 +172,7 @@ declare global {
 
     // DOM methods
     follows: (el1: N, el2: N) => boolean;
-    getAllTextNodes: () => TextLike[];
+    getAllTextNodes: () => TextFor<N>[];
     getElementByClassName: (element: ElementFor<N>, className: string) => ElementFor<N> | null;
   }
 }
