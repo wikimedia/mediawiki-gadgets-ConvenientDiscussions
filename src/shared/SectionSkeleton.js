@@ -360,8 +360,8 @@ class SectionSkeleton {
    *
    * @param {boolean} [ignoreFirstLevel=true] Don't consider sections of the first level parent
    *   sections; stop at second level sections.
-   * @param {SectionSkeleton[]} [sections=cd.sections]
-   * @returns {?SectionSkeleton}
+   * @param {SectionSkeleton<AnyNode>[]} [sections=cd.sections]
+   * @returns {?this}
    */
   getParent(ignoreFirstLevel = true, sections = cd.sections) {
     if (ignoreFirstLevel && this.level <= 2) {
@@ -369,10 +369,10 @@ class SectionSkeleton {
     }
 
     return (
-      sections
+      /** @type {this | undefined} */ (sections
         .slice(0, this.index)
         .reverse()
-        .find((section) => section.level < this.level) ||
+        .find((section) => section.level < this.level)) ||
       null
     );
   }

@@ -109,7 +109,7 @@ function processAndRemoveDtElements(elements) {
  * @typedef {object} PassedData
  * @property {import('./utils-api').ApiResponseParseContent} [parseData] Response to the parse
  *   request from the API.
- * @property {(string | null)[]} [commentIds] ID of comments to highlight and/or scroll to.
+ * @property {(string | undefined)[]} [commentIds] ID of comments to highlight and/or scroll to.
  * @property {string} [sectionId] ID of a section to scroll to.
  * @property {boolean} [pushState] Whether to replace the URL in the address bar adding the comment
  *   ID to it if it's specified.
@@ -686,7 +686,7 @@ class BootProcess {
       this.parser.findHeadings()
     )
       .concat(this.parser.findSignatures())
-      .sort((t1, t2) => (this.parser.context.follows(t1.element, t2.element) ? 1 : -1));
+      .sort((t1, t2) => this.parser.context.follows(t1.element, t2.element) ? 1 : -1);
   }
 
   /**

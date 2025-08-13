@@ -10,7 +10,6 @@ import { generateFixedPosTimestamp, genericGetOldestOrNewestByDateProp, isElemen
  * only one used in the worker context for comments.
  *
  * @template {AnyNode} [N=AnyNode]
- * @class
  */
 class CommentSkeleton {
   /**
@@ -112,7 +111,7 @@ class CommentSkeleton {
     /**
      * Comment ID.
      *
-     * @type {?string}
+     * @type {string | undefined}
      */
     this.id = CommentSkeleton.generateId(this.date, this.authorName, parser.existingCommentIds);
 
@@ -682,7 +681,7 @@ class CommentSkeleton {
       return false;
     }
 
-    return Boolean(this.parser.processLink(link)?.userName);
+    return Boolean(this.parser.constructor.processLink(link)?.userName);
   }
 
   /**
@@ -957,7 +956,7 @@ class CommentSkeleton {
 
     for (let i = sequencesToBeEnclosed.length - 1; i >= 0; i--) {
       const sequence = sequencesToBeEnclosed[i];
-      const wrapper = document.createElement('div');
+      const wrapper = this.parser.constructor.createElement('div');
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const nextSibling = this.parts[sequence.start].node.nextSibling;
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -1253,11 +1252,11 @@ class CommentSkeleton {
                 this.parser.constructor.contains(part.node.parentElement, firstNodeParent)
             )
           ) {
-            innerWrapper = document.createElement('dd');
-            outerWrapper = document.createElement('dl');
+            innerWrapper = this.parser.constructor.createElement('dd');
+            outerWrapper = this.parser.constructor.createElement('dl');
             outerWrapper.appendChild(innerWrapper);
           } else {
-            innerWrapper = document.createElement('div');
+            innerWrapper = this.parser.constructor.createElement('div');
             outerWrapper = innerWrapper;
           }
           this.parser.constructor.appendChild(innerWrapper, firstNodeParent);
@@ -1334,7 +1333,7 @@ class CommentSkeleton {
         (el.getAttribute('style') && el.tagName !== 'LI')
       ))
       .forEach((el) => {
-        const wrapper = document.createElement('div');
+        const wrapper = this.parser.constructor.createElement('div');
         wrapper.className = 'cd-comment-replacedPart';
         this.parser.constructor.insertBefore(
           /** @type {ElementLike} */ (el.parentElement),
@@ -1504,7 +1503,7 @@ class CommentSkeleton {
           .find((ancestors) => ancestors.length)
           ?.slice(-1)[0];
         if (levelElement) {
-          const itemElement = document.createElement(levelElement.tagName === 'DL' ? 'dd' : 'li');
+          const itemElement = this.parser.constructor.createElement(levelElement.tagName === 'DL' ? 'dd' : 'li');
           indexes.forEach((index) => {
             this.parser.constructor.appendChild(itemElement, this.elements[index]);
           });
@@ -1725,16 +1724,14 @@ class CommentSkeleton {
   /**
    * Generate a comment ID from a date and author.
    *
-   * @param {?Date} date
+   * @param {Date} date
    * @param {string} [author]
    * @param {string[]} [existingIds] IDs that collide with IDs in the array will get a `_<number>`
    *   postfix. The array will be appended to in that case.
-   * @returns {?string}
+   * @returns {string | undefined}
    */
   static generateId(date, author, existingIds) {
-    if (!date || !author) {
-      return null;
-    }
+    if (!date || !author) return;
 
     let id = generateFixedPosTimestamp(date) + '_' + spacesToUnderlines(author);
     if (existingIds?.includes(id)) {
