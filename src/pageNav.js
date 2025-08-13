@@ -18,38 +18,71 @@ import { getVisibilityByRects } from './utils-window';
  *
  */
 class PageNav {
-  /** @type {JQuery | null} */
-  $topElement = null;
+  /**
+   * @type {JQuery | undefined}
+   * @private
+   */
+  $topElement;
 
-  /** @type {JQuery | null} */
-  $bottomElement = null;
+  /**
+   * @type {JQuery | undefined}
+   * @private
+   */
+  $bottomElement;
 
-  /** @type {JQuery | null} */
-  $linksOnTop = null;
+  /**
+   * @type {JQuery | undefined}
+   * @private
+   */
+  $linksOnTop;
 
-  /** @type {JQuery | null} */
-  $topLink = null;
+  /**
+   * @type {JQuery | undefined}
+   * @private
+   */
+  $topLink;
 
-  /** @type {JQuery | null} */
-  $tocLink = null;
+  /**
+   * @type {JQuery | undefined}
+   * @private
+   */
+  $tocLink;
 
-  /** @type {JQuery | null} */
-  $currentSection = null;
+  /**
+   * @type {JQuery | undefined}
+   * @private
+   */
+  $currentSection;
 
-  /** @type {JQuery | null} */
-  $bottomLink = null;
+  /**
+   * @type {JQuery | undefined}
+   * @private
+   */
+  $bottomLink;
 
-  /** @type {JQuery | null} */
-  $sectionWithBackLink = null;
+  /**
+   * @type {JQuery | undefined}
+   * @private
+   */
+  $sectionWithBackLink;
 
-  /** @type {JQuery | null} */
-  $backLinkContainer = null;
+  /**
+   * @type {JQuery | undefined}
+   * @private
+   */
+  $backLinkContainer;
 
-  /** @type {object | null} */
-  currentSection = null;
+  /**
+   * @type {object | undefined}
+   * @private
+   */
+  currentSection;
 
-  /** @type {string | null} */
-  backLinkLocation = null;
+  /**
+   * @type {string | undefined}
+   * @private
+   */
+  backLinkLocation;
 
   /**
    * _For internal use._ Setup the page navigation block (mount or update).
@@ -171,7 +204,7 @@ class PageNav {
    */
   createOrUpdateSkeleton(afterLeadOffset, scrollY) {
     if (
-      (afterLeadOffset !== null && afterLeadOffset < cd.g.bodyScrollPaddingTop + 1) ||
+      (afterLeadOffset !== undefined && afterLeadOffset < cd.g.bodyScrollPaddingTop + 1) ||
       this.backLinkLocation === 'top'
     ) {
       if (!this.$linksOnTop) {
@@ -261,7 +294,7 @@ class PageNav {
     // `1` as a threshold (also below, in `extendedRect.outerTop < BODY_SCROLL_PADDING_TOP + 1`)
     // works better for Monobook for some reason (scroll to the first section using the page
     // navigation to see the difference).
-    if (firstSectionTop === null || firstSectionTop >= cd.g.bodyScrollPaddingTop + 1) {
+    if (firstSectionTop === undefined || firstSectionTop >= cd.g.bodyScrollPaddingTop + 1) {
       if (this.currentSection) {
         this.resetSections();
       }
@@ -339,12 +372,12 @@ class PageNav {
       this.$sectionWithBackLink?.detach();
 
       this.$topElement.empty();
-      this.$linksOnTop = this.$topLink = this.$tocLink = this.$currentSection = null;
-      this.currentSection = null;
+      this.$linksOnTop = this.$topLink = this.$tocLink = this.$currentSection = undefined;
+      this.currentSection = undefined;
     }
     if (!part || part === 'bottom') {
       this.$bottomElement.empty();
-      this.$bottomLink = null;
+      this.$bottomLink = undefined;
     }
   }
 
@@ -356,7 +389,7 @@ class PageNav {
   resetSections() {
     this.$sectionWithBackLink?.detach();
     this.$currentSection.empty();
-    this.currentSection = null;
+    this.currentSection = undefined;
   }
 
   /**
@@ -374,10 +407,10 @@ class PageNav {
     if (!isBackLink && Math.abs(offset - window.scrollY) < 1) return;
 
     if (this.backLinkLocation) {
-      this.backLinkLocation = null;
+      this.backLinkLocation = undefined;
       this.$backLinkContainer.prev().removeClass('cd-pageNav-link-inline');
       this.$backLinkContainer.remove();
-      this.$backLinkContainer = this.$sectionWithBackLink = null;
+      this.$backLinkContainer = this.$sectionWithBackLink = undefined;
     }
     if (!isBackLink) {
       const scrollY = window.scrollY;
