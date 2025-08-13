@@ -1336,9 +1336,17 @@ class CommentSkeleton {
       .forEach((el) => {
         const wrapper = document.createElement('div');
         wrapper.className = 'cd-comment-replacedPart';
-        this.parser.constructor.insertBefore(/** @type {ElementFor<N>} */ (el.parentElement), wrapper, el);
-        this.elements.splice(this.elements.indexOf(el), 1, wrapper);
-        this.highlightables.splice(this.highlightables.indexOf(el), 1, wrapper);
+        this.parser.constructor.insertBefore(
+          /** @type {ElementLike} */ (el.parentElement),
+          wrapper,
+          el
+        );
+        this.elements.splice(this.elements.indexOf(el), 1, /** @type {ElementFor<N>} */ (wrapper));
+        this.highlightables.splice(
+          this.highlightables.indexOf(el),
+          1,
+          /** @type {ElementFor<N>} */ (wrapper)
+        );
         this.parser.constructor.appendChild(wrapper, el);
       });
   }

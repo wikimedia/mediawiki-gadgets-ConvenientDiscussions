@@ -129,18 +129,21 @@ declare global {
   type HTMLElementLike = import('domhandler').Element | globalThis.HTMLElement;
   type TextLike = AnyText;
 
-  type ElementFor<T extends AnyNode> = T extends import('domhandler').Node
-    ? import('domhandler').Element
-    : Element;
-  type DocumentFor<T extends AnyNode> = T extends import('domhandler').Node
-    ? import('domhandler').Document
-    : Document;
-  type HTMLElementFor<T extends AnyNode> = T extends import('domhandler').Node
-    ? import('domhandler').Element
-    : HTMLElement;
+  type NodeFor<T extends AnyNode> = T extends import('domhandler').Node
+    ? import('domhandler').Node
+    : Node;
   type TextFor<T extends AnyNode> = T extends import('domhandler').Node
     ? import('domhandler').Text
     : Text;
+  type ElementFor<T extends AnyNode> = T extends import('domhandler').Node
+    ? import('domhandler').Element
+    : Element;
+  type HTMLElementFor<T extends AnyNode> = T extends import('domhandler').Node
+    ? import('domhandler').Element
+    : HTMLElement;
+  type DocumentFor<T extends AnyNode> = T extends import('domhandler').Node
+    ? import('domhandler').Document
+    : Document;
 
   interface ParsingContext<N extends AnyNode> {
     // Classes
@@ -171,7 +174,11 @@ declare global {
     removeDtButtonHtmlComments: () => void;
 
     // DOM methods
-    follows: (el1: N, el2: N) => boolean;
+
+    // Note: NodeFor<N> instead of N here solves a bulk of type errors due to contravarience in all
+    // places where Parser<Node> or CommentSkeleton<Node> or SectionSkeleton<Node> is used where
+    // Parser<AnyNode>, CommentSkeleton<AnyNode> or SectionSkeleton<AnyNode> is expected.
+    follows: (el1: NodeFor<N>, el2: NodeFor<N>) => boolean;
     getAllTextNodes: () => TextFor<N>[];
     getElementByClassName: (element: ElementFor<N>, className: string) => ElementFor<N> | null;
   }
