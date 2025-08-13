@@ -73,13 +73,13 @@ class PageNav {
   $backLinkContainer;
 
   /**
-   * @type {object | undefined}
+   * @type {import('./Section').default | undefined}
    * @private
    */
   currentSection;
 
   /**
-   * @type {string | undefined}
+   * @type {'top' | 'bottom' | 'section' | undefined}
    * @private
    */
   backLinkLocation;
@@ -174,7 +174,10 @@ class PageNav {
    * Get offsets of some important elements relative to the viewport.
    *
    * @param {number} scrollY
-   * @returns {object}
+   * @returns {{
+   *   afterLeadOffset: number | undefined
+   *   firstSectionTop: number | undefined
+   * }}
    * @private
    */
   getRelativeOffsets(scrollY) {
@@ -313,6 +316,7 @@ class PageNav {
     [this.currentSection, ...this.currentSection.getAncestors()]
       .reverse()
       .forEach((sectionInTree, level) => {
+        /** @type {JQuery} */
         let $item;
         if (
           this.$sectionWithBackLink &&
@@ -320,18 +324,19 @@ class PageNav {
         ) {
           $item = this.$sectionWithBackLink;
         } else {
-          const button = new Button({
-            href: sectionInTree.getUrl(),
-            classes: ['cd-pageNav-link'],
-            label: sectionInTree.headline,
-            action: () => {
-              this.jump(sectionInTree.$heading, $item);
-            },
-          });
           $item = $('<li>')
             .addClass(`cd-pageNav-item cd-pageNav-item-level-${level}`)
             .data('section', sectionInTree)
-            .append(button.element);
+            .append(
+              new Button({
+                href: sectionInTree.getUrl(),
+                classes: ['cd-pageNav-link'],
+                label: sectionInTree.headline,
+                action: () => {
+                  this.jump(sectionInTree.$heading, $item);
+                },
+              }).element
+            );
         }
         $item.appendTo(this.$currentSection);
       });
@@ -414,19 +419,21 @@ class PageNav {
     }
     if (!isBackLink) {
       const scrollY = window.scrollY;
-      const backLink = new Button({
-        classes: ['cd-pageNav-backLink'],
-        label: cd.s('pagenav-back'),
-        action: (event) => {
-          // When inside links without href
-          event.stopPropagation();
-
-          this.jump(scrollY, $item, true);
-        },
-      });
       this.$backLinkContainer = $('<span>')
         .addClass('cd-pageNav-backLinkContainer')
-        .append(cd.sParse('dot-separator'), backLink.element)
+        .append(
+          cd.sParse('dot-separator'),
+          new Button({
+            classes: ['cd-pageNav-backLink'],
+            label: cd.s('pagenav-back'),
+            action: (event) => {
+              // When inside links without href
+              event.stopPropagation();
+
+              this.jump(scrollY, $item, true);
+            },
+          }).element
+        )
         .appendTo($item);
       this.$backLinkContainer.prev().addClass('cd-pageNav-link-inline');
       if ($item.parent().is('#cd-pageNav-currentSection')) {
