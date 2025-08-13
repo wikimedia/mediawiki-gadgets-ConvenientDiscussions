@@ -11,7 +11,7 @@ import ElementsAndTextTreeWalker from './ElementsAndTextTreeWalker';
 import ElementsTreeWalker from './ElementsTreeWalker';
 import cd from './cd';
 import {
-  definedAndNotNull,
+  defined,
   getHeadingLevel,
   isDomHandlerElement,
   isElement,
@@ -229,7 +229,7 @@ class Parser {
    * Find a timestamp in a text node.
    *
    * @param {TextLike} node
-   * @returns {?Timestamp}
+   * @returns {Timestamp | undefined}
    * @private
    */
   findTimestamp(node) {
@@ -243,7 +243,7 @@ class Parser {
       !parsedTimestamp ||
       this.noSignatureElements.some((el) => Parser.contains(el, node))
     ) {
-      return null;
+      return;
     }
 
     const { date, match } = parsedTimestamp;
@@ -280,20 +280,15 @@ class Parser {
    * Collect nodes related to a signature starting from a timestamp node.
    *
    * @param {Timestamp} timestamp
-   * @returns {?Omit<SignatureTarget<N>, 'type' | 'extraSignatures'>}
+   * @returns {Partial<SignatureTarget<N>> | undefined}
    * @private
    */
   getSignatureFromTimestamp(timestamp) {
-    /** @type {ElementFor<N> | undefined} */
     let unsignedElement;
     {
-      /** @type {ElementFor<N> | null} */
+      /** @type {ElementLike | null} */
       let el = timestamp.element;
-      while (
-        !unsignedElement &&
-        (el = /** @type {ElementFor<N> | null} */ (el.parentElement)) &&
-        isInline(el) !== false
-      ) {
+      while (!unsignedElement && (el = el.parentElement) && isInline(el) !== false) {
         if (el.classList.contains(cd.config.unsignedClass)) {
           unsignedElement = el;
         }
@@ -425,9 +420,7 @@ class Parser {
       )
     );
 
-    if (!authorData.name) {
-      return null;
-    }
+    if (!authorData.name) return;
 
     if (!signatureNodes.length) {
       signatureNodes = [startElement];
@@ -462,7 +455,7 @@ class Parser {
    * Find outputs of unsigned templates that we weren't able to find using the standard procedure
    * (in which case they are treated as normal signatures).
    *
-   * @returns {Partial<SignatureTarget>[]}
+   * @returns {Partial<SignatureTarget<N>>[]}
    * @private
    */
   findRemainingUnsigneds() {
@@ -470,12 +463,14 @@ class Parser {
       return [];
     }
 
-    /** @type {Partial<SignatureTarget>[]} */
+    /** @type {Partial<SignatureTarget<N>>[]} */
     const unsigneds = [];
     /** @type {HTMLElementFor<N>[]} */ ([...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass)])
       .filter((element) => {
         // Only templates with no timestamp interest us.
-        if (this.context.getElementByClassName(element, 'cd-timestamp')) {
+        if (
+          this.context.getElementByClassName(element, 'cd-timestamp')
+        ) {
           return false;
         }
 
@@ -499,9 +494,9 @@ class Parser {
             let authorLink;
             let authorTalkLink;
             if (linkType === 'user') {
-              authorLink = link;
+              authorLink = /** @type {HTMLElementFor<N>} */ (link);
             } else if (linkType === 'userTalk') {
-              authorTalkLink = link;
+              authorTalkLink = /** @type {HTMLElementFor<N>} */ (link);
             }
             element.classList.add('cd-signature');
             unsigneds.push({
@@ -534,25 +529,26 @@ class Parser {
     // array which then assign to a relevant signature (the one which goes first).
     let extraSignatures = /** @type {SignatureTarget<N>[]} */ ([]);
 
-    return this.context.getAllTextNodes()
+    return /** @type {SignatureTarget<N>[]} */ (this.context
+      .getAllTextNodes()
       .map(this.findTimestamp.bind(this))
-      .filter(definedAndNotNull)
+      .filter(defined)
       .map(this.getSignatureFromTimestamp.bind(this))
-      .filter(definedAndNotNull)
+      .filter(defined)
       .concat(this.findRemainingUnsigneds())
       .slice()
       .reverse()
-      .map((/** @type {SignatureTarget<N>} */ sig) => {
+      .map((sig) => {
         if (sig.isExtraSignature) {
-          extraSignatures.push(sig);
+          extraSignatures.push(/** @type {SignatureTarget<N>} */ (sig));
         } else {
           sig.extraSignatures = extraSignatures;
           extraSignatures = [];
         }
 
-        return { ...sig, type: 'signature' };
+        return { ...sig, type: /** @type {const} */ ('signature') };
       })
-      .filter((/** @type {SignatureTarget<N>} */ sig) => !sig.isExtraSignature);
+      .filter((sig) => !sig.isExtraSignature));
   }
 
   /**
