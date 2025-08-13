@@ -1166,7 +1166,7 @@ class CommentForm extends EventEmitter {
           action: {
             type: 'callback',
             execute: () => {
-              // @ts-ignore: Use deprecated window.event to avoid removing and adding a listener
+              // @ts-expect-error: Use deprecated window.event to avoid removing and adding a listener
               this.mention(isCmdModifierPressed(window.event));
             },
           },
@@ -2189,7 +2189,7 @@ class CommentForm extends EventEmitter {
       .map((u) => u.name);
 
     // Move the addressee to the beginning of the user list
-    for (let с = this.parentComment; с; с = с.getParent()) {
+    for (let с = this.parentComment; с; с = с.getParent() || null) {
       if (с.author !== cd.user) {
         if (!с.author.isRegistered()) break;
         defaultUserNames.unshift(с.author.getName());
@@ -4139,7 +4139,7 @@ class CommentForm extends EventEmitter {
   /**
    * Restore the form from data.
    *
-   * @returns {object|undefined}
+   * @returns {RescueData|undefined}
    */
   restore() {
     const newSelf = this.target.findNewSelf();
@@ -4156,10 +4156,17 @@ class CommentForm extends EventEmitter {
   }
 
   /**
+   * @typedef {object} RescueData
+   * @property {string} [headline]
+   * @property {string} comment
+   * @property {string} summary
+   */
+
+  /**
    * Return the key contents of the form, to be printed to the user in a popup so that they may have
    * a chance to copy it and not lose.
    *
-   * @returns {object}
+   * @returns {RescueData}
    */
   rescue() {
     this.teardown();
