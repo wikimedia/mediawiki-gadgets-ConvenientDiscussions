@@ -14,7 +14,43 @@ import talkPageController from './talkPageController';
 import toc from './toc';
 import { getVisibilityByRects } from './utils-window';
 
-export default {
+/**
+ *
+ */
+class PageNav {
+  /** @type {JQuery | null} */
+  $topElement = null;
+
+  /** @type {JQuery | null} */
+  $bottomElement = null;
+
+  /** @type {JQuery | null} */
+  $linksOnTop = null;
+
+  /** @type {JQuery | null} */
+  $topLink = null;
+
+  /** @type {JQuery | null} */
+  $tocLink = null;
+
+  /** @type {JQuery | null} */
+  $currentSection = null;
+
+  /** @type {JQuery | null} */
+  $bottomLink = null;
+
+  /** @type {JQuery | null} */
+  $sectionWithBackLink = null;
+
+  /** @type {JQuery | null} */
+  $backLinkContainer = null;
+
+  /** @type {object | null} */
+  currentSection = null;
+
+  /** @type {string | null} */
+  backLinkLocation = null;
+
   /**
    * _For internal use._ Setup the page navigation block (mount or update).
    */
@@ -24,7 +60,7 @@ export default {
     } else {
       this.mount();
     }
-  },
+  }
 
   /**
    * Render the page navigation block. This is done when the page is first loaded.
@@ -53,7 +89,7 @@ export default {
       .on('scroll', this.update.bind(this))
       .on('horizontalScroll', this.updateWidth.bind(this))
       .on('resize', this.updateWidth.bind(this));
-  },
+  }
 
   /**
    * Check whether the page navigation block is mounted.
@@ -62,7 +98,7 @@ export default {
    */
   isMounted() {
     return Boolean(this.$topElement);
-  },
+  }
 
   /**
    * Update or set the width of the page nagivation blocks.
@@ -99,7 +135,7 @@ export default {
 
     this.$topElement.css('width', width + 'px');
     this.$bottomElement.css('width', width + 'px');
-  },
+  }
 
   /**
    * Get offsets of some important elements relative to the viewport.
@@ -124,7 +160,7 @@ export default {
     afterLeadOffset ??= firstSectionTop;
 
     return { afterLeadOffset, firstSectionTop };
-  },
+  }
 
   /**
    * Create of update the basic DOM structure of the page navigation.
@@ -213,7 +249,7 @@ export default {
         this.reset('bottom');
       }
     }
-  },
+  }
 
   /**
    * Update the name of the current section and its ancestors.
@@ -266,7 +302,7 @@ export default {
         }
         $item.appendTo(this.$currentSection);
       });
-  },
+  }
 
   /**
    * Update the contents of the page navigation blocks.
@@ -289,7 +325,7 @@ export default {
 
     this.createOrUpdateSkeleton(afterLeadOffset, scrollY);
     this.updateCurrentSection(firstSectionTop);
-  },
+  }
 
   /**
    * Reset the page navigation state partly or completely.
@@ -310,7 +346,7 @@ export default {
       this.$bottomElement.empty();
       this.$bottomLink = null;
     }
-  },
+  }
 
   /**
    * Reset the current section variable and empty the contents of the current section block.
@@ -321,12 +357,12 @@ export default {
     this.$sectionWithBackLink?.detach();
     this.$currentSection.empty();
     this.currentSection = null;
-  },
+  }
 
   /**
    * Jump to an element or top offset.
    *
-   * @param {JQuery|number} $elementOrOffset Element or top offset to jump to.
+   * @param {JQuery | number} $elementOrOffset Element or top offset to jump to.
    * @param {JQuery} $item Navigation item that initiated the jump.
    * @param {boolean} [isBackLink=false] Was the jump initiated by a back link.
    * @private
@@ -374,5 +410,7 @@ export default {
 
     talkPageController.toggleAutoScrolling(true);
     talkPageController.scrollToY(offset);
-  },
-};
+  }
+}
+
+export default new PageNav();
