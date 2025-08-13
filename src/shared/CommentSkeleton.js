@@ -1254,7 +1254,7 @@ class CommentSkeleton {
           ) {
             innerWrapper = this.parser.constructor.createElement('dd');
             outerWrapper = this.parser.constructor.createElement('dl');
-            outerWrapper.appendChild(innerWrapper);
+            this.parser.constructor.appendChild(outerWrapper, innerWrapper);
           } else {
             innerWrapper = this.parser.constructor.createElement('div');
             outerWrapper = innerWrapper;
