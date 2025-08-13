@@ -176,8 +176,8 @@ declare global {
     // DOM methods
 
     // Note: NodeFor<N> instead of N here solves a bulk of type errors due to contravarience in all
-    // places where Parser<Node> or CommentSkeleton<Node> or SectionSkeleton<Node> is used where
-    // Parser<AnyNode>, CommentSkeleton<AnyNode> or SectionSkeleton<AnyNode> is expected.
+    // places Parser<AnyNode>, CommentSkeleton<AnyNode> or SectionSkeleton<AnyNode> is expected and
+    // Parser<Node> or CommentSkeleton<Node> or SectionSkeleton<Node> is used.
     follows: (el1: NodeFor<N>, el2: NodeFor<N>) => boolean;
     getAllTextNodes: () => TextFor<N>[];
     getElementByClassName: (element: ElementFor<N>, className: string) => ElementFor<N> | null;

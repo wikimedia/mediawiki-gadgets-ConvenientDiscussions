@@ -289,12 +289,10 @@ class SectionRegistry {
    *
    * @param {number} [scrollY=window.scrollY]
    * @param {number} [tocOffset]
-   * @returns {?number}
+   * @returns {number | undefined}
    */
   getFirstSectionRelativeTopOffset(scrollY = window.scrollY, tocOffset) {
-    if (scrollY <= cd.g.bodyScrollPaddingTop) {
-      return null;
-    }
+    if (scrollY <= cd.g.bodyScrollPaddingTop) return;
 
     return this.items.reduce((result, section) => {
       if (result !== null) {
@@ -307,8 +305,8 @@ class SectionRegistry {
       // at https://commons.wikimedia.org/wiki/Project:Graphic_Lab/Illustration_workshop.
       return getVisibilityByRects(rect) && (!tocOffset || rect.outerTop > tocOffset) ?
         rect.outerTop :
-        null;
-    }, /** @type {?number} */ (null));
+        undefined;
+    }, /** @type {number | undefined} */ (undefined));
   }
 
   /**
@@ -320,7 +318,7 @@ class SectionRegistry {
     const firstSectionTop = this.getFirstSectionRelativeTopOffset();
 
     return (
-      firstSectionTop !== null &&
+      firstSectionTop !== undefined &&
       firstSectionTop < cd.g.bodyScrollPaddingTop + 1 &&
       this.items
         .slice()
