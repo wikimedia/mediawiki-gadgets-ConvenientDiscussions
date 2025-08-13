@@ -2045,7 +2045,7 @@ class Comment extends CommentSkeleton {
   /**
    * _For internal use._ Update the comment's hover state based on a `mousemove` event.
    *
-   * @param {MouseEvent} event
+   * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
    * @param {boolean} isObstructingElementHovered
    */
   updateHoverState(event, isObstructingElementHovered) {
@@ -4599,10 +4599,10 @@ class Comment extends CommentSkeleton {
    * Turn a comment array into an object with sections or their IDs as keys.
    *
    * @param {import('./shared/CommentSkeleton').CommentBase[]} comments
-   * @returns {Map<import('./shared/CommentSkeleton').CommentBase | null, import('./shared/CommentSkeleton').CommentBase[]>}
+   * @returns {Map<import('./shared/SectionSkeleton').SectionBase | null, import('./shared/CommentSkeleton').CommentBase[]>}
    */
   static groupBySection(comments) {
-    const map = /** @type {Map<import('./shared/CommentSkeleton').CommentBase | null, import('./shared/CommentSkeleton').CommentBase[]>} */ (new Map());
+    const map = /** @type {Map<import('./shared/SectionSkeleton').SectionBase | null, import('./shared/CommentSkeleton').CommentBase[]>} */ (new Map());
     for (const comment of comments) {
       if (!map.has(comment.section)) {
         map.set(comment.section, []);

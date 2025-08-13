@@ -551,7 +551,7 @@ class CommentRegistry extends EventEmitter {
    * cursor is between comment parts, not over them. (An event handler for comment part elements
    * wouldn't be able to handle this space between.)
    *
-   * @param {MouseEvent} event
+   * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
    */
   maybeHighlightHovered(event) {
     if (this.reformatCommentsSetting) return;
@@ -567,7 +567,7 @@ class CommentRegistry extends EventEmitter {
   /**
    * Get a comment by ID in the CD format.
    *
-   * @param {?string} id
+   * @param {string | undefined} id
    * @param {boolean} [impreciseDate=false] Comment date is inferred from the edit date (but these
    *   may be different). If `true`, we allow the time on the page to be 1-3 minutes less than the
    *   edit time.
@@ -578,7 +578,7 @@ class CommentRegistry extends EventEmitter {
       return null;
     }
 
-    const findById = (/** @type {string | null} */ id) =>
+    const findById = (/** @type {string | undefined} */ id) =>
       this.items.find((comment) => comment.id === id);
 
     let comment = findById(id);

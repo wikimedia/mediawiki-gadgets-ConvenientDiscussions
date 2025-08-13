@@ -21,9 +21,9 @@ import { copyText, getVisibilityByRects, wrapHtml } from './utils-window';
 /**
  * @typedef {object} EventMap
  * @property {[]} boot
- * @property {[event: MouseEvent | JQuery.TriggeredEvent]} mouseMove
+ * @property {[event: MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent]} mouseMove
  * @property {[]} resize
- * @property {[event: KeyboardEvent | JQuery.TriggeredEvent]} keyDown
+ * @property {[event: KeyboardEvent | JQuery.KeyDownEvent]} keyDown
  * @property {[]} scroll
  * @property {[]} horizontalScroll
  * @property {[fragment: string]} popState
@@ -521,7 +521,7 @@ class TalkPageController extends EventEmitter {
   /**
    * _For internal use._ Handle a mouse move event (including `mousemove` and `mouseover`).
    *
-   * @param {MouseEvent | JQuery.TriggeredEvent} event
+   * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
    */
   handleMouseMove(event) {
     if (this.mouseMoveBlocked || this.isAutoScrolling() || bootController.isPageOverlayOn()) return;
@@ -600,7 +600,7 @@ class TalkPageController extends EventEmitter {
   /**
    * Handles `keydown` event on the document.
    *
-   * @param {KeyboardEvent | JQuery.TriggeredEvent} event
+   * @param {KeyboardEvent | JQuery.KeyDownEvent} event
    * @private
    */
   handleGlobalKeyDown(event) {
@@ -748,7 +748,9 @@ class TalkPageController extends EventEmitter {
       // The benefit may be low compared to the performance cost, but it's unexpected when the user
       // scrolls a comment and it suddenly stops being highlighted because the cursor is between
       // neighboring <p>s.
-      $(document).on('mousemove mouseover', this.handleMouseMove.bind(this));
+      $(document).on('mousemove mouseover', (event) => {
+        this.handleMouseMove(/** @type {JQuery.MouseMoveEvent | JQuery.MouseOverEvent} */ (event));
+      });
     }
 
     // We need the `visibilitychange` event because many things may move while the document is

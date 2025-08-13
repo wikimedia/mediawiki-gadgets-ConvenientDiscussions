@@ -202,7 +202,7 @@ class Parser {
       return;
     }
 
-    const span = document.createElement('span');
+    const span = Parser.createElement('span');
     span.className = cd.config.outdentClass;
     span.textContent = text;
     if (isElement(node.nextSibling) && node.nextSibling.tagName === 'BR') {
@@ -489,7 +489,7 @@ class Parser {
       })
       .forEach((element) => {
         /** @type {HTMLElementFor<N>[]} */ ([...element.getElementsByTagName('a')]).some((link) => {
-          const { userName: authorName, linkType } = this.processLink(link) || {};
+          const { userName: authorName, linkType } = Parser.processLink(link) || {};
           if (authorName) {
             let authorLink;
             let authorTalkLink;
@@ -708,87 +708,6 @@ class Parser {
   }
 
   /**
-   * @typedef {'user' | 'userTalk' | 'contribs' | 'userSubpage' | 'userTalkSubpage' | 'userForeign' | 'userTalkForeign' | 'contribsForeign' | 'userSubpageForeign' | 'userTalkSubpageForeign' | 'unknown'} LinkType
-   */
-
-  /**
-   * @typedef {object} ProcessLinkReturn
-   * @property {string} userName User name.
-   * @property {LinkType} linkType Link type.
-   * @memberof Parser
-   * @inner
-   */
-
-  /**
-   * _For internal use._ Get a user name from a link, along with some other data about a page name.
-   *
-   * @param {ElementLike} element
-   * @returns {?ProcessLinkReturn}
-   */
-  processLink(element) {
-    const href = element.getAttribute('href');
-    let userName;
-    /** @type {LinkType} */
-    let linkType = 'unknown';
-    if (href) {
-      const { pageName, hostname, fragment } = parseWikiUrl(href) || {};
-      if (!pageName || CommentSkeleton.isAnyId(fragment)) {
-        return null;
-      }
-
-      const match = pageName.match(cd.g.userNamespacesRegexp);
-      if (match) {
-        userName = match[1];
-        if (cd.g.userLinkRegexp.test(pageName)) {
-          linkType = 'user';
-        } else if (cd.g.userTalkLinkRegexp.test(pageName)) {
-          linkType = 'userTalk';
-        } else if (cd.g.userSubpageLinkRegexp.test(pageName)) {
-          linkType = 'userSubpage';
-        } else if (cd.g.userTalkSubpageLinkRegexp.test(pageName)) {
-          linkType = 'userTalkSubpage';
-        }
-
-        // Another alternative is a user link to another site where the prefix is specified before
-        // the namespace. Enough to capture the user name from, not enough to make any inferences.
-      } else if (cd.g.contribsPageLinkRegexp.test(pageName)) {
-        userName = pageName.replace(cd.g.contribsPageLinkRegexp, '');
-        if (cd.g.isIPv6Address?.(userName)) {
-          userName = userName.toUpperCase();
-        }
-        linkType = 'contribs';
-      }
-      if (hostname !== cd.g.serverName) {
-        linkType += 'Foreign';
-
-        // Some bug in type checking - can't do `linkType = /** @type {LinkType} */ (linkType +
-        // 'Foreign');` so that linkType doesn't end up just a string.
-        // eslint-disable-next-line no-self-assign
-        linkType = /** @type {LinkType} */ (linkType);
-      }
-      if (!userName) {
-        return null;
-      }
-
-      userName = ucFirst(underlinesToSpaces(userName.replace(/\/.*/, ''))).trim();
-    } else {
-      if (
-        element.classList.contains('mw-selflink') &&
-        cd.g.namespaceNumber === 3 &&
-        !cd.g.pageName.includes('/')
-      ) {
-        // Comments of users that have only the user talk page link in their signature on their talk
-        // page.
-        userName = cd.g.pageTitle;
-      } else {
-        return null;
-      }
-    }
-
-    return { userName, linkType };
-  }
-
-  /**
    * Given a link node, enrich the author data and return a boolean denoting whether the node is a
    * part of the signature.
    *
@@ -798,7 +717,7 @@ class Parser {
    * @private
    */
   processLinkData(link, authorData) {
-    const result = this.processLink(link);
+    const result = Parser.processLink(link);
     if (result) {
       const { userName, linkType } = result;
       authorData.name ||= userName;
@@ -908,6 +827,87 @@ class Parser {
     return /** @type {ElementLike[]} */ ([
       ...this.context.rootElement.getElementsByClassName(name),
     ]);
+  }
+
+  /**
+   * @typedef {'user' | 'userTalk' | 'contribs' | 'userSubpage' | 'userTalkSubpage' | 'userForeign' | 'userTalkForeign' | 'contribsForeign' | 'userSubpageForeign' | 'userTalkSubpageForeign' | 'unknown'} LinkType
+   */
+
+  /**
+   * @typedef {object} ProcessLinkReturn
+   * @property {string} userName User name.
+   * @property {LinkType} linkType Link type.
+   * @memberof Parser
+   * @inner
+   */
+
+  /**
+   * _For internal use._ Get a user name from a link, along with some other data about a page name.
+   *
+   * @param {ElementLike} element
+   * @returns {?ProcessLinkReturn}
+   */
+  static processLink(element) {
+    const href = element.getAttribute('href');
+    let userName;
+    /** @type {LinkType} */
+    let linkType = 'unknown';
+    if (href) {
+      const { pageName, hostname, fragment } = parseWikiUrl(href) || {};
+      if (!pageName || CommentSkeleton.isAnyId(fragment)) {
+        return null;
+      }
+
+      const match = pageName.match(cd.g.userNamespacesRegexp);
+      if (match) {
+        userName = match[1];
+        if (cd.g.userLinkRegexp.test(pageName)) {
+          linkType = 'user';
+        } else if (cd.g.userTalkLinkRegexp.test(pageName)) {
+          linkType = 'userTalk';
+        } else if (cd.g.userSubpageLinkRegexp.test(pageName)) {
+          linkType = 'userSubpage';
+        } else if (cd.g.userTalkSubpageLinkRegexp.test(pageName)) {
+          linkType = 'userTalkSubpage';
+        }
+
+        // Another alternative is a user link to another site where the prefix is specified before
+        // the namespace. Enough to capture the user name from, not enough to make any inferences.
+      } else if (cd.g.contribsPageLinkRegexp.test(pageName)) {
+        userName = pageName.replace(cd.g.contribsPageLinkRegexp, '');
+        if (cd.g.isIPv6Address?.(userName)) {
+          userName = userName.toUpperCase();
+        }
+        linkType = 'contribs';
+      }
+      if (hostname !== cd.g.serverName) {
+        linkType += 'Foreign';
+
+        // Some bug in type checking - can't do `linkType = /** @type {LinkType} */ (linkType +
+        // 'Foreign');` so that linkType doesn't end up just a string.
+        // eslint-disable-next-line no-self-assign
+        linkType = /** @type {LinkType} */ (linkType);
+      }
+      if (!userName) {
+        return null;
+      }
+
+      userName = ucFirst(underlinesToSpaces(userName.replace(/\/.*/, ''))).trim();
+    } else {
+      if (
+        element.classList.contains('mw-selflink') &&
+        cd.g.namespaceNumber === 3 &&
+        !cd.g.pageName.includes('/')
+      ) {
+        // Comments of users that have only the user talk page link in their signature on their talk
+        // page.
+        userName = cd.g.pageTitle;
+      } else {
+        return null;
+      }
+    }
+
+    return { userName, linkType };
   }
 
   /**
