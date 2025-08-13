@@ -357,6 +357,7 @@ class SectionRegistry {
 
     const threeScreens = window.innerHeight * 3;
 
+    /** @type {import('./Section').default | undefined} */
     let firstSectionToHide;
     if (document.documentElement.scrollHeight - viewportTop > 20000) {
       const currentSection = this.getCurrentSection();
@@ -381,6 +382,7 @@ class SectionRegistry {
         });
     }
 
+    /** @type {import('./Section').default[]} */
     const subsectionsToHide = [];
     if (firstSectionToHide) {
       this.items
@@ -389,16 +391,18 @@ class SectionRegistry {
           if (section.level === 2) {
             return true;
           }
+
           subsectionsToHide.push(section);
+
           return false;
         });
     }
     this.items
-      .filter((section) => (
+      .filter((section) =>
         section.level === 2 ||
         section.isHidden ||
         subsectionsToHide.includes(section)
-      ))
+      )
       .forEach((section) => {
         section.updateVisibility(
           !(firstSectionToHide && section.index >= firstSectionToHide.index)

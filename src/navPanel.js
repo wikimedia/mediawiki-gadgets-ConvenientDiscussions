@@ -7,15 +7,15 @@
 import Button from './Button';
 import LiveTimestamp from './LiveTimestamp';
 import bootController from './bootController';
-import cd from './shared/cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import settings from './settings';
-import talkPageController from './talkPageController';
-import updateChecker from './updateChecker';
+import cd from './shared/cd';
 import { reorderArray } from './shared/utils-general';
 import { formatDate } from './shared/utils-timestamp';
 import { removeWikiMarkup } from './shared/utils-wikitext';
+import talkPageController from './talkPageController';
+import updateChecker from './updateChecker';
 import { createSvg, isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
 import visits from './visits';
 

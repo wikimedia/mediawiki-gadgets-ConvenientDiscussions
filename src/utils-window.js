@@ -200,7 +200,7 @@ export function keyCombination(event, keyCode, modifiers = []) {
  * Whether a command modifier is pressed. On Mac, this means the Cmd key. On Windows, this means the
  * Ctrl key.
  *
- * @param {MouseEvent | KeyboardEvent} event
+ * @param {MouseEvent | KeyboardEvent | JQuery.MouseEventBase | JQuery.KeyboardEventBase} event
  * @returns {boolean}
  */
 export function isCmdModifierPressed(event) {

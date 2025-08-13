@@ -971,7 +971,7 @@ class Thread extends mixInObject(
 
     if (this.endElement !== this.visualEndElement) {
       for (
-        let /** @type {import('./Comment').default | null} */ c = this.rootComment;
+        let /** @type {import('./Comment').default | undefined} */ c = this.rootComment;
         c;
         c = c.getParent(true)
       ) {
@@ -1032,7 +1032,7 @@ class Thread extends mixInObject(
 
     if (this.endElement !== this.visualEndElement && areOutdentedCommentsShown) {
       for (
-        let /** @type {import('./Comment').default | null} */ c = this.rootComment;
+        let /** @type {import('./Comment').default | undefined} */ c = this.rootComment;
         c;
         c = c.getParent()
       ) {

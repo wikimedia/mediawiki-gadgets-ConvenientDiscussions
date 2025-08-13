@@ -119,9 +119,9 @@ class PageNav {
     this.update();
 
     talkPageController
-      .on('scroll', this.update.bind(this))
-      .on('horizontalScroll', this.updateWidth.bind(this))
-      .on('resize', this.updateWidth.bind(this));
+      .on('scroll', this.update)
+      .on('horizontalScroll', this.updateWidth)
+      .on('resize', this.updateWidth);
   }
 
   /**
@@ -157,18 +157,21 @@ class PageNav {
       width -= bootController.getContentColumnOffsets().startMargin;
     }
 
+    const $topElement = /** @type {JQuery} */ (this.$topElement);
+    const $bottomElement = /** @type {JQuery} */ (this.$bottomElement);
+
     // Some skins when the viewport is narrowed
     if (width <= 100) {
-      this.$topElement.hide();
-      this.$bottomElement.hide();
+      $topElement.hide();
+      $bottomElement.hide();
     } else {
-      this.$topElement.show();
-      this.$bottomElement.show();
+      $topElement.show();
+      $bottomElement.show();
     }
 
-    this.$topElement.css('width', width + 'px');
-    this.$bottomElement.css('width', width + 'px');
-  }
+    $topElement.css('width', width + 'px');
+    $bottomElement.css('width', width + 'px');
+  };
 
   /**
    * Get offsets of some important elements relative to the viewport.
@@ -201,7 +204,7 @@ class PageNav {
   /**
    * Create of update the basic DOM structure of the page navigation.
    *
-   * @param {number} afterLeadOffset
+   * @param {number | undefined} afterLeadOffset
    * @param {number} scrollY
    * @private
    */
@@ -214,7 +217,7 @@ class PageNav {
         this.$linksOnTop = $('<ul>')
           .attr('id', 'cd-pageNav-linksOnTop')
           .addClass('cd-pageNav-list')
-          .appendTo(this.$topElement);
+          .appendTo(/** @type {JQuery} */ (this.$topElement));
         this.$topLink = $('<li>')
           .attr('id', 'cd-pageNav-topLink')
           .addClass('cd-pageNav-item')
@@ -224,7 +227,7 @@ class PageNav {
               classes: ['cd-pageNav-link'],
               label: cd.s('pagenav-pagetop'),
               action: () => {
-                this.jump(0, this.$topLink);
+                this.jump(0, /** @type {JQuery} */ (this.$topLink));
               },
             })).element
           )
@@ -238,24 +241,28 @@ class PageNav {
 
     if (this.$linksOnTop) {
       if (toc.isPresent() && !this.$tocLink) {
-        const tocLink = new Button({
-          href: '#toc',
-          classes: ['cd-pageNav-link'],
-          label: cd.s('pagenav-toc'),
-          action: () => {
-            this.jump(toc.$element, this.$tocLink);
-          },
-        });
         this.$tocLink = $('<li>')
           .attr('id', 'cd-pageNav-tocLink')
           .addClass('cd-pageNav-item')
-          .append(tocLink.element)
+          .append(
+            new Button({
+              href: '#toc',
+              classes: ['cd-pageNav-link'],
+              label: cd.s('pagenav-toc'),
+              action: () => {
+                this.jump(
+                  /** @type {JQuery} */ (toc.$element),
+                  /** @type {JQuery} */ (this.$tocLink)
+                );
+              },
+            }).element
+          )
           .appendTo(this.$linksOnTop);
       }
       this.$currentSection ||= $('<ul>')
         .attr('id', 'cd-pageNav-currentSection')
         .addClass('cd-pageNav-list')
-        .appendTo(this.$topElement);
+        .appendTo(/** @type {JQuery} */ (this.$topElement));
     }
 
     if (
@@ -266,19 +273,23 @@ class PageNav {
       this.backLinkLocation === 'bottom'
     ) {
       if (!this.$bottomLink) {
-        const bottomLink = new Button({
-          href: '#footer',
-          classes: ['cd-pageNav-link'],
-          label: cd.s('pagenav-pagebottom'),
-          action: () => {
-            this.jump(document.documentElement.scrollHeight - window.innerHeight, this.$bottomLink);
-          },
-        });
         this.$bottomLink = $('<li>')
           .attr('id', 'cd-pageNav-bottomLink')
           .addClass('cd-pageNav-item')
-          .append(bottomLink.element)
-          .appendTo(this.$bottomElement);
+          .append(
+            new Button({
+              href: '#footer',
+              classes: ['cd-pageNav-link'],
+              label: cd.s('pagenav-pagebottom'),
+              action: () => {
+                this.jump(
+                  document.documentElement.scrollHeight - window.innerHeight,
+                  /** @type {JQuery} */ (this.$bottomLink)
+                );
+              },
+            }).element
+          )
+          .appendTo(/** @type {JQuery} */ (this.$bottomElement));
       }
     } else {
       if (this.$bottomLink) {
@@ -290,7 +301,7 @@ class PageNav {
   /**
    * Update the name of the current section and its ancestors.
    *
-   * @param {number} firstSectionTop
+   * @param {number | undefined} firstSectionTop
    * @private
    */
   updateCurrentSection(firstSectionTop) {
@@ -312,7 +323,7 @@ class PageNav {
     // Keep the data
     this.$sectionWithBackLink?.detach();
 
-    this.$currentSection.empty();
+    /** @type {JQuery} */ (this.$currentSection).empty();
     [this.currentSection, ...this.currentSection.getAncestors()]
       .reverse()
       .forEach((sectionInTree, level) => {
@@ -338,7 +349,7 @@ class PageNav {
               }).element
             );
         }
-        $item.appendTo(this.$currentSection);
+        $item.appendTo(/** @type {JQuery} */ (this.$currentSection));
       });
   }
 
@@ -347,12 +358,13 @@ class PageNav {
    *
    * @private
    */
-  update() {
+  update = () => {
     if (!this.isMounted()) return;
 
     // Vertical scrollbar disappeared
     if (document.documentElement.scrollHeight === document.documentElement.clientHeight) {
       this.reset();
+
       return;
     }
 
@@ -363,7 +375,7 @@ class PageNav {
 
     this.createOrUpdateSkeleton(afterLeadOffset, scrollY);
     this.updateCurrentSection(firstSectionTop);
-  }
+  };
 
   /**
    * Reset the page navigation state partly or completely.
@@ -376,12 +388,12 @@ class PageNav {
       // Keep the data
       this.$sectionWithBackLink?.detach();
 
-      this.$topElement.empty();
+      /** @type {JQuery} */ (this.$topElement).empty();
       this.$linksOnTop = this.$topLink = this.$tocLink = this.$currentSection = undefined;
       this.currentSection = undefined;
     }
     if (!part || part === 'bottom') {
-      this.$bottomElement.empty();
+      /** @type {JQuery} */ (this.$bottomElement).empty();
       this.$bottomLink = undefined;
     }
   }
@@ -393,7 +405,7 @@ class PageNav {
    */
   resetSections() {
     this.$sectionWithBackLink?.detach();
-    this.$currentSection.empty();
+    /** @type {JQuery} */ (this.$currentSection).empty();
     this.currentSection = undefined;
   }
 
@@ -413,8 +425,8 @@ class PageNav {
 
     if (this.backLinkLocation) {
       this.backLinkLocation = undefined;
-      this.$backLinkContainer.prev().removeClass('cd-pageNav-link-inline');
-      this.$backLinkContainer.remove();
+      /** @type {JQuery} */ (this.$backLinkContainer).prev().removeClass('cd-pageNav-link-inline');
+      /** @type {JQuery} */ (this.$backLinkContainer).remove();
       this.$backLinkContainer = this.$sectionWithBackLink = undefined;
     }
     if (!isBackLink) {
