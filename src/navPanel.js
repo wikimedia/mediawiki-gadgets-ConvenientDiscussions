@@ -19,60 +19,69 @@ import updateChecker from './updateChecker';
 import { createSvg, isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
 import visits from './visits';
 
-export default {
+/**
+ *
+ */
+class NavPanel {
   /**
    * Navigation panel element.
    *
-   * @type {JQuery|undefined}
-   * @memberof module:navPanel
+   * @type {JQuery | undefined} @private
    */
-  $element: undefined,
+  $element;
 
   /**
    * Refresh button.
    *
-   * @type {Button|undefined}
-   * @memberof module:navPanel
-   * @private
+   * @type {Button | undefined} @private
    */
-  refreshButton: undefined,
+  refreshButton;
 
   /**
    * "Go to the previous new comment" button element.
    *
-   * @type {Button|undefined}
-   * @memberof module:navPanel
-   * @private
+   * @type {Button | undefined} @private
    */
-  previousButton: undefined,
+  previousButton;
 
   /**
    * "Go to the next new comment" button element.
    *
-   * @type {Button|undefined}
-   * @memberof module:navPanel
-   * @private
+   * @type {Button | undefined} @private
    */
-  nextButton: undefined,
+  nextButton;
 
   /**
    * "Go to the first unseen comment" button element.
    *
-   * @type {Button|undefined}
-   * @memberof module:navPanel
-   * @private
+   * @type {Button | undefined} @private
    */
-  firstUnseenButton: undefined,
+  firstUnseenButton;
 
   /**
    * "Go to the next comment form out of sight" button element.
    *
-   * @name commentFormButton
-   * @type {Button|undefined}
-   * @memberof module:navPanel
-   * @private
+   * @type {Button | undefined} @private
    */
-  commentFormButton: undefined,
+  commentFormButton;
+
+  /** @type {string | undefined} @private */
+  timestampFormat;
+
+  /** @type {boolean | undefined} @private */
+  modifyToc;
+
+  /** @type {number | undefined} @private */
+  highlightNewInterval;
+
+  /** @type {number | undefined} @private */
+  utirbtTimeout;
+
+  /** @type {number | undefined} @private */
+  cachedCommentCount;
+
+  /** @type {Map | undefined} @private */
+  cachedCommentsBySection;
 
   /**
    * _For internal use._ Mount, unmount or reset the navigation panel based on the context.
@@ -138,7 +147,7 @@ export default {
         this.unmount();
       }
     }
-  },
+  }
 
   /**
    * Render the navigation panel. This is done when the page is first loaded, or created using the
@@ -225,7 +234,7 @@ export default {
       this.firstUnseenButton.element,
       this.commentFormButton.element,
     );
-  },
+  }
 
   /**
    * Remove the navigation panel.
@@ -236,8 +245,8 @@ export default {
     if (!this.isMounted()) return;
 
     this.$element.remove();
-    /** @type {{ $element: undefined }} */ (this).$element = undefined;
-  },
+    this.$element = undefined;
+  }
 
   /**
    * Check if the navigation panel is mounted. Is equivalent to checking the existence of
@@ -255,7 +264,7 @@ export default {
    */
   isMounted() {
     return Boolean(this.$element);
-  },
+  }
 
   /**
    * Reset the navigation panel to the initial state. This is done after page refreshes. (Comment
@@ -272,7 +281,7 @@ export default {
     this.firstUnseenButton.hide();
     this.commentFormButton.hide();
     clearTimeout(this.utirbtTimeout);
-  },
+  }
 
   /**
    * Count the new and unseen comments on the page and update the navigation panel to reflect that.
@@ -288,7 +297,7 @@ export default {
       this.nextButton.show();
       this.updateFirstUnseenButton();
     }
-  },
+  }
 
   /**
    * Perform routines at the refresh button click.
@@ -301,7 +310,7 @@ export default {
       commentIds: talkPageController.getRelevantAddedCommentIds() || undefined,
       markAsRead,
     });
-  },
+  }
 
   /**
    * Generic function for {@link module:navPanel.goToPreviousNewComment} and
@@ -335,21 +344,21 @@ export default {
         },
       });
     }
-  },
+  }
 
   /**
    * Scroll to the previous new comment.
    */
   goToPreviousNewComment() {
     this.goToNewCommentInDirection('backward');
-  },
+  }
 
   /**
    * Scroll to the next new comment.
    */
   goToNextNewComment() {
     this.goToNewCommentInDirection('forward');
-  },
+  }
 
   /**
    * Scroll to the first unseen comment.
@@ -368,7 +377,7 @@ export default {
         comment.registerSeen('forward', true);
       },
     });
-  },
+  }
 
   /**
    * Go to the next comment form out of sight, or just the next comment form, if `inSight` is set to
@@ -389,7 +398,7 @@ export default {
       .sort((data1, data2) => data1.top - data2.top)
       .map((data) => data.commentForm)[0]
       ?.goTo();
-  },
+  }
 
   /**
    * Update the refresh button to show the number of comments added to the page since it was loaded.
@@ -419,7 +428,7 @@ export default {
       .toggleClass('cd-icon', !commentCount)
       .toggleClass('cd-navPanel-refreshButton-relevant', areThereRelevant);
     this.updateRefreshButtonTooltip(commentCount, commentsBySection);
-  },
+  }
 
   /**
    * Update the tooltip of the refresh button, displaying statistics of comments not yet displayed
@@ -438,7 +447,7 @@ export default {
     this.cachedCommentCount = commentCount;
     this.cachedCommentsBySection = commentsBySection;
 
-    let tooltipText = null;
+    let tooltipText = undefined;
     const areThereNew = commentRegistry.getAll().some((comment) => comment.isNew);
     if (commentCount) {
       tooltipText = (
@@ -488,7 +497,7 @@ export default {
     }
 
     this.refreshButton.setTooltip(tooltipText);
-  },
+  }
 
   /**
    * Update the tooltip of the {@link module:navPanel.refreshButton refresh button}. This is called
@@ -498,7 +507,7 @@ export default {
    */
   updateTimestampsInRefreshButtonTooltip() {
     this.updateRefreshButtonTooltip(this.cachedCommentCount, this.cachedCommentsBySection);
-  },
+  }
 
   /**
    * Update the state of the
@@ -513,7 +522,7 @@ export default {
     this.firstUnseenButton
       .toggle(Boolean(unseenCommentCount))
       .setLabel(String(unseenCommentCount));
-  },
+  }
 
   /**
    * Update the {@link module:navPanel.commentFormButton "Go to the next comment form out of sight"}
@@ -526,5 +535,7 @@ export default {
 
     this.commentFormButton
       .toggle(commentFormRegistry.getAll().some((cf) => !cf.$element.cdIsInViewport(true)));
-  },
-};
+  }
+}
+
+export default new NavPanel();
