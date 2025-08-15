@@ -175,8 +175,9 @@ class MoveSectionDialog extends ProcessDialog {
       let archiveConfig;
       try {
         [, , archiveConfig] = await Promise.all(this.initRequests);
-      } catch (error) {
-        this.abort(cd.sParse('cf-error-getpagecode'), false);
+      } catch {
+        this.abort({ message: cd.sParse('cf-error-getpagecode'), recoverable: false});
+
         return;
       }
 
@@ -184,11 +185,20 @@ class MoveSectionDialog extends ProcessDialog {
         this.section.locateInCode();
       } catch (error) {
         if (error instanceof CdError) {
-          this.abort(cd.sParse(error.data.code === 'locateSection' ? 'error-locatesection' : 'error-unknown'), false);
+          this.abort({
+            message: cd.sParse(
+              error.data.code === 'locateSection' ? 'error-locatesection' : 'error-unknown'
+            ),
+            recoverable: false,
+          });
         } else {
           console.warn(error);
-          this.abort(cd.sParse('error-javascript'), false);
+          this.abort({
+            message: cd.sParse('error-javascript'),
+            recoverable: false,
+          });
         }
+
         return;
       }
 
@@ -302,7 +312,10 @@ class MoveSectionDialog extends ProcessDialog {
 
         // Should be ruled out by making the button disabled.
         if (targetPage === this.section.getSourcePage()) {
-          this.abort(cd.sParse('msd-error-wrongpage'), false);
+          this.abort({
+            message: cd.sParse('msd-error-wrongpage'),
+            recoverable: false,
+          });
           return;
         }
 
@@ -317,10 +330,15 @@ class MoveSectionDialog extends ProcessDialog {
           await this.editSourcePage(source, target);
         } catch (error) {
           if (error instanceof CdError) {
-            this.abort(.../** @type {Parameters<MoveSectionDialog['abort']>} */ (error.data.details));
+            this.abort({
+              message: /** @type {string} */ (error.getMessage()),
+              recoverable: error.getDetails().recoverable,
+              closeDialog: error.getDetails().closeDialog,
+            });
           } else {
             throw error;
           }
+
           return;
         }
 
@@ -376,16 +394,28 @@ class MoveSectionDialog extends ProcessDialog {
         const { type, code } = error.data;
         if (type === 'api') {
           if (code === 'missing') {
-            throw new CdError({ data: [cd.sParse('msd-error-sourcepagedeleted'), true] });
+            throw new CdError({
+              message: cd.sParse('msd-error-sourcepagedeleted'),
+              details: { recoverable: true },
+            });
           } else {
-            throw new CdError({ data: [cd.sParse('error-api', code), true] });
+            throw new CdError({
+              message: cd.sParse('error-api', code),
+              details: { recoverable: true },
+            });
           }
         } else if (type === 'network') {
-          throw new CdError({ data: [cd.sParse('error-network'), true] });
+          throw new CdError({
+            message: cd.sParse('error-network'),
+            details: { recoverable: true },
+          });
         }
       } else {
         console.warn(error);
-        throw new CdError({ data: [cd.sParse('error-javascript'), false] });
+        throw new CdError({
+          message: cd.sParse('error-javascript'),
+          details: { recoverable: false },
+        });
       }
     }
 
@@ -395,16 +425,16 @@ class MoveSectionDialog extends ProcessDialog {
     } catch (error) {
       if (error instanceof CdError) {
         throw new CdError({
-          data: [
+          details: [
             cd.sParse(
-              error.data.code === 'locateSection' ? 'error-locatesection' : 'error-unknown'
+              error.getCode() === 'locateSection' ? 'error-locatesection' : 'error-unknown'
             ),
             true,
           ],
         });
       } else {
         console.warn(error);
-        throw new CdError({ data: [cd.sParse('error-javascript'), false] });
+        throw new CdError({ details: [cd.sParse('error-javascript'), false] });
       }
     }
 
@@ -607,16 +637,21 @@ class MoveSectionDialog extends ProcessDialog {
   }
 
   /**
+   * @typedef {object} ErrorData
+   * @property {string} message Error message in HTML.
+   * @property {boolean} recoverable Is the error recoverable.
+   * @property {boolean} [closeDialog=false] Close the dialog after pressing "Close" under the error
+   *   message.
+   */
+
+  /**
    * Abort an operation and show an error.
    *
-   * @param {string} html Error HTML code.
-   * @param {boolean} recoverable Is the error recoverable.
-   * @param {boolean} [closeDialog=false] Close the dialog after pressing "Close" under the error
-   *   message.
+   * @param {ErrorData} config
    * @protected
    */
-  abort(html, recoverable, closeDialog = false) {
-    this.showErrors(new OO.ui.Error(wrapHtml(html, {
+  abort({ message, recoverable, closeDialog = false }) {
+    this.showErrors(new OO.ui.Error(wrapHtml(message, {
       callbacks: {
         'cd-message-reloadPage': () => {
           this.close();

@@ -646,9 +646,7 @@ class Parser {
       .filter(
         (element) =>
           element.getAttribute('id') !== 'mw-toc-heading' &&
-          !this.noSignatureElements.some((/** @type {ElementLike} */ noSigEl) =>
-            Parser.contains(noSigEl, element)
-          )
+          !this.noSignatureElements.some((noSigEl) => Parser.contains(noSigEl, element))
       )
       .map((element) => ({
         type: 'heading',
