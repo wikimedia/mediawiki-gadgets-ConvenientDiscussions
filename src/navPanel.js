@@ -1,9 +1,3 @@
-/**
- * Singleton related to the navigation panel.
- *
- * @module navPanel
- */
-
 import Button from './Button';
 import LiveTimestamp from './LiveTimestamp';
 import bootController from './bootController';
@@ -11,7 +5,6 @@ import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import settings from './settings';
 import cd from './shared/cd';
-import { reorderArray } from './shared/utils-general';
 import { formatDate } from './shared/utils-timestamp';
 import { removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
@@ -20,80 +13,67 @@ import { createSvg, isCmdModifierPressed, isInputFocused, keyCombination } from 
 import visits from './visits';
 
 /**
- *
+ * Singleton representing the navigation panel.
  */
 class NavPanel {
   /**
    * Navigation panel element.
    *
-   * @type {JQuery | undefined} @private
+   * @type {JQuery | undefined}
    */
   $element;
 
   /**
-   * Refresh button.
+   * Type of a property that keeps the state of a navigation panel button when it is mounted.
    *
-   * @type {Button | undefined} @private
+   * @typedef {object} State
+   * @property {Button} refreshButton
+   * @property {Button} previousButton
+   * @property {Button} nextButton
+   * @property {Button} firstUnseenButton
+   * @property {Button} commentFormButton
+   * @property {number} cachedCommentCount
+   * @property {import('./updateChecker').AddedComments['bySection']} cachedCommentsBySection
    */
-  refreshButton;
 
   /**
-   * "Go to the previous new comment" button element.
+   * Navigation panel buttons.
    *
-   * @type {Button | undefined} @private
+   * @type {State | undefined}
+   * @private
    */
-  previousButton;
+  state;
 
   /**
-   * "Go to the next new comment" button element.
-   *
-   * @type {Button | undefined} @private
+   * @type {string}
+   * @private
    */
-  nextButton;
-
-  /**
-   * "Go to the first unseen comment" button element.
-   *
-   * @type {Button | undefined} @private
-   */
-  firstUnseenButton;
-
-  /**
-   * "Go to the next comment form out of sight" button element.
-   *
-   * @type {Button | undefined} @private
-   */
-  commentFormButton;
-
-  /** @type {string | undefined} @private */
   timestampFormat;
 
-  /** @type {boolean | undefined} @private */
-  modifyToc;
-
-  /** @type {number | undefined} @private */
+  /**
+   * @type {number}
+   * @private
+   */
   highlightNewInterval;
 
-  /** @type {number | undefined} @private */
+  /**
+   * @type {number | undefined}
+   * @private
+   */
   utirbtTimeout;
-
-  /** @type {number | undefined} @private */
-  cachedCommentCount;
-
-  /** @type {Map | undefined} @private */
-  cachedCommentsBySection;
 
   /**
    * _For internal use._ Mount, unmount or reset the navigation panel based on the context.
    */
   setup() {
     this.timestampFormat = settings.get('timestampFormat');
-    this.modifyToc = settings.get('modifyToc');
     this.highlightNewInterval = settings.get('highlightNewInterval');
 
     if (cd.page.isActive()) {
       // Can be mounted not only on first parse, if using RevisionSlider, for example.
-      if (!this.isMounted()) {
+      if (this.isMounted()) {
+        this.reset();
+      } else {
         this.mount();
         talkPageController
           .on('scroll', this.updateCommentFormButton.bind(this))
@@ -107,23 +87,23 @@ class NavPanel {
 
             // W
             if (keyCombination(event, 87)) {
-              this.goToPreviousNewComment();
+              commentRegistry.goToPreviousNewComment();
             }
 
             // S
             if (keyCombination(event, 83)) {
-              this.goToNextNewComment();
+              commentRegistry.goToNextNewComment();
             }
 
             // F
             if (keyCombination(event, 70)) {
-              this.goToFirstUnseenComment();
+              commentRegistry.goToFirstUnseenComment();
             }
 
             // C
             if (keyCombination(event, 67)) {
               event.preventDefault();
-              this.goToNextCommentForm(true);
+              commentFormRegistry.goToNextCommentForm(true);
             }
           })
         updateChecker
@@ -131,16 +111,14 @@ class NavPanel {
             this.updateRefreshButton(all.length, bySection, Boolean(relevant.length));
           });
         commentFormRegistry
-          .on('add', this.updateCommentFormButton.bind(this))
-          .on('remove', this.updateCommentFormButton.bind(this));
+          .on('add', this.updateCommentFormButton)
+          .on('remove', this.updateCommentFormButton);
         LiveTimestamp
-          .on('updateImproved', this.updateTimestampsInRefreshButtonTooltip.bind(this));
+          .on('updateImproved', this.updateTimestampsInRefreshButtonTooltip);
         visits
-          .on('process', this.fill.bind(this));
+          .on('process', this.fill);
         commentRegistry
-          .on('registerSeen', this.updateFirstUnseenButton.bind(this));
-      } else {
-        this.reset();
+          .on('registerSeen', this.updateFirstUnseenButton);
       }
     } else {
       if (this.isMounted()) {
@@ -160,7 +138,9 @@ class NavPanel {
       .attr('id', 'cd-navPanel')
       .appendTo(document.body);
 
-    this.refreshButton = new Button({
+    this.state = /** @type {State} */ ({});
+
+    this.state.refreshButton = new Button({
       tagName: 'div',
       classes: ['cd-navPanel-button'],
       id: 'cd-navPanel-refreshButton',
@@ -170,56 +150,56 @@ class NavPanel {
     });
     this.updateRefreshButton(0);
 
-    this.previousButton = new Button({
+    this.state.previousButton = new Button({
       tagName: 'div',
       classes: ['cd-navPanel-button', 'cd-icon'],
       id: 'cd-navPanel-previousButton',
       tooltip: `${cd.s('navpanel-previous')} ${cd.mws('parentheses', 'W')}`,
       action: () => {
-        this.goToPreviousNewComment();
+        commentRegistry.goToPreviousNewComment();
       },
     }).hide();
-    $(this.previousButton.element).append(
+    $(this.state.previousButton.element).append(
       createSvg(16, 16, 20, 20).html(
         `<path d="M1 13.75l1.5 1.5 7.5-7.5 7.5 7.5 1.5-1.5-9-9-9 9z" />`
       )
     );
 
-    this.nextButton = new Button({
+    this.state.nextButton = new Button({
       tagName: 'div',
       classes: ['cd-navPanel-button', 'cd-icon'],
       id: 'cd-navPanel-nextButton',
       tooltip: `${cd.s('navpanel-next')} ${cd.mws('parentheses', 'S')}`,
       action: () => {
-        this.goToNextNewComment();
+        commentRegistry.goToNextNewComment();
       },
     }).hide();
-    $(this.nextButton.element).append(
+    $(this.state.nextButton.element).append(
       createSvg(16, 16, 20, 20).html(
         `<path d="M19 6.25l-1.5-1.5-7.5 7.5-7.5-7.5L1 6.25l9 9 9-9z" />`
       )
     );
 
-    this.firstUnseenButton = new Button({
+    this.state.firstUnseenButton = new Button({
       tagName: 'div',
       classes: ['cd-navPanel-button'],
       id: 'cd-navPanel-firstUnseenButton',
       tooltip: `${cd.s('navpanel-firstunseen')} ${cd.mws('parentheses', 'F')}`,
       action: () => {
-        this.goToFirstUnseenComment();
+        commentRegistry.goToFirstUnseenComment();
       },
     }).hide();
 
-    this.commentFormButton = new Button({
+    this.state.commentFormButton = new Button({
       tagName: 'div',
       classes: ['cd-navPanel-button', 'cd-icon'],
       id: 'cd-navPanel-commentFormButton',
       tooltip: `${cd.s('navpanel-commentform')} ${cd.mws('parentheses', 'C')}`,
       action: () => {
-        this.goToNextCommentForm();
+        commentFormRegistry.goToNextCommentForm();
       },
     }).hide();
-    $(this.commentFormButton.element).append(
+    $(this.state.commentFormButton.element).append(
       createSvg(16, 16, 20, 20).html(
         cd.g.contentDirection === 'ltr' ?
           `<path d="M18 0H2a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V2a2 2 0 00-2-2zM5 9.06a1.39 1.39 0 111.37-1.39A1.39 1.39 0 015 9.06zm5.16 0a1.39 1.39 0 111.39-1.39 1.39 1.39 0 01-1.42 1.39zm5.16 0a1.39 1.39 0 111.39-1.39 1.39 1.39 0 01-1.42 1.39z" />` :
@@ -228,11 +208,11 @@ class NavPanel {
     );
 
     this.$element.append(
-      this.refreshButton.element,
-      this.previousButton.element,
-      this.nextButton.element,
-      this.firstUnseenButton.element,
-      this.commentFormButton.element,
+      this.state.refreshButton.element,
+      this.state.previousButton.element,
+      this.state.nextButton.element,
+      this.state.firstUnseenButton.element,
+      this.state.commentFormButton.element,
     );
   }
 
@@ -245,7 +225,7 @@ class NavPanel {
     if (!this.isMounted()) return;
 
     this.$element.remove();
-    this.$element = undefined;
+    /** @type {{ $element: undefined }} */ (this).$element = undefined;
   }
 
   /**
@@ -253,14 +233,7 @@ class NavPanel {
    * {@link module:navPanel.$element}, and for most practical purposes, does the same as the
    * {@link module:pageRegistry.Page#isActive} check.
    *
-   * @returns {this is {
-   *   $element: JQuery;
-   *   refreshButton: Button;
-   *   previousButton: Button;
-   *   nextButton: Button;
-   *   firstUnseenButton: Button;
-   *   commentFormButton: Button;
-   * }}
+   * @returns {this is { $element: JQuery }}
    */
   isMounted() {
     return Boolean(this.$element);
@@ -273,13 +246,13 @@ class NavPanel {
    * @private
    */
   reset() {
-    if (!this.isMounted()) return;
+    if (!this.state) return;
 
     this.updateRefreshButton(0);
-    this.previousButton.hide();
-    this.nextButton.hide();
-    this.firstUnseenButton.hide();
-    this.commentFormButton.hide();
+    this.state.previousButton.hide();
+    this.state.nextButton.hide();
+    this.state.firstUnseenButton.hide();
+    this.state.commentFormButton.hide();
     clearTimeout(this.utirbtTimeout);
   }
 
@@ -288,16 +261,16 @@ class NavPanel {
    *
    * @private
    */
-  fill() {
-    if (!this.isMounted()) return;
+  fill = () => {
+    if (!this.state) return;
 
     if (commentRegistry.getAll().some((comment) => comment.isNew)) {
       this.updateRefreshButtonTooltip(0);
-      this.previousButton.show();
-      this.nextButton.show();
+      this.state.previousButton.show();
+      this.state.nextButton.show();
       this.updateFirstUnseenButton();
     }
-  }
+  };
 
   /**
    * Perform routines at the refresh button click.
@@ -313,105 +286,17 @@ class NavPanel {
   }
 
   /**
-   * Generic function for {@link module:navPanel.goToPreviousNewComment} and
-   * {@link module:navPanel.goToNextNewComment}.
-   *
-   * @param {'forward' | 'backward' | undefined} direction
-   * @private
-   */
-  goToNewCommentInDirection(direction) {
-    if (talkPageController.isAutoScrolling()) return;
-
-    const commentInViewport = commentRegistry.findInViewport(direction);
-    if (!commentInViewport) return;
-
-    const reorderedComments = reorderArray(
-      commentRegistry.getAll(),
-      commentInViewport.index,
-      direction === 'backward'
-    );
-    const candidates = reorderedComments
-      .filter((comment) => comment.isNew && !comment.isInViewport());
-    const comment = candidates.find((comment) => comment.isInViewport() === false) || candidates[0];
-    if (comment) {
-      comment.scrollTo({
-        flash: false,
-        callback: () => {
-          // The default controller.handleScroll() callback is executed in $#cdScrollTo, but
-          // that happens after a 300ms timeout, so we have a chance to have our callback executed
-          // first.
-          comment.registerSeen(direction, true);
-        },
-      });
-    }
-  }
-
-  /**
-   * Scroll to the previous new comment.
-   */
-  goToPreviousNewComment() {
-    this.goToNewCommentInDirection('backward');
-  }
-
-  /**
-   * Scroll to the next new comment.
-   */
-  goToNextNewComment() {
-    this.goToNewCommentInDirection('forward');
-  }
-
-  /**
-   * Scroll to the first unseen comment.
-   */
-  goToFirstUnseenComment() {
-    if (talkPageController.isAutoScrolling()) return;
-
-    const candidates = commentRegistry.query((comment) => comment.isSeen === false);
-    const comment = candidates.find((comment) => comment.isInViewport() === false) || candidates[0];
-    comment?.scrollTo({
-      flash: false,
-      callback: () => {
-        // The default controller.handleScroll() callback is executed in $#cdScrollTo, but
-        // that happens after a 300ms timeout, so we have a chance to have our callback executed
-        // first.
-        comment.registerSeen('forward', true);
-      },
-    });
-  }
-
-  /**
-   * Go to the next comment form out of sight, or just the next comment form, if `inSight` is set to
-   * `true`.
-   *
-   * @param {boolean} [inSight=false]
-   */
-  goToNextCommentForm(inSight) {
-    commentFormRegistry
-      .query((commentForm) => inSight || !commentForm.$element.cdIsInViewport(true))
-      .map((commentForm) => {
-        let top = commentForm.$element[0].getBoundingClientRect().top;
-        if (top < 0) {
-          top += /** @type {number} */ ($(document).height()) * 2;
-        }
-        return { commentForm, top };
-      })
-      .sort((data1, data2) => data1.top - data2.top)
-      .map((data) => data.commentForm)[0]
-      ?.goTo();
-  }
-
-  /**
    * Update the refresh button to show the number of comments added to the page since it was loaded.
    *
    * @param {number} commentCount
-   * @param {Map} [commentsBySection]
+   * @param {import('./updateChecker').AddedComments['bySection']} [commentsBySection]
    * @param {boolean} [areThereRelevant = false]
    * @private
    */
   updateRefreshButton(commentCount, commentsBySection, areThereRelevant = false) {
-    if (!this.isMounted()) return;
+    if (!this.state) return;
 
-    $(this.refreshButton.element)
+    $(this.state.refreshButton.element)
       .empty()
       .append(
         commentCount ?
@@ -439,55 +324,64 @@ class NavPanel {
    * @private
    */
   updateRefreshButtonTooltip(commentCount, commentsBySection = new Map()) {
-    if (!this.isMounted()) return;
+    if (!this.state) return;
 
     // If the method was not called after a timeout and the timeout exists, clear it.
     clearTimeout(this.utirbtTimeout);
 
-    this.cachedCommentCount = commentCount;
-    this.cachedCommentsBySection = commentsBySection;
+    this.state.cachedCommentCount = commentCount;
+    this.state.cachedCommentsBySection = commentsBySection;
 
+    /** @type {string | undefined} */
     let tooltipText = undefined;
     const areThereNew = commentRegistry.getAll().some((comment) => comment.isNew);
     if (commentCount) {
-      tooltipText = (
+      tooltipText =
         cd.s('navpanel-newcomments-count', String(commentCount)) +
         ' ' +
         cd.s('navpanel-newcomments-refresh') +
         ' ' +
-        cd.mws('parentheses', 'R')
-      );
+        cd.mws('parentheses', 'R');
       if (areThereNew && this.highlightNewInterval) {
         tooltipText += '\n' + cd.s('navpanel-markasread', cd.g.cmdModifier);
       }
       const bullet = removeWikiMarkup(cd.s('bullet'));
-      const rtlMarkOrNot = cd.g.contentDirection === 'rtl' ? '\u200f' : '';
       commentsBySection.forEach((comments, section) => {
         const headline = section?.headline;
         tooltipText += headline ? `\n\n${headline}` : '\n';
         comments.forEach((comment) => {
           tooltipText += `\n`;
-          const names = comment.parent?.author && comment.level > 1 ?
-            cd.s(
-              'navpanel-newcomments-names',
-              comment.author.getName(),
-              comment.parent.author.getName()
-            ) :
-            comment.author.getName();
-          const date = comment.date ?
-            formatDate(comment.date) :
-            cd.s('navpanel-newcomments-unknowndate');
-          tooltipText += bullet + ' ' + names + rtlMarkOrNot + cd.mws('comma-separator') + date;
+
+
+          tooltipText +=
+            bullet +
+            ' ' +
+
+            // Names
+            (
+              comment.parent?.author && comment.level > 1
+              ? cd.s(
+                  'navpanel-newcomments-names',
+                  comment.author.getName(),
+                  comment.parent.author.getName()
+                )
+              : comment.author.getName()
+            ) +
+
+            // RTL mark if needed
+            (cd.g.contentDirection === 'rtl' ? '\u200f' : '') +
+
+            cd.mws('comma-separator') +
+
+            // Date
+            (comment.date ? formatDate(comment.date) : cd.s('navpanel-newcomments-unknowndate'));
         });
       });
 
       // When timestamps are relative, we need to update the tooltip manually every minute. When
       // `improved` timestamps are used, timestamps are updated in LiveTimestamp.updateImproved().
       if (this.timestampFormat === 'relative') {
-        this.utirbtTimeout = setTimeout(
-          this.updateTimestampsInRefreshButtonTooltip.bind(this),
-          cd.g.msInMin
-        );
+        this.utirbtTimeout = setTimeout(this.updateTimestampsInRefreshButtonTooltip, cd.g.msInMin);
       }
     } else {
       tooltipText = cd.s('navpanel-refresh') + ' ' + cd.mws('parentheses', 'R');
@@ -496,18 +390,23 @@ class NavPanel {
       }
     }
 
-    this.refreshButton.setTooltip(tooltipText);
+    this.state.refreshButton.setTooltip(tooltipText);
   }
 
   /**
-   * Update the tooltip of the {@link module:navPanel.refreshButton refresh button}. This is called
-   * to update timestamps in the text.
+   * Update the tooltip of the {@link module:navPanel.buttons.refresh refresh button}. This is
+   * called to update timestamps in the text.
    *
    * @private
    */
-  updateTimestampsInRefreshButtonTooltip() {
-    this.updateRefreshButtonTooltip(this.cachedCommentCount, this.cachedCommentsBySection);
-  }
+  updateTimestampsInRefreshButtonTooltip = () => {
+    if (!this.state) return;
+
+    this.updateRefreshButtonTooltip(
+      this.state.cachedCommentCount,
+      this.state.cachedCommentsBySection
+    );
+  };
 
   /**
    * Update the state of the
@@ -515,14 +414,14 @@ class NavPanel {
    *
    * @private
    */
-  updateFirstUnseenButton() {
-    if (!this.isMounted()) return;
+  updateFirstUnseenButton = () => {
+    if (!this.state) return;
 
     const unseenCommentCount = commentRegistry.query((c) => c.isSeen === false).length;
-    this.firstUnseenButton
+    this.state.firstUnseenButton
       .toggle(Boolean(unseenCommentCount))
       .setLabel(String(unseenCommentCount));
-  }
+  };
 
   /**
    * Update the {@link module:navPanel.commentFormButton "Go to the next comment form out of sight"}
@@ -530,12 +429,12 @@ class NavPanel {
    *
    * @private
    */
-  updateCommentFormButton() {
-    if (!this.isMounted() || talkPageController.isAutoScrolling()) return;
+  updateCommentFormButton = () => {
+    if (!this.state || talkPageController.isAutoScrolling()) return;
 
-    this.commentFormButton
+    this.state.commentFormButton
       .toggle(commentFormRegistry.getAll().some((cf) => !cf.$element.cdIsInViewport(true)));
-  }
+  };
 }
 
 export default new NavPanel();

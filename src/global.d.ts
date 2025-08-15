@@ -282,8 +282,10 @@ declare global {
 
     namespace libs {
       namespace confirmEdit {
+        type CaptchaData = any;
+
         class CaptchaInputWidget extends OO.ui.TextInputWidget {
-          new (config?: captchaData);
+          new(captchaData?: CaptchaData, config?: TextInputWidget.ConfigOptions);
           getCaptchaId(): string;
           getCaptchaWord(): string;
         }

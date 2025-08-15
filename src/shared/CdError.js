@@ -16,7 +16,7 @@
  * @typedef {object} ErrorDataServerDefinedApiError
  * @property {'api'} type
  * @property {string} code
- * @property {ApiRejectResponse} apiResponse
+ * @property {import('types-mediawiki/mw/Api').ApiResponse} apiResponse
  * @property {string} html
  */
 
@@ -24,7 +24,7 @@
  * @typedef {object} ErrorDataResponseError
  * @property {'response'} type
  * @property {string} code
- * @property {ApiRejectResponse} [apiResponse]
+ * @property {import('types-mediawiki/mw/Api').ApiResponse} [apiResponse]
  */
 
 /**
@@ -32,8 +32,10 @@
  * @typedef {object} ErrorDataBase
  * @property {ErrorType} [type='internal']
  * @property {string} [code]
- * @property {AnyByKey} [details]
+ * @property {AnyByKey} [details={}]
  * @property {string} [message]
+ * @property {import('types-mediawiki/mw/Api').ApiResponse} [apiResponse]
+ * @property {string} [html]
  */
 
 /**
@@ -41,7 +43,12 @@
  * @typedef {Expand<
  *   & ErrorDataBase<Type>
  *   & (ErrorDataServerDefinedApiError | ErrorDataResponseError | {})
- * >} ErrorData
+ * >} ErrorDataParameter
+ */
+
+/**
+ * @template {ErrorType} Type
+ * @typedef {MakeRequired<ErrorDataParameter<Type>, 'type' | 'details'>} ErrorData
  */
 
 /**
@@ -51,23 +58,24 @@
  * @augments Error
  */
 class CdError extends Error {
-  /** @type {MakeRequired<ErrorData<Type>, 'type'>} */
+  /** @type {ErrorData<ErrorType>} */
   data;
 
   /**
    * Create a custom error.
    *
-   * @param {ErrorData<Type>} [data={}]
+   * @param {ErrorDataParameter<Type>} [data={}]
    */
   constructor(data = {}) {
     data.type ??= 'internal';
+    data.details ??= {};
     super(
       data.type +
       (data.code ? `/${data.code}` : '') +
       (data.message ? `: ${data.message}` : '')
     );
     this.name = 'CdError';
-    this.data = /** @type {MakeRequired<ErrorData<Type>, 'type'>} */ (data);
+    this.data = /** @type {ErrorData<ErrorType>} */ (data);
   }
 
   /**
@@ -96,6 +104,15 @@ class CdError extends Error {
   }
 
   /**
+   * Set the error message.
+   *
+   * @param {string} message
+   */
+  setMessage(message) {
+    this.data.message = message;
+  }
+
+  /**
    * Get the error code.
    *
    * @returns {string | undefined}
@@ -116,23 +133,55 @@ class CdError extends Error {
   }
 
   /**
+   * @typedef {(
+   *   Type extends 'api'
+   *     ? import('types-mediawiki/mw/Api').ApiResponse
+   *     : Type extends 'response'
+   *       ? import('types-mediawiki/mw/Api').ApiResponse | undefined
+   *       : undefined
+   * )} ApiResponseType
+   */
+
+  /**
    * Get the whole API response if available.
    *
-   * @returns {Type extends 'api' ? ApiRejectResponse : undefined}
+   * @returns {ApiResponseType}
    */
   getApiResponse() {
-    return /** @type {Type extends 'api' ? ApiRejectResponse : undefined} */ (
+    return /** @type {ApiResponseType} */ (
       this.isServerDefinedApiError() ? this.data.apiResponse : undefined
     );
   }
 
   /**
-   * Get additional data supplied to the error instance.
+   * Get additional details supplied to the error instance.
    *
-   * @returns {{ [x: string]: any } | undefined}
+   * @returns {{ [x: string]: any }}
    */
   getDetails() {
     return this.data.details;
+  }
+
+  /**
+   * Set additional details to the error instance.
+   *
+   * @param {{ [x: string]: any }} details
+   */
+  setDetails(details) {
+    this.data.details = details;
+  }
+
+  /**
+   * Generate an instance of this class given a JavaScript error.
+   *
+   * @param {any} error
+   * @returns {CdError}
+   */
+  static generateCdErrorFromJsError(error) {
+    return new CdError({
+      type: 'javascript',
+      message: error instanceof Error ? error.stack : error,
+    });
   }
 }
 

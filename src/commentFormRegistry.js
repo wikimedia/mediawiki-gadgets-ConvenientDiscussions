@@ -512,6 +512,30 @@ class CommentFormRegistry extends EventEmitter {
       item.highlightQuoteButton(highlight);
     });
   }
+
+
+
+  /**
+   * Go to the next comment form out of sight, or just the next comment form, if `inSight` is set to
+   * `true`.
+   *
+   * @param {boolean} [inSight=false]
+   */
+  goToNextCommentForm(inSight) {
+    this
+      .query((commentForm) => inSight || !commentForm.$element.cdIsInViewport(true))
+      .map((commentForm) => {
+        let top = commentForm.$element[0].getBoundingClientRect().top;
+        if (top < 0) {
+          top += /** @type {number} */ ($(document).height()) * 2;
+        }
+
+        return { commentForm, top };
+      })
+      .sort((data1, data2) => data1.top - data2.top)
+      .map((data) => data.commentForm)[0]
+      ?.goTo();
+  }
 }
 
 export default new CommentFormRegistry();
