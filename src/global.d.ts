@@ -21,7 +21,9 @@ declare global {
   type ValidKey = string | number;
 
   // Helper type to check if a string is present in the array
-  type HasProperty<T extends readonly string[], K extends string> = K extends T[number] ? true : false;
+  type HasProperty<T extends readonly string[], K extends string> = K extends T[number]
+    ? true
+    : false;
 
   interface ApiResponseQueryPage {
     title: string;
@@ -231,6 +233,8 @@ declare global {
     cdOnlyRunByFooterLink?: boolean;
     cdShowLoadingOverlay?: boolean;
   }
+
+  var convenientDiscussions: Window['convenientDiscussions'];
 
   // https://stackoverflow.com/a/71104272
   interface String {

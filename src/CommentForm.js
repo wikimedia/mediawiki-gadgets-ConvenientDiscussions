@@ -44,6 +44,15 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
  */
 
 /**
+ * @typedef {object} CommentFormTargetMethodMap
+ * @property {'reply'} reply
+ * @property {'edit'} edit
+ * @property {'reply'} replyInSection
+ * @property {'addSubsection'} addSubsection
+ * @property {'addSection'} addSection
+ */
+
+/**
  * @typedef {object} EventMap
  * @property {[]} change
  * @property {[]} teardown
@@ -711,9 +720,6 @@ class CommentForm extends EventEmitter {
     this.target = target;
     this.targetSection = /** @type {CommentFormTargetSection} */ (this.target.getRelevantSection());
     this.targetPage = this.targetSection?.getSourcePage() || cd.page;
-    if (this.isMode('reply')) {
-      this.target
-    }
     this.parentComment = this.isMode('reply') || this.isMode('replyInSection') ?
       this.target.getRelevantComment() :
       null;
@@ -2470,14 +2476,9 @@ class CommentForm extends EventEmitter {
    */
   handleError({
     error,
-    type,
-    code,
-    details,
-    apiResponse,
     message,
     messageType = 'error',
     cancel = false,
-    isRawMessage = false,
     operation,
   }) {
     if (!(error instanceof CdError)) {
@@ -2529,10 +2530,14 @@ class CommentForm extends EventEmitter {
       }
 
       case 'api': {
-        // Error messages from the API should override our generic messages, except for `missing`.
+        // Error messages from the API should override our generic messages, except for `missing` and `missingtitle` (the last comes from CommentForm#editPage).
         switch (error.getCode()) {
           case 'missing':
             message = cd.sParse('cf-error-pagedoesntexist');
+            break;
+
+          case 'missingtitle':
+            message ||= error.getHtml();
             break;
 
           default:
@@ -2564,18 +2569,28 @@ class CommentForm extends EventEmitter {
     }
     if (!message) return;
 
-    $message = wrapHtml(message, {
-      callbacks: {
-        'cd-message-reloadPage': async () => {
-          if (this.confirmClose()) {
-            this.reloadPage();
-          }
-        },
-      },
-    });
+    $message =
+      typeof message === 'string'
+        ? wrapHtml(message, {
+            callbacks: {
+              'cd-message-reloadPage': async () => {
+                if (this.confirmClose()) {
+                  this.reloadPage();
+                }
+              },
+            },
+          })
+        : message;
     $message.find('.mw-parser-output').css('display', 'inline');
 
-    this.abort({ $message, messageType, isRawMessage, logMessage, cancel, operation });
+    this.abort({
+      $message,
+      messageType,
+      isRawMessage: /** @type {{ isRawMessage: boolean }} */ (error.getDetails()).isRawMessage,
+      logMessage,
+      cancel,
+      operation,
+    });
   }
 
   /**
@@ -3178,13 +3193,10 @@ class CommentForm extends EventEmitter {
           }).$element;
         }
 
-        // FIXME: We don't pass apiResponse to prevent the message for `missingtitle` to be
-        // overriden, which is hacky.
         this.handleError({
           error,
           message: error.getType() === 'network' ? cd.sParse('cf-error-couldntedit') : message,
           messageType,
-          isRawMessage: /** @type {{ isRawMessage: boolean }} */ (error.getDetails()).isRawMessage,
           operation,
         });
 
@@ -3884,7 +3896,7 @@ class CommentForm extends EventEmitter {
   /**
    * Get the form mode.
    *
-   * @returns {'reply'|'replyInSection'|'edit'|'addSubsection'|'addSection'}
+   * @returns {Mode}
    */
   getMode() {
     return this.mode;
@@ -3893,7 +3905,7 @@ class CommentForm extends EventEmitter {
   /**
    * Get the name of the correlated property of the form's target based on the form's mode.
    *
-   * @returns {CommentFormMode}
+   * @returns {string}
    * @private
    */
   getModeTargetProperty() {
@@ -4073,7 +4085,19 @@ class CommentForm extends EventEmitter {
     const newSelf = this.target.findNewSelf();
     if (newSelf?.isActionable) {
       try {
-        newSelf[this.getModeTargetProperty()](undefined, this);
+        /**
+         * @typedef {(
+         *   | import('./Comment').default['reply']
+         *   | import('./Comment').default['edit']
+         *   | import('./Section').default['reply']
+         *   | import('./Section').default['addSubsection']
+         *   | import('./CurrentPage').default['addSection']
+         * )} CommentFormAddingMethod
+         */
+
+        /** @type {CommentFormAddingMethod} */ (
+          newSelf[/** @type {keyof typeof newSelf} */ (this.getModeTargetProperty())]
+        )(undefined, this);
       } catch (error) {
         console.warn(error);
         return this.rescue();

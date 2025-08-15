@@ -60,10 +60,9 @@ declare global {
     };
   }
 
-  // https://stackoverflow.com/a/71104272
-  const convenientDiscussions: WindowOrWorkerGlobalScope['convenientDiscussions'];
-  const cd: WindowOrWorkerGlobalScope['convenientDiscussions'] | undefined;
+  var convenientDiscussions: WindowOrWorkerGlobalScope['convenientDiscussions'];
 
+  // https://stackoverflow.com/a/71104272
   interface String {
     /**
      * Gets a substring beginning at the specified location and having the specified length.

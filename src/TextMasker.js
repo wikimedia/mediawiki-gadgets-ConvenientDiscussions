@@ -152,18 +152,21 @@ class TextMasker {
         if (handler) {
           template = handler(template);
         }
-        const lengthOrNot = addLengths ?
-          '_' + template.replace(/\x01\d+_template_(\d+)\x02/g, (m, n) => ' '.repeat(n)).length :
-          '';
-        this.text = (
+        this.text =
           this.text.substring(0, stackLeft) +
           '\x01' +
           this.maskedTexts.push(template) +
           '_template' +
-          lengthOrNot +
+
+          // Length if needed
+          (
+            addLengths
+              ? '_' + template.replace(/\x01\d+_template_(\d+)\x02/g, (m, n) => ' '.repeat(n)).length
+              : ''
+          ) +
+
           '\x02' +
-          this.text.substr(right)
-        );
+          this.text.substr(right);
 
         // Synchronize the position
         pos = right - template.length;

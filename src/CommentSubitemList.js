@@ -11,7 +11,7 @@ class CommentSubitemList {
     /**
      * List of subitems with names as keys.
      *
-     * @type {object}
+     * @type {TypeByKey<JQuery>}
      */
     this.content = {};
   }

@@ -12,7 +12,6 @@
 // This line allows references to MediaWiki types (the `mw` object; e.g. cd.g.isIPv6Address) to work
 // in the worker context.
 /// <reference types="types-mediawiki" />
-/// <reference types="../shared/global.d.ts" />
 
 import './extendDomhandler';
 
