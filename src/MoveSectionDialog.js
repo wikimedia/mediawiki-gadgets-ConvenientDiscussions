@@ -12,6 +12,12 @@ import { createCheckboxControl, createTitleControl, es6ClassToOoJsClass } from '
 import { findFirstTimestamp, wrapHtml } from './utils-window';
 
 /**
+ * @typedef {object} ArchiveConfig
+ * @property {string | undefined} path
+ * @property {boolean} isSorted
+ */
+
+/**
  * Class used to create a move section dialog.
  *
  * @augments ProcessDialog
@@ -48,7 +54,7 @@ class MoveSectionDialog extends ProcessDialog {
   /** @type {OO.ui.PanelLayout} */
   successPanel;
 
-  /** @type {Array<Promise|JQuery.Promise>} */
+  /** @type {[Promise<any>, JQuery.Promise<any>, Promise<ArchiveConfig | void>]} */
   initRequests;
 
   /** @typedef {{
@@ -376,13 +382,16 @@ class MoveSectionDialog extends ProcessDialog {
   }
 
   /**
+   * @typedef {object} Source
+   * @property {import('./Page').default} page
+   * @property {import('./SectionSource').default} sectionSource
+   * @property {string} sectionWikilink
+   */
+
+  /**
    * Load the source page code.
    *
-   * @returns {Promise<{
-   *   page: import('./Page').default;
-   *   sectionSource: import('./SectionSource').default;
-   *   sectionWikilink: string;
-   * }>}
+   * @returns {Promise<Source>}
    * @throws {Array.<string|boolean>}
    * @protected
    */
@@ -451,14 +460,17 @@ class MoveSectionDialog extends ProcessDialog {
   }
 
   /**
+   * @typedef {object} Target
+   * @property {import('./Page').default} page
+   * @property {number} [targetIndex]
+   * @property {string} sectionWikilink
+   */
+
+  /**
    * Load the target page code.
    *
    * @param {import('./Page').default} targetPage
-   * @returns {Promise<{
-   *   page: import('./Page').default;
-   *   targetIndex: number | null;
-   *   sectionWikilink: string;
-   * }>}
+   * @returns {Promise<Target>}
    * @throws {Array.<string|boolean>}
    * @protected
    */
@@ -498,8 +510,8 @@ class MoveSectionDialog extends ProcessDialog {
   /**
    * Edit the target page.
    *
-   * @param {object} source
-   * @param {object} target
+   * @param {Source} source
+   * @param {Target} target
    * @throws {Array.<string|boolean>}
    * @protected
    */
@@ -530,9 +542,10 @@ class MoveSectionDialog extends ProcessDialog {
     summaryEnding &&= cd.mws('colon-separator', { language: 'content' }) + summaryEnding;
 
     try {
+      const code = target.page.source.getCode();
       await target.page.edit({
         text: (
-          endWithTwoNewlines(target.page.code.slice(0, target.targetIndex)) +
+          endWithTwoNewlines(code.slice(0, target.targetIndex)) +
 
           // New section code
           endWithTwoNewlines(
@@ -542,7 +555,7 @@ class MoveSectionDialog extends ProcessDialog {
             codeEnding
           ) +
 
-          target.page.code.slice(target.targetIndex)
+          code.slice(target.targetIndex)
         ),
         summary: buildEditSummary({
           text: cd.s('es-move-from', source.sectionWikilink) + summaryEnding,
@@ -575,8 +588,8 @@ class MoveSectionDialog extends ProcessDialog {
   /**
    * Edit the source page.
    *
-   * @param {object} source
-   * @param {object} target
+   * @param {Source} source
+   * @param {Target} target
    * @throws {Array.<string|boolean>}
    */
   async editSourcePage(source, target) {
@@ -586,9 +599,10 @@ class MoveSectionDialog extends ProcessDialog {
     summaryEnding &&= cd.mws('colon-separator', { language: 'content' }) + summaryEnding;
 
     try {
+      const code = source.page.source.getCode();
       await source.page.edit({
         text: (
-          source.page.code.slice(0, source.sectionSource.startIndex) +
+          code.slice(0, source.sectionSource.startIndex) +
           (
             cd.config.getMoveSourcePageCode && this.controls.keepLink.input.isSelected() ?
               (
@@ -602,7 +616,7 @@ class MoveSectionDialog extends ProcessDialog {
               ) :
               ''
           ) +
-          source.page.code.slice(source.sectionSource.endIndex)
+          code.slice(source.sectionSource.endIndex)
         ),
         summary: buildEditSummary({
           text: cd.s('es-move-to', target.sectionWikilink) + summaryEnding,
@@ -683,10 +697,7 @@ class MoveSectionDialog extends ProcessDialog {
    * other configuration for the section.
    *
    * @param {Map<import('./Page').default, StringsByKey>} templateToParameters
-   * @returns {?{
-   *   path: ?string;
-   *   isSorted: boolean;
-   * }}
+   * @returns {ArchiveConfig | undefined}
    */
   guessArchiveConfig(templateToParameters) {
     return Array.from(templateToParameters).reduce((config, [page, parameters]) => {
@@ -704,14 +715,14 @@ class MoveSectionDialog extends ProcessDialog {
        * Find a parameter mentioned in the template config in the list of actual template
        * parameters, do the regexp transformations, and return the result.
        *
-       * @param {string} prop
-       * @returns {?string}
+       * @param {keyof typeof templateConfig} prop
+       * @returns {string | undefined}
        */
       const findPresentParamAndReplaceAll = (prop) => {
         const replaceAll = (/** @type {string} */ value) =>
           Array.from(templateConfig.replacements || []).reduce(
-            (v, [regexp, replacer]) => {
-              return v.replace(regexp, (...match) =>
+            (v, [regexp, replacer]) =>
+              v.replace(regexp, (...match) =>
                 replacer(
                   {
                     counter: parameters[templateConfig.counterParam] || null,
@@ -722,8 +733,7 @@ class MoveSectionDialog extends ProcessDialog {
                   // evolves in the future to add more arguments.
                   match.slice(0, match.findIndex((el) => typeof el !== 'string'))
                 ),
-              );
-            },
+              ),
             value
           );
 
@@ -731,7 +741,7 @@ class MoveSectionDialog extends ProcessDialog {
           (pathParam) => parameters[pathParam]
         );
 
-        return presentPathParam ? replaceAll(parameters[presentPathParam]) : null;
+        return presentPathParam ? replaceAll(parameters[presentPathParam]) : undefined;
       };
 
       let path = findPresentParamAndReplaceAll('pathParam');
@@ -749,7 +759,7 @@ class MoveSectionDialog extends ProcessDialog {
         path,
         isSorted: cd.config.archivingConfig.areArchivesSorted || false,
       };
-    }, null);
+    }, /** @type {ArchiveConfig | undefined} */ (undefined));
   }
 }
 

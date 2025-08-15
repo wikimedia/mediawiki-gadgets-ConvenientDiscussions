@@ -11,7 +11,7 @@ export default class PageSource {
   /**
    * Page's source code.
    *
-   * @type {string}
+   * @type {string | undefined}
    */
   code;
 
@@ -50,6 +50,34 @@ export default class PageSource {
   }
 
   /**
+   * Get the page's source code.
+   *
+   * @returns {string} code
+   * @throws {CdError}
+   */
+  getCode() {
+    this.assertCode();
+
+    return this.code;
+  }
+
+  /**
+   * Get the page's source code.
+   *
+   * @param {string} [message]
+   * @returns {asserts this is { code: string }}
+   * @throws {CdError}
+   */
+  assertCode(message) {
+    if (this.code === undefined) {
+      throw new CdError({
+        type: 'internal',
+        message: message || 'Page code is not set.',
+      });
+    }
+  }
+
+  /**
    * Modify the page code string in accordance with an action. The `'addSection'` action is
    * presumed.
    *
@@ -62,14 +90,10 @@ export default class PageSource {
    *   contextCode: string;
    *   commentCode?: string;
    * }}
+   * @throws {CdError}
    */
   modifyContext({ commentCode, commentForm }) {
-    if (this.code === undefined) {
-      throw new CdError({
-        type: 'internal',
-        message: 'Can\'t modify the context: context (page) code is not set.',
-      });
-    }
+    this.assertCode('Can\'t modify the context: context (page) code is not set.');
 
     let contextCode;
     if (commentForm.isNewTopicOnTop()) {
@@ -108,11 +132,7 @@ export default class PageSource {
    * @private
    */
   guessNewTopicPlacement() {
-    if (this.code === undefined) {
-      throw new CdError({
-        message: 'Can\'t analyze the placement of new topics: page code is not set.',
-      });
-    }
+    this.assertCode('Can\'t analyze the placement of new topics: page code is not set.');
 
     let areNewTopicsOnTop = cd.config.areNewTopicsOnTop?.(this.page.name, this.code) || null;
 
@@ -155,13 +175,10 @@ export default class PageSource {
    *
    * @param {Date} [referenceDate=new Date()]
    * @returns {number}
+   * @throws {CdError}
    */
   findProperPlaceForSection(referenceDate = new Date()) {
-    if (this.code === undefined) {
-      throw new CdError({
-        message: 'Can\'t find the proper place for a section: page code is not set.',
-      });
-    }
+    this.assertCode('Can\'t find the proper place for a section: page code is not set.');
 
     const { areNewTopicsOnTop, firstSectionStartIndex } = this.guessNewTopicPlacement();
 
