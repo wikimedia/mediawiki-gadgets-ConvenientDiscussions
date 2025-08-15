@@ -9,7 +9,6 @@ import StorageItemWithKeys from './StorageItemWithKeys';
 import bootController from './bootController';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
-import navPanel from './navPanel';
 import settings from './settings';
 import CdError from './shared/CdError';
 import CommentSkeleton from './shared/CommentSkeleton';
@@ -2811,8 +2810,8 @@ class Comment extends CommentSkeleton {
               comment.isSeen = true;
             });
             commentRegistry.emit('registerSeen');
+            commentRegistry.goToFirstUnseenComment();
             notification.close();
-            navPanel.goToFirstUnseenComment();
           },
         },
       });
@@ -2826,12 +2825,16 @@ class Comment extends CommentSkeleton {
     } else {
       const offset = this.getOffset({ considerFloating: true });
       (this.editForm?.$element || this.$elements).cdScrollIntoView(
-        alignment ||
-          (this.isOpeningSection ||
-          this.editForm ||
-          (offset && offset.bottom !== offset.bottomForVisibility)
-            ? 'top'
-            : 'center'),
+        (
+          alignment ||
+          (
+            this.isOpeningSection ||
+            this.editForm ||
+            (offset && offset.bottom !== offset.bottomForVisibility)
+              ? 'top'
+              : 'center'
+          )
+        ),
         smooth,
         callback
       );
@@ -4592,7 +4595,7 @@ class Comment extends CommentSkeleton {
    *
    * @overload
    * @param {import('./updateChecker').CommentWorkerMatched[]} comments
-   * @returns {Map<import('./updateChecker').SectionWorkerMatched | null, import('./updateChecker').CommentWorkerMatched[]>}
+   * @returns {import('./updateChecker').AddedComments['bySection']}
    */
 
   /**

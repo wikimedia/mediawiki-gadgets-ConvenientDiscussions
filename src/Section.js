@@ -1730,35 +1730,35 @@ class Section extends SectionSkeleton {
 
     if (!query || !page || !main) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'noData',
       });
     }
 
     if (page.missing) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'missing',
       });
     }
 
     if (page.invalid) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'invalid',
       });
     }
 
     if (main.nosuchsection) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'noSuchSection',
       });
     }
 
     if (!revision || content === undefined) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'noData',
       });
     }

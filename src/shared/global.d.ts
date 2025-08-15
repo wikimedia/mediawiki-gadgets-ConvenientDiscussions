@@ -11,10 +11,11 @@ import { ConvenientDiscussionsBase } from './cd';
 import { HeadingTarget, SignatureTarget, Target } from './Parser';
 
 declare global {
-  type StringsByKey = { [key: string]: string };
-  type NumbersByKey = { [key: string]: number };
-  type AnyByKey = { [key: string]: any };
-  type StringArraysByKey = { [key: string]: string[] };
+  type TypeByKey<T> = { [key: string]: T; };
+  type StringsByKey = TypeByKey<string>;
+  type NumbersByKey = TypeByKey<number>;
+  type AnyByKey = TypeByKey<any>;
+  type StringArraysByKey = TypeByKey<string[]>;
 
   interface Message {
     type: string;

@@ -1231,6 +1231,71 @@ class CommentRegistry extends EventEmitter {
   }
 
   /**
+   * Generic function for {@link module:navPanel.goToPreviousNewComment} and
+   * {@link module:navPanel.goToNextNewComment}.
+   *
+   * @param {'forward' | 'backward' | undefined} direction
+   * @private
+   */
+  goToNewCommentInDirection(direction) {
+    if (talkPageController.isAutoScrolling()) return;
+
+    const commentInViewport = this.findInViewport(direction);
+    if (!commentInViewport) return;
+
+    const candidates = reorderArray(
+      this.getAll(),
+      commentInViewport.index,
+      direction === 'backward'
+    ).filter((comment) => comment.isNew && !comment.isInViewport());
+    const comment = candidates.find((comment) => comment.isInViewport() === false) || candidates[0];
+    if (comment) {
+      comment.scrollTo({
+        flash: false,
+        callback: () => {
+          // The default controller.handleScroll() callback is executed in $#cdScrollTo, but
+          // that happens after a 300ms timeout, so we have a chance to have our callback executed
+          // first.
+          comment.registerSeen(direction, true);
+        },
+      });
+    }
+  }
+
+  /**
+   * Scroll to the previous new comment.
+   */
+  goToPreviousNewComment() {
+    this.goToNewCommentInDirection('backward');
+  }
+
+  /**
+   * Scroll to the next new comment.
+   */
+  goToNextNewComment() {
+    this.goToNewCommentInDirection('forward');
+  }
+
+  /**
+   * Scroll to the first unseen comment.
+   */
+  goToFirstUnseenComment() {
+    if (talkPageController.isAutoScrolling()) return;
+
+    const candidates = this.query((comment) => comment.isSeen === false);
+    const comment = candidates.find((comment) => comment.isInViewport() === false) || candidates[0];
+    comment?.scrollTo({
+      flash: false,
+      callback: () => {
+        // The default controller.handleScroll() callback is executed in $#cdScrollTo, but
+        // that happens after a 300ms timeout, so we have a chance to have our callback executed
+        // first.
+        comment.registerSeen('forward', true);
+      },
+    });
+  }
+
+  /**
    * Show an popup onboarding onto the "Toggle child threads" feature.
    *
    * @private

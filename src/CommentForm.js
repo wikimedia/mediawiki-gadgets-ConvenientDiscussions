@@ -1401,20 +1401,11 @@ class CommentForm extends EventEmitter {
       (initialState.focusHeadline && this.headlineInput || this.commentInput).focus();
       this.preview();
     } catch (error) {
-      if (error instanceof CdError) {
-        this.handleError({
-          ...error.data,
-          cancel: true,
-          operation,
-        });
-      } else {
-        this.handleError({
-          type: 'javascript',
-          logMessage: error,
-          cancel: true,
-          operation,
-        });
-      }
+      this.handleError({
+        error,
+        cancel: true,
+        operation,
+      });
     }
   }
 
@@ -1429,14 +1420,7 @@ class CommentForm extends EventEmitter {
       this.checkCodeRequest = this.target.loadCode(this).catch((error) => {
         this.$messageArea.empty();
         delete this.checkCodeRequest;
-        if (error instanceof CdError) {
-          this.handleError({ ...error.data });
-        } else {
-          this.handleError({
-            type: 'javascript',
-            logMessage: error,
-          });
-        }
+        this.handleError({ error });
       });
     }
 
@@ -1556,22 +1540,11 @@ class CommentForm extends EventEmitter {
       (this.headlineInput || this.commentInput).focus();
       this.preview();
     } catch (error) {
-      if (error instanceof CdError) {
-        this.handleError(
-          {
-            ...error.data,
-            cancel: true,
-            operation,
-          }
-        );
-      } else {
-        this.handleError({
-          type: 'javascript',
-          logMessage: error,
-          cancel: true,
-          operation,
-        });
-      }
+      this.handleError({
+        error,
+        cancel: true,
+        operation,
+      });
     }
   }
 
@@ -2468,20 +2441,19 @@ class CommentForm extends EventEmitter {
     }
   }
 
+  //  * @property {import('./shared/CdError').ErrorType} options.type Error type.
+  //  * @property {string} [options.code] Code of the error. (Either `code`, `apiResponse`, or
+  //  *   `message` should be specified.)
+  //  * @property {{ [x: string]: any }} [options.details] Additional details about the error.
+  //  * @property {ApiAnyResponse} [options.apiResponse] Data object received from the MediaWiki
+  //  *   server. (Either `code`, `apiResponse`, or `message` should be specified.)
   /**
    * @typedef {object} HandleErrorOptions
-   * @property {import('./shared/CdError').ErrorType} options.type Error type.
-   * @property {CdError} [options.error]
-   * @property {string} [options.code] Code of the error. (Either `code`, `apiResponse`, or
-   *   `message` should be specified.)
-   * @property {{ [x: string]: any }} [options.details] Additional details about the error.
-   * @property {ApiAnyResponse} [options.apiResponse] Data object received from the MediaWiki
-   *   server. (Either `code`, `apiResponse`, or `message` should be specified.)
+   * @property {CdError | Error | any} options.error
    * @property {string | JQuery} [options.message] Text of the error. (Either `code`, `apiResponse`,
    *   or `message` should be specified.)
    * @property {'error' | 'notice' | 'warning'} [options.messageType='error'] Message type if not
    *   `'error'`.
-   * @property {any} [options.logMessage] Data or text to display in the browser console.
    * @property {boolean} [options.cancel=false] Cancel the form and show the message as a
    *   notification.
    * @property {boolean} [options.isRawMessage=false] Show the message as it is, without OOUI
@@ -2504,13 +2476,19 @@ class CommentForm extends EventEmitter {
     apiResponse,
     message,
     messageType = 'error',
-    logMessage,
     cancel = false,
     isRawMessage = false,
     operation,
   }) {
+    if (!(error instanceof CdError)) {
+      error = CdError.generateCdErrorFromJsError(error);
+    }
+
     message = (error ? error.getMessage() : message) || '';
-    let /** @type {JQuery|undefined} */ $message;
+    /** @type {JQuery | undefined} */
+    let $message;
+    /** @type {string | undefined} */
+    let logMessage;
     switch (error.getType()) {
       case 'parse': {
         const editUrl = cd.g.server + cd.page.getUrl({ action: 'edit' });
@@ -2525,11 +2503,8 @@ class CommentForm extends EventEmitter {
             message = cd.sParse('cf-error-numberedlist');
             break;
           case 'numberedList-table':
-            message = (
-              cd.sParse('cf-error-numberedlist') +
-              ' ' +
-              cd.sParse('cf-error-numberedlist-table')
-            );
+            message =
+              cd.sParse('cf-error-numberedlist') + ' ' + cd.sParse('cf-error-numberedlist-table');
             break;
           case 'closed':
             message = cd.sParse('cf-error-closed');
@@ -2554,12 +2529,14 @@ class CommentForm extends EventEmitter {
       }
 
       case 'api': {
-        // Error messages from the API should override our generic messages.
+        // Error messages from the API should override our generic messages, except for `missing`.
         switch (error.getCode()) {
-          case 'missing': {
+          case 'missing':
             message = cd.sParse('cf-error-pagedoesntexist');
             break;
-          }
+
+          default:
+            message = error.getHtml();
         }
 
         logMessage ||= error;
@@ -2571,8 +2548,6 @@ class CommentForm extends EventEmitter {
           case 'missingtitle':
             message = cd.sParse('cf-error-pagedoesntexist');
             break;
-          default:
-            message = error.getHtml();
         }
 
         logMessage ||= error;
@@ -2581,7 +2556,9 @@ class CommentForm extends EventEmitter {
 
       case 'network':
       case 'javascript': {
-        message = message + ' ' + cd.sParse(`error-${error.getType()}`);
+        const type = error.getType();
+        message = message + ' ' + cd.sParse(`error-${type}`);
+        logMessage ||= error;
         break;
       }
     }
@@ -2712,21 +2689,12 @@ class CommentForm extends EventEmitter {
       try {
         await this.target.loadCode(this, !cd.page.exists());
       } catch (error) {
-        if (error instanceof CdError) {
-          this.handleError(
-            {
-              message: cd.sParse('cf-error-getpagecode'),
-              operation,
-              ...error.data,
-            }
-          );
-        } else {
-          this.handleError({
-            type: 'javascript',
-            logMessage: error,
-            operation,
-          });
-        }
+        this.handleError({
+          error,
+          message: error instanceof CdError ? cd.sParse('cf-error-getpagecode') : undefined,
+          operation,
+        });
+
         return;
       }
     }
@@ -2749,15 +2717,8 @@ class CommentForm extends EventEmitter {
       }));
       contextCode = this.addAnchorsToComments(contextCode, commentIds);
     } catch (error) {
-      if (error instanceof CdError) {
-        this.handleError(Object.assign(error.data, { operation }));
-      } else {
-        this.handleError({
-          type: 'javascript',
-          logMessage: error,
-          operation,
-        });
-      }
+      this.handleError({ error, operation });
+
       return;
     }
 
@@ -2885,19 +2846,12 @@ class CommentForm extends EventEmitter {
         summary: buildEditSummary({ text: this.summaryInput.getValue() }),
       }));
     } catch (error) {
-      if (error instanceof CdError) {
-        this.handleError({
-          ...error.data,
-          message: cd.sParse('cf-error-preview'),
-          operation,
-        });
-      } else {
-        this.handleError({
-          type: 'javascript',
-          logMessage: error,
-          operation,
-        });
-      }
+      this.handleError({
+        error,
+        message: error instanceof CdError ? cd.sParse('cf-error-preview') : undefined,
+        operation,
+      });
+
       return;
     }
 
@@ -3010,20 +2964,12 @@ class CommentForm extends EventEmitter {
           .catch(handleApiReject)
       );
     } catch (error) {
-      if (error instanceof CdError) {
-        this.handleError(
-          Object.assign({}, error.data, {
-            message: cd.sParse('cf-error-viewchanges'),
-            operation,
-          })
-        );
-      } else {
-        this.handleError({
-          type: 'javascript',
-          logMessage: error,
-          operation,
-        });
-      }
+      this.handleError({
+        error,
+        message: error instanceof CdError ? cd.sParse('cf-error-viewchanges') : undefined,
+        operation,
+      });
+
       return;
     }
 
@@ -3089,22 +3035,15 @@ class CommentForm extends EventEmitter {
     try {
       await bootController.reboot(bootData);
     } catch (error) {
-      if (error instanceof CdError) {
-        this.handleError({
-          ...error.data,
-          message: cd.sParse('error-reloadpage-saved'),
-          cancel: true,
-          operation,
-        });
-      } else {
-        this.handleError({
-          type: 'javascript',
-          logMessage: error,
-          cancel: true,
-          operation,
-        });
-      }
+      this.handleError({
+        error,
+        message: error instanceof CdError ? cd.sParse('error-reloadpage-saved') : undefined,
+        cancel: true,
+        operation,
+      });
+
       bootController.hideLoadingOverlay();
+      return;
     }
   }
 
@@ -3180,7 +3119,7 @@ class CommentForm extends EventEmitter {
    * @param {string} code Code to save.
    * @param {import('./CommentFormOperation').default} operation Operation the form is undergoing.
    * @param {boolean} [suppressTag=false]
-   * @returns {Promise<string|null>}
+   * @returns {Promise<string | undefined>}
    * @private
    */
   async editPage(code, operation, suppressTag = false) {
@@ -3219,25 +3158,25 @@ class CommentForm extends EventEmitter {
         const type = error.getType();
         if (type === 'network') {
           this.handleError({
-            type,
-            message: cd.sParse('cf-error-couldntedit'),
+            error,
+            message: type === 'network' ? cd.sParse('cf-error-couldntedit') : undefined,
             operation,
           });
         } else {
-          const apiResponse = error.getApiResponse();
-          const details = error.getDetails();
-
           /** @type {'notice' | undefined} */
           let messageType;
           const code = error.getCode();
           /** @type {string | JQuery | undefined} */
           let message = error.getMessage();
-          let { isRawMessage, logMessage } = details;
           if (code === 'editconflict') {
-            message += ' ' + cd.sParse('cf-notice-editconflict-retrying');
+            error.setMessage(message + ' ' + cd.sParse('cf-notice-editconflict-retrying'));
             messageType = 'notice';
           } else if (code === 'captcha' && mw.libs.confirmEdit) {
-            this.captchaInput = new mw.libs.confirmEdit.CaptchaInputWidget(apiResponse.edit.captcha);
+            this.captchaInput = new mw.libs.confirmEdit.CaptchaInputWidget(
+              /** @type {{ edit: mw.libs.confirmEdit.CaptchaData }} */ (
+                error.getApiResponse()
+              ).edit.captcha
+            );
             this.captchaInput.on('enter', () => {
               this.submit();
             });
@@ -3250,11 +3189,11 @@ class CommentForm extends EventEmitter {
           // FIXME: We don't pass apiResponse to prevent the message for `missingtitle` to be
           // overriden, which is hacky.
           this.handleError({
-            type,
+            error,
             message,
             messageType,
-            isRawMessage,
-            logMessage,
+            isRawMessage:
+              /** @type {{ isRawMessage: boolean }} */ (error.getDetails()).isRawMessage,
             operation,
           });
 
@@ -3266,13 +3205,10 @@ class CommentForm extends EventEmitter {
           }
         }
       } else {
-        this.handleError({
-          type: 'javascript',
-          logMessage: error,
-          operation,
-        });
+        this.handleError({ error, operation });
       }
-      return null;
+
+      return;
     }
 
     return result;
@@ -3391,8 +3327,10 @@ class CommentForm extends EventEmitter {
 
     if (commentFormRegistry.getAll().some((commentForm) => commentForm.isBeingSubmitted())) {
       this.handleError({
-        type: 'ui',
-        message: cd.sParse('cf-error-othersubmitted'),
+        error: new CdError({
+          type: 'ui',
+          message: cd.sParse('cf-error-othersubmitted'),
+        })
       });
       return;
     }

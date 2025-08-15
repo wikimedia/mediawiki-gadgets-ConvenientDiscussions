@@ -15,7 +15,7 @@ export default {
   /**
    * Collection of users.
    *
-   * @type {object}
+   * @type {TypeByKey<User>}
    * @private
    */
   items: {},
@@ -59,7 +59,7 @@ export default {
    */
   loadMuted() {
     const userIdList = /** @type {string} */ (mw.user.options.get('echo-notifications-blacklist'));
-    if (!userIdList || !cd.g.useGlobalPreferences) return;
+    if (!userIdList || !cd.config.useGlobalPreferences) return;
 
     /**
      * @typedef {object} MutedUsers
@@ -137,7 +137,7 @@ export default {
       const userInfo = response.query?.globaluserinfo;
       if (!userInfo) {
         throw new CdError({
-          type: 'api',
+          type: 'response',
           code: 'noData',
           apiResponse: response,
         });

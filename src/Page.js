@@ -319,7 +319,7 @@ export default class Page {
 
     if (!query || !page) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'noData',
       });
     }
@@ -335,21 +335,21 @@ export default class Page {
         return null;
       } else {
         throw new CdError({
-          type: 'api',
+          type: 'response',
           code: 'missing',
         });
       }
     }
     if (page.invalid) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'invalid',
       });
     }
 
     if (!revision || content === undefined) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'noData',
       });
     }
@@ -407,7 +407,7 @@ export default class Page {
     const { parse } = /** @type {import('./utils-api').ApiResponseParse} */ (await request);
     if (parse?.text === undefined) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'noData',
       });
     }
@@ -461,7 +461,7 @@ export default class Page {
     const revisions = /** @type {Revision<T>[]} */ (response.query?.pages?.[0]?.revisions);
     if (!revisions) {
       throw new CdError({
-        type: 'api',
+        type: 'response',
         code: 'noData',
       });
     }
@@ -511,64 +511,37 @@ export default class Page {
         .catch(handleApiReject);
       response = await request;
     } catch (error) {
-      if (error instanceof CdError) {
-        if (error.getType() === 'network') {
-          throw error;
-        } else {
-          const apiResponse = error.getApiResponse();
-          /** @type {string | undefined} */
-          let message;
-          let isRawMessage = false;
-          let logMessage;
-          /** @type {string | undefined} */
-          let code;
-          if (error.isServerDefinedApiError()) {
-            code = error.getCode();
-            switch (code) {
-              case 'editconflict': {
-                message = cd.sParse('error-editconflict');
-                break;
-              }
-
-              case 'missingtitle': {
-                message = cd.sParse('error-pagedeleted');
-                break;
-              }
-
-              default: {
-                message = error.getHtml();
-                isRawMessage = message.includes('<table') || message.includes('<div');
-              }
-            }
-
-            logMessage = [code, apiResponse];
-          } else {
-            logMessage = apiResponse;
+      if (error instanceof CdError && error.isServerDefinedApiError()) {
+        switch (error.getCode()) {
+          case 'editconflict': {
+            error.setMessage(cd.sParse('error-editconflict'));
+            break;
           }
 
-          throw new CdError({
-            type: 'api',
-            code,
-            apiResponse,
-            message,
-            details: { isRawMessage, logMessage },
-          });
+          case 'missingtitle': {
+            error.setMessage(cd.sParse('error-pagedeleted'));
+            break;
+          }
+
+          default: {
+            const message = error.getHtml();
+            error.setMessage(message);
+            error.setDetails({
+              isRawMessage: message.includes('<table') || message.includes('<div'),
+            });
+          }
         }
-      } else {
-        throw error;
       }
+
+      throw error;
     }
 
     if (response.edit.result !== 'Success') {
-      const code = response.edit.captcha ? 'captcha' : 'fail';
       throw new CdError({
-        type: 'api',
-        code,
+        type: 'response',
+        code: response.edit.captcha ? 'captcha' : 'fail',
         apiResponse: response,
-        details: {
-          isRawMessage: true,
-          logMessage: [code, response],
-        },
+        details: { isRawMessage: true },
       });
     }
 
@@ -650,7 +623,7 @@ export default class Page {
     } catch (error) {
       if (
         error instanceof CdError &&
-        ['missingtitle', 'notwikitext'].includes(error.data.code)
+        ['missingtitle', 'notwikitext'].includes(error.getCode() || '')
       ) {
         return new Map();
       } else {
