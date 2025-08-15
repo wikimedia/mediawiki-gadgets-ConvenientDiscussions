@@ -3155,54 +3155,44 @@ class CommentForm extends EventEmitter {
       delete this.captchaInput;
 
       if (error instanceof CdError) {
-        const type = error.getType();
-        if (type === 'network') {
-          this.handleError({
-            error,
-            message: type === 'network' ? cd.sParse('cf-error-couldntedit') : undefined,
-            operation,
+        /** @type {'notice' | undefined} */
+        let messageType;
+        const code = error.getCode();
+        /** @type {string | JQuery | undefined} */
+        let message = error.getMessage();
+        if (code === 'editconflict') {
+          error.setMessage(message + ' ' + cd.sParse('cf-notice-editconflict-retrying'));
+          messageType = 'notice';
+        } else if (code === 'captcha' && mw.libs.confirmEdit) {
+          this.captchaInput = new mw.libs.confirmEdit.CaptchaInputWidget(
+            /** @type {{ edit: mw.libs.confirmEdit.CaptchaData }} */ (
+              error.getApiResponse()
+            ).edit.captcha
+          );
+          this.captchaInput.on('enter', () => {
+            this.submit();
           });
-        } else {
-          /** @type {'notice' | undefined} */
-          let messageType;
-          const code = error.getCode();
-          /** @type {string | JQuery | undefined} */
-          let message = error.getMessage();
-          if (code === 'editconflict') {
-            error.setMessage(message + ' ' + cd.sParse('cf-notice-editconflict-retrying'));
-            messageType = 'notice';
-          } else if (code === 'captcha' && mw.libs.confirmEdit) {
-            this.captchaInput = new mw.libs.confirmEdit.CaptchaInputWidget(
-              /** @type {{ edit: mw.libs.confirmEdit.CaptchaData }} */ (
-                error.getApiResponse()
-              ).edit.captcha
-            );
-            this.captchaInput.on('enter', () => {
-              this.submit();
-            });
-            message = new OO.ui.MessageWidget({
-              type: 'notice',
-              label: this.captchaInput.$element,
-            }).$element;
-          }
+          message = new OO.ui.MessageWidget({
+            type: 'notice',
+            label: this.captchaInput.$element,
+          }).$element;
+        }
 
-          // FIXME: We don't pass apiResponse to prevent the message for `missingtitle` to be
-          // overriden, which is hacky.
-          this.handleError({
-            error,
-            message,
-            messageType,
-            isRawMessage:
-              /** @type {{ isRawMessage: boolean }} */ (error.getDetails()).isRawMessage,
-            operation,
-          });
+        // FIXME: We don't pass apiResponse to prevent the message for `missingtitle` to be
+        // overriden, which is hacky.
+        this.handleError({
+          error,
+          message: error.getType() === 'network' ? cd.sParse('cf-error-couldntedit') : message,
+          messageType,
+          isRawMessage: /** @type {{ isRawMessage: boolean }} */ (error.getDetails()).isRawMessage,
+          operation,
+        });
 
-          if (code === 'editconflict') {
-            this.submit(false);
-          }
-          if (code === 'tags-apply-blocked') {
-            this.submit(false, true);
-          }
+        if (code === 'editconflict') {
+          this.submit(false);
+        }
+        if (code === 'tags-apply-blocked') {
+          this.submit(false, true);
         }
       } else {
         this.handleError({ error, operation });
