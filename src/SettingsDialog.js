@@ -13,7 +13,7 @@ import { createButtonControl, createCheckboxControl, createMulticheckboxControl,
  * @augments ProcessDialog
  */
 class SettingsDialog extends ProcessDialog {
-  // @ts-ignore: https://phabricator.wikimedia.org/T358416
+  // @ts-expect-error: https://phabricator.wikimedia.org/T358416
   static name = 'settingsDialog';
   static title = cd.s('sd-title');
   static actions = [

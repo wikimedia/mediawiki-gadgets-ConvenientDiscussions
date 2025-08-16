@@ -80,11 +80,8 @@ declare global {
     params:      { [key: string]: Param };
     format:      string;
     paramOrder:  string[];
-    sets:        any[];
-    maps:        Maps;
-  }
-
-  interface Maps {
+    sets:        AnyByKey[];
+    maps:        AnyByKey[];
   }
 
   interface Param {
@@ -107,12 +104,12 @@ declare global {
 
   // Conditional type that adds properties based on the presence of strings in the array
   type RevisionConditionalProperties<T extends readonly string[]> =
-    & (HasProperty<T, 'ids'> extends true ? { ids: string; } : {})
-    & (HasProperty<T, 'timestamp'> extends true ? { timestamp: string; } : {})
-    & (HasProperty<T, 'flags'> extends true ? { minor: boolean; } : {})
-    & (HasProperty<T, 'comment'> extends true ? { comment: string; } : {})
-    & (HasProperty<T, 'user'> extends true ? { user: string; } : {})
-    & (HasProperty<T, 'parsedcomment'> extends true ? { parsedcomment: string; } : {});
+    & (HasProperty<T, 'ids'> extends true ? { ids: string } : object)
+    & (HasProperty<T, 'timestamp'> extends true ? { timestamp: string } : object)
+    & (HasProperty<T, 'flags'> extends true ? { minor: boolean } : object)
+    & (HasProperty<T, 'comment'> extends true ? { comment: string } : object)
+    & (HasProperty<T, 'user'> extends true ? { user: string } : object)
+    & (HasProperty<T, 'parsedcomment'> extends true ? { parsedcomment: string } : object);
 
   interface FromTo {
     from: string;
@@ -275,7 +272,7 @@ declare global {
     cdMarginBottom: number;
     cdMarginLeft: number;
     cdMarginRight: number;
-    cdCallback?: Function;
+    cdCallback?: (...args: any) => any;
     cdInput?: TextInputWidget;
   }
 
@@ -297,7 +294,7 @@ declare global {
     }
 
     namespace widgets {
-      function visibleCodePointLimit(textInputWidget: OO.ui.TextInputWidget, limit?: number, filterFunction?: Function): void;
+      function visibleCodePointLimit(textInputWidget: OO.ui.TextInputWidget, limit?: number, filterFunction?: (...args: any) => any): void;
     }
   }
 
