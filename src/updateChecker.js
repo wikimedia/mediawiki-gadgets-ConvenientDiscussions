@@ -43,7 +43,7 @@ import visits from './visits';
  */
 
 /**
- * @typedef {Omit<RemoveMethods<CommentWorker>, 'children' | 'previousComments'>} CommentWorkerBase
+ * @typedef {Omit<RemoveMethods<import('./worker/CommentWorker').default>, 'children' | 'previousComments'>} CommentWorkerBase
  */
 
 /**
@@ -557,41 +557,39 @@ class UpdateChecker extends EventEmitter {
       if (currentComment.id === submittedCommentId) return;
 
       const oldComment = currentComment.match;
-      if (oldComment) {
+      if (
+        oldComment &&
+        this.hasCommentChanged(oldComment, currentComment) &&
 
-        if (
-          this.hasCommentChanged(oldComment, currentComment) &&
+        // Seen the comment in this edition?
+        (
+          !currentComment.id ||
+          seen?.[currentComment.id]?.htmlToCompare !== currentComment.htmlToCompare
+        )
+      ) {
+        const comment = commentRegistry.getById(currentComment.id);
+        if (!comment) return;
 
-          // Seen the comment in this edition?
-          (
-            !currentComment.id ||
-            seen?.[currentComment.id]?.htmlToCompare !== currentComment.htmlToCompare
-          )
-        ) {
-          const comment = commentRegistry.getById(currentComment.id);
-          if (!comment) return;
+        /** @type {CommentsData} */
+        const commentsData = {
+          old: oldComment,
+          current: currentComment,
+          0: oldComment,
+          1: currentComment,
+        };
 
-          /** @type {CommentsData} */
-          const commentsData = {
-            old: oldComment,
-            current: currentComment,
-            0: oldComment,
-            1: currentComment,
-          };
+        markAsChangedData.push({
+          comment,
+          isNewRevisionRendered: true,
+          comparedRevisionId: previousVisitRevisionId,
+          commentsData,
+        });
 
-          markAsChangedData.push({
-            comment,
-            isNewRevisionRendered: true,
-            comparedRevisionId: previousVisitRevisionId,
-            commentsData,
-          });
-
-          if (comment.isOpeningSection) {
-            comment.section?.resubscribeIfRenamed(currentComment, oldComment);
-          }
-
-          changeList.push({ comment, commentsData });
+        if (comment.isOpeningSection) {
+          comment.section?.resubscribeIfRenamed(currentComment, oldComment);
         }
+
+        changeList.push({ comment, commentsData });
       }
     });
 

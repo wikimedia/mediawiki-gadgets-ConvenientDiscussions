@@ -761,12 +761,12 @@ export default class Page {
       source: new Map(),
     };
     const pathToRegexp = (
-      /** @type {string} */ s,
+      /** @type {string} */ path,
       /** @type {RegExp[]|undefined} */ replacements,
       /** @type {boolean} */ isArchivePath
     ) =>
       new RegExp(
-        new TextMasker(s)
+        new TextMasker(path)
           .mask(/\\[$\\]/g)
           .withText((pattern) => {
             pattern = mw.util.escapeRegExp(pattern);

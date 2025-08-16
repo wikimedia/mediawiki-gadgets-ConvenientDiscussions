@@ -653,7 +653,7 @@ class Comment extends CommentSkeleton {
         const wrapper = document.createElement('div');
         const origEl = el;
         this.replaceElement(el, wrapper);
-        wrapper.appendChild(origEl);
+        wrapper.append(origEl);
 
         this.addAttributes();
         origEl.classList.remove('cd-comment-part', 'cd-comment-part-first', 'cd-comment-part-last');
@@ -707,7 +707,7 @@ class Comment extends CommentSkeleton {
       authorLink.replaceWith(this.authorLink);
       this.authorLink.classList.add('cd-comment-author');
       this.authorLink.innerHTML = '';
-      this.authorLink.appendChild(bdiElement);
+      this.authorLink.append(bdiElement);
 
       cd.config.afterAuthorLinkParse?.(this.authorLink, beforeAuthorLinkParseReturn);
     } else {
@@ -770,7 +770,7 @@ class Comment extends CommentSkeleton {
         href: this.dtId && '#' + this.dtId,
       });
 
-      this.headerElement.appendChild(this.copyLinkButton.element);
+      this.headerElement.append(this.copyLinkButton.element);
       this.timestampElement = this.copyLinkButton.labelElement;
       if (this.date) {
         new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
@@ -821,9 +821,9 @@ class Comment extends CommentSkeleton {
     // We need a wrapper to ensure correct positioning in LTR-in-RTL situations and vice versa.
     const menuWrapper = document.createElement('div');
     menuWrapper.className = 'cd-comment-menu-wrapper';
-    menuWrapper.appendChild(this.menuElement);
+    menuWrapper.append(this.menuElement);
 
-    this.highlightables[this.highlightables.length - 1].appendChild(menuWrapper);
+    this.highlightables[this.highlightables.length - 1].append(menuWrapper);
   }
 
   /**
@@ -848,14 +848,14 @@ class Comment extends CommentSkeleton {
         action,
       });
 
-      this.menuElement.appendChild(this.replyButton.element);
+      this.menuElement.append(this.replyButton.element);
     } else {
       this.replyButton = new CommentButton({
         buttonElement: this.createReplyButton().$element[0],
         action,
         widgetConstructor: this.createReplyButton.bind(this),
       });
-      this.overlayMenu.appendChild(this.replyButton.element);
+      this.overlayMenu.append(this.replyButton.element);
     }
 
     if (
@@ -900,14 +900,14 @@ class Comment extends CommentSkeleton {
         action,
       });
 
-      this.menuElement.appendChild(this.editButton.element);
+      this.menuElement.append(this.editButton.element);
     } else {
       this.editButton = new CommentButton({
         buttonElement: this.createEditButton().$element[0],
         action,
         widgetConstructor: this.createEditButton.bind(this),
       });
-      this.overlayMenu.appendChild(this.editButton.element);
+      this.overlayMenu.append(this.editButton.element);
     }
   }
 
@@ -938,14 +938,14 @@ class Comment extends CommentSkeleton {
         action,
       });
 
-      this.menuElement.appendChild(this.thankButton.element);
+      this.menuElement.append(this.thankButton.element);
     } else {
       this.thankButton = new CommentButton({
         buttonElement: this.createThankButton().$element[0],
         action,
         widgetConstructor: this.createThankButton.bind(this),
       });
-      this.overlayMenu.appendChild(this.thankButton.element);
+      this.overlayMenu.append(this.thankButton.element);
     }
 
     if (isThanked) {
@@ -968,7 +968,7 @@ class Comment extends CommentSkeleton {
       widgetConstructor: this.createCopyLinkButton.bind(this),
       href: this.dtId && '#' + this.dtId,
     });
-    this.overlayMenu.appendChild(this.copyLinkButton.element);
+    this.overlayMenu.append(this.copyLinkButton.element);
   }
 
   /**
@@ -993,16 +993,16 @@ class Comment extends CommentSkeleton {
         action,
       });
 
-      this.goToParentButton.element.appendChild(Comment.prototypes.get('goToParentButtonSvg'));
+      this.goToParentButton.element.append(Comment.prototypes.get('goToParentButtonSvg'));
 
-      this.headerElement.appendChild(this.goToParentButton.element);
+      this.headerElement.append(this.goToParentButton.element);
     } else {
       this.goToParentButton = new CommentButton({
         buttonElement: this.createGoToParentButton().$element[0],
         action,
         widgetConstructor: this.createGoToParentButton.bind(this),
       });
-      this.overlayMenu.appendChild(this.goToParentButton.element);
+      this.overlayMenu.append(this.goToParentButton.element);
     }
   }
 
@@ -1094,7 +1094,7 @@ class Comment extends CommentSkeleton {
     if (!this.toggleChildThreadsButton) return;
 
     this.toggleChildThreadsButton.element.innerHTML = '';
-    this.toggleChildThreadsButton.element.appendChild(
+    this.toggleChildThreadsButton.element.append(
       this.areChildThreadsCollapsed()
         ? Comment.prototypes.get('expandChildThreadsButtonSvg')
         : Comment.prototypes.get('collapseChildThreadsButtonSvg')
@@ -1175,9 +1175,9 @@ class Comment extends CommentSkeleton {
   bindEvents(element) {
     if (this.isReformatted()) return;
 
-    element.onmouseenter = this.highlightHovered.bind(this);
-    element.onmouseleave = this.unhighlightHovered.bind(this);
-    element.ontouchstart = this.highlightHovered.bind(this);
+    element.addEventListener('mouseenter', this.highlightHovered.bind(this));
+    element.addEventListener('mouseleave', this.unhighlightHovered.bind(this));
+    element.addEventListener('touchstart', this.highlightHovered.bind(this));
   }
 
   /**
@@ -1686,9 +1686,7 @@ class Comment extends CommentSkeleton {
    */
   computeLayersOffset(options = {}) {
     const layersContainerOffset = this.getLayersContainerOffset();
-    if (!layersContainerOffset) {
-      return undefined;
-    }
+    if (!layersContainerOffset) return;
 
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const hasMoved = this.getOffset({
@@ -1788,11 +1786,11 @@ class Comment extends CommentSkeleton {
           style = window.getComputedStyle(node);
           node.cdStyle = style;
         }
-        const classList = Array.from(node.classList);
+        const classList = new Set(Array.from(node.classList));
         if (
           ['absolute', 'relative'].includes(style.position) ||
           (node !== bootController.$content[0] &&
-            (classList.includes('mw-content-ltr') || classList.includes('mw-content-rtl')))
+            (classList.has('mw-content-ltr') || classList.has('mw-content-rtl')))
         ) {
           offsetParent = node;
         }
@@ -1847,11 +1845,11 @@ class Comment extends CommentSkeleton {
       this.overlayMenu = /** @type {HTMLElement} */ (this.overlayInnerWrapper.lastChild);
 
       // Hide the overlay on right click. It can block clicking the author page link.
-      this.overlayInnerWrapper.oncontextmenu = this.hideMenu.bind(this);
+      this.overlayInnerWrapper.addEventListener('contextmenu', this.hideMenu.bind(this));
 
       // Hide the overlay on long click/tap.
-      this.overlayInnerWrapper.onmousedown = this.deferHideMenu.bind(this);
-      this.overlayInnerWrapper.onmouseup = this.dontHideMenu.bind(this);
+      this.overlayInnerWrapper.addEventListener('mousedown', this.deferHideMenu.bind(this));
+      this.overlayInnerWrapper.addEventListener('mouseup', this.dontHideMenu.bind(this));
 
       this.addGoToParentButton();
       this.addCopyLinkButton();
@@ -1958,11 +1956,9 @@ class Comment extends CommentSkeleton {
     this.updateClassesForType('own', this.isOwn);
     this.updateClassesForType('deleted', this.isDeleted);
 
-    if (wereJustCreated) {
-      if (this.isLineGapped) {
+    if (wereJustCreated && this.isLineGapped) {
         this.line.classList.add('cd-comment-overlay-line-gapCloser');
       }
-    }
   }
 
   /**
@@ -1996,8 +1992,8 @@ class Comment extends CommentSkeleton {
     if (!this.underlay) return;
 
     this.updateLayersOffset();
-    this.getLayersContainer().appendChild(this.underlay);
-    this.getLayersContainer().appendChild(/** @type {HTMLElement} */ (this.overlay));
+    this.getLayersContainer().append(this.underlay);
+    this.getLayersContainer().append(/** @type {HTMLElement} */ (this.overlay));
   }
 
   /**
@@ -2133,8 +2129,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   animateToColors(markerColor, backgroundColor, callback) {
-    const generateProperties = (/** @type {string} */ backgroundColor) => {
-      const properties = /** @type {CSSStyleDeclaration} */ ({ backgroundColor });
+    const generateProperties = (/** @type {string} */ color) => {
+      const properties = /** @type {CSSStyleDeclaration} */ ({ backgroundColor: color });
 
       // jquery.color module can't animate to the transparent color.
       if (properties.backgroundColor === 'rgba(0, 0, 0, 0)') {
@@ -2704,9 +2700,8 @@ class Comment extends CommentSkeleton {
       let currentAutonumber = match ? Number(match[0]) : 1;
       newComment.elementHtmls.forEach((html, i) => {
         html = html.replace(
-          /\x01(\d+)_\w+\x02/g,
-          // @ts-ignore
-          (s, num) => newComment.hiddenElementsData[num - 1].html
+          /\u0001(\d+)_\w+\u0002/g,
+          (_, num) => newComment.hiddenElementsData[num - 1].html
         );
         if (
           getHeadingLevel({
@@ -2727,7 +2722,6 @@ class Comment extends CommentSkeleton {
           }
         }
       });
-      // @ts-ignore
       this.$elements.find('.autonumber').each((_, el) => {
         $(el).text(`[${currentAutonumber}]`);
         currentAutonumber++;
@@ -3015,8 +3009,7 @@ class Comment extends CommentSkeleton {
 
     const commentFullText = this.getText(false) + ' ' + this.signatureText;
     const matches = [];
-    for (let i = 0; i < compareBodies.length; i++) {
-      const diffBody = compareBodies[i];
+    for (const [i, diffBody] of compareBodies.entries()) {
 
       // Currently even empty diffs have newlines and a comment.
       if (!diffBody) continue;
@@ -3158,6 +3151,7 @@ class Comment extends CommentSkeleton {
       editRevisionId = edit.revision.revid;
     } catch (error) {
       this.thankFail(/** @type {Error|CdError} */ (error));
+
       return;
     }
 
@@ -3191,6 +3185,7 @@ class Comment extends CommentSkeleton {
           .catch(handleApiReject);
       } catch (error) {
         this.thankFail(/** @type {Error|CdError} */ (error));
+
         return;
       }
 
@@ -3377,14 +3372,12 @@ class Comment extends CommentSkeleton {
         source = this.locateInCode();
       }
     } catch (error) {
-      if (error instanceof CdError) {
-        throw new CdError({
-          message: cd.sParse('cf-error-getpagecode'),
-          ...error.data,
-        });
-      } else {
-        throw error;
-      }
+      throw error instanceof CdError
+        ? new CdError({
+            message: cd.sParse('cf-error-getpagecode'),
+            ...error.data,
+          })
+        : error;
     }
     commentForm?.setSectionSubmitted(isSectionSubmitted);
 
@@ -4238,17 +4231,15 @@ class Comment extends CommentSkeleton {
    * @returns {Comment[]}
    */
   getSiblingsAndSelf() {
-    let comments = /** @type {Comment[] | undefined} */ (this.getParent()?.getChildren());
-    if (!comments) {
-      if (this.section) {
-        comments = this.section.commentsInFirstChunk.filter((comment) => !comment.getParent());
-      } else {
-        // Parentless comments in the lead section
-        comments = commentRegistry.query((comment) => !comment.section && !comment.getParent());
-      }
-    }
-
-    return comments;
+    return (
+      /** @type {Comment[] | undefined} */ (this.getParent()?.getChildren()) ||
+      (
+        this.section
+          ? this.section.commentsInFirstChunk.filter((comment) => !comment.getParent())
+          : // Parentless comments in the lead section
+            commentRegistry.query((comment) => !comment.section && !comment.getParent())
+      )
+    );
   }
 
   /**
@@ -4451,8 +4442,8 @@ class Comment extends CommentSkeleton {
 
   static {
     // Doesn't account for cases when the section headline ends with -<number>.
-    const newDtTimestampPattern = '(\\d{4})(\\d{2})(\\d{2})(\\d{2})(\\d{2})\\d{2}';
-    const oldDtTimestampPattern = '(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z)';
+    const newDtTimestampPattern = String.raw`(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})\d{2}`;
+    const oldDtTimestampPattern = String.raw`(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z)`;
 
     this.dtIdRegexp = new RegExp(
       `^c-` +
@@ -4508,7 +4499,7 @@ class Comment extends CommentSkeleton {
       // We need a wrapper to ensure correct positioning in LTR-in-RTL situations and vice versa.
       const headerWrapper = document.createElement('div');
       headerWrapper.className = 'cd-comment-header-wrapper';
-      headerWrapper.appendChild(headerElement);
+      headerWrapper.append(headerElement);
 
       this.prototypes.add('headerWrapperElement', headerWrapper);
 
@@ -4535,25 +4526,25 @@ class Comment extends CommentSkeleton {
 
     const overlayLine = document.createElement('div');
     overlayLine.className = 'cd-comment-overlay-line';
-    commentOverlay.appendChild(overlayLine);
+    commentOverlay.append(overlayLine);
 
     const overlayMarker = document.createElement('div');
     overlayMarker.className = 'cd-comment-overlay-marker';
-    commentOverlay.appendChild(overlayMarker);
+    commentOverlay.append(overlayMarker);
 
     if (!settings.get('reformatComments')) {
       const overlayInnerWrapper = document.createElement('div');
       overlayInnerWrapper.className = 'cd-comment-overlay-innerWrapper';
-      commentOverlay.appendChild(overlayInnerWrapper);
+      commentOverlay.append(overlayInnerWrapper);
 
       const overlayGradient = document.createElement('div');
-      overlayGradient.textContent = '\xa0';
+      overlayGradient.textContent = '\u00A0';
       overlayGradient.className = 'cd-comment-overlay-gradient';
-      overlayInnerWrapper.appendChild(overlayGradient);
+      overlayInnerWrapper.append(overlayGradient);
 
       const overlayContent = document.createElement('div');
       overlayContent.className = 'cd-comment-overlay-content';
-      overlayInnerWrapper.appendChild(overlayContent);
+      overlayInnerWrapper.append(overlayContent);
     }
 
     this.prototypes.add('underlay', commentUnderlay);
@@ -4712,19 +4703,17 @@ class Comment extends CommentSkeleton {
 
     const parseTimestamp = (/** @type {number} */ startIndex) => {
       let date;
-      if (match[startIndex + 1]) {
-        date = new Date(
-          Date.UTC(
-            Number(match[startIndex + 1]),
-            Number(match[startIndex + 2]) - 1,
-            Number(match[startIndex + 3]),
-            Number(match[startIndex + 4]),
-            Number(match[startIndex + 5])
+      date = match[startIndex + 1]
+        ? new Date(
+            Date.UTC(
+              Number(match[startIndex + 1]),
+              Number(match[startIndex + 2]) - 1,
+              Number(match[startIndex + 3]),
+              Number(match[startIndex + 4]),
+              Number(match[startIndex + 5])
+            )
           )
-        );
-      } else {
-        date = new Date(match[startIndex + 6]);
-      }
+        : new Date(match[startIndex + 6]);
 
       return { author: underlinesToSpaces(match[startIndex]), date };
     };

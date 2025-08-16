@@ -42,7 +42,7 @@ class CommentButton extends Button {
 
     // Don't hide the menu on right button click.
     if (config.href) {
-      this.buttonElement.oncontextmenu = CommentButton.stopPropagation;
+      this.buttonElement.addEventListener('contextmenu', CommentButton.stopPropagation);
     }
 
     this.element.classList.add('cd-comment-button');
@@ -88,7 +88,7 @@ class CommentButton extends Button {
       this.buttonWidget.setHref(originalHref);
 
       // Don't hide the menu on right button click.
-      this.buttonElement.oncontextmenu = CommentButton.stopPropagation;
+      this.buttonElement.addEventListener('contextmenu', CommentButton.stopPropagation);
     }
 
     return this.buttonWidget;
@@ -103,10 +103,10 @@ class CommentButton extends Button {
    */
   setDisabled(disabled) {
     disabled = Boolean(disabled);
-    if (!this.widgetConstructor) {
-      super.setDisabled(disabled);
-    } else {
+    if (this.widgetConstructor) {
       this.getButtonWidget().setDisabled(disabled);
+    } else {
+      super.setDisabled(disabled);
     }
 
     return this;
@@ -142,10 +142,10 @@ class CommentButton extends Button {
    * @override
    */
   setLabel(label) {
-    if (!this.widgetConstructor) {
-      super.setLabel(label);
-    } else {
+    if (this.widgetConstructor) {
       this.getButtonWidget().setLabel(label);
+    } else {
+      super.setLabel(label);
     }
 
     return this;
@@ -159,10 +159,10 @@ class CommentButton extends Button {
    * @override
    */
   setTooltip(tooltip) {
-    if (!this.widgetConstructor) {
-      super.setTooltip(tooltip);
-    } else {
+    if (this.widgetConstructor) {
       this.getButtonWidget().setTitle(tooltip);
+    } else {
+      super.setTooltip(tooltip);
     }
 
     return this;

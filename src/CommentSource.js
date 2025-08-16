@@ -61,7 +61,7 @@ class CommentSource {
     this.code = (new TextMasker(this.code))
       .maskSensitiveCode()
       .withText((text, textMasker) => {
-        this.headingMatch = text.match(/(^[^]*(?:^|\n))((=+)(.*)\3[ \t\x01\x02]*\n)/);
+        this.headingMatch = text.match(/(^[^]*(?:^|\n))((=+)(.*)\3[ \t\u0001\u0002]*\n)/);
         this.headingMatch?.forEach((group, i) => {
           /** @type {RegExpMatchArray} */ (this.headingMatch)[i] = textMasker.unmaskText(group);
         });
@@ -299,7 +299,7 @@ class CommentSource {
     // Exclude <small></small> and template wrappers from the strings
     const smallWrappers = [{
       start: /^<small>/,
-      end: /<\/small>[ \xa0\t]*$/,
+      end: /<\/small>[ \u00A0\t]*$/,
     }];
     if (cd.config.smallDivTemplates.length) {
       smallWrappers.push({
@@ -307,7 +307,7 @@ class CommentSource {
           `^(?:\\{\\{(${cd.config.smallDivTemplates.join('|')})\\|(?: *1 *= *|(?![^{]*=)))`,
           'i'
         ),
-        end: /\}\}[ \xa0\t]*$/,
+        end: /\}\}[ \u00A0\t]*$/,
       });
     }
 
@@ -417,15 +417,15 @@ class CommentSource {
     }
 
     isPreviousCommentsDataEqual = Boolean(isPreviousCommentsDataEqual);
-    if (commentData.sectionHeadline !== undefined) {
-      doesHeadlineMatch = this.headlineCode !== undefined ?
-        (
-          normalizeCode(removeWikiMarkup(this.headlineCode)) ===
-          normalizeCode(commentData.sectionHeadline)
-        ) :
-        -0.4999;
-    } else {
+    if (commentData.sectionHeadline === undefined) {
       doesHeadlineMatch = !this.headingMatch;
+    } else {
+      doesHeadlineMatch = this.headlineCode === undefined
+        ? -0.4999
+        : (
+            normalizeCode(removeWikiMarkup(this.headlineCode)) ===
+            normalizeCode(commentData.sectionHeadline)
+          );
     }
 
     const wordOverlap = calculateWordOverlap(commentData.commentText, removeWikiMarkup(this.code));
@@ -476,7 +476,7 @@ class CommentSource {
           // sensitive code except for tables. \x03 and \x04 mean the beginning and ending of a
           // table. Note: This should be kept coordinated with the reverse transformation code in
           // CommentForm#inputToCode. Some more comments are there.
-          const entireLineRegexp = /^(?:\x01\d+_(block|template)\x02) *$/;
+          const entireLineRegexp = /^(?:\u0001\d+_(block|template)\u0002) *$/;
 
           const fileRegexp = new RegExp(`^\\[\\[${cd.g.filePrefixPattern}.+\\]\\]$`, 'i');
           const currentLineEndingRegexp = new RegExp(
@@ -489,7 +489,7 @@ class CommentSource {
           );
           const entireLineFromStartRegexp = /^(=+).*\1[ \t]*$|^----/;
           code = code.replace(
-            /^((?![:*#; ]).+)\n(?![\n:*#; \x03])(?=(.*))/gm,
+            /^((?![:*#; ]).+)\n(?![\n:*#; \u0003])(?=(.*))/gm,
             (s, currentLine, nextLine) => {
               return (
                 currentLine +
@@ -514,20 +514,20 @@ class CommentSource {
           );
         }
 
-        code = brsToNewlines(code, '\x01\n')
+        code = brsToNewlines(code, '\u0001\n')
           // Templates occupying a whole line with <br> at the end get a special treatment.
-          .replace(/^((?:\x01\d+_template.*\x02) *)\x01$/gm, (s, m1) => m1 + '<br>')
+          .replace(/^((?:\u0001\d+_template.*\u0002) *)\u0001$/gm, (s, m1) => m1 + '<br>')
 
           // Two templates in a row is likely a paragraph template + other template. This is a
           // workaround; may need to look specifically for paragraph templates and mark them as
           // such.
           .replace(
-            /((?:\x01\d+_template.*\x02){2} *)\x01/g,
+            /((?:\u0001\d+_template.*\u0002){2} *)\u0001/g,
             (s, m1) => cd.config.paragraphTemplates.length ? m1 + '<br>' : s
           )
 
           // Replace the temporary marker.
-          .replace(/\x01\n/g, '\n')
+          .replace(/\u0001\n/g, '\n')
 
           // Remove indentation characters
           .replace(/\n([:*#]*)([ \t]*)/g, (s, chars, spacing) => {
@@ -583,7 +583,7 @@ class CommentSource {
   matchProperPlaceRegexps(adjustedChunkCodeAfter) {
     const anySignaturePattern = (
       '^(' +
-      (this.comment.isTableComment ? '[^]*?(?:(?:\\s*\\n\\|\\})+|</table>).*\\n' : '') +
+      (this.comment.isTableComment ? String.raw`[^]*?(?:(?:\s*\n\|\})+|</table>).*\n` : '') +
       '[^]*?(?:' +
       mw.util.escapeRegExp(this.signatureCode) +
       '|' +
@@ -594,7 +594,7 @@ class CommentSource {
       // \x01 is from hiding closed discussions and HTML comments. TODO: Line can start with a
       // HTML comment in a <pre> tag, that doesn't mean we can put a comment after it. We perhaps
       // need to change wikitext.maskDistractingCode.
-      '|(?:^|\\n)\\x01.+)\\n)\\n*'
+      String.raw`|(?:^|\n)\x01.+)\n)\n*`
     );
     const maxIndentationLength = this.replyIndentation.length - 1;
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -603,7 +603,7 @@ class CommentSource {
 
       // \n is here to prevent putting the reply on a casual empty line. \x01 is from hiding closed
       // discussions.
-      '(?![:*#\\x01\\n])' +
+      String.raw`(?![:*#\x01\n])` +
 
       /*
         This excludes cases where:
@@ -678,7 +678,7 @@ class CommentSource {
       currentIndex,
       contextCode
     );
-    if (/^ +\x02/.test(adjustedChunkCodeAfter)) {
+    if (/^ +\u0002/.test(adjustedChunkCodeAfter)) {
       throw new CdError({
         type: 'parse',
         code: 'closed',
@@ -930,7 +930,7 @@ class CommentSource {
         /** @type {number} */ indentationLength,
         /** @type {number} */ totalLength
       ) =>
-        '\x01'.repeat(indentationLength) + ' '.repeat(totalLength - indentationLength - 1) + '\x02';
+        '\u0001'.repeat(indentationLength) + ' '.repeat(totalLength - indentationLength - 1) + '\u0002';
 
       if (closedDiscussionPairRegexp) {
         adjustedCode = adjustedCode.replace(
@@ -951,7 +951,7 @@ class CommentSource {
             .maskTemplatesRecursively(undefined, true)
             .withText((code) =>
               code.replace(
-                /\x01\d+_template_(\d+)\x02/, // No global flag - we only need the first occurrence
+                /\u0001\d+_template_(\d+)\u0002/, // No global flag - we only need the first occurrence
                 (m, n) =>
                   makeIndentationMarkers(
                     /** @type {RegExpMatchArray} */ (match)[1].length,
@@ -971,7 +971,7 @@ class CommentSource {
       /** @type {number} */ (
         /** @type {RegExpMatchArray} */ (
           // Match the code after
-          adjustedCode.slice(currentIndex).match(/\n+(=+).*\1[ \t\x01\x02]*\n|$/)
+          adjustedCode.slice(currentIndex).match(/\n+(=+).*\1[ \t\u0001\u0002]*\n|$/)
         ).index
       ) +
 

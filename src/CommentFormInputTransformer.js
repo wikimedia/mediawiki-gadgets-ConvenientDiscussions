@@ -64,7 +64,9 @@ class CommentFormInputTransformer extends TextMasker {
    * @returns {this is CommentFormInputTransformer<M>}
    */
   isMode(mode) {
-    return this.commentForm.getMode() === mode;
+    return (
+      /** @type {import('./CommentForm').CommentFormMode} */ (this.commentForm.getMode()) === mode
+    );
   }
 
   /**
@@ -149,11 +151,13 @@ class CommentFormInputTransformer extends TextMasker {
   findWrappers() {
     // Find tags around potential markup.
     if (this.isIndented()) {
-      const tagMatches = /** @type {string[]} */ (
-        this.text.match(generateTagsRegexp(['[a-z]+'])) || []
+      const matches = /** @type {string[]} */ ([]).concat(
+        // Tag matches
+        this.text.match(generateTagsRegexp(['[a-z]+'])) || [],
+
+        // Quote matches
+        this.text.match(cd.g.quoteRegexp) || []
       );
-      const quoteMatches = this.text.match(cd.g.quoteRegexp) || [];
-      const matches = tagMatches.concat(quoteMatches);
       this.areThereTagsAroundMultipleLines = matches.some((match) => match.includes('\n'));
       this.areThereTagsAroundListMarkup = matches.some((match) => /\n[:*#;]/.test(match));
     }
@@ -277,29 +281,27 @@ class CommentFormInputTransformer extends TextMasker {
 
     // Add newlines before and after gallery (yes, even if the comment starts with it).
     code = code
-      .replace(/(^|[^\n])(\x01\d+_gallery\x02)/g, (s, before, m) => before + '\n' + m)
-      .replace(/\x01\d+_gallery\x02(?=(?:$|[^\n]))/g, (s) => s + '\n');
+      .replace(/(^|[^\n])(\u0001\d+_gallery\u0002)/g, (s, before, m) => before + '\n' + m)
+      .replace(/\u0001\d+_gallery\u0002(?=(?:$|[^\n]))/g, (s) => s + '\n');
 
     // Table markup is OK only with colons as indentation characters.
-    if (this.restLinesIndentation.includes('#') && code.includes('\x03')) {
+    if (this.restLinesIndentation.includes('#') && code.includes('\u0003')) {
       throw new CdError({
         type: 'parse',
         code: 'numberedList-table',
       });
     }
 
-    if (this.restLinesIndentation === '#') {
-      if (CommentFormInputTransformer.galleryRegexp.test(code)) {
-        throw new CdError({
-          type: 'parse',
-          code: 'numberedList',
-        });
-      }
+    if (this.restLinesIndentation === '#' && CommentFormInputTransformer.galleryRegexp.test(code)) {
+      throw new CdError({
+        type: 'parse',
+        code: 'numberedList',
+      });
     }
 
     code = code.replace(
       // Lines following lines with the list, table, and gallery markup
-      /^((?:[:*#;\x03].+|\x01\d+_gallery\x02))(\n+)(?![:#])/mg,
+      /^((?:[:*#;\u0003].+|\u0001\d+_gallery\u0002))(\n+)(?![:#])/mg,
 
       // Add indentation characters
       (s, previousLine, newlines) => (
@@ -341,7 +343,7 @@ class CommentFormInputTransformer extends TextMasker {
    * @returns {string} code
    */
   processNewlines(code, isInTemplate = false) {
-    const entireLineRegexp = new RegExp(/^\x01\d+_(block|template)\x02 *$/);
+    const entireLineRegexp = new RegExp(/^\u0001\d+_(block|template)\u0002 *$/);
     const entireLineFromStartRegexp = /^(=+).*\1[ \t]*$|^----/;
     const fileRegexp = new RegExp('^' + CommentFormInputTransformer.filePatternEnd, 'i');
 
@@ -349,7 +351,7 @@ class CommentFormInputTransformer extends TextMasker {
     let nextLineInTemplates = '';
     if (isInTemplate) {
       currentLineInTemplates = '|=';
-      nextLineInTemplates = '|\\||}}';
+      nextLineInTemplates = String.raw`|\||}}`;
     }
     const paragraphTemplatePattern = mw.util.escapeRegExp(`{{${cd.config.paragraphTemplates[0]}}}`);
     const currentLineEndingRegexp = new RegExp(
@@ -361,9 +363,9 @@ class CommentFormInputTransformer extends TextMasker {
       'i'
     );
 
-    const newlinesRegexp = this.isIndented() ?
-      /^(.+)\n(?![:#])(?=(.*))/gm :
-      /^((?![:*#; ]).+)\n(?![\n:*#; \x03])(?=(.*))/gm;
+    const newlinesRegexp = this.isIndented()
+      ? /^(.+)\n(?![:#])(?=(.*))/gm
+      : /^((?![:*#; ]).+)\n(?![\n:*#; \u0003])(?=(.*))/gm;
     code = code.replace(newlinesRegexp, (s, currentLine, nextLine) => {
       // Remove if it is confirmed that this isn't happening (November 2024)
       if (this.isIndented() && !cd.config.paragraphTemplates.length) {
@@ -496,7 +498,7 @@ class CommentFormInputTransformer extends TextMasker {
 
     // Remove starting spaces if the line starts with the signature.
     if (!this.text || this.text.endsWith('\n') || this.text.endsWith(' ')) {
-      this.signature = this.signature.trimLeft();
+      this.signature = this.signature.trimStart();
     }
 
     // Process the small font wrappers, add the signature.
@@ -568,7 +570,7 @@ class CommentFormInputTransformer extends TextMasker {
   addIntentationChars() {
     // If the comment starts with a list or table, replace all asterisks in the indentation
     // characters with colons to have the comment HTML generated correctly.
-    if (this.isIndented() && this.action !== 'preview' && /^[*#;\x03]/.test(this.text)) {
+    if (this.isIndented() && this.action !== 'preview' && /^[*#;\u0003]/.test(this.text)) {
       this.indentation = this.restLinesIndentation;
     }
 
@@ -585,7 +587,7 @@ class CommentFormInputTransformer extends TextMasker {
     return this;
   }
 
-  static galleryRegexp = /^\x01\d+_gallery\x02$/m;
+  static galleryRegexp = /^\u0001\d+_gallery\u0002$/m;
 
   static listTags = /** @type {const} */ ({
     ':': 'dl',
