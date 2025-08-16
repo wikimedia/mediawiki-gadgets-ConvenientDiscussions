@@ -225,7 +225,7 @@ function parse() {
  * Restore function from its code.
  *
  * @param {?string} code
- * @returns {(() => any)|null}
+ * @returns {(() => any) | null}
  * @private
  */
 function restoreFunc(code) {

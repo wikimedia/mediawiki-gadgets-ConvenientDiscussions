@@ -68,10 +68,10 @@ function setStrings() {
   ];
 
   if (!IS_SINGLE) {
-    // @ts-ignore
+    // @ts-expect-error: Use the file for its side effect
     require('../dist/convenientDiscussions-i18n/en.js');
   }
-  const strings = Object.keys(cd.i18n.en).reduce((/** @type {StringsByKey} */ acc, name) => {
+  const strings = Object.keys(cd.i18n.en).reduce((acc, name) => {
     acc[name] = cd.i18n[
       contentStrings.some((contentStringName) => (
         name === contentStringName ||
@@ -82,7 +82,7 @@ function setStrings() {
     ]?.[name] || cd.i18n.en[name];
 
     return acc;
-  }, {});
+  }, /** @type {StringsByKey} */ ({}));
 
   Object.keys(strings).forEach((name) => {
     mw.messages.set(`convenient-discussions-${name}`, strings[name]);

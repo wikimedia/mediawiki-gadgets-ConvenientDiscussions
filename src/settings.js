@@ -465,8 +465,8 @@ class Settings {
               value.map((button) => (Array.isArray(button) ? button.join(';') : button)),
             uiToData: (/** @type {string[]} */ value) =>
               value
-                .map((value) => {
-                  const textMasker = new TextMasker(value).mask(/\\[+;\\]/g);
+                .map((v) => {
+                  const textMasker = new TextMasker(v).mask(/\\[+;\\]/g);
                   let [, snippet, label] = textMasker.getText().match(/^(.*?)(?:;(.+))?$/) || [];
                   if (!snippet?.replace(/^ +$/, '')) return;
 

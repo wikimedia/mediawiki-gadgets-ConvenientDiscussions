@@ -1,6 +1,6 @@
 // import babelParser from '@babel/eslint-parser';
 import eslint from '@eslint/js';
-// import stylistic from '@stylistic/eslint-plugin';
+import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
 import noOneTimeVarsPlugin from 'eslint-plugin-no-one-time-vars';
@@ -13,15 +13,18 @@ const config = tseslint.config(
     ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js'],
   },
 
-  eslintPluginUnicorn.configs['recommended'],
-
   // stylistic.configs.customize({
   //   semi: true,
   //   arrowParens: true,
   // }),
 
+  tseslint.configs.recommended,
+  // ...tseslint.configs.strictTypeChecked.rules,
+  // ...tseslint.configs.stylisticTypeChecked.rules,
+
   // Main configuration
   {
+    ignores: ['**/*.d.ts'],
     languageOptions: {
       sourceType: 'module',
       ecmaVersion: 2022,
@@ -51,6 +54,9 @@ const config = tseslint.config(
       'jsdoc': jsdocPlugin,
       'import': importPlugin,
       'no-one-time-vars': noOneTimeVarsPlugin,
+      'unicorn': eslintPluginUnicorn,
+      '@stylistic': stylistic,
+      //'@typescript-eslint': tseslint.plugin,
     },
     linterOptions: {
       reportUnusedDisableDirectives: false,
@@ -58,7 +64,7 @@ const config = tseslint.config(
     },
     rules: {
       ...eslint.configs.recommended.rules,
-      ...tseslint.configs.recommended.rules,
+      ...eslintPluginUnicorn.configs.recommended.rules,
 
       // Handled by TypeScript
       'no-undef': 'off',
@@ -68,6 +74,66 @@ const config = tseslint.config(
       'no-constant-condition': ['error', { checkLoops: false }],
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-unsafe-optional-chaining': 'off', // Enabled in TypeScript with strictNullChecks
+
+      // Impractical strict rules
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/restrict-template-expressions': ['error', {
+        allowNumber: true,
+      }],
+
+      // We use inline require() because some global identifiers like OO.ui become available to us
+      // only after they are loaded with mw.loader.
+      '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      'unicorn/prefer-module': 'off',
+
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-misused-promises': ['error', {
+        checksConditionals: false,
+        checksVoidReturn: false,
+      }],
+
+      // I (jwbth) prefer types, but there are some uses for interfaces, e.g. to match @types/ooui
+      '@typescript-eslint/consistent-type-definitions': 'off',
+
+      // Used when extending OOUI classes, e.g. to match the style of @types/ooui
+      '@typescript-eslint/no-namespace': 'off',
+      '@typescript-eslint/no-empty-interface': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-unsafe-declaration-merging': 'off',
+
+      // Many legit uses
+      '@typescript-eslint/no-floating-promises': 'off',
+
+      // @typescript-eslint doesn't seem to do type narrowing well anyway
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+
+      // Temporarily disable until we make sure this doesn't increase file size or debugging or
+      // users (e.g. somebody wants to use an old browser). This is also useful for ternary
+      // expressions (e.g. `variable === undefined ? ... : variable`) but they can't be enabled
+      // individually.
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+
+      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+      '@typescript-eslint/parameter-properties': 'error',
+      '@typescript-eslint/no-shadow': 'error',
+      '@typescript-eslint/class-methods-use-this': ['error', {
+        enforceForClassFields: true,
+        ignoreOverrideMethods: true,
+      }],
+      // '@typescript-eslint/no-unnecessary-condition': ['warn', {
+      //   allowConstantLoopConditions: true,
+      // }],
+      '@typescript-eslint/prefer-promise-reject-errors': 'off',
+
+      // We use it only when necessary.
+      '@typescript-eslint/no-this-alias': 'off',
 
       // Wait until enough browsers support it
       'unicorn/prefer-string-replace-all': 'off',
@@ -195,7 +261,7 @@ const config = tseslint.config(
   // Environment configs
   {
     files: ['**/*.js'],
-    ...tseslint.configs.disableTypeChecked,
+    extends: [tseslint.configs.disableTypeChecked],
     languageOptions: {
       globals: {
         // Browser globals
@@ -216,12 +282,15 @@ const config = tseslint.config(
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/array-type': ['error', { default: 'array' }],
+
       // Disable some rules that are not applicable to declaration files
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'jsdoc/require-jsdoc': 'off',
       'import/order': 'off',
+
+      '@typescript-eslint/array-type': ['error', { default: 'array' }],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 
