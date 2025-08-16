@@ -53,7 +53,6 @@ const config = tseslint.config(
       noInlineConfig: false,
     },
     rules: {
-      // Start with recommended rules
       ...eslint.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
 

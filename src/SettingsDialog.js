@@ -69,7 +69,8 @@ class SettingsDialog extends ProcessDialog {
   /** @type {OO.ui.BookletLayout} */
   bookletLayout;
 
-  controls = /** @type {ControlTypesByName<import('./settings')['default']['scheme']['controlTypes'] >} */ ({});
+  controls =
+    /** @type {ControlTypesByName<import('./settings').default['scheme']['controlTypes']>} */ ({});
 
   /** @type {Partial<import('./settings').SettingsValues>} */
   loadedSettings;
@@ -240,7 +241,9 @@ class SettingsDialog extends ProcessDialog {
       return new OO.ui.Process(() => {
         if (confirm(cd.s('sd-reset-confirm'))) {
           this.renderControls(settings.scheme.default);
-          this.bookletLayout.setPage(/** @type {string} */(this.bookletLayout.getCurrentPageName()));
+          this.bookletLayout.setPage(
+            /** @type {string} */ (this.bookletLayout.getCurrentPageName())
+          );
         }
       });
     }
@@ -250,8 +253,8 @@ class SettingsDialog extends ProcessDialog {
   /**
    * Create widget fields with states of controls set according to setting values.
    *
-   * @param {object} settingValues Values of settings according to which to set the states of
-   *   controls.
+   * @param {Partial<import('./settings').SettingsValues>} settingValues Values of settings
+   *   according to which to set the states of controls.
    * @returns {object}
    * @protected
    */
@@ -320,20 +323,25 @@ class SettingsDialog extends ProcessDialog {
       });
 
       // eslint-disable-next-line jsdoc/require-jsdoc
-      return new (es6ClassToOoJsClass(class extends OO.ui.PageLayout {
-        // eslint-disable-next-line jsdoc/require-jsdoc
-        constructor() {
-          super(pageData.name);
-          this.$element.append($fields);
-        }
-
+      return new (es6ClassToOoJsClass(
         /**
-         * @override
+         *
          */
-        setupOutlineItem() {
-          /** @type {OO.ui.OutlineOptionWidget} */ (this.outlineItem).setLabel(pageData.label);
+        class extends OO.ui.PageLayout {
+          // eslint-disable-next-line jsdoc/require-jsdoc
+          constructor() {
+            super(pageData.name);
+            this.$element.append($fields);
+          }
+
+          /**
+           * @override
+           */
+          setupOutlineItem() {
+            /** @type {OO.ui.OutlineOptionWidget} */ (this.outlineItem).setLabel(pageData.label);
+          }
         }
-      }))();
+      ))();
     });
 
     this.controls.removeData.input.connect(this, { click: this.removeData });
@@ -347,8 +355,8 @@ class SettingsDialog extends ProcessDialog {
   /**
    * Render control widgets.
    *
-   * @param {object} settingValues Values of settings according to which to set the states of
-   *   controls.
+   * @param {Partial<import('./settings').SettingsValues>} settingValues Values of settings
+   *   according to which to set the states of controls.
    * @protected
    */
   renderControls(settingValues) {
@@ -383,14 +391,15 @@ class SettingsDialog extends ProcessDialog {
    * @protected
    */
   collectSettings() {
-    this.collectedSettings = Object.entries(this.controls)
-      .reduce((settingsValues, [name, control]) => {
+    this.collectedSettings = Object.entries(this.controls).reduce(
+      (settingsValues, [name, control]) => {
         switch (control.type) {
           case 'checkbox':
             settingsValues[name] = control.input.isSelected();
             break;
           case 'radio':
-            settingsValues[name] = control.input.findSelectedItem()?.getData() || settings.scheme.default[name];
+            settingsValues[name] =
+              control.input.findSelectedItem()?.getData() || settings.scheme.default[name];
             break;
           case 'text':
             settingsValues[name] = control.input.getValue();
@@ -410,16 +419,17 @@ class SettingsDialog extends ProcessDialog {
         }
 
         return settingsValues;
-      }, {});
+      },
+      {}
+    );
 
     return {
       ...settings.scheme.default,
       ...this.collectedSettings,
       ...this.getStateSettings(),
-      'insertButtons-altered': (
+      'insertButtons-altered':
         JSON.stringify(this.collectedSettings.insertButtons) !==
-        JSON.stringify(settings.scheme.default.insertButtons)
-      ),
+        JSON.stringify(settings.scheme.default.insertButtons),
     };
   }
 
@@ -439,7 +449,7 @@ class SettingsDialog extends ProcessDialog {
     );
     this.controls.notifyCollapsedThreads.input.setDisabled(
       this.controls.desktopNotifications.input.findSelectedItem()?.getData() === 'none' &&
-      this.controls.notifications.input.findSelectedItem()?.getData() === 'none'
+        this.controls.notifications.input.findSelectedItem()?.getData() === 'none'
     );
     this.controls.outdentLevel.input.setDisabled(!this.controls.outdent.input.isSelected());
     this.controls.showContribsLink.input.setDisabled(
@@ -471,7 +481,7 @@ class SettingsDialog extends ProcessDialog {
           {},
           settings.scheme.default,
           settings.scheme.resetsTo,
-          this.getStateSettings(),
+          this.getStateSettings()
         )
       ),
     });
@@ -517,18 +527,18 @@ class SettingsDialog extends ProcessDialog {
         return;
       }
 
-      (new StorageItem('commentForms')).removeItem();
-      (new StorageItem('thanks')).removeItem();
-      (new StorageItem('seenRenderedChanges')).removeItem();
-      (new StorageItem('collapsedThreads')).removeItem();
-      (new StorageItem('mutedUsers')).removeItem();
+      new StorageItem('commentForms').removeItem();
+      new StorageItem('thanks').removeItem();
+      new StorageItem('seenRenderedChanges').removeItem();
+      new StorageItem('collapsedThreads').removeItem();
+      new StorageItem('mutedUsers').removeItem();
 
       this.stack.setItem(this.dataDeletedPanel);
       this.actions.setMode('dataRemoved');
 
       this.popPending();
     }
-  }
+  };
 }
 
 es6ClassToOoJsClass(SettingsDialog);

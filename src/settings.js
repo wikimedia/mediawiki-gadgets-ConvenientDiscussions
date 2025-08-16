@@ -56,7 +56,7 @@ import { createSvg, getFooter, wrapHtml } from './utils-window';
 /**
  * @typedef {(
  *   & import('./utils-oojs').ControlOptionsBase
- *   & { name: SettingName | 'removeData' }
+ *   & { name: keyof Settings['scheme']['controlTypes'] | 'removeData' }
  *   & AnyByKey
  * )} UiControlData
  */
