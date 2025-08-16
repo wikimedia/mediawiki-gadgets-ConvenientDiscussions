@@ -142,14 +142,14 @@ export class UploadDialog extends mixInClass(
    */
   getActionProcess(action) {
     if (action === 'upload') {
-      // @ts-ignore: We need this protected method here
+      // @ts-expect-error: We need this protected method here
       let process = new OO.ui.Process(this.uploadBooklet.uploadFile());
       if (this.autosave) {
         process = process.next(() => {
           // eslint-disable-next-line no-one-time-vars/no-one-time-vars
           const promise = this.executeAction('save').fail(() => {
             // Reset the ability
-            // @ts-ignore: We need this protected method here
+            // @ts-expect-error: We need this protected method here
             this.uploadBooklet.onInfoFormChange();
           });
           this.actions.setAbilities({ save: false });

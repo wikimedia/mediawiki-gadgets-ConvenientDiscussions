@@ -811,7 +811,7 @@ export class EventEmitter extends OO.EventEmitter {
     return super.emit(event, ...args);
   }
 
-  // @ts-ignore
+  // @ts-expect-error: TypeScript-in-JSDoc bug
   /** @template {keyof EventMap} K @overload
    * @param {K} event
    * @param {...EventMap[K]} args
