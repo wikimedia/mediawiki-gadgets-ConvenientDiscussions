@@ -14,7 +14,7 @@ import { es6ClassToOoJsClass } from './utils-oojs';
  * @augments ProcessDialog
  */
 class EditSubscriptionsDialog extends ProcessDialog {
-  // @ts-ignore: https://phabricator.wikimedia.org/T358416
+  // @ts-expect-error: https://phabricator.wikimedia.org/T358416
   static name = 'editSubscriptionsDialog';
   static title = cd.s('ewsd-title');
   static actions = [

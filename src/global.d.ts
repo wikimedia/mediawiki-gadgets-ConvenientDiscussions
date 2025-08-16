@@ -10,11 +10,11 @@ declare global {
   const IS_SINGLE: boolean;
   const CONFIG_FILE_NAME: string | null;
   const LANG_CODE: string | null;
-  const moment: Function;
+  const moment: (...args: any) => any;
 
-  const getInterwikiPrefixForHostname: Function;
-  const getInterwikiPrefixForHostnameSync: Function;
-  const getUrlFromInterwikiLink: Function;
+  const getInterwikiPrefixForHostname: (...args: any) => any;
+  const getInterwikiPrefixForHostnameSync: (...args: any) => any;
+  const getUrlFromInterwikiLink: (...args: any) => any;
 
   type Direction = 'ltr' | 'rtl';
   type ListType = 'dl' | 'ul' | 'ol';
@@ -343,7 +343,6 @@ declare global {
         | number
         | JQuery.Promise<void>
         | Promise<void>
-        // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
         | ((this: C) => boolean | number | JQuery.Promise<void> | Promise<void> | Error | [Error] | void);
 
       interface Constructor {

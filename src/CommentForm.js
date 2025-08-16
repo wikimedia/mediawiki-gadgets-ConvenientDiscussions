@@ -656,7 +656,6 @@ class CommentForm extends EventEmitter {
       }
 
       if (this.headlineInput) {
-        this.headlineInput
         if (this.preloadConfig.headline) {
           this.headlineInput.setValue(this.preloadConfig.headline);
         }
@@ -1282,8 +1281,7 @@ class CommentForm extends EventEmitter {
 
     // A hack to make the WikiEditor cookies related to active sections and pages saved correctly.
     $input.data('wikiEditor-context').instance = 5;
-    // @ts-ignore
-    $.wikiEditor.instances = Array.from({length: 5});
+    $.wikiEditor.instances = Array.from({ length: 5 });
 
     /**
      * The comment form toolbar is ready; all the requested custom comment form modules have been
@@ -1340,7 +1338,7 @@ class CommentForm extends EventEmitter {
     post = post.replace(/\\n/g, '\n');
 
     // Unmask escaped characters
-    const unescape = (/** @type {string} */ snippet) => snippet.replace(/\\([+;\\])/g, '$1');
+    const unescape = (/** @type {string} */ s) => s.replace(/\\([+;\\])/g, '$1');
     pre = unescape(textMasker.unmaskText(pre));
     post = unescape(textMasker.unmaskText(post));
     label = label ? unescape(label) : pre + post;
@@ -3172,13 +3170,13 @@ class CommentForm extends EventEmitter {
       if (error instanceof CdError) {
         /** @type {'notice' | undefined} */
         let messageType;
-        const code = error.getCode();
+        const errorCode = error.getCode();
         /** @type {string | JQuery | undefined} */
         let message = error.getMessage();
-        if (code === 'editconflict') {
+        if (errorCode === 'editconflict') {
           error.setMessage(message + ' ' + cd.sParse('cf-notice-editconflict-retrying'));
           messageType = 'notice';
-        } else if (code === 'captcha' && mw.libs.confirmEdit) {
+        } else if (errorCode === 'captcha' && mw.libs.confirmEdit) {
           this.captchaInput = new mw.libs.confirmEdit.CaptchaInputWidget(
             /** @type {{ edit: mw.libs.confirmEdit.CaptchaData }} */ (
               error.getApiResponse()
@@ -3200,10 +3198,10 @@ class CommentForm extends EventEmitter {
           operation,
         });
 
-        if (code === 'editconflict') {
+        if (errorCode === 'editconflict') {
           this.submit(false);
         }
-        if (code === 'tags-apply-blocked') {
+        if (errorCode === 'tags-apply-blocked') {
           this.submit(false, true);
         }
       } else {

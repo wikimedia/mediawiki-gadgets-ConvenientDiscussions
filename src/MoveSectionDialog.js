@@ -23,7 +23,7 @@ import { findFirstTimestamp, wrapHtml } from './utils-window';
  * @augments ProcessDialog
  */
 class MoveSectionDialog extends ProcessDialog {
-  // @ts-ignore: https://phabricator.wikimedia.org/T358416
+  // @ts-expect-error: https://phabricator.wikimedia.org/T358416
   static name = 'moveSectionDialog';
   static title = cd.s('msd-title');
   static actions = [
