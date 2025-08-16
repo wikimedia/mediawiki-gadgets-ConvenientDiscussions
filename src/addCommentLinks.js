@@ -124,13 +124,13 @@ function switchRelevant() {
     // FIXME: Old watchlist (no JS) + ?enhanced=1&urlversion=2
 
     // Check if item grouping switched on. This may be done in the settings or via the URL parameter.
-    if (!$('.mw-changeslist').find('ul.special').length) {
+    if ($('.mw-changeslist').find('ul.special').length) {
       $lines
-        .filter('table')
+        .not(':has(.cd-commentLink-relevant)')
         .show();
     } else {
       $lines
-        .not(':has(.cd-commentLink-relevant)')
+        .filter('table')
         .show();
     }
     $collapsibles
@@ -363,7 +363,9 @@ function processWatchlist($content) {
   // * with enhanced fitlers and without (Special:Preferences#mw-prefsection-watchlist "Use
   //   non-JavaScript interface")
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-  const lines = $content[0].querySelectorAll('.mw-changeslist-line[data-mw-revid]');
+  const lines = /** @type {NodeListOf<HTMLElement>} */ (
+    $content[0].querySelectorAll('.mw-changeslist-line[data-mw-revid]')
+  );
   lines.forEach((lineOrBareTr) => {
     const line = lineOrBareTr.className
       ? lineOrBareTr
@@ -399,7 +401,7 @@ function processWatchlist($content) {
       if (!bytesAdded || bytesAdded < cd.config.bytesToDeemComment) return;
     }
 
-    const timestamp = line.getAttribute('data-mw-ts')?.slice(0, 12);
+    const timestamp = line.dataset.mwTs?.slice(0, 12);
     if (!timestamp) return;
 
     const author = extractAuthor(line);
@@ -426,15 +428,14 @@ function processWatchlist($content) {
         const curIdMatch =
           curLink instanceof HTMLAnchorElement ? curLink.href.match(/[&?]curid=(\d+)/) : undefined;
         const curId = curIdMatch && Number(curIdMatch[1]);
-        if (curId) {
-          if (
-            (subscriptions?.getForPageId(curId) || []).find((headline) =>
-              isInSection(summary, headline)
-            )
-          ) {
-            wrapper = prototypes.get('wrapperRelevant');
-            setWrapperLinkAttr(wrapper, 'title', goToCommentWatchedSection);
-          }
+        if (
+          curId &&
+          (subscriptions?.getForPageId(curId) || []).some((headline) =>
+            isInSection(summary, headline)
+          )
+        ) {
+          wrapper = prototypes.get('wrapperRelevant');
+          setWrapperLinkAttr(wrapper, 'title', goToCommentWatchedSection);
         }
       }
       wrapper ||= prototypes.get('wrapperRegular');
@@ -572,15 +573,14 @@ function processHistory($content) {
       wrapper = prototypes.get('wrapperRelevant');
       setWrapperLinkAttr(wrapper, 'title', goToCommentToYou);
     } else {
-      if (summary) {
-        if (
-          (subscriptions?.getForCurrentPage() || []).find((headline) =>
-            isInSection(summary, headline)
-          )
-        ) {
-          wrapper = prototypes.get('wrapperRelevant');
-          setWrapperLinkAttr(wrapper, 'title', goToCommentWatchedSection);
-        }
+      if (
+        summary &&
+        (subscriptions?.getForCurrentPage() || []).some((headline) =>
+          isInSection(summary, headline)
+        )
+      ) {
+        wrapper = prototypes.get('wrapperRelevant');
+        setWrapperLinkAttr(wrapper, 'title', goToCommentWatchedSection);
       }
       wrapper ||= prototypes.get('wrapperRegular');
     }
@@ -673,7 +673,7 @@ function processDiff($diff) {
           if (
             !$diff &&
             summary &&
-            (subscriptions?.getForCurrentPage() || []).find((headline) =>
+            (subscriptions?.getForCurrentPage() || []).some((headline) =>
               isInSection(summary, headline)
             )
           ) {
@@ -695,20 +695,20 @@ function processDiff($diff) {
           }
         } else {
           linkElement.href = '#' + id;
-          linkElement.onclick = (event) => {
+          linkElement.addEventListener('click', (event) => {
             event.preventDefault();
             /** @type {NonNullable<typeof comment>} */ (comment).scrollTo({
               smooth: false,
               pushState: true,
               expandThreads: true,
             });
-          };
+          });
         }
 
         const destination = area.querySelector('#mw-diff-otitle3, #mw-diff-ntitle3');
         if (!destination) return;
 
-        destination.appendChild(wrapper);
+        destination.append(wrapper);
       }
     });
 

@@ -232,9 +232,9 @@ class SectionSource {
           // Will fail at `===` or the like.
           '(' +
           mw.util.escapeRegExp(fullHeadingMatch) +
-          '[^]*?\\n)' +
+          String.raw`[^]*?\n)` +
           `={1,${sectionHeadingMatch[2].length}}` +
-          '[^=].*=+[ \\t\\x01\\x02]*\\n'
+          String.raw`[^=].*=+[ \t\x01\x02]*\n`
         )
       ) ||
       adjustedCodeFromSection.match(
@@ -254,12 +254,12 @@ class SectionSource {
         // Will fail at "===" or the like.
         '(' +
         mw.util.escapeRegExp(fullHeadingMatch) +
-        '[^]*?\\n)\\n*' +
+        String.raw`[^]*?\n)\n*` +
 
         // Any next heading.
         '={1,6}' +
 
-        '[^=].*=+[ \\t\\x01\\x02]*\\n'
+        String.raw`[^=].*=+[ \t\x01\x02]*\n`
       )) ||
       adjustedCodeFromSection.match(new RegExp(
         '(' +
