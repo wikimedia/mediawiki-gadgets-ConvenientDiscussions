@@ -357,7 +357,7 @@ class Settings {
             name: 'highlightNewInterval',
             type: this.scheme.controlTypes.highlightNewInterval,
             min: 0,
-            max: 9999999,
+            max: 9_999_999,
             buttonStep: 5,
             label: cd.s('sd-highlightnewinterval'),
             help: cd.s('sd-highlightnewinterval-help'),

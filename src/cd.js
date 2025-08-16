@@ -38,4 +38,6 @@ import cd from './shared/cd';
  * @typedef {import('./shared/cd').ConvenientDiscussionsBase & ConvenientDiscussionsWindowExtension} ConvenientDiscussions
  */
 
+// We change the type here, which is impossible with export...from
+// eslint-disable-next-line unicorn/prefer-export-from
 export default /** @type {ConvenientDiscussions} */ (cd);

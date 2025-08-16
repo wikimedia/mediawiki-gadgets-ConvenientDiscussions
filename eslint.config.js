@@ -1,8 +1,10 @@
 // import babelParser from '@babel/eslint-parser';
 import eslint from '@eslint/js';
+// import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
 import noOneTimeVarsPlugin from 'eslint-plugin-no-one-time-vars';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import tseslint from 'typescript-eslint';
 
 const config = tseslint.config(
@@ -11,15 +13,17 @@ const config = tseslint.config(
     ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js'],
   },
 
+  eslintPluginUnicorn.configs['recommended'],
+
+  // stylistic.configs.customize({
+  //   semi: true,
+  //   arrowParens: true,
+  // }),
+
   // Main configuration
   {
     languageOptions: {
-      // ecmaVersion: 2018,
       sourceType: 'module',
-      // parser: babelParser,
-      // parserOptions: {
-      //   requireConfigFile: false,
-      // },
       ecmaVersion: 2022,
       parserOptions: { project: true },
       globals: {
@@ -64,6 +68,67 @@ const config = tseslint.config(
       'no-constant-condition': ['error', { checkLoops: false }],
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-unsafe-optional-chaining': 'off', // Enabled in TypeScript with strictNullChecks
+
+      // Wait until enough browsers support it
+      'unicorn/prefer-string-replace-all': 'off',
+      'unicorn/prefer-at': 'off',
+
+      // Popular abbreviations like `el` or `i` are simultaneously the ones that don't need to be
+      // expanded because they are commonly understood
+      'unicorn/prevent-abbreviations': 'off',
+
+      // Not critical/relevant/helpful
+      'unicorn/explicit-length-check': 'off',
+      'unicorn/filename-case': 'off',
+      'unicorn/catch-error-name': 'off',
+      'unicorn/no-typeof-undefined': 'off',
+      'unicorn/switch-case-braces': 'off',
+      'unicorn/prefer-global-this': 'off',
+      'unicorn/no-single-promise-in-promise-methods': 'off',
+
+      // .substring() swaps values if start > end
+      'unicorn/prefer-string-slice': 'off',
+
+      // Callback references make the code neat, but the concern of the rule is legit
+      'unicorn/no-array-callback-reference': 'off',
+
+      // Less readable for me (jwbth)
+      'unicorn/prefer-regexp-test': 'off',
+      'unicorn/prefer-spread': 'off',
+      'unicorn/no-array-for-each': 'off',
+      'unicorn/no-array-reduce': 'off',
+      'unicorn/no-await-expression-member': 'off',
+      'unicorn/no-nested-ternary': 'off',
+
+      'unicorn/consistent-function-scoping': ['error', {
+        checkArrowFunctions: false,
+      }],
+      'unicorn/no-abusive-eslint-disable': 'off',
+
+      // .innerText has legitimate usages.
+      'unicorn/prefer-dom-node-text-content': 'off',
+
+      'unicorn/prefer-ternary': 'warn',
+
+      // I never do that, and it gives false positives with any methods named .filter()
+      'unicorn/no-array-method-this-argument': 'off',
+
+      'unicorn/no-empty-file': 'warn',
+      'unicorn/no-lonely-if': 'warn',
+
+      // Duplicated @typescript-eslint/no-this-alias
+      'unicorn/no-this-assignment': 'off',
+
+      // Turn off for now
+      'unicorn/no-null': 'off',
+
+      // Confuses OO.EventEmitter for Node's EventEmitter
+      'unicorn/prefer-event-target': 'off',
+
+      // The default kills `undefined`s in .reduce() where they are typed
+      'unicorn/no-useless-undefined': ['error', {
+        checkArguments: false,
+      }],
 
       // Import plugin rules
       'import/order': [
@@ -111,7 +176,7 @@ const config = tseslint.config(
 
       // No one-time vars plugin rules
       'no-one-time-vars/no-one-time-vars': ['warn', {
-        allowedVariableLength: 9999999,  // Allow any length
+        allowedVariableLength: 9_999_999,  // Allow any length
         ignoreObjectDestructuring: true,
         ignoreTemplateLiterals: true,
       }],

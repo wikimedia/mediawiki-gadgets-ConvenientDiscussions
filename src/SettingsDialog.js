@@ -210,43 +210,50 @@ class SettingsDialog extends ProcessDialog {
    * @ignore
    */
   getActionProcess(action) {
-    if (action === 'save') {
-      return new OO.ui.Process(async () => {
-        this.pushPending();
+    switch (action) {
+      case 'save': {
+        return new OO.ui.Process(async () => {
+          this.pushPending();
 
-        try {
-          await settings.save(this.collectSettings());
-        } catch (error) {
-          this.handleError(error, 'error-settings-save', true);
-          return;
-        }
+          try {
+            await settings.save(this.collectSettings());
+          } catch (error) {
+            this.handleError(error, 'error-settings-save', true);
+            return;
+          }
 
-        bootController.removePreventUnloadCondition('dialog');
+          bootController.removePreventUnloadCondition('dialog');
 
-        this.stack.setItem(this.reloadPanel);
-        this.actions.setMode('reboot');
+          this.stack.setItem(this.reloadPanel);
+          this.actions.setMode('reboot');
 
-        this.popPending();
-      });
-    } else if (action === 'reboot') {
-      return new OO.ui.Process(() => {
-        this.close();
-        location.reload();
-      });
-    } else if (action === 'close') {
-      return new OO.ui.Process(() => {
-        this.confirmClose();
-      });
-    } else if (action === 'reset') {
-      return new OO.ui.Process(() => {
-        if (confirm(cd.s('sd-reset-confirm'))) {
-          this.renderControls(settings.scheme.default);
-          this.bookletLayout.setPage(
-            /** @type {string} */ (this.bookletLayout.getCurrentPageName())
-          );
-        }
-      });
+          this.popPending();
+        });
+      }
+      case 'reboot': {
+        return new OO.ui.Process(() => {
+          this.close();
+          location.reload();
+        });
+      }
+      case 'close': {
+        return new OO.ui.Process(() => {
+          this.confirmClose();
+        });
+      }
+      case 'reset': {
+        return new OO.ui.Process(() => {
+          if (confirm(cd.s('sd-reset-confirm'))) {
+            this.renderControls(settings.scheme.default);
+            this.bookletLayout.setPage(
+              /** @type {string} */ (this.bookletLayout.getCurrentPageName())
+            );
+          }
+        });
+      }
+      // No default
     }
+
     return super.getActionProcess(action);
   }
 

@@ -304,4 +304,4 @@ function onMessageFromWindow(event) {
   }
 }
 
-self.onmessage = onMessageFromWindow;
+self.addEventListener('message', onMessageFromWindow);
