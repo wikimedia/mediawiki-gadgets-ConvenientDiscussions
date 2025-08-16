@@ -29,10 +29,10 @@ if (LANG_CODE) {
   // A copy of the function in misc/utils.js. If altering it, make sure they are synchronized.
   const replaceEntities = (/** @type {string} */ string) => (
     string
-      .replace(/&nbsp;/g, '\xa0')
+      .replace(/&nbsp;/g, '\u00A0')
       .replace(/&#32;/g, ' ')
-      .replace(/&rlm;/g, '\u200f')
-      .replace(/&lrm;/g, '\u200e')
+      .replace(/&rlm;/g, '\u200F')
+      .replace(/&lrm;/g, '\u200E')
   );
 
   cd.i18n = (/** @type {I18n} */ {
@@ -368,4 +368,4 @@ export function getStringsPromise() {
     : getStrings();
 }
 
-app();
+await app();

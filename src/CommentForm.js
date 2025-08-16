@@ -648,10 +648,7 @@ class CommentForm extends EventEmitter {
 
     if (this.isMode('edit')) {
       this.loadComment(initialState);
-    } else if (initialState.originalComment !== undefined) {
-      this.originalComment = initialState.originalComment || '';
-      this.originalHeadline = initialState.originalHeadline || '';
-    } else {
+    } else if (initialState.originalComment === undefined) {
       if (this.preloadConfig.commentTemplate) {
         this.preloadTemplate();
       } else {
@@ -667,6 +664,9 @@ class CommentForm extends EventEmitter {
         // The headline may be set from initialState.headline at this point
         this.originalHeadline = this.headlineInput.getValue();
       }
+    } else {
+      this.originalComment = initialState.originalComment || '';
+      this.originalHeadline = initialState.originalHeadline || '';
     }
 
     if (initialState.lastFocused) {
@@ -1283,7 +1283,7 @@ class CommentForm extends EventEmitter {
     // A hack to make the WikiEditor cookies related to active sections and pages saved correctly.
     $input.data('wikiEditor-context').instance = 5;
     // @ts-ignore
-    $.wikiEditor.instances = Array(5);
+    $.wikiEditor.instances = Array.from({length: 5});
 
     /**
      * The comment form toolbar is ready; all the requested custom comment form modules have been
@@ -1527,7 +1527,7 @@ class CommentForm extends EventEmitter {
         .replace(
           /\$(\d+)/g,
           (m, s) =>
-            this.preloadConfig.params !== undefined ? (this.preloadConfig.params[s - 1] ?? m) : m
+            this.preloadConfig.params === undefined ? m : (this.preloadConfig.params[s - 1] ?? m)
         );
       code = code.trim();
 
@@ -1567,7 +1567,7 @@ class CommentForm extends EventEmitter {
     const $span = $('<span>');
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const $div = $('<div>')
-      .text(element.value.substring(0, this.commentInput.getRange().to))
+      .text(element.value.slice(0, Math.max(0, this.commentInput.getRange().to)))
       .css({
         whiteSpace: 'pre-wrap',
         wordWrap: 'break-word',
@@ -1576,7 +1576,7 @@ class CommentForm extends EventEmitter {
         position: 'absolute',
         visibility: 'hidden',
 
-        width: `${parseFloat(computedStyle.width)}px`,
+        width: `${Number.parseFloat(computedStyle.width)}px`,
 
         // Transfer the element's properties to the div.
         ...cd.g.inputPropsAffectingCoords.reduce((props, propName) => {
@@ -1592,7 +1592,7 @@ class CommentForm extends EventEmitter {
         top: $span[0].offsetTop,
         left: $span[0].offsetLeft,
         width: 0,
-        height: parseFloat($span.css('line-height')) - 3,
+        height: Number.parseFloat($span.css('line-height')) - 3,
       })
       .addClass('cd-dummyFloatableContainer');
     $div.remove();
@@ -1862,7 +1862,7 @@ class CommentForm extends EventEmitter {
     const substAliasesString = ['subst:'].concat(cd.config.substAliases).join('|');
     const textReactions = /** @type {import('../config/default').Reaction[]} */ ([
       {
-        regexp: new RegExp(cd.g.signCode + '\\s*$'),
+        regexp: new RegExp(cd.g.signCode + String.raw`\s*$`),
         message: cd.sParse('cf-reaction-signature', cd.g.signCode),
         name: 'signatureNotNeeded',
         type: 'notice',
@@ -3822,7 +3822,7 @@ class CommentForm extends EventEmitter {
     }
 
     // Insert a space if the preceding text doesn't end with one
-    if (rangeEnd && !/\s/.test(this.commentInput.getValue().substr(rangeEnd - 1, 1))) {
+    if (rangeEnd && !/\s/.test(this.commentInput.getValue().slice(rangeEnd - 1, rangeEnd))) {
       this.commentInput.cdInsertContent(' ');
     }
 

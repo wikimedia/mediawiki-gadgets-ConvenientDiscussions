@@ -180,7 +180,7 @@ class MoveSectionDialog extends ProcessDialog {
     return super.getReadyProcess(data).next(async () => {
       let archiveConfig;
       try {
-        [, , archiveConfig] = await Promise.all(this.initRequests);
+        archiveConfig = (await Promise.all(this.initRequests))[2];
       } catch {
         this.abort({ message: cd.sParse('cf-error-getpagecode'), recoverable: false});
 
@@ -402,17 +402,15 @@ class MoveSectionDialog extends ProcessDialog {
       if (error instanceof CdError) {
         const { type, code } = error.data;
         if (type === 'api') {
-          if (code === 'missing') {
-            throw new CdError({
-              message: cd.sParse('msd-error-sourcepagedeleted'),
-              details: { recoverable: true },
-            });
-          } else {
-            throw new CdError({
-              message: cd.sParse('error-api', code),
-              details: { recoverable: true },
-            });
-          }
+          throw code === 'missing'
+            ? new CdError({
+                message: cd.sParse('msd-error-sourcepagedeleted'),
+                details: { recoverable: true },
+              })
+            : new CdError({
+                message: cd.sParse('error-api', code),
+                details: { recoverable: true },
+              });
         } else if (type === 'network') {
           throw new CdError({
             message: cd.sParse('error-network'),
@@ -481,12 +479,11 @@ class MoveSectionDialog extends ProcessDialog {
       if (error instanceof CdError) {
         const { type, code } = error.data;
         if (type === 'api') {
-          if (code === 'invalid') {
+          throw code === 'invalid'
             // Should be filtered before submit anyway.
-            throw new CdError({ details: [cd.sParse('msd-error-invalidpagename'), false] });
-          } else {
-            throw new CdError({ details: [cd.sParse('error-api', code), true] });
-          }
+            ? new CdError({ details: [cd.sParse('msd-error-invalidpagename'), false] })
+
+            : new CdError({ details: [cd.sParse('error-api', code), true] });
         } else if (type === 'network') {
           throw new CdError({ details: [cd.sParse('error-network'), true] });
         }

@@ -98,7 +98,7 @@ export default class PageSource {
     let contextCode;
     if (commentForm.isNewTopicOnTop()) {
       const firstSectionStartIndex = maskDistractingCode(this.code)
-        .search(/^(=+).*\1[ \t\x01\x02]*$/m);
+        .search(/^(=+).*\1[ \t\u0001\u0002]*$/m);
       contextCode = (
         (
           firstSectionStartIndex === -1 ?
@@ -219,6 +219,6 @@ export default class PageSource {
    * @returns {RegExp}
    */
   static getTopicHeadingRegexp() {
-    return /^==[^=].*?==[ \t\x01\x02]*\n/gm;
+    return /^==[^=].*?==[ \t\u0001\u0002]*\n/gm;
   }
 }
