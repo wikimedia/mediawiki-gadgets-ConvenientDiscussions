@@ -257,8 +257,8 @@ class SectionSkeleton {
       this.lastElement :
       /** @type {ElementFor<N>} */ (this.getLastElement(nextHeadingElement, treeWalker));
 
-    const targetsToComments = (/** @type {import('./Parser').Target<N>[]} */ targets) =>
-      targets
+    const targetsToComments = (/** @type {import('./Parser').Target<N>[]} */ targetsRange) =>
+      targetsRange
         .filter((target) => target.type === 'signature')
         .map((target) => target.comment)
         .filter(defined);

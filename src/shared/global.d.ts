@@ -5,8 +5,6 @@
 
 import BrowserComment from '../Comment';
 import Section from '../Section';
-import WorkerCommentWorker from '../worker/CommentWorker';
-import WorkerSectionWorker from '../worker/SectionWorker';
 import { ConvenientDiscussionsBase } from './cd';
 import { HeadingTarget, SignatureTarget, Target } from './Parser';
 
@@ -116,9 +114,6 @@ declare global {
   // type ElementLike = Element | DomHandlerElement;
   // type NodeLike = Node | DomHandlerNode;
   // type TextLike = Text | DomHandlerText;
-
-  interface CommentWorker extends WorkerCommentWorker {}
-  interface SectionWorker extends WorkerSectionWorker {}
 
   type AnyNode = import('domhandler').Node | globalThis.Node;
   type AnyElement = import('domhandler').Element | globalThis.Element;

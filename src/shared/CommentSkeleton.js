@@ -907,7 +907,7 @@ class CommentSkeleton {
    */
   wrapInlineParts() {
     const sequencesToBeEnclosed = [];
-    let start = undefined;
+    let start;
     let encloseThis = false;
     for (let i = 0; i <= this.parts.length; i++) {
       const part = this.parts[i];
@@ -1222,55 +1222,55 @@ class CommentSkeleton {
     if (this.parts.length > 1) {
       const firstNodeParent = /** @type {ElementFor<N>} */ (this.parts[0].node.parentElement);
 
-      if (firstNodeParent.tagName === 'OL') {
+      if (
+        firstNodeParent.tagName === 'OL' &&
+
         // A foreign signature can be found with just .cd-signature search; example:
         // https://commons.wikimedia.org/?diff=566673258.
+        (
+          firstNodeParent.getElementsByClassName('cd-signature').length -
+
+          // Current signature count, 0 or 1
+          Number(this.parser.constructor.contains(firstNodeParent, this.signatureElement))
+        ) === 0
+      ) {
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+        const listItems = this.parts.filter((part) => part.node.parentElement === firstNodeParent);
+
+        let outerWrapper;
+        let innerWrapper;
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+        const nextSibling = firstNodeParent.nextSibling;
+        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+        const parentParent = /** @type {ElementFor<N>} */ (firstNodeParent.parentElement);
+
+        // Is `#` used as an indentation character instead of `:` or `*`, or is the comments just
+        // starts with a list and ends on a correct level (without `#`)?
         if (
-          (
-            firstNodeParent.getElementsByClassName('cd-signature').length -
-
-            // Current signature count, 0 or 1
-            Number(this.parser.constructor.contains(firstNodeParent, this.signatureElement))
-          ) === 0
+          this.parts.some(
+            (part) =>
+              part.node.parentElement !== firstNodeParent &&
+              this.parser.constructor.contains(part.node.parentElement, firstNodeParent)
+          )
         ) {
-          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-          const listItems = this.parts.filter((part) => part.node.parentElement === firstNodeParent);
-
-          let outerWrapper;
-          let innerWrapper;
-          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-          const nextSibling = firstNodeParent.nextSibling;
-          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-          const parentParent = /** @type {ElementFor<N>} */ (firstNodeParent.parentElement);
-
-          // Is `#` used as an indentation character instead of `:` or `*`, or is the comments just
-          // starts with a list and ends on a correct level (without `#`)?
-          if (
-            !this.parts.some(
-              (part) =>
-                part.node.parentElement !== firstNodeParent &&
-                this.parser.constructor.contains(part.node.parentElement, firstNodeParent)
-            )
-          ) {
-            innerWrapper = this.parser.constructor.createElement('dd');
-            outerWrapper = this.parser.constructor.createElement('dl');
-            this.parser.constructor.appendChild(outerWrapper, innerWrapper);
-          } else {
-            innerWrapper = this.parser.constructor.createElement('div');
-            outerWrapper = innerWrapper;
-          }
-          this.parser.constructor.appendChild(innerWrapper, firstNodeParent);
-          this.parser.constructor.insertBefore(parentParent, outerWrapper, nextSibling);
-
-          this.parts.splice(0, listItems.length, {
-            node: innerWrapper,
-            isTextNode: false,
-            isHeading: false,
-            hasCurrentSignature: true,
-            hasForeignComponents: false,
-            step: /** @type {const} */ ('replaced'),
-          });
+          innerWrapper = this.parser.constructor.createElement('div');
+          outerWrapper = innerWrapper;
+        } else {
+          innerWrapper = this.parser.constructor.createElement('dd');
+          outerWrapper = this.parser.constructor.createElement('dl');
+          this.parser.constructor.appendChild(outerWrapper, innerWrapper);
         }
+        this.parser.constructor.appendChild(innerWrapper, firstNodeParent);
+        this.parser.constructor.insertBefore(parentParent, outerWrapper, nextSibling);
+
+        this.parts.splice(0, listItems.length, {
+          node: innerWrapper,
+          isTextNode: false,
+          isHeading: false,
+          hasCurrentSignature: true,
+          hasForeignComponents: false,
+          step: /** @type {const} */ ('replaced'),
+        });
       }
     }
   }
@@ -1383,7 +1383,7 @@ class CommentSkeleton {
             /cd-commentLevel-(\d+)/
           );
           if (match) {
-            const elementsToAdd = Array(Number(match[1]));
+            const elementsToAdd = Array.from({ length: Number(match[1]) });
             if (includeFirstMatch) {
               elementsToAdd[elementsToAdd.length - 1] = el;
             }
@@ -1671,17 +1671,17 @@ class CommentSkeleton {
             // higher level than the parent.
             comments
               .slice(comment.index + 1)
-              .some((comment) => {
+              .some((c) => {
                 if (
-                  /** @type {CommentSkeleton<N> | null} */ (comment.cachedParent?.logicalLevel) ===
+                  /** @type {CommentSkeleton<N> | null} */ (c.cachedParent?.logicalLevel) ===
                   this
                 ) {
-                  children.push(comment);
+                  children.push(c);
 
                   return true;
                 }
 
-                return comment.section !== this.section;
+                return c.section !== this.section;
               });
           }
           return true;

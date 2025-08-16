@@ -138,6 +138,7 @@ const config = tseslint.config(
       // Wait until enough browsers support it
       'unicorn/prefer-string-replace-all': 'off',
       'unicorn/prefer-at': 'off',
+      'unicorn/no-array-reverse': 'off',
 
       // Popular abbreviations like `el` or `i` are simultaneously the ones that don't need to be
       // expanded because they are commonly understood
@@ -255,6 +256,14 @@ const config = tseslint.config(
     rules: {
       'jsdoc/require-jsdoc': 'off',
       'import/order': 'off',
+    },
+  },
+
+  {
+    files: ['src/shared/**', 'src/worker/**'],
+    rules: {
+      'unicorn/prefer-query-selector': 'off',
+      'unicorn/prefer-dom-node-dataset': 'off',
     },
   },
 

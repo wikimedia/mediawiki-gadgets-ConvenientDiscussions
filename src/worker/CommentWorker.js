@@ -178,7 +178,7 @@ export default class CommentWorker extends CommentSkeleton {
       .forEach(CommentWorker.removeDataAndParsoidAttributes);
 
     // Empty comment anchors, in most cases added by the script.
-    element.getElementsByTagName('span')
+    element.querySelectorAll('span')
       .filter((el) => el.attribs.id && Object.keys(el.attribs).length === 1 && !el.textContent)
       .forEach((el) => {
         el.remove();
@@ -349,7 +349,7 @@ export default class CommentWorker extends CommentSkeleton {
       html: element.outerHTML,
     });
     const span = document.createElement('span');
-    span.textContent = `\x01${num}_${type}\x02`;
+    span.textContent = `\u0001${num}_${type}\u0002`;
     // span.before(element);
     element.remove();
 
@@ -366,7 +366,7 @@ export default class CommentWorker extends CommentSkeleton {
    */
   static removeDataAndParsoidAttributes(element) {
     Object.keys(element.attribs).forEach((name) => {
-      if (/^data-/.test(name) || (name === 'id' && /^mw.{2,3}$/.test(element.attribs[name]))) {
+      if (name.startsWith('data-') || (name === 'id' && /^mw.{2,3}$/.test(element.attribs[name]))) {
         element.removeAttribute(name);
       }
     });
