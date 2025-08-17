@@ -140,10 +140,10 @@ export function isInputFocused() {
 export function getExtendedRect(el) {
   if (el.cdMarginTop === undefined) {
     const style = window.getComputedStyle(el);
-    el.cdMarginTop = parseFloat(style.marginTop);
-    el.cdMarginBottom = parseFloat(style.marginBottom);
-    el.cdMarginLeft = parseFloat(style.marginLeft);
-    el.cdMarginRight = parseFloat(style.marginRight);
+    el.cdMarginTop = Number.parseFloat(style.marginTop);
+    el.cdMarginBottom = Number.parseFloat(style.marginBottom);
+    el.cdMarginLeft = Number.parseFloat(style.marginLeft);
+    el.cdMarginRight = Number.parseFloat(style.marginRight);
   }
   const rect = el.getBoundingClientRect();
   const isVisible = getVisibilityByRects(rect);
@@ -362,7 +362,7 @@ export function cleanUpPasteDom(element, containerElement) {
   // to the DOM. If HTML is retrieved from a paste, this is not needed (styles are added to
   // elements themselves in the text/html format), but won't hurt.
   element.className = 'cd-commentForm-dummyElement';
-  containerElement.appendChild(element);
+  containerElement.append(element);
 
   /** @type {HTMLElement[]} */ ([...element.querySelectorAll('[style]:not(pre [style])')])
     .forEach((el) => {
@@ -465,16 +465,16 @@ export function cleanUpPasteDom(element, containerElement) {
       }
     });
 
-  const allowedTags = cd.g.allowedTags.concat('a', 'center', 'big', 'strike', 'tt');
+  const allowedTags = new Set(cd.g.allowedTags.concat('a', 'center', 'big', 'strike', 'tt'));
   [...element.querySelectorAll('*')]
     .forEach((el) => {
-      if (!allowedTags.includes(el.tagName.toLowerCase())) {
+      if (!allowedTags.has(el.tagName.toLowerCase())) {
         replaceWithChildren(el);
         return;
       }
 
       [...el.attributes]
-        .filter((attr) => attr.name === 'class' || /^data-/.test(attr.name))
+        .filter((attr) => attr.name === 'class' || attr.name.startsWith('data-'))
         .forEach((attr) => {
           el.removeAttribute(attr.name);
         });
@@ -738,7 +738,7 @@ export function extractSignatures(code) {
   // TODO: Instead of removing only lines containing antipatterns from wikitext, hide entire
   // templates and tags?
   // But keep in mind that this code may still be part of comments.
-  const noSignatureClassesPattern = cd.g.noSignatureClasses.join('\\b|\\b');
+  const noSignatureClassesPattern = cd.g.noSignatureClasses.join(String.raw`\b|\b`);
   const commentAntipatternsPatternParts = [
     `class=(['"])[^'"\\n]*(?:\\b${noSignatureClassesPattern}\\b)[^'"\\n]*\\1`
   ];
@@ -948,7 +948,7 @@ function extractUnsigneds(adjustedCode, code, signatures) {
 
   const unsigneds = /** @type {SignatureInWikitextDraft[]} */ ([]);
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-  const unsignedTemplatesRegexp = new RegExp(cd.g.unsignedTemplatesPattern + '.*\\n', 'g');
+  const unsignedTemplatesRegexp = new RegExp(cd.g.unsignedTemplatesPattern + String.raw`.*\n`, 'g');
   let match;
   while ((match = unsignedTemplatesRegexp.exec(adjustedCode))) {
     let authorString;

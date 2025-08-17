@@ -578,8 +578,8 @@ class CommentRegistry extends EventEmitter {
       return null;
     }
 
-    const findById = (/** @type {string | undefined} */ id) =>
-      this.items.find((comment) => comment.id === id);
+    const findById = (/** @type {string | undefined} */ idOrUndefined) =>
+      this.items.find((comment) => comment.id === idOrUndefined);
 
     let comment = findById(id);
     if (!comment && impreciseDate) {
@@ -627,10 +627,10 @@ class CommentRegistry extends EventEmitter {
     if (comments.length === 1) {
       comment = comments[0];
     } else if (comments.length > 1) {
-      comments = comments.filter((comment) => (
-        comment.getParent()?.date?.getTime() === data.parentDate?.getTime() &&
-        comment.getParent()?.author.getName() === data.parentAuthor &&
-        (!data.sectionIdBeginning || comment.section?.id.startsWith(data.sectionIdBeginning))
+      comments = comments.filter((c) => (
+        c.getParent()?.date?.getTime() === data.parentDate?.getTime() &&
+        c.getParent()?.author.getName() === data.parentAuthor &&
+        (!data.sectionIdBeginning || c.section?.id.startsWith(data.sectionIdBeginning))
       ));
       comment = comments.length === 1 ? comments[0] : comments[data.index || 0];
     }
@@ -847,7 +847,7 @@ class CommentRegistry extends EventEmitter {
    * @private
    */
   resetSelectedComment() {
-    const comment = this.items.find((comment) => comment.isSelected);
+    const comment = this.items.find((c) => c.isSelected);
     if (comment) {
       comment.setSelected(false);
       this.emit('unselect', comment);
@@ -875,7 +875,9 @@ class CommentRegistry extends EventEmitter {
             ? treeWalker.currentNode.dataset?.cdCommentIndex
             : undefined;
       } while (commentIndex === undefined && treeWalker.parentNode());
-      if (commentIndex !== undefined) {
+      if (commentIndex === undefined) {
+        this.resetSelectedComment();
+      } else {
         comment = this.items[Number(commentIndex)];
         if (comment) {
           if (!comment.isSelected) {
@@ -886,8 +888,6 @@ class CommentRegistry extends EventEmitter {
         } else {
           this.resetSelectedComment();
         }
-      } else {
-        this.resetSelectedComment();
       }
     } else {
       this.resetSelectedComment();
@@ -960,8 +960,8 @@ class CommentRegistry extends EventEmitter {
     if (newCommentIndexes.includes(childComment.index)) {
       newCommentsInSubtree.push(childComment);
     }
-    childComment.children.forEach((childComment) => {
-      this.searchForNewCommentsInSubtree(childComment, newCommentsInSubtree, newCommentIndexes);
+    childComment.children.forEach((cc) => {
+      this.searchForNewCommentsInSubtree(cc, newCommentsInSubtree, newCommentIndexes);
     });
 
     return newCommentsInSubtree;
@@ -1041,8 +1041,7 @@ class CommentRegistry extends EventEmitter {
           bottomInnerTags.LI = 'DD';
         }
 
-        if (isOrHasCommentLevel(currentTopElement)) {
-          /*
+        if (isOrHasCommentLevel(currentTopElement) && /*
             Avoid collapsing adjacent <li>s and <dd>s if we deal with a structure like this:
 
               <li>
@@ -1054,7 +1053,7 @@ class CommentRegistry extends EventEmitter {
                 <ul>Replies</ul>
               </li>
           */
-          if (['DL', 'DD', 'UL', 'LI'].includes(
+          ['DL', 'DD', 'UL', 'LI'].includes(
             /** @type {HTMLElement} */ (currentBottomElement.firstElementChild).tagName
           )) {
             while (currentBottomElement.childNodes.length) {
@@ -1078,14 +1077,13 @@ class CommentRegistry extends EventEmitter {
                 // part of the reply. It shouldn't be happening.
                 firstMoved = undefined;
                 const newChild = document.createElement('span');
-                newChild.appendChild(child);
+                newChild.append(child);
                 child = newChild;
               }
-              currentTopElement.appendChild(child);
+              currentTopElement.append(child);
             }
             currentBottomElement.remove();
           }
-        }
       }
     });
   }
@@ -1103,18 +1101,18 @@ class CommentRegistry extends EventEmitter {
   changeElementType(element, newType) {
     const newElement = document.createElement(newType);
     while (element.firstChild) {
-      newElement.appendChild(element.firstChild);
+      newElement.append(element.firstChild);
     }
     [...element.attributes].forEach((attribute) => {
       newElement.setAttribute(attribute.name, attribute.value);
     });
 
     // If this element is a part of a comment, replace it in the Comment object instance.
-    const commentIndex = element.getAttribute('data-cd-comment-index');
-    if (commentIndex !== null) {
-      this.items[Number(commentIndex)].replaceElement(element, newElement);
-    } else {
+    const commentIndex = element.dataset.cdCommentIndex;
+    if (commentIndex === null) {
       /** @type {HTMLElement} */ (element.parentElement).replaceChild(newElement, element);
+    } else {
+      this.items[Number(commentIndex)].replaceElement(element, newElement);
     }
 
     talkPageController.replaceScrollAnchorElement(element, newElement);
@@ -1248,7 +1246,7 @@ class CommentRegistry extends EventEmitter {
       commentInViewport.index,
       direction === 'backward'
     ).filter((comment) => comment.isNew && !comment.isInViewport());
-    const comment = candidates.find((comment) => comment.isInViewport() === false) || candidates[0];
+    const comment = candidates.find((c) => c.isInViewport() === false) || candidates[0];
     if (comment) {
       comment.scrollTo({
         flash: false,
@@ -1282,8 +1280,8 @@ class CommentRegistry extends EventEmitter {
   goToFirstUnseenComment() {
     if (talkPageController.isAutoScrolling()) return;
 
-    const candidates = this.query((comment) => comment.isSeen === false);
-    const comment = candidates.find((comment) => comment.isInViewport() === false) || candidates[0];
+    const candidates = this.query((c) => c.isSeen === false);
+    const comment = candidates.find((c) => c.isInViewport() === false) || candidates[0];
     comment?.scrollTo({
       flash: false,
       callback: () => {

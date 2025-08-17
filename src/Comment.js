@@ -456,7 +456,6 @@ class Comment extends CommentSkeleton {
 
     this.isEditable = this.isActionable && (this.isOwn || settings.get('allowEditOthersComments'));
 
-    // @ts-ignore
     this.highlightables.forEach(this.bindEvents.bind(this));
 
     this.updateMarginHighlightable();
@@ -487,7 +486,6 @@ class Comment extends CommentSkeleton {
        *
        * @type {?ListType}
        */
-      // @ts-ignore
       this.containerListType = getContainerListType(this.highlightables[0]);
 
       this.mhContainerListType = getContainerListType(this.marginHighlightable);
@@ -637,7 +635,6 @@ class Comment extends CommentSkeleton {
    *
    * @private
    */
-  // @ts-ignore
   rewrapHighlightables() {
     [this.highlightables[0], this.highlightables[this.highlightables.length - 1]]
       .filter(unique)
@@ -1156,9 +1153,12 @@ class Comment extends CommentSkeleton {
         this.timestampElement.title = title;
         new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
         this.extraSignatures.forEach((sig) => {
-          const { timestamp, title } = this.formatTimestamp(sig.date, sig.timestampText);
-          sig.timestampElement.textContent = timestamp;
-          sig.timestampElement.title = title;
+          const { timestamp: extraSigTimestamp, title: extraSigTitle } = this.formatTimestamp(
+            sig.date,
+            sig.timestampText
+          );
+          sig.timestampElement.textContent = extraSigTimestamp;
+          sig.timestampElement.title = extraSigTitle;
           new LiveTimestamp(sig.timestampElement, sig.date, !this.hideTimezone).init();
         });
       }
@@ -1857,8 +1857,6 @@ class Comment extends CommentSkeleton {
       this.addEditButton();
       this.addReplyButton();
     }
-
-    this.overlayInnerWrapper;
 
     this.updateLayersStyles(true);
 

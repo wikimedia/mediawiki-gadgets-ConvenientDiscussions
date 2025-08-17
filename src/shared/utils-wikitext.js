@@ -38,8 +38,8 @@ export function maskDistractingCode(code) {
       generateTagsRegexp(['nowiki', 'syntaxhighlight', 'source', 'pre']),
       (s, before, tagName, content, after) => before + ' '.repeat(content.length) + after
     )
-    .replace(/<!--([^]*?)-->/g, (s, content) => '\x01' + ' '.repeat(content.length + 5) + '\x02')
-    .replace(/[\u200e\u200f]/g, () => ' ')
+    .replace(/<!--([^]*?)-->/g, (s, content) => '\u0001' + ' '.repeat(content.length + 5) + '\u0002')
+    .replace(/[\u200E\u200F]/g, () => ' ')
     .replace(
       /(<\/?(?:br|p)\b.*)(\n+)(>)/g,
       (s, before, newline, after) => before + ' '.repeat(newline.length) + after
@@ -72,7 +72,7 @@ export function removeWikiMarkup(code) {
     .replace(/<!--[^]*?-->/g, '')
 
     // Remove text hidden by the script (for example, in wikitext.maskDistractingCode)
-    .replace(/\x01 *\x02/g, '')
+    .replace(/\u0001 *\u0002/g, '')
 
     // Pipe trick
     .replace(cd.g.pipeTrickRegexp, '$1$2$3')
@@ -201,13 +201,13 @@ export function escapePipesOutsideLinks(code, maskedTexts) {
  * Given a string, not necessarily with arabic numerals, and a set of digits in the target language,
  * extract the digits and convert them to a number.
  *
- * @param {string} s
+ * @param {string} string
  * @param {string} [digits='0123456789']
  * @returns {number}
  */
-export function extractNumeralAndConvertToNumber(s, digits = '0123456789') {
+export function extractNumeralAndConvertToNumber(string, digits = '0123456789') {
   return Number(
-    s
+    string
       // Remove non-digits
       .replace(new RegExp(`[^${digits}]`, 'g'), '')
 
