@@ -31,6 +31,10 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
  */
 
 /**
+ * @typedef {import('./Comment').default | import('./Section').default | import('./CurrentPage').default} CommentFormTarget
+ */
+
+/**
  * @typedef {import('./CommentSource').default|import('./SectionSource').default|import('./PageSource').default} Source
  */
 
@@ -93,6 +97,47 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
  */
 
 /**
+ * @typedef {(
+ *   | import('./Comment').default['reply']
+ *   | import('./Comment').default['edit']
+ *   | import('./Section').default['reply']
+ *   | import('./Section').default['addSubsection']
+ *   | import('./CurrentPage').default['addSection']
+ * )} CommentFormAddingMethod
+ */
+
+/**
+ * @template {CommentFormMode} Mode
+ * @typedef {(
+ *   Mode extends 'replyInSection'
+ *     ? {
+ *         replyButton: Button;
+ *         $replyButtonWrapper: JQuery;
+ *         $replyButtonContainer: JQuery;
+ *       }
+ *     : object
+ * )} CommentFormTargetMapExtension
+ */
+
+/**
+ * @template {CommentFormMode} Mode
+ * @typedef {CommentFormTargetMap[Mode] & CommentFormTargetMapExtension<Mode>} Target
+ */
+
+/**
+ * @template {CommentFormMode} Mode
+ * @typedef {object} CommentFormConfig
+ * @property {Mode} config.mode
+ * @property {Target<Mode>} config.target Comment, section, or page that the form is associated
+ *   in the UI.
+ * @property {CommentFormInitialState} [config.initialState = {}] Initial state of the form (data
+ *   saved in the previous session, quoted text, data transferred from DT's new topic form, etc.).
+ * @property {PreloadConfig} [config.preloadConfig = {}] Configuration to preload content into the
+ *   form.
+ * @property {boolean} [config.newTopicOnTop=false] When adding a topic, whether it should be on top.
+ */
+
+/**
  * A comment form.
  *
  * @template {CommentFormMode} [Mode=CommentFormMode]
@@ -102,7 +147,7 @@ class CommentForm extends EventEmitter {
   /**
    * Comment, section, or page with which the form is associated in the UI.
    *
-   * @type {CommentFormTarget}
+   * @type {Target<Mode>}
    * @private
    */
   target;
@@ -432,22 +477,6 @@ class CommentForm extends EventEmitter {
   summaryAutocomplete;
 
   /**
-   * @typedef {(
-   *   Mode extends 'replyInSection'
-   *     ? {
-   *         replyButton: Button;
-   *         $replyButtonWrapper: JQuery;
-   *         $replyButtonContainer: JQuery;
-   *       }
-   *     : {}
-   * )} CommentFormTargetMapExtension
-   */
-
-  /**
-   * @typedef {CommentFormTargetMap[Mode] & CommentFormTargetMapExtension} CommentFormTarget
-   */
-
-  /**
    * @typedef {Mode extends 'addSection' ? null : import('./Section').default | null} CommentFormTargetSection
    */
 
@@ -471,13 +500,7 @@ class CommentForm extends EventEmitter {
   /**
    * Create a comment form.
    *
-   * @param {object} config
-   * @param {Mode} config.mode
-   * @param {CommentFormTarget} config.target Comment, section, or page that the form is related to.
-   * @param {CommentFormInitialState} [config.initialState = {}] Initial state of the form (data
-   *   saved in the previous session, quoted text, data transferred from DT's new topic form, etc.).
-   * @param {PreloadConfig} [config.preloadConfig = {}] Configuration to preload data into the form.
-   * @param {boolean} [config.newTopicOnTop=false] When adding a topic, whether it should be on top.
+   * @param {CommentFormConfig<Mode>} config
    * @fires commentFormCustomModulesReady
    */
   constructor({ mode, target, initialState = {}, preloadConfig = {}, newTopicOnTop = false }) {
@@ -713,7 +736,7 @@ class CommentForm extends EventEmitter {
   /**
    * Set the `target`, `targetSection`, `parentComment`, and `targetPage` properties.
    *
-   * @param {CommentFormTarget} target
+   * @param {Target<Mode>} target
    */
   setTargets(target) {
     this.target = target;
@@ -3966,7 +3989,7 @@ class CommentForm extends EventEmitter {
   /**
    * Get the {@link CommentForm#target target} object of the form.
    *
-   * @returns {CommentFormTarget}
+   * @returns {Target<Mode>}
    */
   getTarget() {
     return this.target;
@@ -4397,9 +4420,9 @@ class CommentForm extends EventEmitter {
   /**
    * Get the name of the target's property that can contain a comment form with the specified mode.
    *
-   * @template {Comment|import('./Section').default|import('./CurrentPage').default} T
+   * @template {CommentFormTarget} T
    * @param {T} target
-   * @param {import('./CommentForm').CommentFormMode} mode
+   * @param {CommentFormMode} mode
    * @returns {keyof T}
    */
   static getPropertyNameOnTarget(target, mode) {
@@ -4409,8 +4432,8 @@ class CommentForm extends EventEmitter {
   /**
    * Remove references to a comment form on its target object (after it was unregistered).
    *
-   * @param {Comment|import('./Section').default|import('./CurrentPage').default} target
-   * @param {import('./CommentForm').CommentFormMode} mode
+   * @param {CommentFormTarget} target
+   * @param {CommentFormMode} mode
    */
   static forgetOnTarget(target, mode) {
     delete target[/** @type {keyof typeof target} */ (this.getPropertyNameOnTarget(target, mode))];
@@ -4418,7 +4441,3 @@ class CommentForm extends EventEmitter {
 }
 
 export default CommentForm;
-
-/**
- * @typedef {ConstructorParameters<typeof CommentForm>[0]} CommentFormConfig
- */

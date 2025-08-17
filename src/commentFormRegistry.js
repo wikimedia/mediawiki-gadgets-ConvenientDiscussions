@@ -9,11 +9,6 @@ import talkPageController from './talkPageController';
 import { EventEmitter } from './utils-oojs';
 import { isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
 
-// Note: this type is different from the CommentFormTarget type defined in the CommentForm class: it's not based on a generic parameter.
-/**
- * @typedef {import('./Comment').default | import('./Section').default | import('./CurrentPage').default} CommentFormTarget
- */
-
 // TODO: make into a class extending a generic registry.
 
 /**
@@ -27,18 +22,6 @@ import { isCmdModifierPressed, isInputFocused, keyCombination } from './utils-wi
  * Singleton storing data about comment forms on the page and managing them.
  *
  * @augments EventEmitter<EventMap>
- */
-/**
- * Configuration object for CommentForm constructor.
- *
- * @typedef {object} CommentFormConfig
- * @property {CommentFormTarget} target The target element this form is associated with
- * @property {import('./CommentForm').CommentFormInitialState} [initialState] Initial state of the comment form
- * @property {'reply'|'edit'|'addSection'} mode The mode of operation for the comment form
- * @property {boolean} [autofocus=false] Whether to automatically focus the form when created
- * @property {boolean} [noAutoExpand=false] Whether to disable automatic expansion of the form
- * @property {boolean} [newTopicOnTop=false] For `addSection` mode, whether to add the new topic at the top
- * @property {object} [preloadConfig] Configuration for preloading content
  */
 class CommentFormRegistry extends EventEmitter {
   /**
@@ -106,7 +89,7 @@ class CommentFormRegistry extends EventEmitter {
    * Create a comment form and add it both to the registry and to the page. If it already exists,
    * reattach it to the page.
    *
-   * @param {import('./Comment').default|import('./Section').default|import('./CurrentPage').default} target
+   * @param {import('./CommentForm').CommentFormTarget} target
    * @param {SetupCommentFormConfig} config See {@link CommentForm}'s constructor.
    * @param {import('./CommentForm').CommentFormInitialState} [initialState] See
    *   {@link CommentForm}'s constructor.
@@ -119,21 +102,24 @@ class CommentFormRegistry extends EventEmitter {
       commentForm.setTargets(target);
       target.addCommentFormToPage(config.mode, commentForm);
     } else {
-      commentForm = new CommentForm({ target, initialState, ...config });
-      target.addCommentFormToPage(config.mode, commentForm);
-      commentForm.setup(initialState);
-      this.items.push(commentForm);
-      commentForm
+      const cf = new CommentForm({ target, initialState, ...config });
+      target.addCommentFormToPage(config.mode, cf);
+      cf.setup(initialState);
+      this.items.push(cf);
+      cf
         .on('change', this.saveSession.bind(this))
         .on('unregister', () => {
-          this.remove(/** @type {CommentForm} */ (commentForm));
+          this.remove(cf);
         })
         .on('teardown', () => {
           talkPageController.updatePageTitle();
-          this.emit('teardown', commentForm);
+          this.emit('teardown', cf);
         });
-      this.emit('add', commentForm);
+      this.emit('add', cf);
+
+      commentForm = cf;
     }
+
     talkPageController.updatePageTitle();
     this.saveSession();
 
@@ -383,7 +369,7 @@ class CommentFormRegistry extends EventEmitter {
    * section on the page or the page itself.
    *
    * @param {AnyByKey | null} targetData
-   * @returns {import('./Comment').default | import('./Section').default | import('./CurrentPage').default | undefined}
+   * @returns {import('./CommentForm').CommentFormTarget | undefined}
    * @private
    */
   getTargetByData(targetData) {

@@ -124,7 +124,7 @@ class Autocomplete {
       });
       if (input instanceof OO.ui.MultilineTextInputWidget) {
         input.on('resize', () => {
-          // @ts-ignore
+          // @ts-expect-error: Ignore Tribute stuff
           this.tribute.menuEvents.windowResizeEvent?.();
         });
       }
@@ -189,7 +189,7 @@ class Autocomplete {
         });
 
     const spacesRegexp = new RegExp(cd.mws('word-separator', { language: 'content' }), 'g');
-    const allNssPattern = Object.keys(mw.config.get('wgNamespaceIds')).filter((ns) => ns).join('|');
+    const allNssPattern = Object.keys(mw.config.get('wgNamespaceIds')).filter(Boolean).join('|');
     const allNamespacesRegexp = new RegExp(`^:?(?:${allNssPattern}):`, 'i');
 
     const collectionsByType = /** @satisfies {CollectionsByType} */ ({
@@ -243,9 +243,9 @@ class Autocomplete {
             callback(prepareValues(values, this.mentions));
 
             if (makeRequest && !matches.length) {
-              let values;
+              let vals;
               try {
-                values = await Autocomplete.getRelevantUserNames(text);
+                vals = await Autocomplete.getRelevantUserNames(text);
               } catch {
                 return;
               }
@@ -254,17 +254,17 @@ class Autocomplete {
               // then delete and type "<s" quickly.
               if (!this.tribute.current || this.tribute.current.trigger !== '@') return;
 
-              this.mentions.cache = values.slice();
+              this.mentions.cache = vals.slice();
 
               // Make the typed text always appear on the last, 10th place.
-              values[9] = text.trim();
+              vals[9] = text.trim();
 
-              this.mentions.byText[text] = values;
+              this.mentions.byText[text] = vals;
 
               // The text has been updated since the request was made.
               if (this.mentions.snapshot !== text) return;
 
-              callback(prepareValues(values, this.mentions));
+              callback(prepareValues(vals, this.mentions));
             }
           }
         },
@@ -331,7 +331,7 @@ class Autocomplete {
           callback(
             prepareValues(
               // Matches
-              // @ts-ignore
+              // @ts-expect-error: Ignore Tribute stuff
               this.tribute.search
                 .filter(text, this.commentLinks.default, {
                   extract: (/** @type {Value} */ el) => el.key,
@@ -377,7 +377,7 @@ class Autocomplete {
               !/[#<>[\]|{}]/.test(text) &&
 
               // Interwikis
-              !((/^:/.test(text) || /^[a-z-]\w*:/.test(text)) && !allNamespacesRegexp.test(text))
+              !((text.startsWith(':') || /^[a-z-]\w*:/.test(text)) && !allNamespacesRegexp.test(text))
             );
             if (valid) {
               values.push(...this.wikilinks.cache);
@@ -390,9 +390,9 @@ class Autocomplete {
             callback(prepareValues(values, this.wikilinks));
 
             if (valid) {
-              let values;
+              let vals;
               try {
-                values = await Autocomplete.getRelevantPageNames(text);
+                vals = await Autocomplete.getRelevantPageNames(text);
               } catch {
                 return;
               }
@@ -400,17 +400,17 @@ class Autocomplete {
               // Type "[[Text", then delete and type "<s" quickly.
               if (!this.tribute.current || this.tribute.current.trigger !== '[[') return;
 
-              this.wikilinks.cache = values.slice();
+              this.wikilinks.cache = vals.slice();
 
               // Make the typed text always appear on the last, 10th place.
-              values[9] = text.trim();
+              vals[9] = text.trim();
 
-              this.wikilinks.byText[text] = values;
+              this.wikilinks.byText[text] = vals;
 
               // The text has been updated since the request was made.
               if (this.wikilinks.snapshot !== text) return;
 
-              callback(prepareValues(values, this.wikilinks));
+              callback(prepareValues(vals, this.wikilinks));
             }
           }
         },
@@ -469,9 +469,9 @@ class Autocomplete {
             callback(prepareValues(values, this.templates));
 
             if (makeRequest) {
-              let values;
+              let vals;
               try {
-                values = await Autocomplete.getRelevantTemplateNames(text);
+                vals = await Autocomplete.getRelevantTemplateNames(text);
               } catch {
                 return;
               }
@@ -479,17 +479,17 @@ class Autocomplete {
               // Type "{{Text", then delete and type "<s" quickly.
               if (!this.tribute.current || this.tribute.current.trigger !== '{{') return;
 
-              this.templates.cache = values.slice();
+              this.templates.cache = vals.slice();
 
               // Make the typed text always appear on the last, 10th place.
-              values[9] = text.trim();
+              vals[9] = text.trim();
 
-              this.templates.byText[text] = values;
+              this.templates.byText[text] = vals;
 
               // The text has been updated since the request was made.
               if (this.templates.snapshot !== text) return;
 
-              callback(prepareValues(values, this.templates));
+              callback(prepareValues(vals, this.templates));
             }
           }
         },
@@ -570,7 +570,7 @@ class Autocomplete {
     const getDefaultTags = () =>
       /** @type {Array<string|string[]>} */ (cd.g.allowedTags)
         .filter(
-          (tagString) => !tagAdditions.find((tagArray) => tagArray[0] === tagString)
+          (tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString)
         )
         .concat(tagAdditions)
         .sort((item1, item2) => (
@@ -757,11 +757,7 @@ class Autocomplete {
           if (template.format === 'block') {
             paramsString += `\n| ${param} = `;
           } else {
-            if (isNaN(Number(param))) {
-              paramsString += `|${param}=`;
-            } else {
-              paramsString += `|`;
-            }
+            paramsString += Number.isNaN(Number(param)) ? `|${param}=` : `|`;
           }
           firstValueIndex ||= paramsString.length;
         });
@@ -845,19 +841,20 @@ class Autocomplete {
           resolve(users);
         } else {
           // If we didn't succeed with search, try the entire users database.
-          const response = /** @type {ApiResponseQuery<ApiResponseQueryContentAllUsers>} */ (
-            await cd
-              .getApi()
-              .get({
-                action: 'query',
-                list: 'allusers',
-                auprefix: text,
-              })
-              .catch(handleApiReject)
-          );
-          if (!response.query) return;
+          const allUsersResponse =
+            /** @type {ApiResponseQuery<ApiResponseQueryContentAllUsers>} */ (
+              await cd
+                .getApi()
+                .get({
+                  action: 'query',
+                  list: 'allusers',
+                  auprefix: text,
+                })
+                .catch(handleApiReject)
+            );
+          if (!allUsersResponse.query) return;
 
-          resolve(response.query.allusers.map((user) => user.name));
+          resolve(allUsersResponse.query.allusers.map((user) => user.name));
         }
       } catch (error) {
         reject(error);
@@ -890,9 +887,9 @@ class Autocomplete {
     return result.replace(
       new RegExp(
         // First character pattern
-        '^' + firstCharUpperCase !== firstChar
-          ? '[' + firstCharUpperCase + firstChar + ']'
-          : mw.util.escapeRegExp(firstChar)
+        '^' + firstCharUpperCase === firstChar
+          ? mw.util.escapeRegExp(firstChar)
+          : '[' + firstCharUpperCase + firstChar + ']'
       ),
       firstChar
     );

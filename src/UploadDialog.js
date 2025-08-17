@@ -255,6 +255,9 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
    */
   upload;
 
+  /** @type {string | undefined} */
+  preset;
+
   /**
    * Create a booklet layout for foreign structured upload.
    *
@@ -376,7 +379,9 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
     fieldset.addItems([this.controls.preset.field, this.controls.configure.field]);
 
     this.controls.preset.input
-      .on('select', this.onPresetChange.bind(this));
+      .on('select', (item) => {
+        this.onPresetChange(/** @type {OO.ui.RadioOptionWidget} */ (item));
+      })
     projectScreenshotItem.radio.$input
       .on('focus', () => {
         this.controls.title.input.focus();
@@ -547,14 +552,16 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
    *
    * @see
    * https://doc.wikimedia.org/mediawiki-core/master/js/mw.ForeignStructuredUpload.BookletLayout.html#uploadFile
-   * @returns {JQuery.Promise}
+   * @returns {JQuery.Promise<void>}
    * @protected
    * @override
    */
   uploadFile() {
-    const preset = /** @type {import('./RadioOptionWidget').default} */ (
-      this.controls.preset.input.findSelectedItem()
-    )?.getData();
+    const preset = /** @type {string | undefined} */ (
+      /** @type {import('./RadioOptionWidget').default} */ (
+        this.controls.preset.input.findSelectedItem()
+      )?.getData()
+    );
 
     // Keep the inputs if the user pressed "Back" and didn't choose another preset.
     if (this.preset && preset !== this.preset) {
@@ -574,12 +581,12 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
     let pageName = '';
     let historyText = '';
     let hasIwPrefix;
+    /** @type {string | undefined} */
     let filenameDate;
     if (this.preset === 'projectScreenshot' || this.preset === 'mediawikiScreenshot') {
-      filenameDate = (
+      filenameDate =
         this.getExactDateFromLastModified(/** @type {File} */ (this.getFile())) ||
-        date.format('YYYY-MM-DD HH-mm-ss')
-      );
+        date.format('YYYY-MM-DD HH-mm-ss');
 
       const title = this.controls.title.input.getMWTitle();
       if (title) {
@@ -646,15 +653,15 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
                 if (!url) {
                   throw [];
                 }
+
                 const hostname = new URL(url, cd.g.server).hostname;
                 this.controls.license.input.setValue(
                   this.constructor.getTemplateForHostname(hostname)
                 );
                 const dbname = getDbnameForHostname(hostname);
+
                 return Promise.all([
-                  cd.getApi().getMessages(`project-localized-name-${dbname}`, {
-                    amlang: 'en',
-                  }),
+                  cd.getApi().getMessages(`project-localized-name-${dbname}`, { amlang: 'en' }),
                   canonicalUrlToPageName(url),
                   hostname,
                 ]);
@@ -662,13 +669,13 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
             .then(
               ([messages, unprefixedPageName, hostname]) => {
                 if (!messages) return;
-                const projectName = Object.values(messages)[0];
-                const historyText = this.constructor.generateHistoryText(
+                const newProjectName = Object.values(messages)[0];
+                const newHistoryText = this.constructor.generateHistoryText(
                   hostname,
                   unprefixedPageName
                 );
-                this.filenameWidget.setValue(`${projectName} ${unprefixedPageName} ${filenameDate}`);
-                this.controls.author.input.setValue(`${projectName} authors${historyText}`);
+                this.filenameWidget.setValue(`${newProjectName} ${unprefixedPageName} ${filenameDate}`);
+                this.controls.author.input.setValue(`${newProjectName} authors${newHistoryText}`);
               },
               (error) => {
                 // Unless there is something wrong with uploading, always resolve - this
@@ -780,7 +787,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
    * {@link mw.Upload.ForeignStructuredUpload#getFilename getFilename}, and
    * {@link ForeignStructuredUpload#getText getText} to get details from the form.
    *
-   * @returns {JQuery.Promise}
+   * @returns {JQuery.Promise<void>}
    * @see
    *   https://doc.wikimedia.org/mediawiki-core/master/js/mw.ForeignStructuredUpload.BookletLayout.html#saveFile
    * @protected

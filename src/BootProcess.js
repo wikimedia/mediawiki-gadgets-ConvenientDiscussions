@@ -56,7 +56,6 @@ function processAndRemoveDtElements(elements) {
   // Tool doesn't seem to make difference for our purposes here.
   const moveNotRemove =
     cd.g.isDtTopicSubscriptionEnabled ||
-
     // DT enabled by default. Don't know how to capture that another way.
     !['registered', null].includes(mw.loader.getState('ext.discussionTools.init'));
 
@@ -75,30 +74,36 @@ function processAndRemoveDtElements(elements) {
     }
   }
 
-  elements
-    .concat(
-      [...bootController.rootElement.getElementsByClassName('ext-discussiontools-init-highlight')]
-    )
-    .forEach((el, i) => {
-      if (el.hasAttribute('data-mw-comment-start') && Comment.isDtId(el.id)) {
-        bootController.getBootProcess().addDtCommentId(el.id);
+  /** @type {HTMLElement[]} */ (
+    elements.concat([
+      ...bootController.rootElement.querySelectorAll('.ext-discussiontools-init-highlight'),
+    ])
+  ).forEach((el, i) => {
+    if (Object.hasOwn(el.dataset, 'mwCommentStart') && Comment.isDtId(el.id)) {
+      bootController.getBootProcess().addDtCommentId(el.id);
+    }
+    if (moveNotRemove) {
+      // DT gets the DOM offset of each of these elements upon initialization which can take a lot
+      // of time if the elements aren't put into containers with less children.
+      if (i % 10 === 0) {
+        /** @type {HTMLSpanElement} */ (dtMarkupHavenElement).append(
+          document.createElement('span')
+        );
       }
-      if (moveNotRemove) {
-        // DT gets the DOM offset of each of these elements upon initialization which can take a lot
-        // of time if the elements aren't put into containers with less children.
-        if (i % 10 === 0) {
-          /** @type {HTMLSpanElement} */ (
-            dtMarkupHavenElement
-          ).appendChild(document.createElement('span'));
-        }
-        /** @type {HTMLSpanElement} */ (/** @type {HTMLSpanElement} */ (dtMarkupHavenElement).lastChild).appendChild(el);
-      } else {
-        el.remove();
-      }
-    });
+      /** @type {HTMLSpanElement} */ (
+        /** @type {HTMLSpanElement} */ (dtMarkupHavenElement).lastChild
+      ).append(el);
+    } else {
+      el.remove();
+    }
+  });
   if (!moveNotRemove) {
-    [...bootController.rootElement.getElementsByTagName('span[data-mw-comment]')].forEach((el) => {
-      el.removeAttribute('data-mw-comment');
+    [
+      .../** @type {NodeListOf<HTMLSpanElement>} */ (
+        bootController.rootElement.querySelectorAll('span[data-mw-comment]')
+      ),
+    ].forEach((el) => {
+      delete el.dataset.mwComment;
     });
   }
 }
@@ -588,7 +593,7 @@ class BootProcess {
 
     cd.g.articlePathRegexp = new RegExp(
       '^' +
-      mw.util.escapeRegExp(mw.config.get('wgArticlePath')).replace('\\$1', '(.*)')
+      mw.util.escapeRegExp(mw.config.get('wgArticlePath')).replace(String.raw`\$1`, '(.*)')
     );
     cd.g.startsWithScriptTitleRegexp = new RegExp(
       '^' +
@@ -598,14 +603,14 @@ class BootProcess {
     if (editActionpath) {
       cd.g.startsWithEditActionPathRegexp = new RegExp(
         '^' +
-        mw.util.escapeRegExp(editActionpath).replace('\\$1', '(.*)') +
+        mw.util.escapeRegExp(editActionpath).replace(String.raw`\$1`, '(.*)') +
         '.*'
       );
     }
 
     // Template names are not case-sensitive here for code simplicity.
     const quoteTemplateToPattern = (/** @type {string} */ tpl) =>
-      '\\{\\{ *' + anySpace(mw.util.escapeRegExp(tpl));
+      String.raw`\{\{ *` + anySpace(mw.util.escapeRegExp(tpl));
     const quoteBeginningsPattern = ['<blockquote', '<q']
       .concat(cd.config.pairQuoteTemplates?.[0].map(quoteTemplateToPattern) || [])
       .join('|');
@@ -998,13 +1003,17 @@ class BootProcess {
         'discussiontools-topicsubscription': '0',
         'discussiontools-visualenhancements': '0',
       };
-      if (globally) {
-        await saveOptions(options, true).catch(handleApiReject);
-      } else {
-        await cd.getApi().saveOptions({
-          'discussiontools-topicsubscription': '1',
-        }).catch(handleApiReject);
-      }
+
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+      const request = globally
+        ? saveOptions(options, true).catch(handleApiReject)
+        : cd
+            .getApi()
+            .saveOptions({
+              'discussiontools-topicsubscription': '1',
+            })
+            .catch(handleApiReject);
+      await request;
     } catch {
       mw.notify(wrapHtml(cd.sParse('error-settings-save')));
       return;

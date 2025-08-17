@@ -382,8 +382,8 @@ class Thread extends mixInObject(
       this.navFromY = event.clientY;
       this.navFromX = event.clientX;
 
-      $(document).one('mouseup.cd', (event) => {
-        event.preventDefault();
+      $(document).one('mouseup.cd', (ev) => {
+        ev.preventDefault();
         delete this.navFromY;
         delete this.navFromX;
         $(document).off('mousemove.cd', this.handleDocumentMouseMove);
@@ -658,12 +658,12 @@ class Thread extends mixInObject(
 
     // Add some debouncing so that the user is not annoyed by the cursor changing its form when
     // moving across thread lines.
-    this.clickArea.onmouseenter = this.handleClickAreaHover;
-    this.clickArea.onmouseleave = this.handleClickAreaUnhover;
+    this.clickArea.addEventListener('mouseenter', this.handleClickAreaHover);
+    this.clickArea.addEventListener('mouseleave', this.handleClickAreaUnhover);
 
-    this.clickArea.onclick = this.handleClickAreaClick;
-    this.clickArea.onmousedown = this.handleClickAreaMouseDown;
-    this.clickArea.onmouseup = this.handleClickAreaMouseUp;
+    this.clickArea.addEventListener('click', this.handleClickAreaClick);
+    this.clickArea.addEventListener('mousedown', this.handleClickAreaMouseDown);
+    this.clickArea.addEventListener('mouseup', this.handleClickAreaMouseUp);
 
     this.line = /** @type {HTMLElement} */ (this.clickArea.firstChild);
 
@@ -840,12 +840,12 @@ class Thread extends mixInObject(
     if (firstElement.classList.contains('cd-connectToPreviousItem')) {
       expandNote.className += ' cd-connectToPreviousItem';
     }
-    expandNote.appendChild(button.element);
+    expandNote.append(button.element);
     const parentElement = /** @type {HTMLElement} */ (firstElement.parentElement);
     if (parentElement.tagName === 'OL' && this.rootComment.mhContainerListType !== 'ol') {
       const container = document.createElement('ul');
       container.className = 'cd-commentLevel';
-      container.appendChild(expandNote);
+      container.append(expandNote);
       container.before(parentElement);
       this.expandNoteContainer = container;
     } else {
@@ -1395,7 +1395,7 @@ class Thread extends mixInObject(
     threadClickArea.className = 'cd-thread-clickArea';
     const line = document.createElement('div');
     line.className = 'cd-thread-line';
-    threadClickArea.appendChild(line);
+    threadClickArea.append(line);
     this.prototypes.add('clickArea', threadClickArea);
   }
 
@@ -1445,11 +1445,11 @@ class Thread extends mixInObject(
       }
     });
 
-    if (!this.threadLinesContainer) {
+    if (this.threadLinesContainer) {
+      this.threadLinesContainer.innerHTML = '';
+    } else {
       this.threadLinesContainer = document.createElement('div');
       this.threadLinesContainer.className = 'cd-threadLinesContainer';
-    } else {
-      this.threadLinesContainer.innerHTML = '';
     }
 
     // We could choose not to update lines on initialization as it is a relatively costly operation
@@ -1458,7 +1458,7 @@ class Thread extends mixInObject(
     this.updateLines();
 
     if (!this.threadLinesContainer.parentNode) {
-      document.body.appendChild(this.threadLinesContainer);
+      document.body.append(this.threadLinesContainer);
     }
     if (autocollapse) {
       this.autocollapseThreads();
