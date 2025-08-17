@@ -17,12 +17,11 @@ class CommentFormInputTransformer extends TextMasker {
    *   {@link CommentFormInputTransformer} is instantiated, `source` is never `null`.
    */
 
-  // Note: this type is based on this class's generic parameter and is, therefore, different from CommentForm's type with the same name.
   /**
-   * @typedef {import('./CommentForm').CommentFormTargetMap[Mode] & CommentFormTargetExtension} CommentFormTarget
+   * @typedef {import('./CommentForm').Target<Mode> & CommentFormTargetExtension} CommentFormWithTargetSet
    */
 
-  /** @type {CommentFormTarget} */
+  /** @type {CommentFormWithTargetSet} */
   target;
 
   /** @type {string} */
@@ -42,7 +41,7 @@ class CommentFormInputTransformer extends TextMasker {
     super(text.trim());
     this.initialText = this.text;
     this.commentForm = commentForm;
-    this.target = /** @type {CommentFormTarget} */ (commentForm.getTarget());
+    this.target = /** @type {CommentFormWithTargetSet} */ (commentForm.getTarget());
     this.action = action;
 
     this.initIndentationData();
@@ -214,23 +213,6 @@ class CommentFormInputTransformer extends TextMasker {
   }
 
   /**
-   * Replace list markup (`:*#;`) inside code with respective tags.
-   *
-   * @param {string} code
-   * @returns {string}
-   * @private
-   */
-  listMarkupToTags(code) {
-    return CommentFormInputTransformer.listsToTags(
-      CommentFormInputTransformer.linesToLists(
-        code.split('\n').map((line) => ({
-          text: line,
-        }))
-      )
-    );
-  }
-
-  /**
    * Perform operations with code in an indented comment.
    *
    * @param {string} code
@@ -257,7 +239,7 @@ class CommentFormInputTransformer extends TextMasker {
         // will work.
         code = code.replace(/\|(?:[^|=}]*=)?(?=[:*#;])/, '$&\n');
       }
-      code = this.listMarkupToTags(code);
+      code = CommentFormInputTransformer.listMarkupToTags(code);
     }
 
     code = code.replace(
@@ -364,46 +346,57 @@ class CommentFormInputTransformer extends TextMasker {
       'i'
     );
 
-    const newlinesRegexp = this.isIndented()
-      ? /^(.+)\n(?![:#])(?=(.*))/gm
-      : /^((?![:*#; ]).+)\n(?![\n:*#; \u0003])(?=(.*))/gm;
-    code = code.replace(newlinesRegexp, (s, currentLine, nextLine) => {
-      // Remove if it is confirmed that this isn't happening (November 2024)
-      if (this.isIndented() && !cd.config.paragraphTemplates.length) {
-        console.error(`Convenient Discussions: Processing a newline in "${s}" which should be unreachable. You shouldn't be seeing this. If you do, please report to https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/Convenient_Discussions.`)
+
+    code = code.replace(
+      // Capture newline characters
+      this.isIndented()
+        ? /^(.+)\n(?![:#])(?=(.*))/gm
+        : /^((?![:*#; ]).+)\n(?![\n:*#; \u0003])(?=(.*))/gm,
+
+      (s, currentLine, nextLine) => {
+        // Remove if it is confirmed that this isn't happening (November 2024)
+        if (this.isIndented() && !cd.config.paragraphTemplates.length) {
+          console.error(`Convenient Discussions: Processing a newline in "${s}" which should be unreachable. You shouldn't be seeing this. If you do, please report to https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/Convenient_Discussions.`)
+        }
+
+        return (
+          currentLine +
+
+          // Line break if needed
+          (
+            entireLineRegexp.test(currentLine) ||
+            entireLineRegexp.test(nextLine) ||
+            (
+              !this.isIndented() &&
+              (
+                entireLineFromStartRegexp.test(currentLine) ||
+                entireLineFromStartRegexp.test(nextLine)
+              )
+            ) ||
+            fileRegexp.test(currentLine) ||
+            fileRegexp.test(nextLine) ||
+            CommentFormInputTransformer.galleryRegexp.test(currentLine) ||
+            CommentFormInputTransformer.galleryRegexp.test(nextLine) ||
+
+            // Removing <br>s after block elements is not a perfect solution as there would be no
+            // newlines when editing such a comment, but this way we would avoid empty lines in
+            // cases like `</div><br>`.
+            currentLineEndingRegexp.test(currentLine) ||
+            nextLineBeginningRegexp.test(nextLine)
+              ? ''
+              : '<br>' + (this.isIndented() ? ' ' : '')
+          ) +
+
+          // Newline if needed. Current line can match galleryRegexp only if the comment will not be
+          // indented.
+          (
+            this.isIndented() && !CommentFormInputTransformer.galleryRegexp.test(nextLine)
+              ? ''
+              : '\n'
+          )
+        );
       }
-
-      const lineBreakOrNot = (
-        entireLineRegexp.test(currentLine) ||
-        entireLineRegexp.test(nextLine) ||
-        (
-          !this.isIndented() &&
-          (entireLineFromStartRegexp.test(currentLine) || entireLineFromStartRegexp.test(nextLine))
-        ) ||
-        fileRegexp.test(currentLine) ||
-        fileRegexp.test(nextLine) ||
-        CommentFormInputTransformer.galleryRegexp.test(currentLine) ||
-        CommentFormInputTransformer.galleryRegexp.test(nextLine) ||
-
-        // Removing <br>s after block elements is not a perfect solution as there would be no
-        // newlines when editing such a comment, but this way we would avoid empty lines in cases
-        // like `</div><br>`.
-        currentLineEndingRegexp.test(currentLine) ||
-        nextLineBeginningRegexp.test(nextLine)
-      ) ?
-        '' :
-        '<br>' + (this.isIndented() ? ' ' : '');
-
-      // Current line can match galleryRegexp only if the comment will not be indented.
-      const newlineOrNot = (
-        this.isIndented() &&
-        !CommentFormInputTransformer.galleryRegexp.test(nextLine)
-      ) ?
-        '' :
-        '\n';
-
-      return currentLine + lineBreakOrNot + newlineOrNot;
-    });
+    );
 
     return code;
   }
@@ -635,6 +628,21 @@ class CommentFormInputTransformer extends TextMasker {
    * @property {ItemType} type
    * @property {string} text
    */
+
+  /**
+   * Replace list markup (`:*#;`) inside code with respective tags.
+   *
+   * @param {string} code
+   * @returns {string}
+   * @private
+   */
+  static listMarkupToTags(code) {
+    return CommentFormInputTransformer.listsToTags(
+      CommentFormInputTransformer.linesToLists(
+        code.split('\n').map((line) => ({ text: line }))
+      )
+    );
+  }
 
   /**
    * Transform line objects, turning lines that contain lists into list objects.

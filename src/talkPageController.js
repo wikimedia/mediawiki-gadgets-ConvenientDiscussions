@@ -1156,35 +1156,33 @@ class TalkPageController extends EventEmitter {
       );
       if (filteredComments.length === 1) {
         const comment = filteredComments[0];
-        if (comment.isToMe) {
-          html =
-            cd.sParse(
+        html = comment.isToMe
+          ? cd.sParse(
               'notification-toyou',
               comment.author.getName(),
               comment.author,
 
-              wordSeparator +
+              (
+                wordSeparator +
+
+                // Where the comment is
                 (
-                  // Where the comment is
                   comment.sectionSubscribedTo
                     ? cd.s('notification-part-insection', comment.sectionSubscribedTo.headline)
                     : cd.s('notification-part-onthispage')
-                ),
+                )
+              )
             ) +
             wordSeparator +
-            rebootHtml;
-        } else {
-          html = (
-            cd.sParse(
+            rebootHtml
+          : cd.sParse(
               'notification-insection',
               comment.author.getName(),
               comment.author,
               comment.sectionSubscribedTo.headline
             ) +
             wordSeparator +
-            rebootHtml
-          );
-        }
+            rebootHtml;
       } else {
         const section =
             // Is there a common section?

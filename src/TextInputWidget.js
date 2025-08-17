@@ -1,6 +1,6 @@
 import { convertHtmlToWikitext } from './utils-api';
 import { es6ClassToOoJsClass } from './utils-oojs';
-import { getElementFromPasteHtml, cleanUpPasteDom, isElementConvertibleToWikitext } from './utils-window';
+import { cleanUpPasteDom, getElementFromPasteHtml, isElementConvertibleToWikitext } from './utils-window';
 
 /**
  * An input was changed manually.
@@ -50,9 +50,8 @@ class TextInputWidget extends OO.ui.TextInputWidget {
    */
   async getWikitextFromSelection() {
     const div = document.createElement('div');
-    const selection = window.getSelection();
-    if (selection.type === 'Range') {
-      div.appendChild(window.getSelection().getRangeAt(0).cloneContents());
+    if (window.getSelection().type === 'Range') {
+      div.append(window.getSelection().getRangeAt(0).cloneContents());
 
       return await this.maybeConvertElementToWikitext(cleanUpPasteDom(div, this.$element[0]));
     }

@@ -64,10 +64,10 @@ class TextMasker {
       // Handle tables separately.
       return (
         (preText || '') +
-        (type === 'table' ? '\x03' : '\x01') +
+        (type === 'table' ? '\u0003' : '\u0001') +
         this.maskedTexts.push(textToMask || s) +
         (type ? '_' + type : '') +
-        (type === 'table' ? '\x04' : '\x02')
+        (type === 'table' ? '\u0004' : '\u0002')
       );
     });
     return this;
@@ -83,7 +83,7 @@ class TextMasker {
   unmaskText(text, type) {
     const regexp = type ?
       new RegExp(`(?:\\x01|\\x03)(\\d+)(?:_${type}(?:_\\d+)?)?(?:\\x02|\\x04)`, 'g') :
-      /(?:\x01|\x03)(\d+)(?:_\w+)?(?:\x02|\x04)/g;
+      /(?:\u0001|\u0003)(\d+)(?:_\w+)?(?:\u0002|\u0004)/g;
     while (regexp.test(text)) {
       text = text.replace(regexp, (s, num) => this.maskedTexts[num - 1]);
     }
@@ -154,18 +154,18 @@ class TextMasker {
         }
         this.text =
           this.text.substring(0, stackLeft) +
-          '\x01' +
+          '\u0001' +
           this.maskedTexts.push(template) +
           '_template' +
 
           // Length if needed
           (
             addLengths
-              ? '_' + template.replace(/\x01\d+_template_(\d+)\x02/g, (m, n) => ' '.repeat(n)).length
+              ? '_' + template.replace(/\u0001\d+_template_(\d+)\u0002/g, (m, n) => ' '.repeat(n)).length
               : ''
           ) +
 
-          '\x02' +
+          '\u0002' +
           this.text.substr(right);
 
         // Synchronize the position

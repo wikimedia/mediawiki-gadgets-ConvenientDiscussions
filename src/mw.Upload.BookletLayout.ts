@@ -112,9 +112,9 @@ declare global {
          * - `fileUploadProgress` (with progress and estimated remaining time)
          * - `fileUploaded` when the file has finished uploading.
          *
-         * @return {JQuery.Promise<any>} A promise that resolves when the file is uploaded.
+         * @return {JQuery.Promise<void>} A promise that resolves when the file is uploaded.
          */
-        protected uploadFile(): JQuery.Promise<any>;
+        protected uploadFile(): JQuery.Promise<void>;
 
         /**
          * Saves the file by finalizing the stashed upload.
@@ -124,9 +124,9 @@ declare global {
          *
          * Fires the `fileSaved` event with the image information.
          *
-         * @return {JQuery.Promise<any>} A promise that resolves if the file was saved successfully.
+         * @return {JQuery.Promise<void>} A promise that resolves if the file was saved successfully.
          */
-        protected saveFile(): JQuery.Promise<any>;
+        protected saveFile(): JQuery.Promise<void>;
 
         /**
          * Returns an error message (as an OO.ui.Error) for the current upload state.

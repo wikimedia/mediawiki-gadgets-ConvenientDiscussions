@@ -327,28 +327,22 @@ class PageNav {
     [this.currentSection, ...this.currentSection.getAncestors()]
       .reverse()
       .forEach((sectionInTree, level) => {
-        /** @type {JQuery} */
-        let $item;
-        if (
-          this.$sectionWithBackLink &&
-          this.$sectionWithBackLink.data('section') === sectionInTree
-        ) {
-          $item = this.$sectionWithBackLink;
-        } else {
-          $item = $('<li>')
-            .addClass(`cd-pageNav-item cd-pageNav-item-level-${level}`)
-            .data('section', sectionInTree)
-            .append(
-              new Button({
-                href: sectionInTree.getUrl(),
-                classes: ['cd-pageNav-link'],
-                label: sectionInTree.headline,
-                action: () => {
-                  this.jump(sectionInTree.$heading, $item);
-                },
-              }).element
-            );
-        }
+        const $item =
+          this.$sectionWithBackLink && this.$sectionWithBackLink.data('section') === sectionInTree
+            ? this.$sectionWithBackLink
+            : $('<li>')
+                .addClass(`cd-pageNav-item cd-pageNav-item-level-${level}`)
+                .data('section', sectionInTree)
+                .append(
+                  new Button({
+                    href: sectionInTree.getUrl(),
+                    classes: ['cd-pageNav-link'],
+                    label: sectionInTree.headline,
+                    action: () => {
+                      this.jump(sectionInTree.$heading, $item);
+                    },
+                  }).element
+                );
         $item.appendTo(/** @type {JQuery} */ (this.$currentSection));
       });
   }

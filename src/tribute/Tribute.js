@@ -1,3 +1,4 @@
+/* eslint-disable */
 // @ts-nocheck
 /**
  * Tribute.js
@@ -120,7 +121,6 @@ class Tribute {
     menuShowMinLength = 0,
     direction = 'ltr'
   }) {
-    this.menuSelected = 0;
     this.current = /** @type {{
       collection: TributeCollection | null,
       trigger: string | null,
@@ -255,12 +255,12 @@ class Tribute {
   }
 
   _attach(el) {
-    if (el.hasAttribute("data-tribute")) {
+    if (Object.hasOwn(el.dataset, "tribute")) {
       console.warn("Tribute was already bound to " + el.nodeName);
     }
 
     this.events.bind(el);
-    el.setAttribute("data-tribute", true);
+    el.dataset.tribute = true;
   }
 
   createMenu(containerClass) {
@@ -272,7 +272,7 @@ class Tribute {
       wrapper.className += ' tribute-rtl';
     }
 
-    wrapper.appendChild(ul);
+    wrapper.append(ul);
 
     if (this.menuContainer) {
       return this.menuContainer.appendChild(wrapper);
@@ -300,7 +300,7 @@ class Tribute {
           } else if (typeof this.current.collection.lookup === "function") {
             return this.current.collection.lookup(el, this.current.mentionText);
           } else {
-            throw new Error(
+            throw new TypeError(
               "Invalid lookup attribute, lookup must be string or function."
             );
           }
@@ -345,12 +345,12 @@ class Tribute {
         let li = document.createElement("li");
         li.classList.add('tribute-label');
         li.textContent = this.current.collection.label;
-        fragment.appendChild(li);
+        fragment.append(li);
       }
 
       items.forEach((item, index) => {
         let li = document.createElement("li");
-        li.setAttribute("data-index", index);
+        li.dataset.index = index;
 
         // jwbth: Replaced this part.
         li.classList.add('tribute-item');
@@ -369,9 +369,9 @@ class Tribute {
         }
         // jwbth: Replaced innerHTML with textContent to prevent XSS injections.
         li.textContent = this.current.collection.menuItemTemplate(item);
-        fragment.appendChild(li);
+        fragment.append(li);
       });
-      ul.appendChild(fragment);
+      ul.append(fragment);
 
       // jwbth: Added this line to make the menu redrawn immediately, not wait the setTimeout's
       // callback.
@@ -423,8 +423,8 @@ class Tribute {
 
   _findLiTarget(el) {
     if (!el) return [];
-    const index = el.getAttribute("data-index");
-    return !index ? this._findLiTarget(el.parentNode) : [el, index];
+    const index = el.dataset.index;
+    return index ? [el, index] : this._findLiTarget(el.parentNode);
   }
 
   showMenuForCollection(element, collectionIndex) {
@@ -503,7 +503,7 @@ class Tribute {
   }
 
   selectItemAtIndex(index, originalEvent) {
-    index = parseInt(index);
+    index = Number.parseInt(index);
     if (typeof index !== "number" || isNaN(index)) return;
     let item = this.current.filteredItems[index];
     let data = this.current.collection.selectTemplate(item, originalEvent);
@@ -516,16 +516,16 @@ class Tribute {
 
   _append(collection, newValues, replace) {
     if (typeof collection.values === "function") {
-      throw new Error("Unable to append to values, as it is a function.");
-    } else if (!replace) {
-      collection.values = collection.values.concat(newValues);
-    } else {
+      throw new TypeError("Unable to append to values, as it is a function.");
+    } else if (replace) {
       collection.values = newValues;
+    } else {
+      collection.values = collection.values.concat(newValues);
     }
   }
 
   append(collectionIndex, newValues, replace) {
-    let index = parseInt(collectionIndex);
+    let index = Number.parseInt(collectionIndex);
     if (typeof index !== "number")
       throw new Error("please provide an index for the collection to update.");
 
@@ -576,13 +576,14 @@ class Tribute {
     }
 
     setTimeout(() => {
-      el.removeAttribute("data-tribute");
+      delete el.dataset.tribute;
       this.isActive = false;
       if (el.tributeMenu) {
         el.tributeMenu.remove();
       }
     });
   }
+  menuSelected = 0;
 }
 
 export default Tribute;

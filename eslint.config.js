@@ -19,12 +19,12 @@ const config = tseslint.config(
   // }),
 
   tseslint.configs.recommended,
-  // ...tseslint.configs.strictTypeChecked.rules,
-  // ...tseslint.configs.stylisticTypeChecked.rules,
+  ...tseslint.configs.strictTypeChecked,
+  // ...tseslint.configs.stylisticTypeChecked,
 
   // Main configuration
   {
-    ignores: ['**/*.d.ts'],
+    ignores: ['**/*.ts'],
     languageOptions: {
       sourceType: 'module',
       ecmaVersion: 2022,

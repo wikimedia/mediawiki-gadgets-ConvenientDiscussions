@@ -451,7 +451,7 @@ class BootController {
     const format = isContentLanguage ? cd.g.contentDateFormat : cd.g.uiDateFormat;
     const digits = isContentLanguage ? cd.g.contentDigits : cd.g.uiDigits;
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const digitsPattern = digits ? `[${digits}]` : '\\d';
+    const digitsPattern = digits ? `[${digits}]` : String.raw`\d`;
 
     const regexpGroup = (/** @type {string} */ regexp) => '(' + regexp + ')';
     const regexpAlternateGroup = (/** @type {string[]} */ arr) =>
@@ -500,11 +500,7 @@ class BootController {
           break;
         case '\\':
           // Backslash escaping
-          if (p < format.length - 1) {
-            string += format[++p];
-          } else {
-            string += '\\';
-          }
+          string += p < format.length - 1 ? format[++p] : '\\';
           break;
         case '"':
           // Quoted literal
@@ -608,12 +604,12 @@ class BootController {
    * object.
    */
   memorizeCssValues() {
-    cd.g.contentLineHeight = parseFloat(this.$content.css('line-height'));
-    cd.g.contentFontSize = parseFloat(this.$content.css('font-size'));
-    cd.g.defaultFontSize = parseFloat($(document.documentElement).css('font-size'));
+    cd.g.contentLineHeight = Number.parseFloat(this.$content.css('line-height'));
+    cd.g.contentFontSize = Number.parseFloat(this.$content.css('font-size'));
+    cd.g.defaultFontSize = Number.parseFloat($(document.documentElement).css('font-size'));
 
     // For Timeless, Vector-2022 skins
-    cd.g.bodyScrollPaddingTop = parseFloat($('html, body').css('scroll-padding-top')) || 0;
+    cd.g.bodyScrollPaddingTop = Number.parseFloat($('html, body').css('scroll-padding-top')) || 0;
     if (cd.g.skin === 'timeless') {
       cd.g.bodyScrollPaddingTop -= 5;
     }
@@ -634,7 +630,7 @@ class BootController {
       'vector-2022': '.mw-page-container',
       default: 'body',
     }).css('background-color');
-    const metadataFontSize = parseFloat((cd.g.contentFontSize / cd.g.defaultFontSize).toFixed(7));
+    const metadataFontSize = Number.parseFloat((cd.g.contentFontSize / cd.g.defaultFontSize).toFixed(7));
     const contentStartMargin = this.getContentColumnOffsets().startMargin;
     const sidebarTransparentColor = transparentize(sidebarColor);
 
@@ -699,7 +695,7 @@ class BootController {
   getContentColumnOffsets(bypassCache = false) {
     if (!this.contentColumnOffsets || bypassCache) {
       let startMargin = Math.max(
-        parseFloat(
+        Number.parseFloat(
           this.$contentColumn.css(
             cd.g.contentDirection === 'ltr' ? 'padding-left' : 'padding-right'
           )
@@ -758,7 +754,7 @@ class BootController {
       Object.entries(mw.messages.get())
         .filter(([key]) => key.startsWith('convenient-discussions'))
         .map(([, value]) => value)
-        .join()
+        .join(',')
     );
 
     if (cd.config.tagName && cd.user.isRegistered()) {
@@ -802,7 +798,7 @@ class BootController {
      */
     cd.commentForms = commentFormRegistry.getAll();
 
-    cd.tests.controller = controller,
+    cd.tests.controller = controller;
     cd.tests.processPageInBackground = require('./updateChecker').processPage;
     cd.tests.showSettingsDialog = settings.showDialog.bind(settings);
     cd.tests.editSubscriptions = controller.showEditSubscriptionsDialog.bind(controller);
@@ -1076,7 +1072,7 @@ class BootController {
       }
     );
 
-    sleep(15000).then(() => {
+    sleep(15_000).then(() => {
       if (this.booting) {
         this.hideLoadingOverlay();
         console.warn('The loading overlay stays for more than 15 seconds; removing it.');
@@ -1385,8 +1381,8 @@ class BootController {
 
       // Make the "Back" browser button work.
       $(window).on('popstate', () => {
-        const { searchParams } = new URL(location.href);
-        if (searchParams.has('diff') || searchParams.has('oldid')) {
+        const { searchParams: newSearchParams } = new URL(location.href);
+        if (newSearchParams.has('diff') || newSearchParams.has('oldid')) {
           location.reload();
         }
       });
@@ -1409,7 +1405,9 @@ class BootController {
   showLoadingOverlay() {
     if (window.cdShowLoadingOverlay === false) return;
 
-    if (!this.$loadingPopup) {
+    if (this.$loadingPopup) {
+      this.$loadingPopup.show();
+    } else {
       this.$loadingPopup = $('<div>')
         .addClass('cd-loadingPopup')
         .append(
@@ -1423,8 +1421,6 @@ class BootController {
             )
         );
       $(document.body).append(this.$loadingPopup);
-    } else {
-      this.$loadingPopup.show();
     }
   }
 
@@ -1564,7 +1560,7 @@ class BootController {
       if (!condition()) return;
 
       event.preventDefault();
-      // @ts-ignore
+      // @ts-expect-error: Compatibility
       event.returnValue = '1';
 
       return '';
