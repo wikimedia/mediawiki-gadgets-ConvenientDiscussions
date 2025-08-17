@@ -139,6 +139,7 @@ const config = tseslint.config(
       'unicorn/prefer-string-replace-all': 'off',
       'unicorn/prefer-at': 'off',
       'unicorn/no-array-reverse': 'off',
+      'unicorn/prefer-structured-clone': 'off',
 
       // Popular abbreviations like `el` or `i` are simultaneously the ones that don't need to be
       // expanded because they are commonly understood

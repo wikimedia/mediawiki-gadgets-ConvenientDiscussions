@@ -136,9 +136,9 @@ export function generatePageNamePattern(string) {
   // mb_strtoupper and JavaScript's String#toUpperCase, see ucFirst() and
   // https://phabricator.wikimedia.org/T141723#2513800.
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-  const firstCharPattern = firstCharUpperCase !== firstCharLowerCase ?
-    '[' + firstCharUpperCase + firstCharLowerCase + ']' :
-    mw.util.escapeRegExp(firstChar);
+  const firstCharPattern = firstCharUpperCase === firstCharLowerCase ?
+    mw.util.escapeRegExp(firstChar) :
+    '[' + firstCharUpperCase + firstCharLowerCase + ']';
 
   return firstCharPattern + mw.util.escapeRegExp(string.slice(1)).replace(/[ _]+/g, '[ _]+');
 }
@@ -439,7 +439,7 @@ export function areObjectsEqual(object1, object2) {
  * @returns {string}
  */
 export function removeDirMarks(text, replaceWithSpace = false) {
-  return text.replace(/[\u200e\u200f]/g, replaceWithSpace ? ' ' : '');
+  return text.replace(/[\u200E\u200F]/g, replaceWithSpace ? ' ' : '');
 }
 
 /**
@@ -475,6 +475,7 @@ export function keepWorkerSafeValues(obj, allowedFuncNames = []) {
       }
     }
   });
+
   return newObj;
 }
 
@@ -665,7 +666,7 @@ export function isElement(node) {
  * @returns {node is NodeLike}
  */
 export function isNode(node) {
-  return Boolean(node);
+  return Boolean(node && typeof node === 'object' && 'nodeType' in node);
 }
 
 /**
@@ -720,19 +721,25 @@ export function isMetadataNode(node) {
  * @returns {string}
  */
 export function decodeHtmlEntities(string) {
+  // eslint-disable-next-line unicorn/prefer-includes
   if (string.indexOf('&') === -1) {
     return string;
   } else {
     let result = string;
+    // eslint-disable-next-line unicorn/prefer-includes
     if (result.indexOf('&#38;amp;') !== -1) {
       result = result.replace(/&#38;amp;/g, '&amp;amp;')
     }
+    // eslint-disable-next-line unicorn/prefer-includes
     if (result.indexOf('&#') !== -1) {
+      // eslint-disable-next-line unicorn/prefer-code-point
       result = result.replace(/&#(\d+);/g, (s, code) => String.fromCharCode(code));
     }
+    // eslint-disable-next-line unicorn/prefer-includes
     if (result.indexOf('&') !== -1) {
       result = /** @type {string} */ (html_entity_decode(result));
     }
+
     return result;
   }
 }

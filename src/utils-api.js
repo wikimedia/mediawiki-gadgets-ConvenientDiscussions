@@ -366,7 +366,7 @@ export async function getPageIds(titles) {
  */
 export async function saveOptions(options, isGlobal = false) {
   const action = isGlobal ? 'globalpreferences' : 'options';
-  if (Object.entries(options).some(([, value]) => value && value.length > 65535)) {
+  if (Object.entries(options).some(([, value]) => value && value.length > 65_535)) {
     throw new CdError({
       type: 'internal',
       code: 'sizeLimit',
@@ -378,10 +378,10 @@ export async function saveOptions(options, isGlobal = false) {
     cd.getApi().assertCurrentUser({
       action,
       change: (
-        '\x1f' +
+        '\u001F' +
         Object.entries(options)
           .map(([name, value]) => name + (value === null ? '' : '=' + value))
-          .join('\x1f')
+          .join('\u001F')
       ),
     }),
     'postWithEditToken'
