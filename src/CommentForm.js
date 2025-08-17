@@ -100,7 +100,7 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
  */
 class CommentForm extends EventEmitter {
   /**
-   * Target object.
+   * Comment, section, or page with which the form is associated in the UI.
    *
    * @type {CommentFormTarget}
    * @private
@@ -3901,16 +3901,6 @@ class CommentForm extends EventEmitter {
   }
 
   /**
-   * Get the name of the correlated property of the form's target based on the form's mode.
-   *
-   * @returns {string}
-   * @private
-   */
-  getModeTargetProperty() {
-    return this.isMode('replyInSection') ? 'reply' : this.mode;
-  }
-
-  /**
    * Get the configuration to preload data into the form.
    *
    * @returns {PreloadConfig}
@@ -4083,18 +4073,8 @@ class CommentForm extends EventEmitter {
     const newSelf = this.target.findNewSelf();
     if (newSelf?.isActionable) {
       try {
-        /**
-         * @typedef {(
-         *   | import('./Comment').default['reply']
-         *   | import('./Comment').default['edit']
-         *   | import('./Section').default['reply']
-         *   | import('./Section').default['addSubsection']
-         *   | import('./CurrentPage').default['addSection']
-         * )} CommentFormAddingMethod
-         */
-
         /** @type {CommentFormAddingMethod} */ (
-          newSelf[/** @type {keyof typeof newSelf} */ (this.getModeTargetProperty())]
+          newSelf[/** @type {keyof typeof newSelf} */ (newSelf.getCommentFormMethodName(this.mode))]
         )(undefined, this);
       } catch (error) {
         console.warn(error);
@@ -4417,18 +4397,19 @@ class CommentForm extends EventEmitter {
   /**
    * Get the name of the target's property that can contain a comment form with the specified mode.
    *
-   * @param {Comment|import('./Section').default|import('./Page').default} target
+   * @template {Comment|import('./Section').default|import('./CurrentPage').default} T
+   * @param {T} target
    * @param {import('./CommentForm').CommentFormMode} mode
-   * @returns {string}
+   * @returns {keyof T}
    */
   static getPropertyNameOnTarget(target, mode) {
-    return target.getCommentFormMethodName(mode) + 'Form';
+    return /** @type {keyof T} */ (target.getCommentFormMethodName(mode) + 'Form');
   }
 
   /**
    * Remove references to a comment form on its target object (after it was unregistered).
    *
-   * @param {Comment|import('./Section').default|import('./Page').default} target
+   * @param {Comment|import('./Section').default|import('./CurrentPage').default} target
    * @param {import('./CommentForm').CommentFormMode} mode
    */
   static forgetOnTarget(target, mode) {

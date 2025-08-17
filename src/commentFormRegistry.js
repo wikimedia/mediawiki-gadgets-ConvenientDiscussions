@@ -9,6 +9,11 @@ import talkPageController from './talkPageController';
 import { EventEmitter } from './utils-oojs';
 import { isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
 
+// Note: this type is different from the CommentFormTarget type defined in the CommentForm class: it's not based on a generic parameter.
+/**
+ * @typedef {import('./Comment').default | import('./Section').default | import('./CurrentPage').default} CommentFormTarget
+ */
+
 // TODO: make into a class extending a generic registry.
 
 /**
@@ -27,12 +32,12 @@ import { isCmdModifierPressed, isInputFocused, keyCombination } from './utils-wi
  * Configuration object for CommentForm constructor.
  *
  * @typedef {object} CommentFormConfig
- * @property {import('./Comment').default|import('./Section').default|import('./CurrentPage').default} target The target element this form is associated with
+ * @property {CommentFormTarget} target The target element this form is associated with
  * @property {import('./CommentForm').CommentFormInitialState} [initialState] Initial state of the comment form
  * @property {'reply'|'edit'|'addSection'} mode The mode of operation for the comment form
  * @property {boolean} [autofocus=false] Whether to automatically focus the form when created
  * @property {boolean} [noAutoExpand=false] Whether to disable automatic expansion of the form
- * @property {boolean} [newTopicOnTop=false] For addSection mode, whether to add the new topic at the top
+ * @property {boolean} [newTopicOnTop=false] For `addSection` mode, whether to add the new topic at the top
  * @property {object} [preloadConfig] Configuration for preloading content
  */
 class CommentFormRegistry extends EventEmitter {
@@ -337,15 +342,16 @@ class CommentFormRegistry extends EventEmitter {
             target?.isActionable &&
             (!('canBeReplied' in target) || target.canBeReplied()) &&
             // Check if there is another form already
-            !target[CommentForm.getPropertyNameOnTarget(target, data.mode)]
+            !target[
+              CommentForm.getPropertyNameOnTarget(target, data.mode)
+            ]
           ) {
             try {
-              target[target.getCommentFormMethodName(data.mode)](
-                data,
-                undefined,
-                data.preloadConfig,
-                data.newTopicOnTop
-              );
+              /** @type {import('./CommentForm').CommentFormAddingMethod} */ (
+                target[
+                  /** @type {keyof typeof target} */ (target.getCommentFormMethodName(data.mode))
+                ]
+              )(data, undefined, data.preloadConfig, data.newTopicOnTop);
               haveRestored = true;
             } catch (error) {
               console.warn(error);
@@ -377,7 +383,7 @@ class CommentFormRegistry extends EventEmitter {
    * section on the page or the page itself.
    *
    * @param {AnyByKey | null} targetData
-   * @returns {import('./Comment').default | import('./Section').default | import('./Page').default | undefined}
+   * @returns {import('./Comment').default | import('./Section').default | import('./CurrentPage').default | undefined}
    * @private
    */
   getTargetByData(targetData) {

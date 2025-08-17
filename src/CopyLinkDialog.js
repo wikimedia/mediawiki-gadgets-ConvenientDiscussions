@@ -27,7 +27,7 @@ import { mergeJquery, wrapHtml } from './utils-window';
  * @template {import('./Comment').default|import('./Section').default} T
  */
 class CopyLinkDialog extends OO.ui.MessageDialog {
-  // @ts-ignore: https://phabricator.wikimedia.org/T358416
+  // @ts-expect-error: https://phabricator.wikimedia.org/T358416
   static name = 'copyLinkDialog';
   static actions = [
     {
