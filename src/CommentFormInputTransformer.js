@@ -17,6 +17,7 @@ class CommentFormInputTransformer extends TextMasker {
    *   {@link CommentFormInputTransformer} is instantiated, `source` is never `null`.
    */
 
+  // Note: this type is based on this class's generic parameter and is, therefore, different from CommentForm's type with the same name.
   /**
    * @typedef {import('./CommentForm').CommentFormTargetMap[Mode] & CommentFormTargetExtension} CommentFormTarget
    */

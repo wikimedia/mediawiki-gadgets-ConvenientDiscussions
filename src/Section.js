@@ -466,10 +466,10 @@ class Section extends SectionSkeleton {
         this.addSubsection();
       },
     });
-    button.buttonElement.onmouseenter = buttonsContainerInstance.resetHideAddSubsectionButtonTimeout
-      .bind(buttonsContainerInstance);
-    button.buttonElement.onmouseleave = buttonsContainerInstance.deferAddSubsectionButtonHide
-      .bind(buttonsContainerInstance);
+    button.buttonElement.addEventListener('mouseenter', buttonsContainerInstance.resetHideAddSubsectionButtonTimeout
+      .bind(buttonsContainerInstance));
+    button.buttonElement.addEventListener('mouseleave', buttonsContainerInstance.deferAddSubsectionButtonHide
+      .bind(buttonsContainerInstance));
 
     return button;
   }
@@ -548,8 +548,8 @@ class Section extends SectionSkeleton {
   showAddSubsectionButtonsOnReplyButtonHover() {
     if (!this.replyButton) return;
 
-    this.replyButton.buttonElement.onmouseenter = this.handleReplyButtonHover.bind(this);
-    this.replyButton.buttonElement.onmouseleave = this.handleReplyButtonUnhover.bind(this);
+    this.replyButton.buttonElement.addEventListener('mouseenter', this.handleReplyButtonHover.bind(this));
+    this.replyButton.buttonElement.addEventListener('mouseleave', this.handleReplyButtonUnhover.bind(this));
   }
 
   /**
@@ -778,7 +778,6 @@ class Section extends SectionSkeleton {
       ],
       classes: ['cd-popup-authors-sort'],
     });
-    sortSelect
     sortSelect.on('choose', (item) => {
       stack.setItem(getPanelByName(/** @type {PanelName} */ (item.getData())));
       settings.saveSettingOnTheFly('authorsSort', item.getData());
@@ -862,7 +861,7 @@ class Section extends SectionSkeleton {
       if (latestComment) {
         const latestCommentLink = document.createElement('a');
         latestCommentLink.href = `#${latestComment.dtId || latestComment.id}`;
-        latestCommentLink.onclick = this.scrollToLatestComment.bind(this);
+        latestCommentLink.addEventListener('click', this.scrollToLatestComment.bind(this));
         latestCommentLink.textContent = formatDate(latestComment.date);
         (new LiveTimestamp(latestCommentLink, latestComment.date, false)).init();
 
@@ -1105,7 +1104,7 @@ class Section extends SectionSkeleton {
           this.createAndClickMoreMenuSelect();
         },
       });
-      moreMenuSelectDummy.buttonElement.onmouseenter = this.addMoreMenuSelect.bind(this);
+      moreMenuSelectDummy.buttonElement.addEventListener('mouseenter', this.addMoreMenuSelect.bind(this));
     }
 
     let copyLinkButton;
@@ -1278,7 +1277,7 @@ class Section extends SectionSkeleton {
     let newLink = document.createElement('a');
     newLink.textContent = newText;
     newLink.href = `#${this.newComments[0].dtId}`;
-    newLink.onclick = this.scrollToNewComments.bind(this);
+    newLink.addEventListener('click', this.scrollToNewComments.bind(this));
 
     const newCommentCountWrapper = document.createElement('span');
     newCommentCountWrapper.className = 'cd-section-bar-item';
@@ -1649,7 +1648,7 @@ class Section extends SectionSkeleton {
       headlineElement: $('<span>').html(
         $(
           oldCommentData.elementHtmls[0].replace(
-            /\x01(\d+)_\w+\x02/g,
+            /\u0001(\d+)_\w+\u0002/g,
             (_, /** @type {string} */ num) =>
               currentCommentData.hiddenElementsData[Number(num) - 1].html
           )
@@ -1765,7 +1764,7 @@ class Section extends SectionSkeleton {
 
     // It's more convenient to unify regexps to have `\n` as the last character of anything, not
     // `(?:\n|$)`, and it doesn't seem to affect anything substantially.
-    this.presumedCode = content + '\n',
+    this.presumedCode = content + '\n';
 
     this.revisionId = revision.revid;
     this.queryTimestamp = queryTimestamp;
@@ -1872,7 +1871,7 @@ class Section extends SectionSkeleton {
     const thisHeadline = normalizeCode(this.headline);
     const adjustedContextCode = maskDistractingCode(contextCode);
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const sectionHeadingRegexp = /^((=+)(.*)\2[ \t\x01\x02]*)\n/gm;
+    const sectionHeadingRegexp = /^((=+)(.*)\2[ \t\u0001\u0002]*)\n/gm;
 
     const sourcesWithScores = [];
     /** @type {string[]} */

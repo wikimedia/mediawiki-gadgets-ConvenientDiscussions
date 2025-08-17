@@ -950,7 +950,7 @@ class TalkPageController extends EventEmitter {
    * @returns {boolean}
    */
   isLongPage() {
-    this.content.longPage ??= /** @type {number} */ ($(document).height()) > 15000;
+    this.content.longPage ??= /** @type {number} */ ($(document).height()) > 15_000;
 
     return this.content.longPage;
   }
@@ -1263,33 +1263,31 @@ class TalkPageController extends EventEmitter {
     const comment = filteredComments[0];
     const currentPageName = cd.page.name;
     if (filteredComments.length === 1) {
-      if (comment.isToMe) {
-        body = cd.s(
-          'notification-toyou-desktop',
-          comment.author.getName(),
-          comment.author,
+      body = comment.isToMe
+        ? cd.s(
+            'notification-toyou-desktop',
+            comment.author.getName(),
+            comment.author,
 
-          // Where the comment is
-          comment.section?.headline ?
-            wordSeparator + cd.s('notification-part-insection', comment.section.headline) :
-            '',
+            // Where the comment is
+            comment.section?.headline
+              ? wordSeparator + cd.s('notification-part-insection', comment.section.headline)
+              : '',
 
-          currentPageName
-        );
-      } else {
-        body = cd.s(
-          'notification-insection-desktop',
-          comment.author.getName(),
-          comment.author,
-          comment.section.headline,
-          currentPageName
-        );
-      }
+            currentPageName
+          )
+        : cd.s(
+            'notification-insection-desktop',
+            comment.author.getName(),
+            comment.author,
+            comment.section.headline,
+            currentPageName
+          );
     } else {
       const section =
         // Is there a common section?
         filteredComments.every(
-          (comment) => comment.sectionSubscribedTo === filteredComments[0].sectionSubscribedTo
+          (c) => c.sectionSubscribedTo === filteredComments[0].sectionSubscribedTo
         )
 
           ? filteredComments[0].sectionSubscribedTo
@@ -1325,7 +1323,7 @@ class TalkPageController extends EventEmitter {
       // two tabs. (Seems it doesn't work? :-/)
       tag: 'cd-' + filteredComments[filteredComments.length - 1].id,
     });
-    notification.onclick = () => {
+    notification.addEventListener('click', () => {
       parent.focus();
 
       // Just in case, old browsers. TODO: delete?
@@ -1337,7 +1335,7 @@ class TalkPageController extends EventEmitter {
         commentIds: [comment.id],
         closeNotificationsSmoothly: false,
       });
-    };
+    });
   }
 
   /**

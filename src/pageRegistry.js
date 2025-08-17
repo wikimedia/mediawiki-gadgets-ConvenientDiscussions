@@ -14,7 +14,7 @@ const pageRegistry = {
   /**
    * Collection of pages.
    *
-   * @type {object}
+   * @type {TypeByKey<Page>}
    * @private
    */
   items: {},
@@ -54,7 +54,7 @@ const pageRegistry = {
         isGendered ? /** @type {string} */ (nameOrMwTitle) : undefined
       );
     } else if (isGendered) {
-      this.items[name].name = nameOrMwTitle;
+      this.items[name].name = /** @type {string} */ (nameOrMwTitle);
     }
 
     return this.items[name];
