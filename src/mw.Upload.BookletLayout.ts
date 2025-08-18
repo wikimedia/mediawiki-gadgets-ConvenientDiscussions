@@ -18,7 +18,7 @@ declare global {
        * The methods {@link #getFile}, {@link #getFilename}, and {@link #getText} are used to retrieve
        * data from the corresponding forms. The upload process is driven by the {@link mw.Upload upload model}.
        *
-       * @param {mw.Upload.BookletLayoutConfig} [config] Configuration options.
+       * @param {BookletLayout.ConfigOptions} [config] Configuration options.
        */
       class BookletLayout extends OO.ui.BookletLayout {
         constructor(config?: BookletLayout.ConfigOptions);

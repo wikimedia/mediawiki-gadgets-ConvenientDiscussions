@@ -6,8 +6,8 @@
 
 import bootController from './bootController';
 import cd from './shared/cd';
-import talkPageController from './talkPageController';
 import { isMetadataNode, sleep } from './shared/utils-general';
+import talkPageController from './talkPageController';
 import { createSvg } from './utils-window';
 
 /**
@@ -31,9 +31,10 @@ export default {
    *
    * @returns {JQuery}
    * @memberof JQuery.fn
+   * @this {JQuery}
    */
   cdRemoveNonElementNodes: function () {
-    return this.filter((_, el) => el.tagName && !isMetadataNode(el));
+    return this.filter((_, el) => Boolean(el.tagName && !isMetadataNode(el)));
   },
 
   /**
@@ -43,9 +44,10 @@ export default {
    *   relative to the viewport.
    * @param {boolean} [smooth=true] Whether to use a smooth animation.
    * @param {(() => void)} [callback] Callback to run after the animation has
-   * completed.
+   *   completed.
    * @returns {JQuery}
    * @memberof JQuery.fn
+   * @this {JQuery}
    */
   cdScrollTo(alignment = 'top', smooth = true, /** @type {() => void} */ callback) {
     const defaultScrollPaddingTop = 7;
@@ -53,10 +55,10 @@ export default {
 
     // Filter out elements like .mw-empty-elt
     const findFirstVisibleElementOffset = (
-      /** @type {JQuery} */ $elements,
+      /** @type {JQuery} */ $els,
       /** @type {'backward' | 'forward'} */ direction
     ) => {
-      const elements = $elements.get();
+      const elements = $els.get();
       if (direction === 'backward') {
         elements.reverse();
       }
@@ -66,7 +68,7 @@ export default {
           return offset;
         }
       }
-    }
+    };
 
     let offsetFirst = findFirstVisibleElementOffset($elements);
     let offsetLast = findFirstVisibleElementOffset($elements, 'backward');
@@ -123,6 +125,7 @@ export default {
    * @param {boolean} partially Return `true` even if only a part of the element is in the viewport.
    * @returns {?boolean}
    * @memberof JQuery.fn
+   * @this {JQuery}
    */
   cdIsInViewport(partially = false) {
     const $elements = this.cdRemoveNonElementNodes();
@@ -169,6 +172,7 @@ export default {
    * @param {() => void} [callback] Callback to run after the animation has completed.
    * @returns {JQuery}
    * @memberof JQuery.fn
+   * @this {JQuery}
    */
   cdScrollIntoView(alignment = 'top', smooth = true, callback) {
     if (this.cdIsInViewport()) {
@@ -193,14 +197,15 @@ export default {
    *
    * @returns {string}
    * @memberof JQuery.fn
+   * @this {JQuery}
    */
   cdGetText() {
     let text;
     const dummyElement = document.createElement('div');
     [...this[0].childNodes].forEach((node) => {
-      dummyElement.appendChild(node.cloneNode(true));
+      dummyElement.append(node.cloneNode(true));
     });
-    document.body.appendChild(dummyElement);
+    document.body.append(dummyElement);
     text = dummyElement.innerText;
     dummyElement.remove();
     return text;
@@ -211,24 +216,29 @@ export default {
    *
    * @returns {JQuery}
    * @memberof JQuery.fn
+   * @this {JQuery}
    */
   cdAddCloseButton() {
     if (this.find('.cd-closeButton').length) {
       return /** @type {JQuery} */ (/** @type {unknown} */ (this));
     }
 
-    const $closeButton = $('<a>')
-      .attr('title', cd.s('cf-block-close'))
-      .append(
-        createSvg(20, 20).html(
-          `<path d="M4.34 2.93l12.73 12.73-1.41 1.41L2.93 4.35z" /><path d="M17.07 4.34L4.34 17.07l-1.41-1.41L15.66 2.93z" />
-        `)
-      )
-      .addClass('cd-closeButton cd-icon')
-      .on('click', () => {
-        this.empty();
-      });
-    this.prepend($closeButton);
+
+    this.prepend(
+      // Close button
+      $('<a>')
+        .attr('title', cd.s('cf-block-close'))
+        .append(
+          createSvg(20, 20).html(
+            `<path d="M4.34 2.93l12.73 12.73-1.41 1.41L2.93 4.35z" /><path d="M17.07 4.34L4.34 17.07l-1.41-1.41L15.66 2.93z" />
+        `
+          )
+        )
+        .addClass('cd-closeButton cd-icon')
+        .on('click', () => {
+          this.empty();
+        })
+    );
 
     return /** @type {JQuery} */ (/** @type {unknown} */ (this));
   },
@@ -238,6 +248,7 @@ export default {
    *
    * @returns {JQuery}
    * @memberof JQuery.fn
+   * @this {JQuery}
    */
   cdRemoveCloseButton() {
     this.find('.cd-closeButton').remove();

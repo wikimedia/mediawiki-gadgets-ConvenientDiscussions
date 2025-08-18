@@ -70,7 +70,7 @@ class SettingsDialog extends ProcessDialog {
   bookletLayout;
 
   controls =
-    /** @type {ControlTypesByName<import('./settings').default['scheme']['controlTypes']>} */ ({});
+    /** @type {Expand<ControlTypesByName<import('./settings').default['scheme']['controlTypes']>>} */ ({});
 
   /** @type {Partial<import('./settings').SettingsValues>} */
   loadedSettings;
@@ -219,6 +219,7 @@ class SettingsDialog extends ProcessDialog {
             await settings.save(this.collectSettings());
           } catch (error) {
             this.handleError(error, 'error-settings-save', true);
+
             return;
           }
 
@@ -260,9 +261,9 @@ class SettingsDialog extends ProcessDialog {
   /**
    * Create widget fields with states of controls set according to setting values.
    *
-   * @param {Partial<import('./settings').SettingsValues>} settingValues Values of settings
+   * @param {Expand<Partial<import('./settings').SettingsValues>>} settingValues Values of settings
    *   according to which to set the states of controls.
-   * @returns {object}
+   * @returns {OO.ui.PageLayout[]}
    * @protected
    */
   createPages(settingValues) {
@@ -272,55 +273,67 @@ class SettingsDialog extends ProcessDialog {
         const name = data.name;
         switch (data.type) {
           case 'checkbox':
-            this.controls[name] = createCheckboxControl({
+            /** @type {CheckboxControl} */ (this.controls[name]) = createCheckboxControl({
               .../** @type {import('./utils-oojs').CheckboxControlOptions} */ (data),
-              selected: settingValues[name],
+              selected: /** @type {boolean} */ (
+                settingValues[/** @type {import('./settings').SettingName} */ (name)]
+              ),
             });
             this.controls[name].input.on('change', this.updateAbilities.bind(this));
             break;
 
           case 'radio':
-            this.controls[name] = createRadioControl({
+            /** @type {RadioControl} */ (this.controls[name]) = createRadioControl({
               .../** @type {import('./utils-oojs').RadioControlOptions} */ (data),
-              selected: settingValues[name],
+              selected: /** @type {string} */ (
+                settingValues[/** @type {import('./settings').SettingName} */ (name)]
+              ),
             });
             this.controls[name].input.on('select', this.updateAbilities.bind(this));
             break;
 
           case 'text':
-            this.controls[name] = createTextControl({
+            /** @type {TextControl} */ (this.controls[name]) = createTextControl({
               .../** @type {import('./utils-oojs').TextControlOptions} */ (data),
-              value: settingValues[name],
+              value: /** @type {string} */ (
+                settingValues[/** @type {import('./settings').SettingName} */ (name)]
+              ),
             });
             this.controls[name].input.on('change', this.updateAbilities.bind(this));
             break;
 
           case 'number':
-            this.controls[name] = createNumberControl({
+            /** @type {NumberControl} */ (this.controls[name]) = createNumberControl({
               .../** @type {import('./utils-oojs').NumberControlOptions} */ (data),
-              value: settingValues[name],
+              value: /** @type {string} */ (
+                settingValues[/** @type {import('./settings').SettingName} */ (name)]
+              ),
             });
             this.controls[name].input.on('change', this.updateAbilities.bind(this));
             break;
 
           case 'multicheckbox':
-            this.controls[name] = createMulticheckboxControl({
+            /** @type {MulticheckboxControl} */ (this.controls[name]) = createMulticheckboxControl({
               .../** @type {import('./utils-oojs').MulticheckboxControlOptions} */ (data),
-              selected: settingValues[name],
+              selected: /** @type {string[]} */ (
+                settingValues[/** @type {import('./settings').SettingName} */ (name)]
+              ),
             });
             this.controls[name].input.on('select', this.updateAbilities.bind(this));
             break;
 
           case 'multitag':
-            this.controls[name] = createMultitagControl({
+            /** @type {MultitagControl} */ (this.controls[name]) = createMultitagControl({
               .../** @type {import('./utils-oojs').MultitagControlOptions} */ (data),
-              selected: settingValues[name],
+              selected: /** @type {string[]} */ (
+                settingValues[/** @type {import('./settings').SettingName} */ (name)]
+              ),
             });
             this.controls[name].input.on('change', this.updateAbilities.bind(this));
             break;
 
           case 'button':
-            this.controls[name] = createButtonControl({
+            /** @type {ButtonControl} */ (this.controls[name]) = createButtonControl({
               .../** @type {import('./utils-oojs').ButtonControlOptions} */ (data),
             });
             break;
@@ -381,14 +394,15 @@ class SettingsDialog extends ProcessDialog {
   /**
    * Get an object with settings related to states (see {@link module:settings.scheme}).
    *
-   * @returns {object}
+   * @returns {Partial<import('./settings').SettingsValues>}
    * @protected
    */
   getStateSettings() {
     return settings.scheme.states.reduce((obj, state) => {
-      obj[state] = this.loadedSettings[state];
+      /** @type {typeof this.loadedSettings[state]} */ (obj[state]) = this.loadedSettings[state];
+
       return obj;
-    }, {});
+    }, /** @type {Partial<import('./settings').SettingsValues>} */ ({}));
   }
 
   /**
@@ -400,34 +414,43 @@ class SettingsDialog extends ProcessDialog {
   collectSettings() {
     this.collectedSettings = Object.entries(this.controls).reduce(
       (settingsValues, [name, control]) => {
+        const n = /** @type {keyof import('./settings').DocumentedSettingsValues} */ (name);
+        /**
+         * @typedef {Partial<import('./settings').DocumentedSettingsValues>[n]} RelevantSettingType
+         */
+
         switch (control.type) {
           case 'checkbox':
-            settingsValues[name] = control.input.isSelected();
+            /** @type {RelevantSettingType} */ (settingsValues[n]) = control.input.isSelected();
             break;
           case 'radio':
-            settingsValues[name] =
-              control.input.findSelectedItem()?.getData() || settings.scheme.default[name];
+            /** @type {RelevantSettingType} */ (settingsValues[n]) =
+              /** @type {string | undefined} */ (control.input.findSelectedItem()?.getData()) ||
+              settings.scheme.default[n];
             break;
           case 'text':
-            settingsValues[name] = control.input.getValue();
+            /** @type {RelevantSettingType} */ (settingsValues[n]) = control.input.getValue();
             break;
           case 'number':
-            settingsValues[name] = Number(control.input.getValue());
-            break;
-          case 'multicheckbox':
-            settingsValues[name] = control.input.findSelectedItemsData();
-            break;
-          case 'multitag':
-            settingsValues[name] = (control.uiToData || ((val) => val)).call(
-              null,
+            /** @type {RelevantSettingType} */ (settingsValues[n]) = Number(
               control.input.getValue()
             );
+            break;
+          case 'multicheckbox':
+            /** @type {RelevantSettingType} */ (settingsValues[n]) = /** @type {string[]} */ (
+              control.input.findSelectedItemsData()
+            );
+            break;
+          case 'multitag':
+            /** @type {RelevantSettingType} */ (settingsValues[n]) = (
+              control.uiToData || ((val) => val)
+            ).call(null, /** @type {string[]} */ (control.input.getValue()));
             break;
         }
 
         return settingsValues;
       },
-      {}
+      /** @type {Partial<import('./settings').SettingsValues>} */ ({})
     );
 
     return {
@@ -497,7 +520,7 @@ class SettingsDialog extends ProcessDialog {
   /**
    * Handler of the event of change of the desktop notifications radio select.
    *
-   * @param {OO.ui.RadioOptionWidget} option
+   * @param {OO.ui.OptionWidget} option
    * @protected
    */
   onDesktopNotificationsSelectChange = (option) => {

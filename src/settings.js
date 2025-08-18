@@ -54,9 +54,17 @@ import { createSvg, getFooter, wrapHtml } from './utils-window';
  */
 
 /**
+ * @typedef {'defaultCommentLinkType'|'defaultSectionLinkType'|'showLoadingOverlay'} UndocumentedSettingName
+ */
+
+/**
+ * @typedef {Omit<SettingsValues, UndocumentedSettingName>} DocumentedSettingsValues
+ */
+
+/**
  * @typedef {(
  *   & import('./utils-oojs').ControlOptionsBase
- *   & { name: keyof Settings['scheme']['controlTypes'] | 'removeData' }
+ *   & { name: keyof Settings['scheme']['controlTypes'] }
  *   & AnyByKey
  * )} UiControlData
  */
@@ -83,14 +91,6 @@ class Settings {
    * @private
    */
   initPromise;
-
-  /**
-   * @typedef {'defaultCommentLinkType'|'defaultSectionLinkType'|'showLoadingOverlay'} UndocumentedSettingName
-   */
-
-  /**
-   * @typedef {Omit<SettingsValues, UndocumentedSettingName>} DocumentedSettingsValues
-   */
 
   /**
    * @typedef {object} Scheme

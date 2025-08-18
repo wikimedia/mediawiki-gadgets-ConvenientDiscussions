@@ -52,7 +52,7 @@ class ProcessDialog extends OO.ui.ProcessDialog {
    * Handle a error, displaying a message with the provided name and popping the pending state. If
    * the error is not recoverable, the dialog is closed on "Dismiss".
    *
-   * @param {CdError|Error} error
+   * @param {unknown} error
    * @param {string} [messageName]
    * @param {boolean} [recoverable]
    * @protected
@@ -60,9 +60,8 @@ class ProcessDialog extends OO.ui.ProcessDialog {
   handleError(error, messageName, recoverable) {
     let errorInstance;
     if (error instanceof CdError) {
-      const { type } = error.data;
       let message = cd.s(/** @type {string} */ (messageName));
-      if (type === 'network') {
+      if (error.getType() === 'network') {
         message += ' ' + cd.s('error-network');
       }
       errorInstance = new OO.ui.Error(message, { recoverable });
@@ -83,7 +82,6 @@ class ProcessDialog extends OO.ui.ProcessDialog {
       });
 
     this.actions.setAbilities({ close: true });
-
     this.updateSize();
     this.popPending();
   }

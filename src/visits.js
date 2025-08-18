@@ -4,7 +4,7 @@ import commentRegistry from './commentRegistry';
 import settings from './settings';
 import CdError from './shared/CdError';
 import cd from './shared/cd';
-import { subtractDaysFromNow } from './shared/utils-general';
+import { subtractDaysFromNow, typedKeysOf } from './shared/utils-general';
 import { getUserInfo, saveLocalOption } from './utils-api';
 import { EventEmitter } from './utils-oojs';
 
@@ -173,8 +173,8 @@ class Visits extends EventEmitter {
    */
   async save() {
     let compressed = this.pack();
-    if (compressed.length > 20480) {
-      this.cleanUp(((compressed.length - 20480) / compressed.length) + 0.05);
+    if (compressed.length > 20_480) {
+      this.cleanUp(((compressed.length - 20_480) / compressed.length) + 0.05);
       compressed = this.pack();
     }
 
@@ -203,12 +203,12 @@ class Visits extends EventEmitter {
    */
   cleanUp(share = 0.1) {
     const visits = { ...this.data };
-    const timestamps = Object.keys(visits)
+    const timestamps = typedKeysOf(visits)
       .reduce((acc, key) => acc.concat(Number(visits[key])), /** @type {number[]} */ ([]))
       .sort((a, b) => a - b);
     const boundary = timestamps[Math.floor(timestamps.length * share)];
-    Object.keys(visits).forEach((key) => {
-      visits[key] = visits[key].filter((/** @type {number} */ visit) => visit >= boundary);
+    typedKeysOf(visits).forEach((key) => {
+      visits[key] = visits[key].filter((visit) => Number(visit) >= boundary);
       if (!visits[key].length) {
         delete visits[key];
       }
@@ -227,7 +227,7 @@ class Visits extends EventEmitter {
     this.currentPageData[0] = (
       (typeof dateOrDays === 'object' ? dateOrDays.getTime() : subtractDaysFromNow(dateOrDays)) /
       1000
-    ).toFixed();
+    ).toFixed(0);
     this.save();
   }
 }
