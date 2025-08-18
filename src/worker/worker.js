@@ -305,3 +305,17 @@ function onMessageFromWindow(event) {
 }
 
 self.addEventListener('message', onMessageFromWindow);
+
+/**
+ * Dummy class for an export.
+ */
+class WebpackWorker extends Worker {
+  /**
+   * Dummy constructor.
+   */
+  constructor() {
+    super('');
+  }
+}
+
+export default WebpackWorker;

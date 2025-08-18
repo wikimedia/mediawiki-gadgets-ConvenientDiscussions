@@ -124,10 +124,10 @@ const config = tseslint.config(
       '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
       '@typescript-eslint/parameter-properties': 'error',
       '@typescript-eslint/no-shadow': 'error',
-      '@typescript-eslint/class-methods-use-this': ['error', {
-        enforceForClassFields: true,
-        ignoreOverrideMethods: true,
-      }],
+      // '@typescript-eslint/class-methods-use-this': ['error', {
+      //   enforceForClassFields: true,
+      //   ignoreOverrideMethods: true,
+      // }],
       // '@typescript-eslint/no-unnecessary-condition': ['warn', {
       //   allowConstantLoopConditions: true,
       // }],
@@ -140,6 +140,9 @@ const config = tseslint.config(
       '@typescript-eslint/no-extraneous-class': ['error', {
         allowEmpty: true,
       }],
+
+      // Disable for now
+      '@typescript-eslint/class-methods-use-this': 'off',
 
       // Wait until enough browsers support it
       'unicorn/prefer-string-replace-all': 'off',

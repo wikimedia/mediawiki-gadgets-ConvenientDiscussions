@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -9,7 +9,7 @@ require('json5/lib/register.js');
 const config = require('./config.json5');
 const getUrl = require('./misc/utils.js').getUrl;
 
-module.exports = (env) => {
+const webpack_ = (env) => {
   /*
     Production builds are created by running
       npm run build
@@ -91,7 +91,7 @@ module.exports = (env) => {
           use: ['style-loader', 'css-loader', 'less-loader'],
         },
         {
-          test: /\bworker-gate\.js$/,
+          test: /\bworker\.js$/,
           use: {
             loader: 'worker-loader',
             options: {
@@ -135,7 +135,7 @@ module.exports = (env) => {
             // Removed "\**!|" at the beginning to not extract the <nowiki> comment.
             condition: /@preserve|@license|@cc_on/i,
 
-            filename: (filename) => `${filename}.LICENSE.js`,
+            filename: (name) => `${name}.LICENSE.js`,
 
             banner: (licenseFile) => (
               licenseFile.includes('worker') ?
@@ -220,3 +220,4 @@ module.exports = (env) => {
     },
   };
 };
+module.exports = webpack_;
