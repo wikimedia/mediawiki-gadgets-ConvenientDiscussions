@@ -140,7 +140,7 @@ class Visits extends EventEmitter {
     // The format of the items:
     // <Page ID>,<List of visits, from oldest to newest, separated by comma>\n
     return LZString.compressToEncodedURIComponent(
-      Object.keys(this.data)
+      typedKeysOf(this.data)
         .map((key) => `${key},${this.data[key].join(',')}\n`)
         .join('')
         .trim()
@@ -163,7 +163,7 @@ class Visits extends EventEmitter {
       const regexp = /^(\d+),(.+)$/gm;
       let match;
       while ((match = regexp.exec(string))) {
-        this.data[match[1]] = match[2].split(',');
+        this.data[Number(match[1])] = match[2].split(',');
       }
     }
   }

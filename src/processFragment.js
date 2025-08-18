@@ -7,22 +7,31 @@
  */
 
 import Comment from './Comment';
-import cd from './shared/cd';
 import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
+import cd from './shared/cd';
 import { defined, sleep, underlinesToSpaces } from './shared/utils-general';
 import { formatDateNative } from './shared/utils-timestamp';
 import { removeWikiMarkup } from './shared/utils-wikitext';
 import { isExistentAnchor, wrapHtml } from './utils-window';
 
+/** @type {string} */
 let decodedValue;
+/** @type {Date | undefined} */
 let date;
+/** @type {string | undefined} */
 let author;
+/** @type {string} */
 let guessedCommentText;
+/** @type {string} */
 let guessedSectionText;
+/** @type {string} */
 let sectionName;
+/** @type {string} */
 let sectionNameDotDecoded;
+/** @type {string} */
 let token;
+/** @type {string} */
 let searchQuery;
 let searchResults;
 
@@ -67,23 +76,21 @@ export default async function processFragment() {
     });
   }
 
-  if (decodedValue && !cd.page.isArchive()) {
-    if (
-      // Try to find the target
-      !(
-        comment ||
-        cd.config.idleFragments.some((regexp) => decodedValue.match(regexp)) ||
+  if (decodedValue && !cd.page.isArchive() &&
+    // Try to find the target
+    !(
+      comment ||
+      cd.config.idleFragments.some((regexp) => decodedValue.match(regexp)) ||
 
-        // `/media/` is from MediaViewer, `noticeApplied` is from RedWarn
-        /^\/media\/|^noticeApplied-|^h-/.test(decodedValue) ||
+      // `/media/` is from MediaViewer, `noticeApplied` is from RedWarn
+      /^\/media\/|^noticeApplied-|^h-/.test(decodedValue) ||
 
-        $(':target').length ||
-        isExistentAnchor(value) ||
-        isExistentAnchor(decodedValue)
-      )
-    ) {
-      await maybeNotifyNotFound();
-    }
+      $(':target').length ||
+      isExistentAnchor(value) ||
+      isExistentAnchor(decodedValue)
+    )
+  ) {
+    await maybeNotifyNotFound();
   }
 }
 
@@ -99,7 +106,7 @@ async function maybeNotifyNotFound() {
   guessedCommentText = '';
   guessedSectionText = '';
 
-  if (date) {
+  if (date && author) {
     label = cd.sParse('deadanchor-comment-lead');
     const priorComment = commentRegistry.findPriorComment(date, author);
     if (priorComment) {
@@ -209,37 +216,32 @@ function notifyAboutSearchResults() {
   );
 
   if (searchResults.length === 0) {
-    let label;
-    if (date) {
-      label = (
-        cd.sParse('deadanchor-comment-lead') +
-        ' ' +
-        cd.sParse('deadanchor-comment-notfound', searchUrl) +
-        guessedCommentText
-      );
-    } else {
-      label = (
-        cd.sParse('deadanchor-section-lead', sectionName) +
-        (
-          guessedSectionText && sectionName.includes('{{') ?
-            // Use of a template in the section title. In such a case, it's almost always the real
-            // match, so we don't show any fail messages.
-            '' :
 
+    mw.notify(
+      wrapHtml(
+        date
+          ? cd.sParse('deadanchor-comment-lead') +
+            ' ' +
+            cd.sParse('deadanchor-comment-notfound', searchUrl) +
+            guessedCommentText
+          : cd.sParse('deadanchor-section-lead', sectionName) +
             (
-              ' ' +
-              cd.sParse('deadanchor-section-notfound', searchUrl) +
-              ' ' +
-              cd.sParse('deadanchor-section-reason', searchUrl)
-            )
-        ) +
-        guessedSectionText
-      );
-    }
-    mw.notify(wrapHtml(label), {
-      type: 'warn',
-      autoHideSeconds: 'long',
-    });
+              guessedSectionText && sectionName.includes('{{')
+                ? // Use of a template in the section title. In such a case, it's almost always the real
+                  // match, so we don't show any fail messages.
+                  ''
+                : ' ' +
+                  cd.sParse('deadanchor-section-notfound', searchUrl) +
+                  ' ' +
+                  cd.sParse('deadanchor-section-reason', searchUrl)
+            ) +
+            guessedSectionText
+      ),
+      {
+        type: 'warn',
+        autoHideSeconds: 'long',
+      }
+    );
   } else {
     let exactMatchPageTitle;
 

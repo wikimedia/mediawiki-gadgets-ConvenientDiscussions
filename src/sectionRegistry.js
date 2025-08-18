@@ -205,7 +205,7 @@ class SectionRegistry {
       const doesIdMatch = section.id === id;
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const doAncestorsMatch = ancestors ?
-        areObjectsEqual(section.getAncestors().map((section) => section.headline), ancestors) :
+        areObjectsEqual(section.getAncestors().map((sect) => sect.headline), ancestors) :
         false;
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const doesOldestCommentMatch = section.oldestComment?.id === oldestCommentId;
@@ -359,13 +359,13 @@ class SectionRegistry {
 
     /** @type {import('./Section').default | undefined} */
     let firstSectionToHide;
-    if (document.documentElement.scrollHeight - viewportTop > 20000) {
+    if (document.documentElement.scrollHeight - viewportTop > 20_000) {
       const currentSection = this.getCurrentSection();
       firstSectionToHide = this.items
         .filter((section) => !currentSection || section.index > currentSection.index)
         .find((section) => {
           const rect = section.headingElement.getBoundingClientRect();
-          let blockSize = 10000;
+          let blockSize = 10_000;
           return (
             getVisibilityByRects(rect) &&
             rect.top >= threeScreens &&

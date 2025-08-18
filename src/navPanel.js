@@ -333,7 +333,7 @@ class NavPanel {
     this.state.cachedCommentsBySection = commentsBySection;
 
     /** @type {string | undefined} */
-    let tooltipText = undefined;
+    let tooltipText;
     const areThereNew = commentRegistry.getAll().some((comment) => comment.isNew);
     if (commentCount) {
       tooltipText =
@@ -369,7 +369,7 @@ class NavPanel {
             ) +
 
             // RTL mark if needed
-            (cd.g.contentDirection === 'rtl' ? '\u200f' : '') +
+            (cd.g.contentDirection === 'rtl' ? '\u200F' : '') +
 
             cd.mws('comma-separator') +
 
