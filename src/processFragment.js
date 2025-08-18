@@ -33,6 +33,15 @@ let sectionNameDotDecoded;
 let token;
 /** @type {string} */
 let searchQuery;
+
+/**
+ * @typedef {object} SearchResult
+ * @property {string} snippet
+ * @property {string} title
+ * @property {string} [sectiontitle]
+ */
+
+/** @type {SearchResult[]} */
 let searchResults;
 
 /**
@@ -270,7 +279,7 @@ function notifyAboutSearchResults() {
         ));
       if (exactMatch) {
         exactMatchPageTitle = exactMatch.title;
-        sectionNameFound = underlinesToSpaces(exactMatch.sectiontitle);
+        sectionNameFound = underlinesToSpaces(/** @type {string} */ (exactMatch.sectiontitle));
       }
     }
 

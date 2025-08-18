@@ -195,7 +195,7 @@ declare global {
   type MultilineTextInputControl = GenericControl<'multilineText'>;
 
   type MultitagControl = GenericControl<'multitag'> & {
-    uiToData?: (value: string[]) => (string|string[])[];
+    uiToData?: (value: string[]) => (string | [string, string])[];
   };
 
   type NumberControl = GenericControl<'number'>;
