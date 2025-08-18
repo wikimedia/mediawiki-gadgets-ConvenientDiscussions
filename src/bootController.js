@@ -1574,9 +1574,9 @@ class BootController {
    * @param {string} name
    */
   removePreventUnloadCondition(name) {
-    if (!this.beforeUnloadHandlers[name]) return;
+    if (!(name in this.beforeUnloadHandlers)) return;
 
-    $(window).off('beforeunload', (this.beforeUnloadHandlers[name]));
+    $(window).off('beforeunload', this.beforeUnloadHandlers[name]);
     delete this.beforeUnloadHandlers[name];
   }
 }

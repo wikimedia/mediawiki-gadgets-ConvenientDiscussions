@@ -19,13 +19,13 @@ export default class User {
    * Create a user object.
    *
    * @param {string} name
-   * @param {object} options
+   * @param {AnyByKey} options
    */
   constructor(name, options = {}) {
     this.name = name;
     this.muted = false;
-    Object.keys(options).forEach((name) => {
-      this.options.set(name, options[name]);
+    Object.keys(options).forEach((n) => {
+      this.options.set(n, options[n]);
     });
   }
 

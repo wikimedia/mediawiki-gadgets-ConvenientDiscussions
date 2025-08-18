@@ -228,8 +228,8 @@ class EditSubscriptionsDialog extends ProcessDialog {
     this.updateSize();
     this.pushPending();
 
-    /** @type {StringArraysByKey} */
-    const sections = {};
+    /** @type {Map<string, string[]>} */
+    const sections = new Map();
     /** @type {string[]} */
     const pageTitles = [];
     this.input
@@ -239,11 +239,11 @@ class EditSubscriptionsDialog extends ProcessDialog {
         const match = section.match(/^(.+?)#(.+)$/);
         if (match) {
           const pageTitle = match[1].trim();
-          if (!sections[pageTitle]) {
-            sections[pageTitle] = [];
+          if (!sections.has(pageTitle)) {
+            sections.set(pageTitle, []);
             pageTitles.push(pageTitle);
           }
-          sections[pageTitle].push(match[2].trim());
+          /** @type {string[]} */ (sections.get(pageTitle)).push(match[2].trim());
         }
       });
 
@@ -260,28 +260,33 @@ class EditSubscriptionsDialog extends ProcessDialog {
     // Correct to normalized titles && redirect targets, add to the collection.
     normalized
       .concat(redirects)
-      .filter((page) => sections[page.from])
+      .filter((page) => sections.has(page.from))
       .forEach((page) => {
-        sections[page.to] ||= [];
-        sections[page.to].push(...sections[page.from]);
-        delete sections[page.from];
+        if (!sections.has(page.to)) {
+          sections.set(page.to, []);
+        }
+        /** @type {string[]} */ (sections.get(page.to)).push(
+          .../** @type {string[]} */ (sections.get(page.from))
+        );
+        sections.delete(page.from);
       });
 
-    /** @type {NumbersByKey} */
-    const titleToId = {};
+    /** @type {Map<string, number>} */
+    const titleToId = new Map();
     pages
       .filter((page) => page.pageid !== undefined)
       .forEach((page) => {
-        titleToId[page.title] = page.pageid;
+        titleToId.set(page.title, page.pageid);
       });
 
     /** @type {Record<number, import('./Subscriptions').SubscriptionsData>} */
     const allPagesData = {};
-    Object.keys(sections)
-      .filter((key) => titleToId[key])
-      .forEach((key) => {
-        allPagesData[titleToId[key]] = this.subscriptions.itemsToKeys(sections[key].filter(unique));
-      });
+    for (const [pageTitle, sectionList] of sections) {
+      const pageId = titleToId.get(pageTitle);
+      if (pageId) {
+        allPagesData[pageId] = this.subscriptions.itemsToKeys(sectionList.filter(unique));
+      }
+    }
 
     try {
       this.subscriptions.save(allPagesData);

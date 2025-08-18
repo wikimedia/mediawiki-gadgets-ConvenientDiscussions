@@ -177,12 +177,12 @@ class Debug {
     this.initCounters();
 
     if (this.array.length) {
-      console.debug(`array: `, this.array);
+      console.debug(`array:`, this.array);
       this.array = [];
     }
 
     if (Object.keys(this.object).length) {
-      console.debug(`object: `, this.object);
+      console.debug(`object:`, this.object);
       this.object = {};
     }
   }

@@ -74,7 +74,7 @@ declare global {
   }
 
   interface JQuery {
-    cdRemoveNonElementNodes(): void;
+    cdRemoveNonElementNodes(): JQuery;
     cdScrollTo(
       alignment: 'top' | 'center' | 'bottom' = 'top',
       smooth = true,

@@ -5,10 +5,10 @@ declare global {
        * Encapsulates the process of uploading a file to MediaWiki using the
        * {@link mw.ForeignStructuredUpload} model.
        *
-       * @param {mw.ForeignStructuredUpload.BookletLayoutConfig} [config] Configuration options.
+       * @param {mw.Upload.BookletLayout.ConfigOptions} [config] Configuration options.
        */
       class BookletLayout extends mw.Upload.BookletLayout {
-        constructor(config?: BookletLayout.ConfigOptions);
+        constructor(config?: mw.Upload.BookletLayout.ConfigOptions);
 
         /**
          * Used to choose the target repository.
@@ -185,7 +185,7 @@ declare global {
          * @interface
          * @extends mw.Upload.BookletLayoutConfig
          */
-        interface ConfigOptions extends mw.Upload.BookletLayoutConfig {
+        interface ConfigOptions extends mw.Upload.BookletLayout.ConfigOptions {
           /**
            * Used to choose the target repository.
            * If nothing is passed, the default target from mw.ForeignUpload is used.

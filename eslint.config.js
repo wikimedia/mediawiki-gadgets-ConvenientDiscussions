@@ -81,6 +81,7 @@ const config = tseslint.config(
       '@typescript-eslint/restrict-template-expressions': ['error', {
         allowNumber: true,
       }],
+      '@typescript-eslint/no-dynamic-delete': 'off',
 
       // We use inline require() because some global identifiers like OO.ui become available to us
       // only after they are loaded with mw.loader.
@@ -135,6 +136,11 @@ const config = tseslint.config(
       // We use it only when necessary.
       '@typescript-eslint/no-this-alias': 'off',
 
+      // We have a use for empty classes - see mixInObject()
+      '@typescript-eslint/no-extraneous-class': ['error', {
+        allowEmpty: true,
+      }],
+
       // Wait until enough browsers support it
       'unicorn/prefer-string-replace-all': 'off',
       'unicorn/prefer-at': 'off',
@@ -181,7 +187,6 @@ const config = tseslint.config(
       // I never do that, and it gives false positives with any methods named .filter()
       'unicorn/no-array-method-this-argument': 'off',
 
-      'unicorn/no-empty-file': 'warn',
       'unicorn/no-lonely-if': 'warn',
 
       // Duplicated @typescript-eslint/no-this-alias
@@ -197,6 +202,9 @@ const config = tseslint.config(
       'unicorn/no-useless-undefined': ['error', {
         checkArguments: false,
       }],
+
+      // We have files with JSDoc types
+      'unicorn/no-empty-file': 'off',
 
       // Import plugin rules
       'import/order': [
