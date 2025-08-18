@@ -1,7 +1,7 @@
 import StorageItem from './StorageItem';
 
 /**
- * @template {object} EntryType
+ * @template {any} EntryType
  * @typedef {{ [key: ValidKey]: EntryType }} EntryTypeByKey
  */
 
@@ -20,9 +20,9 @@ class StorageItemWithKeys extends StorageItem {
    * @param {string} key Local storage Item key (will be prepended by {@link StorageItem.prefix}).
    * @abstract
    */
-  constructor(key) {
-    super(key);
-  }
+  // constructor(key) {
+  //   super(key);
+  // }
 
   /**
    * Get an entry of the storage item by key.

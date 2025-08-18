@@ -40,42 +40,42 @@ class Subscriptions extends EventEmitter {
   }
 
   /**
-   * @param {...*} args
+   * @param {...*} _args
    * @abstract
    */
   // eslint-disable-next-line no-unused-vars
-  async load(...args) {
+  async load(..._args) {
     // This method is defined in subclasses.
   }
 
   /**
-   * @param {...*} args
+   * @param {...*} _args
    * @abstract
    * @returns {boolean}
    */
   // eslint-disable-next-line no-unused-vars
-  areLoaded(...args) {
+  areLoaded(..._args) {
     // This method is defined in subclasses.
     return true;
   }
 
   /**
-   * @param {...*} args
+   * @param {...*} _args
    * @abstract
    * @protected
    */
   // eslint-disable-next-line no-unused-vars
-  async actuallySubscribe(...args) {
+  async actuallySubscribe(..._args) {
     // This method is defined in subclasses.
   }
 
   /**
-   * @param {...*} args
+   * @param {...*} _args
    * @abstract
    * @protected
    */
   // eslint-disable-next-line no-unused-vars
-  async actuallyUnsubscribe(...args) {
+  async actuallyUnsubscribe(..._args) {
     // This method is defined in subclasses.
   }
 

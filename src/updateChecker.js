@@ -21,11 +21,11 @@ import visits from './visits';
  * @property {import('./Section').default} [match]
  * @property {number} [matchScore]
  * @property {number} [tocLevel]
- * @property {SectionWorker|SectionWorkerMatched} [parent]
+ * @property {import('./worker/SectionWorker').default|SectionWorkerMatched} [parent]
  */
 
 /**
- * @typedef {RemoveMethods<SectionWorker> & SectionWorkerExtension} SectionWorkerMatched
+ * @typedef {RemoveMethods<import('./worker/SectionWorker').default> & SectionWorkerExtension} SectionWorkerMatched
  */
 
 /**
@@ -112,6 +112,7 @@ class UpdateChecker extends EventEmitter {
   lastCheckedRevisionId = undefined;
 
   resolverCount = 0;
+  initted = false;
 
   /**
    * Tell the worker to wake the script up after a given interval.
@@ -190,14 +191,14 @@ class UpdateChecker extends EventEmitter {
     // Clean up revisionData from values that can't be reused as it may grow really big. (The newest
     // revision could be reused as the current revision; the current revision could be reused as the
     // previous visit revision.)
-    this.revisionData.keys().forEach((revisionId) => {
+    this.revisionData.keys().forEach((revId) => {
       if (
-        revisionId !== message.revisionId &&
-        revisionId !== this.lastCheckedRevisionId &&
-        revisionId !== this.previousVisitRevisionId &&
-        revisionId !== mw.config.get('wgRevisionId')
+        revId !== message.revisionId &&
+        revId !== this.lastCheckedRevisionId &&
+        revId !== this.previousVisitRevisionId &&
+        revId !== mw.config.get('wgRevisionId')
       ) {
-        this.revisionData.delete(revisionId);
+        this.revisionData.delete(revId);
       }
     });
 
@@ -241,7 +242,7 @@ class UpdateChecker extends EventEmitter {
    * Map sections obtained from a revision to the sections present on the page. (Contrast with
    * `updateChecker#mapComments` which maps CommentWorker objects together.)
    *
-   * @param {SectionWorker[] | SectionWorkerMatched[]} otherSections
+   * @param {import('./worker/SectionWorker').default[] | SectionWorkerMatched[]} otherSections
    * @param {number} lastCheckedRevisionId
    * @private
    */
@@ -284,7 +285,7 @@ class UpdateChecker extends EventEmitter {
   /**
    * Check if sections instances received from a web worker were previously enriched by this class.
    *
-   * @param {SectionWorker[] | SectionWorkerMatched[]} sections
+   * @param {import('./worker/SectionWorker').default[] | SectionWorkerMatched[]} sections
    * @returns {sections is SectionWorkerMatched[]}
    */
   areSectionsEnriched(sections) {
@@ -350,8 +351,8 @@ class UpdateChecker extends EventEmitter {
    * The function also adds the `hasPoorMatch` property to comments that have possible matches that
    * are not good enough to confidently state a match.
    *
-   * @param {CommentWorker[] | CommentWorkerMatched[]} currentComments
-   * @param {CommentWorker[] | CommentWorkerMatched[]} otherComments
+   * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} currentComments
+   * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} otherComments
    * @private
    */
   mapWorkerCommentsToWorkerComments(currentComments, otherComments) {
@@ -419,7 +420,7 @@ class UpdateChecker extends EventEmitter {
   /**
    * Check if comment instances received from a web worker were previously enriched by this class.
    *
-   * @param {CommentWorker[] | CommentWorkerMatched[]} comments
+   * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} comments
    * @returns {comments is CommentWorkerMatched[]}
    */
   areCommentsEnriched(comments) {
@@ -864,7 +865,7 @@ class UpdateChecker extends EventEmitter {
    * @param {MessageEvent} event
    * @private
    */
-  async onMessageFromWorker(event) {
+  onMessageFromWorker = async (event) => {
     const message = event.data;
 
     if (message.type === 'wakeUp') {
@@ -876,7 +877,7 @@ class UpdateChecker extends EventEmitter {
       this.resolvers[resolverId](message);
       delete this.resolvers[resolverId];
     }
-  }
+  };
 
   /**
    * _For internal use._ Initialize the update checker.
@@ -898,6 +899,7 @@ class UpdateChecker extends EventEmitter {
           )
         );
       });
+    this.initted = true;
   }
 
   /**
@@ -909,11 +911,10 @@ class UpdateChecker extends EventEmitter {
   async setup(previousVisitTime, submittedCommentId) {
     this.isBackgroundCheckArranged = false;
     this.previousVisitRevisionId = undefined;
-    const worker = cd.getWorker();
-    if (worker.onmessage) {
+    if (this.initted) {
       this.removeAlarmViaWorker();
     } else {
-      worker.onmessage = this.onMessageFromWorker.bind(this);
+      cd.getWorker().addEventListener('message', this.onMessageFromWorker);
     }
     this.setAlarmViaWorker(cd.g.updateCheckInterval * 1000);
     if (previousVisitTime) {

@@ -25,7 +25,7 @@ import StorageItemWithKeys from './StorageItemWithKeys';
  */
 
 /**
- * @template {object} EntryType
+ * @template {any} EntryType
  * @template {string} Key
  * @typedef {{ [key in Key]: EntryType } & { saveTime: number }} EntryTypeWithSaveTime
  */
@@ -42,9 +42,9 @@ class StorageItemWithKeysAndSaveTime extends StorageItemWithKeys {
    * @param {Key} key Local storage item key (will be prepended by {@link StorageItem.prefix}).
    * @abstract
    */
-  constructor(key) {
-    super(key);
-  }
+  // constructor(key) {
+  //   super(key);
+  // }
 
   /**
    * Get an entry of the storage item by key.
@@ -66,20 +66,24 @@ class StorageItemWithKeysAndSaveTime extends StorageItemWithKeys {
    */
   setWithTime(pageKey, pageData) {
     pageKey = String(pageKey);
-    const isEmpty = !(
+
+    if (
+      // Is pageData not empty
       Array.isArray(pageData)
         ? pageData.length
         : $.isPlainObject(pageData)
-          ? Object.keys(/** @type {object} */ (pageData)).length
-          : pageData
-    );
-    if (isEmpty) {
-      this.remove(pageKey);
+        ? Object.keys(/** @type {object} */ (pageData)).length
+        : pageData
+    ) {
+      this.set(
+        pageKey,
+        /** @type {EntryTypeWithSaveTime<EntryType, Key>} */ ({
+          [this.key]: pageData,
+          saveTime: Date.now(),
+        })
+      );
     } else {
-      this.set(pageKey, /** @type {EntryTypeWithSaveTime<EntryType, Key>} */ ({
-        [this.key]: pageData,
-        saveTime: Date.now(),
-      }));
+      this.remove(pageKey);
     }
 
     return this;
