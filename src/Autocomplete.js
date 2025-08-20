@@ -14,12 +14,12 @@ import { handleApiReject } from './utils-api';
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
 /**
- * @typedef {NonNullable<Autocomplete.config>} AutocompleteStaticConfig
+ * @typedef {NonNullable<typeof Autocomplete.config>} AutocompleteStaticConfig
  */
 
 /**
  * @typedef {object} AutocompleteConfig
- * @property {{ [key: string]: string[] }} [byText]
+ * @property {StringArraysByKey} [byText]
  * @property {string[]} [cache]
  * @property {any[] | (() => any[])} [default]
  * @property {(value: any) => import('./tribute/Tribute').TransformData} [transform]
@@ -522,14 +522,20 @@ class Autocomplete {
       },
     });
 
-    types.forEach((type) => {
-      /** @type {typeof this[type]} */ (this[type]) = /** @type {typeof this[type]} */ (
-        OO.copy(/** @type {NonNullable<Autocomplete.config>} */ (Autocomplete.config)[type])
-      );
-    });
+    const params = {
+      mentions: { default: defaultUserNames },
+      commentLinks: { comments: comments || [] },
+    };
 
-    this.mentions.default = defaultUserNames;
-    this.commentLinks.comments = comments || [];
+    types.forEach((type) => {
+      /** @type {AutocompleteStaticConfig[type]} */ (this[type]) = OO.copy(
+        /** @type {AutocompleteStaticConfig} */ (Autocomplete.config)[type]
+      );
+
+      if (type in params) {
+        Object.assign(this[type], params[/** @type {keyof typeof params} */ (type)]);
+      }
+    });
 
     return types.map((type) => collectionsByType[type]);
   }

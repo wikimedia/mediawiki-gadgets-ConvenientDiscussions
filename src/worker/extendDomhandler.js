@@ -1,3 +1,5 @@
+/* eslint-disable unicorn/prefer-dom-node-append */
+/* eslint-disable unicorn/prefer-includes */
 import { DataNode, Document, Element, Node, NodeWithChildren, Text } from 'domhandler';
 import { DomUtils } from 'htmlparser2';
 
@@ -32,7 +34,7 @@ Node.prototype.remove = function () {
  * @returns {boolean}
  */
 Node.prototype.follows = function (node) {
-  return Boolean(DomUtils.compareDocumentPosition(this, node) & DomUtils.DocumentPosition.FOLLOWING);
+  return Boolean(DomUtils.compareDocumentPosition(this, node) & 4 /* FOLLOWING */);
 };
 
 Object.defineProperty(Node.prototype, 'textContent', {
@@ -191,9 +193,9 @@ Element.prototype.getElementsByAttribute = function (regexp) {
  */
 Element.prototype.querySelectorAll = function (selector) {
   const tokens = selector.split(/ *, */);
-  const tagNames = tokens
+  const tagNames = new Set(tokens
     .filter((token) => !token.startsWith('.'))
-    .map((name) => name.toUpperCase());
+    .map((name) => name.toUpperCase()));
   const classNames = tokens
     .filter((token) => token.startsWith('.'))
     .map((name) => name.slice(1));
@@ -201,7 +203,7 @@ Element.prototype.querySelectorAll = function (selector) {
   return /** @type {Element[]} */ (this.filterRecursively((node) =>
     node instanceof Element &&
     (
-      tagNames.includes(node.tagName) ||
+      tagNames.has(node.tagName) ||
       classNames.some((name) => node.classList.contains(name))
     )
   ));
@@ -524,4 +526,4 @@ Document.prototype.createTextNode = function (content = '') {
 Document.prototype.getElementsByClassName = Element.prototype.getElementsByClassName;
 Document.prototype.querySelectorAll = Element.prototype.querySelectorAll;
 
-export { DataNode, Document, Element, Node, NodeWithChildren, Text };
+export { DataNode, Document, Element, Node, NodeWithChildren, Text } from 'domhandler';

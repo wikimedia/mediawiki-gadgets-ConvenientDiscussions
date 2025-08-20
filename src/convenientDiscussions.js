@@ -12,7 +12,7 @@ import pageRegistry from './pageRegistry';
 import cd from './shared/cd';
 import { buildEditSummary, getQueryParamBooleanValue, underlinesToSpaces } from './shared/utils-general';
 import { wrapDiffBody, wrapHtml } from './utils-window';
-import WebpackWorker from './worker/worker';
+import WebpackWorker from './worker/worker-gate';
 
 const mwStringsCache = /** @type {StringsByKey} */ ({});
 /** @type {boolean} */

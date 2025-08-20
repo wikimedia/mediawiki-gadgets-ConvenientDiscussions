@@ -150,7 +150,7 @@ class LiveTimestamp extends mixInObject(
    */
   static initImproved() {
     let date = dayjs();
-    if (settings.get('useUiTime') && !['UTC', 0, null].includes(cd.g.uiTimezone)) {
+    if (settings.get('useUiTime') && !['UTC', 0, undefined].includes(cd.g.uiTimezone)) {
       date = typeof cd.g.uiTimezone === 'number' ?
         date.utcOffset(cd.g.uiTimezone) :
         date.tz(/** @type {string} */ (cd.g.uiTimezone));

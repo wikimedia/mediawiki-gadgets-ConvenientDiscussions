@@ -1048,19 +1048,18 @@ class BootController {
 
     // mw.loader.using() delays the execution even if all modules are ready (if CD is used as a
     // gadget with preloaded dependencies, for example), so we use this trick.
-    let modulesRequest;
-    if (modules.every((module) => mw.loader.getState(module) === 'ready')) {
-      // If there is no data to load and, therefore, no period of time within which a reflow (layout
-      // thrashing) could happen without impeding performance, we cache the value so that it could
-      // be used in .saveRelativeScrollPosition() without causing a reflow.
-      this.bootProcess = this.createBootProcess(
-        siteDataRequests.every((request) => request.state() === 'resolved')
-          ? { scrollY: window.scrollY }
-          : {}
-      );
-    } else {
-      modulesRequest = mw.loader.using(modules);
-    }
+    const modulesRequest = modules.some((module) => mw.loader.getState(module) !== 'ready')
+      ? mw.loader.using(modules)
+      : undefined;
+
+    // If there is no data to load and, therefore, no period of time within which a reflow (layout
+    // thrashing) could happen without impeding performance, we cache the value so that it could
+    // be used in .saveRelativeScrollPosition() without causing a reflow.
+    this.bootProcess = this.createBootProcess(
+      !modulesRequest && siteDataRequests.every((request) => request.state() === 'resolved')
+        ? { scrollY: window.scrollY }
+        : {}
+    );
 
     this.showLoadingOverlay();
     Promise.all([modulesRequest, ...siteDataRequests]).then(
