@@ -777,7 +777,6 @@ class Settings {
    *
    * @param {string|object} name
    * @param {string} [value]
-   * @private
    */
   set(name, value) {
     Object.assign(this.values, typeof name === 'string' ? { [name]: value } : name);

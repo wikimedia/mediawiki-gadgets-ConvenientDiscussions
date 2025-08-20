@@ -61,6 +61,11 @@
     line-height: 2em;
   }
 
+  // Hide the group that has the "Preview" button on action=edit pages, but nothing in our case.
+  .wikiEditor-ui-toolbar .group.empty {
+    display: none;
+  }
+
   // For absolutely positioned popups
   .wikiEditor-ui-text {
     position: relative;

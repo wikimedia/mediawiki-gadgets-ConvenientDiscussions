@@ -91,7 +91,7 @@ const webpack_ = (env) => {
           use: ['style-loader', 'css-loader', 'less-loader'],
         },
         {
-          test: /\bworker\.js$/,
+          test: /\bworker-gate\.js$/,
           use: {
             loader: 'worker-loader',
             options: {

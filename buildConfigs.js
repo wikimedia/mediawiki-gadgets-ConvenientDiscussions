@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('node:fs');
 
 // eslint-disable-next-line no-one-time-vars/no-one-time-vars
 const argv = require('yargs').argv;

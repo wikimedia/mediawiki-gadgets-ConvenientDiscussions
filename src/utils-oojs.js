@@ -630,21 +630,16 @@ export function es6ClassToOoJsClass(TargetClass) {
  * @template {Constructor} TMixin
  * @param {TBase} Base
  * @param {TMixin} Mixin
- * @returns {TBase & MixinType}
  */
 export function mixInClass(Base, Mixin) {
-  /**
-   * @typedef {{
-   *   new (...args: any[]): InstanceType<TMixin>;
-   *   prototype: InstanceType<TMixin>;
-   * }} MixinType
-   */
-
   // eslint-disable-next-line jsdoc/require-jsdoc
-  class Class extends Base {}
-  OO.mixinClass(Class, Mixin);
+  OO.mixinClass(Base, Mixin);
 
-  return /** @type {TBase & MixinType} */ (Class);
+  Object.getOwnPropertyNames(Base.prototype)
+    .filter((key) => key !== 'constructor')
+    .forEach((key) => {
+      Base.prototype[key] = Mixin.prototype[key];
+    });
 }
 
 /**

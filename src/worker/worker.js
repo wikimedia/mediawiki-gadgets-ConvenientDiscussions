@@ -179,6 +179,7 @@ function parse() {
   cd.sections = [];
 
   Parser.init();
+  /** @type {boolean | undefined} */
   let areThereOutdents;
   const parser = new Parser({
     CommentClass: CommentWorker,
@@ -191,9 +192,11 @@ function parse() {
     rootElement: /** @type {NonNullable<typeof rootElement>} */ (rootElement),
     document,
     areThereOutdents: () => {
-      areThereOutdents ??= Boolean(
-        /** @type {NonNullable<typeof rootElement>} */ (rootElement).getElementsByClassName(cd.config.outdentClass, 1).length
-      );
+      if (areThereOutdents === undefined) {
+        areThereOutdents = Boolean(
+          /** @type {NonNullable<typeof rootElement>} */ (rootElement).getElementsByClassName(cd.config.outdentClass, 1).length
+        );
+      }
 
       return areThereOutdents;
     },

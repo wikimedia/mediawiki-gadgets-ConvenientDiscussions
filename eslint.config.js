@@ -1,4 +1,4 @@
-// import babelParser from '@babel/eslint-parser';
+import babelParser from '@babel/eslint-parser';
 import eslint from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
@@ -27,8 +27,11 @@ const config = tseslint.config(
     ignores: ['**/*.ts'],
     languageOptions: {
       sourceType: 'module',
-      ecmaVersion: 2022,
-      parserOptions: { project: true },
+      ecmaVersion: 2018,
+      parser: babelParser,
+      parserOptions: {
+        requireConfigFile: false,
+      },
       globals: {
         CONFIG_FILE_NAME: 'readonly',
         IS_DEV: 'readonly',
@@ -73,7 +76,7 @@ const config = tseslint.config(
       'no-control-regex': 'off', // We use them for text masking
       'no-constant-condition': ['error', { checkLoops: false }],
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'no-unsafe-optional-chaining': 'off', // Enabled in TypeScript with strictNullChecks
+      'no-unsafe-optional-chaining': 'off',  // Enabled in TypeScript with strictNullChecks
 
       // Impractical strict rules
       '@typescript-eslint/no-explicit-any': 'off',
@@ -208,6 +211,9 @@ const config = tseslint.config(
 
       // We have files with JSDoc types
       'unicorn/no-empty-file': 'off',
+
+      // We build with an old babel-loader which doesn't support this
+      'unicorn/prefer-top-level-await': 'off',
 
       // Import plugin rules
       'import/order': [

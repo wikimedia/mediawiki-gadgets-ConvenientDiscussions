@@ -22,12 +22,11 @@ import { mergeJquery, wrapHtml } from './utils-window';
  * Class that extends {@link mw.Upload.Dialog} and adds some logic we need. Uses
  * {@link ForeignStructuredUploadBookletLayout}, which in turn uses {@link ForeignStructuredUpload}.
  */
-export class UploadDialog extends mixInClass(
-  /** @type {typeof mw.Upload.Dialog<typeof ForeignStructuredUploadBookletLayout>} */ (
+export class UploadDialog
+  extends /** @type {typeof mw.Upload.Dialog<typeof ForeignStructuredUploadBookletLayout> & MixinType<typeof ProcessDialog>} */ (
     mw.Upload.Dialog
-  ),
-  ProcessDialog
-) {
+  )
+{
   /**
    * Create an upload dialog.
    *
@@ -999,5 +998,7 @@ class ForeignStructuredUpload extends mw.ForeignStructuredUpload {
 es6ClassToOoJsClass(UploadDialog);
 es6ClassToOoJsClass(ForeignStructuredUploadBookletLayout)
 es6ClassToOoJsClass(ForeignStructuredUpload);
+
+mixInClass(UploadDialog, ProcessDialog);
 
 export default UploadDialog;

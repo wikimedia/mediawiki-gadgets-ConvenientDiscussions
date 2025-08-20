@@ -1306,10 +1306,8 @@ class CommentRegistry extends EventEmitter {
     // critical.
     await sleep(1000);
 
-    const suitableElement = /** @type {import('./CommentButton').default} */ (
-      this.items.find((c) => 'toggleChildThreadsButton' in c && c.getOffset())
-        ?.toggleChildThreadsButton
-    ).element;
+    const suitableElement = this.items.find((c) => 'toggleChildThreadsButton' in c && c.getOffset())
+      ?.toggleChildThreadsButton?.element;
     if (!suitableElement) return;
 
     const button = new OO.ui.ButtonWidget({

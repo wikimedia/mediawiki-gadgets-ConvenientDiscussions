@@ -3,5 +3,9 @@
  */
 
 /**
- * @typedef {{ [lang: string]: string[] }} LanguageFallbacks
+ * @template {Constructor} Mixin
+ * @typedef {{
+ *   new (...args: any[]): InstanceType<Mixin>;
+ *   prototype: InstanceType<Mixin>;
+ * }} MixinType
  */

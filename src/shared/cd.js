@@ -5,8 +5,6 @@
  * @module cd
  */
 
-import './domhandler.d.ts';
-
 /** @type {WindowOrWorkerGlobalScope} */
 const context = self;
 
@@ -37,8 +35,8 @@ context.convenientDiscussions ||= /** @type {ConvenientDiscussionsBase} */ ({});
  * @property {string | undefined} uiDigits Regular expression matching a single digit in user
  *   (interface) language, e.g. `[0-9]`.
  * @property {StringsByKey} contentLanguageMessages
- * @property {{ [name: string]: string[] }} specialPageAliases Some special page aliases in the
- *   wiki's language.
+ * @property {StringArraysByKey} specialPageAliases Some special page aliases in the wiki's
+ *   language.
  * @property {?string} contentTimezone Timezone of the wiki.
  * @property {?RegExp} signatureEndingRegexp
  * @property {RegExp} userNamespacesRegexp

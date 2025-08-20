@@ -1,5 +1,5 @@
 import TextInputWidget from './TextInputWidget';
-import { mixInClass, es6ClassToOoJsClass } from './utils-oojs';
+import { es6ClassToOoJsClass, mixInClass } from './utils-oojs';
 
 /**
  * OOUI multiline text input widget.
@@ -14,8 +14,9 @@ import { mixInClass, es6ClassToOoJsClass } from './utils-oojs';
  * {@link OO.ui.MultilineTextInputWidget OO.ui.MultilineTextInputWidget} to include our
  * mixin.
  */
-class MultilineTextInputWidget extends mixInClass(OO.ui.MultilineTextInputWidget, TextInputWidget) {}
+class MultilineTextInputWidget extends /** @type {OO.ui.MultilineTextInputWidget.Constructor & MixinType<typeof TextInputWidget>} */ (OO.ui.MultilineTextInputWidget) {}
 
 es6ClassToOoJsClass(MultilineTextInputWidget);
+mixInClass(MultilineTextInputWidget, TextInputWidget);
 
 export default MultilineTextInputWidget;

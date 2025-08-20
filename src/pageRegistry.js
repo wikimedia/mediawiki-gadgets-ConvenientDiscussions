@@ -4,6 +4,7 @@
  * @module pageRegistry
  */
 
+import CurrentPage from './CurrentPage';
 import Page from './Page';
 import cd from './shared/cd';
 
@@ -49,7 +50,7 @@ const pageRegistry = {
 
     const name = title.getPrefixedText();
     if (!this.items[name]) {
-      this.items[name] = new Page(
+      this.items[name] = new (name === cd.g.pageName ? CurrentPage : Page)(
         title,
         isGendered ? /** @type {string} */ (nameOrMwTitle) : undefined
       );
