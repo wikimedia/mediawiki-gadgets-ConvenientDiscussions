@@ -579,7 +579,7 @@ export function createGenericControl(type, input, fieldOptions = {}, data = {}) 
  * @typedef {object} OoJsClassSpecificProps
  * @property {OO.ConstructorLike} [parent] The parent constructor.
  * @property {OO.ConstructorLike} [super] The super constructor.
- * @property {AnyByKey} static An object containing static properties.
+ * @property {AnyByKey} [static] An object containing static properties.
  */
 
 /**
@@ -598,26 +598,28 @@ export function createGenericControl(type, input, fieldOptions = {}, data = {}) 
  */
 export function es6ClassToOoJsClass(TargetClass) {
   const OriginClass = Object.getPrototypeOf(TargetClass);
-  TargetClass.parent = TargetClass.super = OriginClass;
-  OO.initClass(OriginClass);
+  if (OriginClass?.prototype) {
+    TargetClass.parent = TargetClass.super = OriginClass;
+    OO.initClass(OriginClass);
 
-  Object.getOwnPropertyNames(OriginClass.prototype)
-    .filter((name) => name !== 'constructor')
-    .forEach((name) => {
-      Object.defineProperty(
-        TargetClass.prototype,
-        name,
-        /** @type {PropertyDescriptor} */ (
-          Object.getOwnPropertyDescriptor(OriginClass.prototype, name)
-        )
-      );
-    });
+    Object.getOwnPropertyNames(OriginClass.prototype)
+      .filter((name) => name !== 'constructor')
+      .forEach((name) => {
+        Object.defineProperty(
+          TargetClass.prototype,
+          name,
+          /** @type {PropertyDescriptor} */ (
+            Object.getOwnPropertyDescriptor(OriginClass.prototype, name)
+          )
+        );
+      });
+  }
 
-  TargetClass.static = Object.create(OriginClass.static);
+  TargetClass.static = Object.create(OriginClass?.static || null);
   Object.keys(TargetClass)
     .filter((key) => !['parent', 'super', 'static'].includes(key))
     .forEach((key) => {
-      TargetClass.static[key] = TargetClass[key];
+      /** @type {AnyByKey} */ (TargetClass.static)[key] = TargetClass[key];
     });
 
   return TargetClass;
@@ -630,6 +632,7 @@ export function es6ClassToOoJsClass(TargetClass) {
  * @template {Constructor} TMixin
  * @param {TBase} Base
  * @param {TMixin} Mixin
+ * @returns {TBase & MixinType<TMixin>}
  */
 export function mixInClass(Base, Mixin) {
   // eslint-disable-next-line jsdoc/require-jsdoc
@@ -640,6 +643,8 @@ export function mixInClass(Base, Mixin) {
     .forEach((key) => {
       Base.prototype[key] = Mixin.prototype[key];
     });
+
+  return /** @type {TBase & MixinType<TMixin>} */ (Base);
 }
 
 /**
