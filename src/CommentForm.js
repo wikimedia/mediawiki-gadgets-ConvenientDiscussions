@@ -3708,7 +3708,7 @@ class CommentForm extends EventEmitter {
 
     if (mentionAddressee && this.parentComment) {
       const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
-        Autocomplete.config
+        Autocomplete.configs
       ).mentions.transform.call({ item: this.parentComment.author.getName() });
       if (/** @type {NonNullable<typeof data.usePipeTrickCheck>} */ (data.usePipeTrickCheck)()) {
         data.content = '';
@@ -3735,7 +3735,7 @@ class CommentForm extends EventEmitter {
       // Valid username
 
       const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
-        Autocomplete.config
+        Autocomplete.configs
       ).mentions.transform.call({ item: selection });
       if (/** @type {NonNullable<typeof data.usePipeTrickCheck>} */ (data.usePipeTrickCheck)()) {
         data.content = '';

@@ -1,5 +1,5 @@
 import { convertHtmlToWikitext } from './utils-api';
-import { es6ClassToOoJsClass } from './utils-oojs';
+import { es6ClassToOoJsClass, mixInClass } from './utils-oojs';
 import { cleanUpPasteDom, getElementFromPasteHtml, isElementConvertibleToWikitext } from './utils-window';
 
 /**
@@ -9,20 +9,15 @@ import { cleanUpPasteDom, getElementFromPasteHtml, isElementConvertibleToWikitex
  */
 
 /**
- * Class that extends {@link OO.ui.TextInputWidget OO.ui.TextInputWidget} and adds some
- * features we need.
- *
- * @augments OO.ui.TextInputWidget
+ * Mixin for {@link OO.ui.TextInputWidget OO.ui.TextInputWidget}. It adds some features we need.
  */
-class TextInputWidget extends OO.ui.TextInputWidget {
+class TextInputWidgetMixIn {
   /**
    * Create a text input widget.
    *
-   * @param  {...any} args
+   * @this TextInputWidget
    */
-  constructor(...args) {
-    super(...args);
-
+  constructor() {
     this.$input.on('input', () => {
       this.emit('manualChange', this.getValue());
     });
@@ -31,6 +26,7 @@ class TextInputWidget extends OO.ui.TextInputWidget {
   /**
    * Insert text while keeping the undo/redo functionality.
    *
+   * @this TextInputWidget
    * @param {string} text
    * @returns {TextInputWidget}
    */
@@ -46,6 +42,7 @@ class TextInputWidget extends OO.ui.TextInputWidget {
   /**
    * Given a selection, get its content as wikitext.
    *
+   * @this TextInputWidget
    * @returns {Promise<string>}
    */
   async getWikitextFromSelection() {
@@ -62,6 +59,7 @@ class TextInputWidget extends OO.ui.TextInputWidget {
   /**
    * Convert HTML code of a paste into wikitext.
    *
+   * @this TextInputWidget
    * @param {string} html Pasted HTML.
    * @returns {Promise<string>}
    */
@@ -75,6 +73,7 @@ class TextInputWidget extends OO.ui.TextInputWidget {
    * Given the return value of {@link module:utilsWindow.cleanUpPasteDom}, convert the HTML to
    * wikitext if necessary.
    *
+   * @this TextInputWidget
    * @param {object} data Return value of {@link module:utilsWindow.cleanUpPasteDom}.
    * @param {Element} data.element
    * @param {string} data.text
@@ -94,6 +93,14 @@ class TextInputWidget extends OO.ui.TextInputWidget {
   }
 }
 
+es6ClassToOoJsClass(TextInputWidgetMixIn);
+
+/**
+ * Class that extends {@link OO.ui.TextInputWidget OO.ui.TextInputWidget} and adds some
+ * features we need.
+ */
+class TextInputWidget extends mixInClass(OO.ui.TextInputWidget, TextInputWidgetMixIn) {}
 es6ClassToOoJsClass(TextInputWidget);
 
 export default TextInputWidget;
+export { TextInputWidgetMixIn };

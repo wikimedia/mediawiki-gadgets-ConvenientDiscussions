@@ -14,18 +14,40 @@ import { handleApiReject } from './utils-api';
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
 /**
- * @typedef {NonNullable<typeof Autocomplete.config>} AutocompleteStaticConfig
+ * @typedef {NonNullable<typeof Autocomplete.configs>} AutocompleteStaticConfig
+ */
+
+/**
+ * @typedef {object} CommentLinksItemType
+ * @property {string} key
+ * @property {string} [id]
+ * @property {string} [author]
+ * @property {string} [timestamp]
+ * @property {string} [headline]
+ */
+
+/**
+ * @typedef {string | string[] | CommentLinksItemType} Item
  */
 
 /**
  * @typedef {object} AutocompleteConfig
  * @property {StringArraysByKey} [byText]
  * @property {string[]} [cache]
- * @property {any[] | (() => any[])} [default]
- * @property {(value: any) => import('./tribute/Tribute').TransformData} [transform]
+ * @property {Item[]} [default]
+ * @property {(() => Item[])} [defaultLazy] Function for lazy loading of the defaults
+ * @property {() => import('./tribute/Tribute').TransformData} [transform]
  * @property {import('./Comment').default[]} [comments]
  * @property {string} [snapshot]
  * @property {any} [item]
+ */
+
+/**
+ * @typedef {{ [key in AutocompleteType]: AutocompleteConfig }} AutocompleteConfigs
+ */
+
+/**
+ * @typedef {(string | string[])[]} DefaultTags
  */
 
 /**
@@ -173,7 +195,7 @@ class Autocomplete {
           if (Array.isArray(item)) {
             // Tags
             key = item[0];
-          } else if ('key' in item) {
+          } else if (typeof item === 'object' && 'key' in item) {
             // Comment links
             key = item.key;
           } else {
@@ -181,11 +203,11 @@ class Autocomplete {
             key = item;
           }
 
-          return /** @type {Value} */ ({
-            key,
-            item,
-            transform: config.transform?.bind(config),
-          });
+          /** @type {Value} */
+          const value = { key, item };
+          value.transform = config.transform?.bind(value);
+
+          return value;
         });
 
     const spacesRegexp = new RegExp(cd.mws('word-separator', { language: 'content' }), 'g');
@@ -212,10 +234,7 @@ class Autocomplete {
           if (this.mentions.byText[text]) {
             callback(prepareValues(this.mentions.byText[text], this.mentions));
           } else {
-            const matches = Autocomplete.search(
-              text,
-              /** @type {string[]} */ (this.mentions.default)
-            );
+            const matches = Autocomplete.search(text, this.mentions.default);
             let values = matches.slice();
 
             const makeRequest = (
@@ -276,10 +295,10 @@ class Autocomplete {
         keepAsEnd: /^\]\]/,
         selectTemplate,
         values: async (text, callback) => {
-          if (!this.commentLinks.default) {
-            this.commentLinks.default = [];
-            this.commentLinks.comments.forEach((comment) => {
+          this.commentLinks.default ||= this.commentLinks.comments
+            .reduce((acc, comment) => {
               let { id, dtId, author, timestamp } = comment;
+              /** @type {string} */
               let snippet;
               const snippetMaxLength = 80;
               if (comment.getText().length > snippetMaxLength) {
@@ -301,25 +320,26 @@ class Autocomplete {
               if (timestamp) {
                 authorTimestamp += cd.mws('comma-separator', { language: 'content' }) + timestamp;
               }
-              /** @type {NonNullable<typeof this.commentLinks.default>} */ (
-                this.commentLinks.default
-              ).push({
+              acc.push({
                 key: authorTimestamp + cd.mws('colon-separator', { language: 'content' }) + snippet,
                 id: dtId || id,
                 author: author.getName(),
                 timestamp,
               });
-            });
-            sectionRegistry.getAll().forEach((section) => {
-              /** @type {NonNullable<typeof this.commentLinks.default>} */ (
-                this.commentLinks.default
-              ).push({
-                key: underlinesToSpaces(section.id),
-                id: underlinesToSpaces(section.id),
-                headline: section.headline,
-              });
-            });
-          }
+
+              return acc;
+            }, /** @type {CommentLinksItemType[]} */ ([]))
+            .concat(
+              sectionRegistry.getAll().reduce((acc, section) => {
+                acc.push({
+                  key: underlinesToSpaces(section.id),
+                  id: underlinesToSpaces(section.id),
+                  headline: section.headline,
+                });
+
+                return acc;
+              }, /** @type {CommentLinksItemType[]} */ ([]))
+            );
 
           text = removeDoubleSpaces(text);
           if (/[#<>[\]|{}]/.test(text)) {
@@ -428,9 +448,9 @@ class Autocomplete {
             }
 
             return item.original.transform();
-          } else {
-            return '';
           }
+
+          return '';
         },
         values: async (text, callback) => {
           text = removeDoubleSpaces(text);
@@ -503,6 +523,8 @@ class Autocomplete {
         searchOpts: { skip: true },
         selectTemplate,
         values: (text, callback) => {
+          this.tags.default ||= /** @type {DefaultTags} */ (this.tags.defaultLazy());
+
           const regexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
           if (!text || !/^[a-z]+$/i.test(text)) {
             callback([]);
@@ -513,7 +535,9 @@ class Autocomplete {
           callback(
             prepareValues(
               // Matches
-              /** @type {string[]} */ (this.tags.default).filter((tag) => regexp.test(tag)),
+              /** @type {DefaultTags} */ (this.tags.default).filter((tag) =>
+                regexp.test(Array.isArray(tag) ? tag[0] : tag)
+              ),
 
               this.tags
             )
@@ -522,14 +546,15 @@ class Autocomplete {
       },
     });
 
+    /** @type {Partial<AutocompleteConfigs>} */
     const params = {
-      mentions: { default: defaultUserNames },
+      mentions: { default: defaultUserNames || [] },
       commentLinks: { comments: comments || [] },
     };
 
     types.forEach((type) => {
       /** @type {AutocompleteStaticConfig[type]} */ (this[type]) = OO.copy(
-        /** @type {AutocompleteStaticConfig} */ (Autocomplete.config)[type]
+        /** @type {AutocompleteStaticConfig} */ (Autocomplete.configs)[type]
       );
 
       if (type in params) {
@@ -544,15 +569,6 @@ class Autocomplete {
 
   /** @type {HTMLElement|undefined} */
   static activeMenu;
-
-  /**
-   * @typedef {object} CommentLinksItemType
-   * @property {string} key
-   * @property {string} [id]
-   * @property {string} [author]
-   * @property {string} [timestamp]
-   * @property {string} [headline]
-   */
 
   static {
     const tagAdditions = [
@@ -575,24 +591,25 @@ class Autocomplete {
     ];
     const getDefaultTags = () =>
       /** @type {Array<string|string[]>} */ (cd.g.allowedTags)
-        .filter(
-          (tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString)
-        )
+        .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
         .concat(tagAdditions)
-        .sort((item1, item2) => (
+        .sort((item1, item2) =>
           (typeof item1 === 'string' ? item1 : item1[0]) >
           (typeof item2 === 'string' ? item2 : item2[0])
             ? 1
             : -1
-        ));
+        );
 
     /**
      * Autocomplete configurations for every type.
      */
-    this.config = /** @satisfies {{ [key in AutocompleteType]: AutocompleteConfig }} */ ({
+    this.configs = /** @satisfies {AutocompleteConfigs} */ ({
       mentions: {
         byText: {},
-        cache: /** @type {string[]} */ ([]),
+        /** @type {string[]} */
+        cache: [],
+        /** @type {string[]} */
+        default: [],
 
         /**
          * @this {Value<string>}
@@ -644,7 +661,8 @@ class Autocomplete {
 
       wikilinks: {
         byText: {},
-        cache: /** @type {string[]} */ ([]),
+        /** @type {string[]} */
+        cache: [],
 
         /**
          * @this {Value<string>}
@@ -667,7 +685,8 @@ class Autocomplete {
 
       templates: {
         byText: {},
-        cache: /** @type {string[]} */ ([]),
+        /** @type {string[]} */
+        cache: [],
 
         /**
          * @this {Value<string>}
@@ -688,7 +707,10 @@ class Autocomplete {
       },
 
       tags: {
-        default: getDefaultTags,
+        defaultLazy: getDefaultTags,
+
+        /** @type {DefaultTags | undefined} */
+        default: undefined,
 
         /**
          * @this {Value<string | [string, string, string]>}

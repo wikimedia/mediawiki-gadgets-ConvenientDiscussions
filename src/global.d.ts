@@ -383,4 +383,4 @@ declare global {
   }
 }
 
-export {};
+export { };
