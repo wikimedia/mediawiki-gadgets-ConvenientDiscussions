@@ -635,7 +635,7 @@ export function mixInClass(Base, Mixin) {
   // eslint-disable-next-line jsdoc/require-jsdoc
   OO.mixinClass(Base, Mixin);
 
-  Object.getOwnPropertyNames(Base.prototype)
+  Object.getOwnPropertyNames(Mixin.prototype)
     .filter((key) => key !== 'constructor')
     .forEach((key) => {
       Base.prototype[key] = Mixin.prototype[key];
