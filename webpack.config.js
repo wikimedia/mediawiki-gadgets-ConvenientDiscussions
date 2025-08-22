@@ -86,15 +86,6 @@ const webpack_ = (env) => {
           test: /\.js$/,
           use: {
             loader: 'babel-loader',
-            options: {
-              presets: [
-                ['@babel/preset-env', {
-                  targets: {
-                    esmodules: true,
-                  },
-                }],
-              ],
-            },
           },
         },
         {
