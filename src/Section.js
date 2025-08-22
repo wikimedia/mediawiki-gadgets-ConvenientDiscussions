@@ -991,10 +991,6 @@ class Section extends SectionSkeleton {
    */
   addMoreMenuSelect() {
     const moreMenuSelect = this.createMoreMenuSelect();
-
-    /** @type {Button} */ (this.actions.moreMenuSelectDummy).element.remove();
-    this.actionsElement.append(moreMenuSelect.$element[0]);
-
     moreMenuSelect
       .getMenu()
       .addItems(
@@ -1039,6 +1035,9 @@ class Section extends SectionSkeleton {
         }
       });
 
+    /** @type {Button} */ (this.actions.moreMenuSelectDummy).element.remove();
+    this.actionsElement.append(moreMenuSelect.$element[0]);
+
     /**
      * The button menu select widget in the {@link Section#actionsElement actions element}. Note
      * that it is created only when the user hovers over or clicks a dummy button, which fires a
@@ -1079,7 +1078,8 @@ class Section extends SectionSkeleton {
   }
 
   /**
-   * Create a real "More options" menu select in place of a dummy one and click it.
+   * Create a real "More options" menu select in place of a dummy one and click it. This should
+   * rarely run because the select should usually be created on `mouseenter` on the dummy button (see {@link Section#createActionsElement}).
    *
    * @private
    */
@@ -1126,7 +1126,7 @@ class Section extends SectionSkeleton {
     const actionsElement = document.createElement(this.isTopic() ? 'div' : 'span');
     actionsElement.className = [
       'cd-section-actions',
-      this.isTopic() ? 'cd-topic-actions' : 'cd-subsection-actions',
+      this.isTopic() ? 'cd-section-actions-block' : 'cd-section-actions-inline',
     ].filter(defined).join(' ');
     actionsElement.append(
       ...[copyLinkButton, moreMenuSelectDummy]
@@ -1218,7 +1218,7 @@ class Section extends SectionSkeleton {
     const headingInnerWrapper = document.createElement('span');
     headingInnerWrapper.append(...this.headingElement.childNodes);
     this.headingElement.append(headingInnerWrapper, this.actionsElement);
-    this.headingElement.classList.add('cd-subsection-heading');
+    this.headingElement.classList.add('cd-section-actions-heading');
   }
 
   /**

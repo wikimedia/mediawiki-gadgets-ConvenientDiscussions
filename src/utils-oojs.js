@@ -480,7 +480,7 @@ export function createMulticheckboxControl({
  * @param {MultitagControlOptions} options
  * @returns {MultitagControl}
  */
-export function createTagsControl({
+export function createMultitagControl({
   label,
   placeholder,
   tagLimit,

@@ -92,9 +92,7 @@ class LiveTimestamp extends mixInObject(
     }
 
     const differenceMs = Date.now() - this.date.getTime();
-    const threshold = relativeTimeThresholds.find(
-      (threshold) => differenceMs < threshold.range * cd.g.msInMin
-    );
+    const threshold = relativeTimeThresholds.find((thr) => differenceMs < thr.range * cd.g.msInMin);
     if (threshold) {
       // Find the relevant time boundary at which the timestamp should be updated.
       for (

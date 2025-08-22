@@ -149,14 +149,14 @@ ol .cd-section-button {
   white-space: nowrap;
 }
 
-.cd-topic-actions {
+.cd-section-actions-block {
   margin-inline-start: auto;
   margin-inline-end: -0.4615385em;
   padding-inline-start: 1.5em;
 }
 
 // `margin-inline` and `padding-inline` are inapplicable here.
-.cd-subsection-actions {
+.cd-section-actions-inline {
   font-size: var(--cd-content-metadata-font-size);
   font-weight: normal;
 
@@ -175,10 +175,12 @@ ol .cd-section-button {
   }
 }
 
-.cd-subsection-heading {
+/* Need to override `.ext-discussiontools-visualenhancements-enabled .ext-discussiontools-init-section` */
+.cd-section-actions-heading.cd-section-actions-heading.cd-section-actions-heading {
   display: flex;
   align-items: baseline;
   overflow: unset;
+  font-weight: normal;
 }
 
 .cd-section-hidden {

@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Launch Chrome",
       "url": "https://en.wikipedia.org/wiki/Talk:Main_Page",
-      "webRoot": "${workspaceFolder}/dist",
+      "webRoot": "${workspaceFolder}",
       "sourceMapPathOverrides": {
         "webpack:///./*": "${workspaceRoot}/*"
       },
