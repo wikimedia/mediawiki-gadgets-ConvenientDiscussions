@@ -3,12 +3,60 @@ import dayjs from 'dayjs';
 import settings from './settings';
 import cd from './shared/cd';
 import { removeFromArrayIfPresent } from './shared/utils-general';
-import { formatDate, relativeTimeThresholds } from './shared/utils-timestamp';
 import { EventEmitter, mixInObject } from './utils-oojs';
+import { formatDate } from './utils-window';
 
 /**
  * @typedef {'default'|'improved'|'relative'} TimestampFormat
  */
+
+/**
+ * Some numbers for several units used in calculations needed to update relative
+ * {@link LiveTimestamp timestamps}. 1 means 1 minute.
+ *
+ * @typedef {object} RelativeTimeThreshold
+ * @property {number} range The top of the number range for the unit (e.g. 60 for minutes)
+ * @property {number} start The start of the number range for the unit (e.g. 1 for minutes; don't
+ *   need 0 because that would be taken care of by the previous loop iteration as minute 60 [= the
+ *   first minute of the next hour])
+ * @property {number} step How often the relative timestamp should update (e.g. 1 for minutes)
+ */
+
+/**
+ * @type {RelativeTimeThreshold[]}
+ */
+export const relativeTimeThresholds = [
+  // Seconds
+  {
+    range: 1,
+    start: 0,
+    step: 1,
+  },
+
+  // Minutes
+  {
+    range: 60,
+    start: 1,
+    step: 1,
+  },
+
+  // Hours
+  {
+    range: 60 * 24,
+    start: 60,
+    step: 60,
+  },
+
+  // Days
+  {
+    range: 60 * 24 * 31,
+    start: 60 * 24,
+    step: 60 * 24,
+  },
+
+  // We don't update months and years. Additional `setTimeout`s are costly, and an algorithm for
+  // them is also too complex.
+];
 
 /**
  * @typedef {object} EventMap

@@ -13,12 +13,11 @@ import CdError from './shared/CdError';
 import SectionSkeleton from './shared/SectionSkeleton';
 import cd from './shared/cd';
 import { defined, getHeadingLevel, underlinesToSpaces, unique } from './shared/utils-general';
-import { formatDate } from './shared/utils-timestamp';
 import { encodeWikilink, maskDistractingCode, normalizeCode } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import toc from './toc';
 import { handleApiReject } from './utils-api';
-import { getRangeContents } from './utils-window';
+import { formatDate, getRangeContents } from './utils-window';
 
 /**
  * A section in the browser context (as opposed to the worker context, see {@link SectionWorker}).
