@@ -11,9 +11,8 @@ import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
 import cd from './shared/cd';
 import { defined, sleep, underlinesToSpaces } from './shared/utils-general';
-import { formatDateNative } from './shared/utils-timestamp';
 import { removeWikiMarkup } from './shared/utils-wikitext';
-import { isExistentAnchor, wrapHtml } from './utils-window';
+import { formatDateNative, isExistentAnchor, wrapHtml } from './utils-window';
 
 /** @type {string} */
 let decodedValue;

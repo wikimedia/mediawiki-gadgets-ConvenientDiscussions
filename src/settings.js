@@ -2,10 +2,9 @@ import TextMasker from './TextMasker';
 import pageRegistry from './pageRegistry';
 import cd from './shared/cd';
 import { areObjectsEqual, defined, definedAndNotNull, subtractDaysFromNow, typedKeysOf, ucFirst } from './shared/utils-general';
-import { formatDateImproved, formatDateNative, formatDateRelative } from './shared/utils-timestamp';
 import { getUserInfo, saveGlobalOption, saveLocalOption } from './utils-api';
 import { showConfirmDialog } from './utils-oojs';
-import { createSvg, getFooter, wrapHtml } from './utils-window';
+import { createSvg, formatDateImproved, formatDateNative, formatDateRelative, getFooter, wrapHtml } from './utils-window';
 
 /**
  * @typedef {object} SettingsValues

@@ -34,7 +34,7 @@ const en = require('../i18n/en.json');
 const Comment = require('../src/Comment').default;
 const settings = require('../src/settings').default;
 const cd = require('../src/shared/cd').default;
-const { formatDateNative, initDayjs } = require('../src/shared/utils-timestamp');
+const { formatDateNative, initDayjs } = require('../src/utils-window');
 
 cd.config = {
   defaultInsertButtons: [],

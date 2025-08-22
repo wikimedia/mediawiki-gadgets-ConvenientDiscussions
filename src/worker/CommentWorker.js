@@ -384,7 +384,7 @@ export default class CommentWorker extends CommentSkeleton {
     });
 
     comments.forEach((comment, i) => {
-      comment.children = /** @type {CommentWorker[]} */ (comment.getChildren());
+      comment.children = comment.getChildren();
       comment.children.forEach((reply) => {
         reply.parent = comment;
         reply.isToMe = comment.isOwn;
