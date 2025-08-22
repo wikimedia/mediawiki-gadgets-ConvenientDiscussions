@@ -5,7 +5,7 @@ import settings from './settings';
 import cd from './shared/cd';
 import { areObjectsEqual } from './shared/utils-general';
 import { saveGlobalOption, saveLocalOption } from './utils-api';
-import { createButtonControl, createCheckboxControl, createMulticheckboxControl, createTagsControl as createMultitagControl, createNumberControl, createRadioControl, createTextControl, es6ClassToOoJsClass } from './utils-oojs';
+import { createButtonControl, createCheckboxControl, createMulticheckboxControl, createMultitagControl, createNumberControl, createRadioControl, createTextControl, es6ClassToOoJsClass } from './utils-oojs';
 
 /**
  * Class used to create a settings dialog.

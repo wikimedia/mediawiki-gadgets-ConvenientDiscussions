@@ -89,8 +89,7 @@ export const relativeTimeThresholds = [
  * _For internal use._ Prepare `dayjs` object for further use (add plugins and a locale).
  */
 export function initDayjs() {
-  // @ts-ignore
-  if (dayjs.utc) return;
+  if (/** @type {typeof dayjs.utc | undefined} */ (dayjs.utc)) return;
 
   const locale = cd.i18n[cd.g.userLanguage]?.dayjsLocale;
   if (locale) {
@@ -141,8 +140,7 @@ export function getDateFromTimestampMatch(match, timezone) {
   let hours = 0;
   let minutes = 0;
 
-  for (let i = 0; i < matchingGroups.length; i++) {
-    const code = matchingGroups[i];
+  for (const [i, code] of matchingGroups.entries()) {
     const text = match[i + 3];
 
     switch (code) {
@@ -447,7 +445,7 @@ export function formatDateImproved(date, addTimezone = false) {
   const nowMonthIdx = now.getUTCMonth();
   const nowYear = now.getUTCFullYear();
 
-  const yesterday = new Date(now.getTime());
+  const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const yesterdayDay = yesterday.getUTCDate();

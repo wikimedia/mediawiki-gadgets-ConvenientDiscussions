@@ -1,8 +1,5 @@
-declare module './worker/worker-gate' {
-  class WebpackWorker extends Worker {
-    constructor();
-  }
-  export default WebpackWorker;
+declare class WebpackWorker extends Worker {
+  constructor();
 }
 
-export {};
+export default WebpackWorker;

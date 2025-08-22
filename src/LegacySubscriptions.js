@@ -114,6 +114,7 @@ class LegacySubscriptions extends Subscriptions {
 
       // We save the full subscription list, so we need to update the data first.
 
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const currentPageDataBackup = { ...this.data };
       this.updateLocally(headline, true);
       this.updateLocally(unsubscribeHeadline, false);
@@ -173,7 +174,7 @@ class LegacySubscriptions extends Subscriptions {
         throw error;
       }
 
-
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const currentPageDataBackup = { ...this.data };
       this.updateLocally(headline, false);
 
