@@ -133,13 +133,12 @@ function buildDateFnsLocales() {
 
   // Add temporary language files to the temporary folder that import respective locales if they
   // exist.
-  const locales = require('date-fns/locale');
   const langsHavingLocale = [];
   for (const [lang, names] of Object.entries(langNames)) {
     // The English locale is built-in.
-    if (lang !== 'en' && locales[names.localeName]) {
+    if (lang !== 'en' && fs.existsSync(`node_modules/date-fns/locale/${names.dirName}/index.js`)) {
       langsHavingLocale.push(lang);
-      const text = `import { ${names.localeName} } from 'date-fns/locale';
+      const text = `import { ${names.localeName} } from 'date-fns/locale/${names.dirName}';
 convenientDiscussions.i18n['${lang}'].dateFnsLocale = ${names.localeName};
 `;
       fs.writeFileSync(`${DATE_FNS_LOCALES_TEMP_DIR_NAME}/${lang}.js`, text);

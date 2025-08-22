@@ -9,7 +9,11 @@
  * @module utilsTimestamp
  */
 
-import { getTimezoneOffset } from 'date-fns-tz';
+import {
+  format as dateFnsFormat,
+  formatRelative as dateFnsFormatRelative,
+} from 'date-fns';
+import { formatInTimeZone, getTimezoneOffset } from 'date-fns-tz';
 
 import cd from './cd';
 import { getContentLanguageMessages, removeDirMarks } from './utils-general';
@@ -181,4 +185,70 @@ export function generateTimezonePostfix(offset) {
   postfix += ')';
 
   return postfix;
+}
+
+/**
+ * Format a date according to the site default or custom format.
+ *
+ * @param {Date} date
+ * @param {object} [options]
+ * @param {string} [options.format] Custom format.
+ * @param {string} [options.timezone] Timezone to format the date in.
+ * @returns {string}
+ */
+export function formatDate(date, options = {}) {
+  const format = options.format || cd.g.dateFormat;
+  if (options.timezone) {
+    return formatInTimeZone(date, options.timezone, format);
+  } else {
+    return dateFnsFormat(date, format);
+  }
+}
+
+/**
+ * Format a date in the native format (as it appears in edit history).
+ *
+ * @param {Date} date
+ * @returns {string}
+ */
+export function formatDateNative(date) {
+  return formatDate(date, {
+    format: cd.g.nativeDateFormat,
+  });
+}
+
+/**
+ * Format a date in the improved format.
+ *
+ * @param {Date} date
+ * @returns {string}
+ */
+export function formatDateImproved(date) {
+  return formatDate(date, {
+    format: cd.g.improvedDateFormat,
+  });
+}
+
+/**
+ * Format a date relative to now.
+ *
+ * @param {Date} date
+ * @param {object} [options]
+ * @param {string} [options.format] Custom format for the relative time.
+ * @returns {string}
+ */
+export function formatDateRelative(date, options = {}) {
+  return dateFnsFormatRelative(date, new Date(), {
+    format: options.format || cd.g.relativeDateFormat,
+  });
+}
+
+/**
+ * This function used to initialize dayjs settings, but now it's a no-op since we switched to date-fns.
+ * Keeping it for backward compatibility.
+ *
+ * @deprecated
+ */
+export function initDayjs() {
+  // no-op
 }

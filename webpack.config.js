@@ -73,6 +73,9 @@ const webpack_ = (env) => {
       path: path.resolve(__dirname, 'dist'),
       filename,
     },
+    resolve: {
+      extensions: ['.js', '.json'],
+    },
     performance: {
       hints: false,
     },
@@ -80,10 +83,29 @@ const webpack_ = (env) => {
     module: {
       rules: [
         {
-          test: /\.js$/,
-          exclude: /node_modules/,
+          test: /\.(js|json5)$/,
+          include: [
+            path.resolve(__dirname, 'src'),
+            path.resolve(__dirname, 'config'),
+            path.resolve(__dirname, 'node_modules/date-fns'),
+            path.resolve(__dirname, 'node_modules/date-fns-tz'),
+          ],
           use: {
             loader: 'babel-loader',
+            options: {
+              presets: [
+                ['@babel/preset-env', {
+                  targets: {
+                    esmodules: true,
+                  },
+                }],
+              ],
+              plugins: [
+                '@babel/plugin-transform-optional-chaining',
+                '@babel/plugin-transform-nullish-coalescing-operator',
+                '@babel/plugin-transform-numeric-separator',
+              ],
+            },
           },
         },
         {
