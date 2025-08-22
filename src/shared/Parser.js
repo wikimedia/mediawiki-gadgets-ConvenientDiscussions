@@ -1,5 +1,8 @@
 // Here, we use vanilla JavaScript for recurring operations that together take up a lot of time.
 
+/* eslint-disable unicorn/prefer-dom-node-append */
+/* eslint-disable unicorn/prefer-modern-dom-apis */
+
 /**
  * Methods related to parsing a page.
  *
@@ -67,7 +70,7 @@ class Parser {
   /** @type {RegExp} */
   static punctuationRegexp;
 
-  /** @type {ElementFor<N>[]} */
+  /** @type {AnyElement[]} */
   noSignatureElements;
 
   /** @type {string[]} */
@@ -114,7 +117,7 @@ class Parser {
 
     const classSelector = cd.g.noSignatureClasses.map((name) => `.${name}`).join(', ');
 
-    this.noSignatureElements = /** @type {ElementFor<N>[]} */ ([
+    this.noSignatureElements = ([
       ...this.context.rootElement.querySelectorAll(`${tagSelector}, ${classSelector}`),
     ]);
   }
@@ -239,10 +242,7 @@ class Parser {
     this.handleFactotumOutdents(text, node);
 
     const parsedTimestamp = parseTimestamp(text);
-    if (
-      !parsedTimestamp ||
-      this.noSignatureElements.some((el) => Parser.contains(el, node))
-    ) {
+    if (!parsedTimestamp || this.noSignatureElements.some((el) => Parser.contains(el, node))) {
       return;
     }
 
@@ -395,9 +395,7 @@ class Parser {
                 // https://he.wikipedia.org/w/index.php?title=שיחה:שפת_אמת&oldid=38365117#c-אייל-20240205174400-אייל-20240205172600
                 /display: *none/.test(node.getAttribute('style') || '') ||
 
-                this.noSignatureElements.some(
-                  (/** @type {ElementFor<N>} */ noSigEl) => noSigEl === node
-                )
+                this.noSignatureElements.includes(node)
               )
             )
           )
@@ -435,7 +433,7 @@ class Parser {
     const startElementNextSibling = signatureNodes[0].nextSibling;
     const element = Parser.createElement('span');
     element.classList.add('cd-signature');
-    signatureNodes.reverse().forEach((node) => Parser.appendChild(element, node));
+    signatureNodes.reverse().forEach((n) => Parser.appendChild(element, n));
     Parser.insertBefore(signatureContainer, element, startElementNextSibling);
 
     return {
@@ -593,7 +591,7 @@ class Parser {
     do {
       nodes = children;
       children = nodes.reduce(
-        (arr, element) => arr.concat([...this.getChildElements(element)]),
+        (arr, el) => arr.concat([...this.getChildElements(el)]),
         /** @type {ElementLike[]} */ ([])
       );
       if (['DL', 'UL', 'OL'].includes(nodes[0].tagName)) {
@@ -969,18 +967,7 @@ class Parser {
    * @returns {void}
    */
   static remove(node) {
-    /** @type {any} */ (node.parentNode)?.removeChild(node);
-  }
-
-  /**
-   * Removes a child node from a parent element.
-   *
-   * @param {ElementLike} parent The parent element
-   * @param {NodeLike} child The child node to remove
-   * @returns {NodeLike}
-   */
-  static removeChild(parent, child) {
-    return parent.removeChild(/** @type {any} */ (child));
+    /** @type {any} */ (node).remove();
   }
 
   /**

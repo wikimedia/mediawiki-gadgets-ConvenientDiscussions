@@ -25,7 +25,9 @@ class ProcessDialog extends OO.ui.ProcessDialog {
     super(config);
 
     // Workaround to make this.constructor in methods to be type checked correctly
-    this.constructor = ProcessDialog;
+    /** @type {typeof ProcessDialog} */
+    // eslint-disable-next-line no-self-assign
+    this.constructor = this.constructor;
   }
 
   /**

@@ -143,15 +143,6 @@ Element.prototype.appendChild = function (node) {
 
 /**
  * @param {Node} node
- */
-Element.prototype.removeChild = function (node) {
-  if (node.parentNode === this) {
-    DomUtils.removeElement(node);
-  }
-};
-
-/**
- * @param {Node} node
  * @param {Node|undefined} referenceNode
  * @returns {Node}
  */

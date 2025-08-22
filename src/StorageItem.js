@@ -30,7 +30,9 @@ class StorageItem {
    */
   constructor(key) {
     // Workaround to make this.constructor in methods to be type checked correctly
-    this.constructor = StorageItem;
+    /** @type {typeof StorageItem} */
+    // eslint-disable-next-line no-self-assign
+    this.constructor = this.constructor;
 
     this.key = key;
 

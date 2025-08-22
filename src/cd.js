@@ -1,7 +1,7 @@
 import cd from './shared/cd';
 
 /**
- * @typedef {{ [lang: string]: StringsByKey }} I18n
+ * @typedef {{ [lang: string]: AnyByKey }} I18n
  */
 
 /**

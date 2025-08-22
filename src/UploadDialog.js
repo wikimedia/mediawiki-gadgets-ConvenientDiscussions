@@ -268,7 +268,9 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
     super(...args);
 
     // Workaround to make this.constructor in methods to be type checked correctly
-    this.constructor = ForeignStructuredUploadBookletLayout;
+    /** @type {typeof ForeignStructuredUploadBookletLayout} */
+    // eslint-disable-next-line no-self-assign
+    this.constructor = this.constructor;
   }
 
   /**
