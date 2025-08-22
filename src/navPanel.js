@@ -5,11 +5,10 @@ import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import settings from './settings';
 import cd from './shared/cd';
-import { formatDate } from './shared/utils-timestamp';
 import { removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
-import { createSvg, isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
+import { createSvg, formatDate, isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
 import visits from './visits';
 
 /**

@@ -10,7 +10,8 @@ import pageRegistry from './pageRegistry';
 import settings from './settings';
 import cd from './shared/cd';
 import { definedAndNotNull, generatePageNamePattern, isCommentEdit, isProbablyTalkPage, isUndo, removeDirMarks, spacesToUnderlines } from './shared/utils-general';
-import { initDayjs, parseTimestamp } from './shared/utils-timestamp';
+import { parseTimestamp } from './shared/utils-timestamp';
+import { initDayjs } from './utils-window';
 
 /** @type {string} */
 let colon;

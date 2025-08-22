@@ -83,13 +83,7 @@ const webpack_ = (env) => {
     module: {
       rules: [
         {
-          test: /\.(js|json5)$/,
-          include: [
-            path.resolve(__dirname, 'src'),
-            path.resolve(__dirname, 'config'),
-            path.resolve(__dirname, 'node_modules/date-fns'),
-            path.resolve(__dirname, 'node_modules/date-fns-tz'),
-          ],
+          test: /\.js$/,
           use: {
             loader: 'babel-loader',
             options: {
@@ -99,11 +93,6 @@ const webpack_ = (env) => {
                     esmodules: true,
                   },
                 }],
-              ],
-              plugins: [
-                '@babel/plugin-transform-optional-chaining',
-                '@babel/plugin-transform-nullish-coalescing-operator',
-                '@babel/plugin-transform-numeric-separator',
               ],
             },
           },

@@ -17,13 +17,12 @@ import settings from './settings';
 import Parser from './shared/Parser';
 import cd from './shared/cd';
 import { defined, definedAndNotNull, generatePageNamePattern, isElement, sleep } from './shared/utils-general';
-import { initDayjs } from './shared/utils-timestamp';
 import talkPageController from './talkPageController';
 import toc from './toc';
 import updateChecker from './updateChecker';
 import userRegistry from './userRegistry';
 import { handleApiReject, saveOptions } from './utils-api';
-import { getAllTextNodes, wrapHtml } from './utils-window';
+import { getAllTextNodes, initDayjs, wrapHtml } from './utils-window';
 import visits from './visits';
 
 /**

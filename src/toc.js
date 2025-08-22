@@ -14,10 +14,9 @@ import settings from './settings';
 import CdError from './shared/CdError';
 import SectionSkeleton from './shared/SectionSkeleton';
 import cd from './shared/cd';
-import { formatDate, formatDateNative } from './shared/utils-timestamp';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
-import { getLinkedAnchor } from './utils-window';
+import { formatDate, formatDateNative, getLinkedAnchor } from './utils-window';
 import visits from './visits';
 
 /**
@@ -211,7 +210,7 @@ class Toc {
         bdi.textContent = usedFullForm ? String(count) : cd.s('toc-commentcount-full', String(count));
       }
 
-      span.appendChild(bdi);
+      span.append(bdi);
       item.$text.append(beforeSpan, span);
 
       usedFullForm = true;
@@ -257,7 +256,7 @@ class Toc {
 
     const span = document.createElement('span');
     span.className = 'vector-icon vector-icon--x-small mw-ui-icon-wikimedia-expand';
-    button.appendChild(span);
+    button.append(span);
 
     upperLevelMatch.$element.append(button);
 
@@ -300,7 +299,7 @@ class Toc {
       if (this.isInSidebar()) {
         a.className = 'vector-toc-link cd-toc-link-sidebar';
       }
-      a.onclick = this.handleSectionClick.bind(this);
+      a.addEventListener('click', this.handleSectionClick.bind(this));
 
       let number;
       if (currentLevelMatch) {
@@ -314,20 +313,20 @@ class Toc {
       const numberClass = this.isInSidebar() ? 'vector-toc-numb' : 'tocnumber';
       numberSpan.className = `${numberClass} cd-toc-hiddenTocNumber`;
       numberSpan.textContent = number;
-      a.appendChild(numberSpan);
+      a.append(numberSpan);
 
       if (this.isInSidebar()) {
         const textDiv = document.createElement('div');
         textDiv.className = 'vector-toc-text';
-        textDiv.appendChild(document.createTextNode(section.headline));
-        a.appendChild(textDiv);
-        li.appendChild(a);
+        textDiv.append(document.createTextNode(section.headline));
+        a.append(textDiv);
+        li.append(a);
       } else {
         const textSpan = document.createElement('span');
         textSpan.className = 'toctext';
         textSpan.textContent = section.headline;
-        a.appendChild(textSpan);
-        li.appendChild(a);
+        a.append(textSpan);
+        li.append(a);
       }
 
       if (currentLevelMatch) {
@@ -336,7 +335,7 @@ class Toc {
         const ul = document.createElement('ul');
         ul.id = `toc-${section.id}-sublist`;
         ul.className = 'vector-toc-list';
-        ul.appendChild(li);
+        ul.append(li);
 
         if (
           this.isInSidebar() &&
@@ -426,7 +425,15 @@ class Toc {
      */
     sections.forEach((section) => {
       // Update `parent` from SectionWorker to SectionWorkerMatched type
-      section.parent = SectionSkeleton.prototype.getParent.call(section, true, sections);
+      section.parent = /** @type {import('./updateChecker').SectionWorkerMatched | undefined} */ (
+        SectionSkeleton.prototype.getParent.call(
+          section,
+          true,
+          /** @type {import('./shared/SectionSkeleton').default[]} */ (
+            /** @type {unknown} */ (sections)
+          )
+        ) || undefined
+      );
     });
     sections.forEach((section) => {
       section.tocLevel = section.parent
@@ -563,7 +570,7 @@ class Toc {
         ) +
 
         // RTL mark if needed
-        (cd.g.contentDirection === 'rtl' ? '\u200f' : '') +
+        (cd.g.contentDirection === 'rtl' ? '\u200F' : '') +
 
         cd.mws('comma-separator') +
         dateIfNeeded;
@@ -573,7 +580,7 @@ class Toc {
       // stupid.)
       if (addAsItem) {
         const li = document.createElement('li');
-        ul.appendChild(li);
+        ul.append(li);
 
         const a = document.createElement('a');
         const id = 'dtId' in comment ? comment.dtId : comment.id
@@ -581,7 +588,7 @@ class Toc {
         if (this.isInSidebar()) {
           a.className = 'vector-toc-link cd-toc-link-sidebar';
         }
-        a.onclick = this.handleCommentClick.bind(this);
+        a.addEventListener('click', this.handleCommentClick.bind(this));
 
         let timestampSpan;
         if (settings.get('timestampFormat') !== 'default' && comment.date) {
@@ -598,25 +605,25 @@ class Toc {
           textDiv.className = 'vector-toc-text cd-toc-commentLinkText-sidebar';
           textDiv.textContent = text;
           if (timestampSpan) {
-            textDiv.appendChild(timestampSpan);
+            textDiv.append(timestampSpan);
           }
-          a.appendChild(textDiv);
-          li.appendChild(a);
+          a.append(textDiv);
+          li.append(a);
         } else {
           const bulletSpan = document.createElement('span');
           const numberClass = this.isInSidebar() ? 'vector-toc-numb' : 'tocnumber';
           bulletSpan.className = `${numberClass} cd-toc-bullet`;
           bulletSpan.innerHTML = cd.sParse('bullet');
-          li.appendChild(bulletSpan);
+          li.append(bulletSpan);
 
           const textSpan = document.createElement('span');
           textSpan.className = 'toctext';
           a.textContent = text;
           if (timestampSpan) {
-            a.appendChild(timestampSpan);
+            a.append(timestampSpan);
           }
-          textSpan.appendChild(a);
-          li.appendChild(textSpan);
+          textSpan.append(a);
+          li.append(textSpan);
         }
       } else {
         // In a tooltip, always show the date in the default format — we won't be auto-updating
@@ -632,8 +639,8 @@ class Toc {
       span.textContent = cd.s('toc-more', String(comments.length - (ITEM_LIMIT - 1)));
 
       const li = document.createElement('li');
-      li.appendChild(span);
-      ul.appendChild(li);
+      li.append(span);
+      ul.append(li);
     }
 
     /** @type {HTMLElement} */ (target.parentElement).insertBefore(ul, target.nextSibling);

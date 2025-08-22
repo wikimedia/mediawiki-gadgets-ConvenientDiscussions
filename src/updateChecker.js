@@ -17,6 +17,10 @@ import visits from './visits';
 // this.emit(). Move worker-related stuff to controller.
 
 /**
+ * @typedef {Omit<RemoveMethods<import('./worker/SectionWorker').default>, 'parent'>} SectionWorkerBase
+ */
+
+/**
  * @typedef {object} SectionWorkerExtension
  * @property {import('./Section').default} [match]
  * @property {number} [matchScore]
@@ -25,7 +29,7 @@ import visits from './visits';
  */
 
 /**
- * @typedef {RemoveMethods<import('./worker/SectionWorker').default> & SectionWorkerExtension} SectionWorkerMatched
+ * @typedef {SectionWorkerBase & SectionWorkerExtension} SectionWorkerMatched
  */
 
 /**

@@ -12,6 +12,7 @@ import dayJsUtc from 'dayjs/plugin/utc';
 
 import Button from './Button';
 import cd from './cd';
+import settings from './settings';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
 import Parser from './shared/Parser';
 import { decodeHtmlEntities, defined, generatePageNamePattern, isInline, parseWikiUrl, removeDirMarks, spacesToUnderlines, zeroPad } from './shared/utils-general';
@@ -67,7 +68,7 @@ export function wrapHtml(html, options = {}) {
 }
 
 /**
- * Wrap the response to the "compare" API request in a table.
+ * Wrap the response to the `compare` API request in a table.
  *
  * @param {string} body
  * @returns {string}
@@ -1073,7 +1074,7 @@ export function initDayjs() {
  */
 export function formatDate(date, addTimezone = false) {
   let timestamp;
-  const timestampFormat = cd.settings.get('timestampFormat');
+  const timestampFormat = settings.get('timestampFormat');
   if (timestampFormat === 'default') {
     timestamp = formatDateNative(date, addTimezone);
   } else if (timestampFormat === 'improved') {
@@ -1101,7 +1102,7 @@ export function formatDateNative(date, addTimezone = false, timezone) {
   let hours;
   let minutes;
   let dayOfWeek;
-  if (cd.settings.get('useUiTime') && !['UTC', 0, undefined].includes(cd.g.uiTimezone) && !timezone) {
+  if (settings.get('useUiTime') && !['UTC', 0, undefined].includes(cd.g.uiTimezone) && !timezone) {
     if (cd.g.areUiAndLocalTimezoneSame) {
       timezoneOffset = -date.getTimezoneOffset();
     } else {
@@ -1220,7 +1221,7 @@ export function formatDateImproved(date, addTimezone = false) {
   let now = new Date();
   let dayjsDate = dayjs(date);
   let timezoneOffset;
-  if (cd.settings.get('useUiTime') && !['UTC', 0, undefined].includes(cd.g.uiTimezone)) {
+  if (settings.get('useUiTime') && !['UTC', 0, undefined].includes(cd.g.uiTimezone)) {
     if (cd.g.areUiAndLocalTimezoneSame) {
       timezoneOffset = -date.getTimezoneOffset();
     } else {

@@ -16,13 +16,12 @@ import ElementsTreeWalker from './shared/ElementsTreeWalker';
 import TreeWalker from './shared/TreeWalker';
 import cd from './shared/cd';
 import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './shared/utils-general';
-import { formatDate, formatDateNative } from './shared/utils-timestamp';
 import { extractNumeralAndConvertToNumber, removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
 import { handleApiReject, loadUserGenders, parseCode } from './utils-api';
 import { showConfirmDialog } from './utils-oojs';
-import { createSvg, extractSignatures, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisibilityByRects, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
+import { createSvg, extractSignatures, formatDate, formatDateNative, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisibilityByRects, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**
  * @typedef {object} CommentOffset
@@ -4230,12 +4229,13 @@ class Comment extends CommentSkeleton {
    */
   getSiblingsAndSelf() {
     return (
-      /** @type {Comment[] | undefined} */ (this.getParent()?.getChildren()) ||
+      this.getParent()?.getChildren() ||
       (
         this.section
           ? this.section.commentsInFirstChunk.filter((comment) => !comment.getParent())
-          : // Parentless comments in the lead section
-            commentRegistry.query((comment) => !comment.section && !comment.getParent())
+
+          // Parentless comments in the lead section
+          : commentRegistry.query((comment) => !comment.section && !comment.getParent())
       )
     );
   }
