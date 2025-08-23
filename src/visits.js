@@ -1,12 +1,12 @@
 import LZString from 'lz-string';
 
+import EventEmitter from './EventEmitter';
 import commentRegistry from './commentRegistry';
 import settings from './settings';
 import CdError from './shared/CdError';
 import cd from './shared/cd';
 import { subtractDaysFromNow, typedKeysOf } from './shared/utils-general';
 import { getUserInfo, saveLocalOption } from './utils-api';
-import { EventEmitter } from './utils-oojs';
 
 /**
  * @typedef {object} EventMap

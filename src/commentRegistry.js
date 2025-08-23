@@ -1,4 +1,5 @@
 import Comment from './Comment';
+import EventEmitter from './EventEmitter';
 import Thread from './Thread';
 import bootController from './bootController';
 import commentFormRegistry from './commentFormRegistry';
@@ -9,7 +10,6 @@ import { definedAndNotNull, reorderArray, sleep, unique } from './shared/utils-g
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
 import { getPagesExistence } from './utils-api';
-import { EventEmitter } from './utils-oojs';
 import { getCommonGender, getExtendedRect, getHigherNodeAndOffsetInSelection, mergeJquery, wrapHtml } from './utils-window';
 import visits from './visits';
 

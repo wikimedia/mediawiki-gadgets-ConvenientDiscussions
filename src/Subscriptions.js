@@ -1,7 +1,7 @@
+import EventEmitter from './EventEmitter';
 import settings from './settings';
 import CdError from './shared/CdError';
 import cd from './shared/cd';
-import { EventEmitter } from './utils-oojs';
 import { wrapHtml } from './utils-window';
 
 /**

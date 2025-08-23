@@ -1,4 +1,5 @@
 import CommentForm from './CommentForm';
+import EventEmitter from './EventEmitter';
 import StorageItemWithKeysAndSaveTime from './StorageItemWithKeysAndSaveTime';
 import bootController from './bootController';
 import commentRegistry from './commentRegistry';
@@ -6,7 +7,6 @@ import sectionRegistry from './sectionRegistry';
 import cd from './shared/cd';
 import { defined, removeFromArrayIfPresent, subtractDaysFromNow } from './shared/utils-general';
 import talkPageController from './talkPageController';
-import { EventEmitter } from './utils-oojs';
 import { isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
 
 // TODO: make into a class extending a generic registry.

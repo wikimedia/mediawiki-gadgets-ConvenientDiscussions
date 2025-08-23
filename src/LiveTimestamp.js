@@ -1,9 +1,10 @@
 import dayjs from 'dayjs';
 
+import EventEmitter from './EventEmitter';
 import settings from './settings';
 import cd from './shared/cd';
 import { removeFromArrayIfPresent } from './shared/utils-general';
-import { EventEmitter, mixInObject } from './utils-oojs';
+import { mixInObject } from './utils-oojs';
 import { formatDate } from './utils-window';
 
 /**
