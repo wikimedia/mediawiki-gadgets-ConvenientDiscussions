@@ -602,6 +602,7 @@ export function es6ClassToOoJsClass(TargetClass) {
     TargetClass.parent = TargetClass.super = OriginClass;
     OO.initClass(OriginClass);
 
+    // Move prototype properties
     Object.getOwnPropertyNames(OriginClass.prototype)
       .filter((name) => name !== 'constructor' && !(name in TargetClass.prototype))
       .forEach((name) => {
@@ -615,6 +616,7 @@ export function es6ClassToOoJsClass(TargetClass) {
       });
   }
 
+  // Move static properties
   TargetClass.static = Object.create(OriginClass?.static || null);
   Object.keys(TargetClass)
     .filter((key) => !['parent', 'super', 'static'].includes(key))
@@ -636,15 +638,23 @@ export function es6ClassToOoJsClass(TargetClass) {
  */
 export function mixInClass(Base, Mixin) {
   // eslint-disable-next-line jsdoc/require-jsdoc
-  OO.mixinClass(Base, Mixin);
+  class Class extends Base {}
+  OO.mixinClass(Class, Mixin);
 
+  // for...in in OO.mixinClass doesn't catch prototype properties declared with the `class` syntax
+  // (because they are not enumerable), so we set them manually. Alternatively, we could make them
+  // enumerable in es6ClassToOoJsClass().
   Object.getOwnPropertyNames(Mixin.prototype)
     .filter((name) => name !== 'constructor')
     .forEach((name) => {
-      Base.prototype[name] = Mixin.prototype[name];
+      Object.defineProperty(
+        Class.prototype,
+        name,
+        /** @type {PropertyDescriptor} */ (Object.getOwnPropertyDescriptor(Mixin.prototype, name))
+      );
     });
 
-  return /** @type {TBase & MixinType<TMixin>} */ (Base);
+  return /** @type {TBase & MixinType<TMixin>} */ (Class);
 }
 
 /**
