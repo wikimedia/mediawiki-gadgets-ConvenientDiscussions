@@ -3,6 +3,7 @@ import Button from './Button';
 import Comment from './Comment';
 import CommentFormInputTransformer from './CommentFormInputTransformer';
 import CommentFormOperationRegistry from './CommentFormOperationRegistry';
+import EventEmitter from './EventEmitter';
 import TextMasker from './TextMasker';
 import bootController from './bootController';
 import commentFormRegistry from './commentFormRegistry';
@@ -19,7 +20,7 @@ import { escapePipesOutsideLinks, generateTagsRegexp, removeWikiMarkup } from '.
 import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
 import { handleApiReject, parseCode } from './utils-api';
-import { createCheckboxControl, EventEmitter } from './utils-oojs';
+import { createCheckboxControl } from './utils-oojs';
 import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, isInputFocused, keyCombination, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**

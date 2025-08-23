@@ -1,4 +1,5 @@
 import Button from './Button';
+import EventEmitter from './EventEmitter';
 import PrototypeRegistry from './PrototypeRegistry';
 import StorageItemWithKeysAndSaveTime from './StorageItemWithKeysAndSaveTime';
 import bootController from './bootController';
@@ -11,7 +12,7 @@ import { defined, isHeadingNode, removeFromArrayIfPresent, subtractDaysFromNow, 
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
 import { loadUserGenders } from './utils-api';
-import { EventEmitter, mixInObject } from './utils-oojs';
+import { mixInObject } from './utils-oojs';
 import { getCommonGender, getExtendedRect, getRangeContents, getVisibilityByRects, isCmdModifierPressed } from './utils-window';
 
 /**

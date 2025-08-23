@@ -120,7 +120,10 @@ class MoveSectionDialog extends ProcessDialog {
       mw.loader.using('mediawiki.widgets'),
       Promise.all(
         archivingConfigPages.map((page) => page.getFirstTemplateTransclusion(templatePages))
-      ).then((transclusions) => this.guessArchiveConfig(mergeMaps(transclusions)), () => {}),
+      ).then(
+        (transclusions) => this.guessArchiveConfig(mergeMaps(transclusions)),
+        () => {}
+      ),
     ];
 
     this.loadingPanel = new OO.ui.PanelLayout({

@@ -1,4 +1,5 @@
 import Comment from './Comment';
+import EventEmitter from './EventEmitter';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import bootController from './bootController';
 import commentFormRegistry from './commentFormRegistry';
@@ -10,7 +11,6 @@ import cd from './shared/cd';
 import { calculateWordOverlap, keepWorkerSafeValues, subtractDaysFromNow } from './shared/utils-general';
 import userRegistry from './userRegistry';
 import { loadUserGenders } from './utils-api';
-import { EventEmitter } from './utils-oojs';
 import visits from './visits';
 
 // TODO: Make this into a singleton (object) without module-scope variables so that it emits with

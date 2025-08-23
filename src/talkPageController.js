@@ -1,5 +1,6 @@
 import Autocomplete from './Autocomplete';
 import CommentForm from './CommentForm';
+import EventEmitter from './EventEmitter';
 import Thread from './Thread';
 import bootController from './bootController';
 import commentFormRegistry from './commentFormRegistry';
@@ -15,7 +16,6 @@ import cd from './shared/cd';
 import { defined, definedAndNotNull, getLastArrayElementOrSelf, isHeadingNode, isInline, sleep } from './shared/utils-general';
 import toc from './toc';
 import updateChecker from './updateChecker';
-import { EventEmitter } from './utils-oojs';
 import { copyText, getVisibilityByRects, wrapHtml } from './utils-window';
 
 /**
