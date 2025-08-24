@@ -9,7 +9,7 @@ import { findFirstTimestamp } from './utils-window';
  */
 export default class PageSource {
   /**
-   * Page's source code.
+   * Page's source code (wikitext), ending with `\n`. Filled upon running {@link Page#loadCode}.
    *
    * @type {string | undefined}
    */

@@ -55,14 +55,6 @@ export default class Page {
   pageId;
 
   /**
-   * Page's source code (wikitext), ending with `\n`. Filled upon running {@link Page#loadCode}.
-   *
-   * @name code
-   * @type {string|undefined}
-   */
-  code;
-
-  /**
    * ID of the revision that has {@link Page#code}. Filled upon running {@link Page#loadCode}.
    *
    * @name revisionId
@@ -325,7 +317,7 @@ export default class Page {
     }
 
     if (page.missing) {
-      this.code = '';
+      this.source.setCode('');
       this.revisionId = undefined;
       this.redirectTarget = undefined;
       this.realName = this.name;

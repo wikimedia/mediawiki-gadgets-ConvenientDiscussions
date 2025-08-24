@@ -1826,15 +1826,15 @@ class Section extends SectionSkeleton {
    * It is expected that the section or page code is loaded (using {@link Page#loadCode}) before
    * this method is called. Otherwise, the method will throw an error.
    *
-   * @param {string | undefined} [sectionCode] Section code to use instead of the page code, to locate
-   *   the section in.
+   * @param {string | undefined} [sectionCode] Section code to use instead of the page code, to
+   *   locate the section in.
    * @returns {SectionSource}
    * @throws {CdError}
    */
   locateInCode(sectionCode) {
     this.source = null;
 
-    const code = sectionCode || this.getSourcePage().code;
+    const code = sectionCode || this.getSourcePage().source.getCode();
     if (code === undefined) {
       throw new CdError({
         type: 'parse',

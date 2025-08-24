@@ -176,7 +176,7 @@ class SectionSource {
   modifyContext({ action, commentCode }) {
     const originalContextCode = this.isInSectionContext ?
       this.section.presumedCode :
-      this.section.getSourcePage().code;
+      this.section.getSourcePage().source.getCode();
     if (!originalContextCode) {
       throw new CdError({
         type: 'internal',
@@ -249,24 +249,24 @@ class SectionSource {
     // To simplify the workings of the `replyInSection` mode we don't consider terminating line
     // breaks to be a part of the first chunk of the section (i.e., the section subdivision before
     // the first heading).
-    const firstChunkMatch = (
-      adjustedCodeFromSection.match(new RegExp(
-        // Will fail at "===" or the like.
-        '(' +
-        mw.util.escapeRegExp(fullHeadingMatch) +
-        String.raw`[^]*?\n)\n*` +
+    const firstChunkMatch =
+      adjustedCodeFromSection.match(
+        new RegExp(
+          // Will fail at "===" or the like.
+          '(' +
 
-        // Any next heading.
-        '={1,6}' +
+          mw.util.escapeRegExp(fullHeadingMatch) +
+          String.raw`[^]*?\n)\n*` +
 
-        String.raw`[^=].*=+[ \t\x01\x02]*\n`
-      )) ||
-      adjustedCodeFromSection.match(new RegExp(
-        '(' +
-        mw.util.escapeRegExp(fullHeadingMatch) +
-        '[^]*$)'
-      ))
-    );
+          // Any next heading.
+          '={1,6}' +
+
+          String.raw`[^=].*=+[ \t\x01\x02]*\n`
+        )
+      ) ||
+      adjustedCodeFromSection.match(
+        new RegExp('(' + mw.util.escapeRegExp(fullHeadingMatch) + '[^]*$)')
+      );
     if (!sectionMatch || !firstChunkMatch) {
       throw new CdError();
     }
@@ -289,16 +289,16 @@ class SectionSource {
     let firstChunkContentEndIndex = firstChunkEndIndex;
     let contentEndIndex = endIndex;
     cd.g.keepInSectionEnding.forEach((regexp) => {
-      const firstChunkMatch = firstChunkCode.match(regexp);
-      if (firstChunkMatch) {
+      const firstChunkRegexpMatch = firstChunkCode.match(regexp);
+      if (firstChunkRegexpMatch) {
         // `1` accounts for the first line break.
-        firstChunkContentEndIndex -= firstChunkMatch[0].length - 1;
+        firstChunkContentEndIndex -= firstChunkRegexpMatch[0].length - 1;
       }
 
-      const match = code.match(regexp);
-      if (match) {
+      const regexpMatch = code.match(regexp);
+      if (regexpMatch) {
         // `1` accounts for the first line break.
-        contentEndIndex -= match[0].length - 1;
+        contentEndIndex -= regexpMatch[0].length - 1;
       }
     });
 

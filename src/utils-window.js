@@ -11,11 +11,11 @@ import dayJsTimezone from 'dayjs/plugin/timezone';
 import dayJsUtc from 'dayjs/plugin/utc';
 
 import Button from './Button';
+import bootController from './bootController';
 import cd from './cd';
 import settings from './settings';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
-import Parser from './shared/Parser';
-import { decodeHtmlEntities, defined, generatePageNamePattern, isInline, parseWikiUrl, removeDirMarks, spacesToUnderlines, zeroPad } from './shared/utils-general';
+import { decodeHtmlEntities, defined, generatePageNamePattern, isInline, parseWikiUrl, removeDirMarks, spacesToUnderlines } from './shared/utils-general';
 import { dateTokenToMessageNames, generateTimezonePostfix, parseTimestamp } from './shared/utils-timestamp';
 import { maskDistractingCode } from './shared/utils-wikitext';
 
@@ -425,11 +425,7 @@ export function cleanUpPasteDom(element, containerElement) {
     .forEach(removeElement);
 
   const topElements = /** @type {Element[]} */ (
-    Parser.prototype.getTopElementsWithText.call(
-      { context: { childElementsProp: 'children' } },
-      element,
-      true
-    ).nodes
+    bootController.getBootProcess().parser.getTopElementsWithText(element, true).nodes
   );
   if (topElements[0] !== element) {
     element.innerHTML = '';
@@ -1150,7 +1146,7 @@ export function formatDateNative(date, addTimezone = false, timezone) {
         string += dateTokenToMessageNames[code].map((token) => mw.msg(token))[monthIdx];
         break;
       case 'd':
-        string += zeroPad(day, 2);
+        string += String(day).padStart(2, '0');
         break;
       case 'D':
       case 'l': {
@@ -1173,10 +1169,10 @@ export function formatDateNative(date, addTimezone = false, timezone) {
         string += hours;
         break;
       case 'H':
-        string += zeroPad(hours, 2);
+        string += String(hours).padStart(2, '0');
         break;
       case 'i':
-        string += zeroPad(minutes, 2);
+        string += String(minutes).padStart(2, '0');
         break;
       case '\\':
         // Backslash escaping

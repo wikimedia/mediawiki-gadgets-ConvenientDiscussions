@@ -184,9 +184,9 @@ class Thread extends mixInObject(
      * @type {import('./Comment').default}
      * @private
      */
-    this.visualLastComment = this.hasOutdents ?
-      rootComment.getChildren(true, true).slice(-1)[0] || rootComment :
-      this.lastComment;
+    this.visualLastComment = this.hasOutdents
+      ? rootComment.getChildren(true, true).slice(-1)[0] || rootComment
+      : this.lastComment;
 
     /**
      * Fallback visual last comment. Used when `Thread#visualEndElement` may be hidden without
@@ -196,12 +196,12 @@ class Thread extends mixInObject(
      * @type {import('./Comment').default}
      * @private
      */
-    this.visualLastCommentFallback = this.hasOutdents ?
+    this.visualLastCommentFallback = this.hasOutdents
       // `|| rootComment` part for a very weird case when an outdented comment is at the same level
       // as its parent.
-      rootComment.getChildren(true, true, false).slice(-1)[0] || rootComment :
+      ? rootComment.getChildren(true, true, false).slice(-1)[0] || rootComment
 
-      this.lastComment;
+      : this.lastComment;
 
     this.initBoundingElements();
 
@@ -250,9 +250,9 @@ class Thread extends mixInObject(
               visualHighlightablesFallback,
               nextForeignElement
             );
-      endElement = this.hasOutdents ?
-        Thread.findEndElementOfZeroLevelThread(startElement, highlightables, nextForeignElement) :
-        visualEndElement;
+      endElement = this.hasOutdents
+        ? Thread.findEndElementOfZeroLevelThread(startElement, highlightables, nextForeignElement)
+        : visualEndElement;
     } else {
       // We could improve the positioning of the thread line to exclude the vertical space next to
       // an outdent template placed at a non-0 level by taking the first element as the start
@@ -278,30 +278,30 @@ class Thread extends mixInObject(
           .find((comment) => comment.isOutdented)
       );
       if (lastOutdentedComment) {
-        endElement = lastOutdentedComment.level === 0 ?
-          Thread.findEndElementOfZeroLevelThread(
-            startElement,
-            highlightables,
-            nextForeignElement
-          ) :
-          Thread.findItemElement(
-            lastHighlightable,
-            Math.min(lastOutdentedComment.level, this.rootComment.level),
-            nextForeignElement
-          );
+        endElement = lastOutdentedComment.level === 0
+          ? Thread.findEndElementOfZeroLevelThread(
+              startElement,
+              highlightables,
+              nextForeignElement
+            )
+          : Thread.findItemElement(
+              lastHighlightable,
+              Math.min(lastOutdentedComment.level, this.rootComment.level),
+              nextForeignElement
+            );
 
         visualEndElement = Thread.findItemElement(
           visualHighlightables[visualHighlightables.length - 1],
           this.rootComment.level,
           nextForeignElement
         );
-        visualEndElementFallback = this.visualLastComment === this.visualLastCommentFallback ?
-          visualEndElement :
-          Thread.findItemElement(
-            visualHighlightablesFallback[visualHighlightablesFallback.length - 1],
-            this.rootComment.level,
-            nextForeignElement
-          );
+        visualEndElementFallback = this.visualLastComment === this.visualLastCommentFallback
+          ? visualEndElement
+          : Thread.findItemElement(
+              visualHighlightablesFallback[visualHighlightablesFallback.length - 1],
+              this.rootComment.level,
+              nextForeignElement
+            );
       } else {
         endElement = (
           Thread.findItemElement(
@@ -753,9 +753,9 @@ class Thread extends mixInObject(
       undefined
     );
 
-    return $lastSubitem?.is(':visible') ?
-      Thread.findItemElement($lastSubitem[0], this.rootComment.level) :
-      endElement;
+    return $lastSubitem?.is(':visible')
+      ? Thread.findItemElement($lastSubitem[0], this.rootComment.level)
+      : endElement;
   }
 
   /**
@@ -895,9 +895,11 @@ class Thread extends mixInObject(
    *   button.
    */
   toggleWithSiblings(clickedThread = false) {
-    const wasCollapsed = clickedThread ?
-      this.isCollapsed :
-      Boolean(this.rootComment.getParent()?.areChildThreadsCollapsed());
+    const wasCollapsed = clickedThread
+      ? this.isCollapsed
+
+
+      : Boolean(this.rootComment.getParent()?.areChildThreadsCollapsed());
     this.rootComment.getSiblingsAndSelf().forEach((sibling) => {
       if (wasCollapsed) {
         sibling.thread?.expand(undefined, true);
@@ -972,7 +974,7 @@ class Thread extends mixInObject(
 
     if (this.endElement !== this.visualEndElement) {
       for (
-        let /** @type {import('./Comment').default | undefined} */ c = this.rootComment;
+        let /** @type {import('./Comment').default | null} */ c = this.rootComment;
         c;
         c = c.getParent(true)
       ) {
@@ -1033,7 +1035,7 @@ class Thread extends mixInObject(
 
     if (this.endElement !== this.visualEndElement && areOutdentedCommentsShown) {
       for (
-        let /** @type {import('./Comment').default | undefined} */ c = this.rootComment;
+        let /** @type {import('./Comment').default | null} */ c = this.rootComment;
         c;
         c = c.getParent()
       ) {
@@ -1203,9 +1205,9 @@ class Thread extends mixInObject(
       return offset - cd.g.threadLineSidePadding;
     };
     const getTop = (/** @type {DOMRect|import('./Comment').CommentOffset} */ rectOrOffset) => (
-      rectOrOffset instanceof DOMRect ?
-        scrollY + rectOrOffset.top :
-        rectOrOffset.top
+      rectOrOffset instanceof DOMRect
+        ? scrollY + rectOrOffset.top
+        : rectOrOffset.top
     );
 
     const comment = this.rootComment;
@@ -1226,9 +1228,9 @@ class Thread extends mixInObject(
       this.startElement.tagName === 'DIV'
     );
 
-    const rectTop = this.isCollapsed || !needCalculateMargins ?
-      this.getAdjustedStartElement().getBoundingClientRect() :
-      undefined;
+    const rectTop = this.isCollapsed || !needCalculateMargins
+      ? this.getAdjustedStartElement().getBoundingClientRect()
+      : undefined;
 
     const rectOrOffset = rectTop || comment.getOffset({ floatingRects });
 
@@ -1245,9 +1247,9 @@ class Thread extends mixInObject(
       left = getLeft(rectOrOffset, commentMargins, dir);
     }
 
-    const rectBottom = this.isCollapsed ?
-      rectTop :
-      this.getAdjustedEndElement(true)?.getBoundingClientRect();
+    const rectBottom = this.isCollapsed
+      ? rectTop
+      : this.getAdjustedEndElement(true)?.getBoundingClientRect();
 
     const areTopAndBottomAligned = () => {
       // FIXME: We use the first comment part's margins for the bottom rectangle which can lead to
@@ -1529,9 +1531,9 @@ class Thread extends mixInObject(
       }
     }
 
-    const loadUserGendersPromise = cd.g.genderAffectsUserString ?
-      loadUserGenders(comments.flatMap((comment) => comment.thread.getUsers())) :
-      undefined;
+    const loadUserGendersPromise = cd.g.genderAffectsUserString
+      ? loadUserGenders(comments.flatMap((comment) => comment.thread.getUsers()))
+      : undefined;
 
     // The reverse order is used for threads to be expanded correctly.
     comments

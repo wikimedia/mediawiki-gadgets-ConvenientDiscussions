@@ -1,6 +1,6 @@
 import Autocomplete from './Autocomplete';
 import ProcessDialog from './ProcessDialog';
-import PseudoLink from './Pseudolink';
+import Pseudolink from './Pseudolink';
 import TextInputWidget from './TextInputWidget';
 import bootController from './bootController';
 import pageRegistry from './pageRegistry';
@@ -237,7 +237,7 @@ class MoveSectionDialog extends ProcessDialog {
         archiveConfig?.path ||
         (cd.page.isArchive() ? undefined : cd.page.getArchivePrefix(true));
       if (archivePath) {
-        this.insertArchivePageButton = new PseudoLink({
+        this.insertArchivePageButton = new Pseudolink({
           label: archivePath,
           input: this.controls.title.input,
         });

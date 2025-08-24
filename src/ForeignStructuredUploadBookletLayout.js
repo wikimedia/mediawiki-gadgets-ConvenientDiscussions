@@ -1,7 +1,7 @@
 import ForeignStructuredUpload from './ForeignStructuredUpload';
-import PseudoLink from './Pseudolink';
+import Pseudolink from './Pseudolink';
 import cd from './shared/cd';
-import { canonicalUrlToPageName, defined, generateFixedPosTimestamp, getDbnameForHostname, zeroPad } from './shared/utils-general';
+import { canonicalUrlToPageName, defined, generateFixedPosTimestamp, getDbnameForHostname } from './shared/utils-general';
 import { createCheckboxControl, createRadioControl, createTextControl, createTitleControl, es6ClassToOoJsClass } from './utils-oojs';
 import { mergeJquery, wrapHtml } from './utils-window';
 
@@ -123,6 +123,17 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
       ],
     });
 
+    const subjectPage = cd.page.mwTitle.getSubjectPage();
+    if (subjectPage) {
+      this.insertSubjectPageButton = new Pseudolink({
+        label: subjectPage.getPrefixedText(),
+      });
+    }
+    if (cd.page.mwTitle.isTalkPage()) {
+      this.insertTalkPageButton = new Pseudolink({
+        label: cd.page.name,
+      });
+    }
     this.controls.title = createTitleControl({
       $overlay: this.$overlay,
       showMissing: false,
@@ -140,20 +151,9 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
       ),
       classes: ['cd-uploadDialog-fieldLayout-internal'],
     });
+    this.insertSubjectPageButton?.setInput(this.controls.title.input);
+    this.insertTalkPageButton?.setInput(this.controls.title.input);
 
-    const subjectPage = cd.page.mwTitle.getSubjectPage();
-    if (subjectPage) {
-      this.insertSubjectPageButton = new PseudoLink({
-        label: subjectPage.getPrefixedText(),
-        input: this.controls.title.input,
-      });
-    }
-    if (cd.page.mwTitle.isTalkPage()) {
-      this.insertTalkPageButton = new PseudoLink({
-        label: cd.page.name,
-        input: this.controls.title.input,
-      });
-    }
     const projectScreenshotItem = /** @type {import('./RadioOptionWidget').default} */ (
       this.controls.preset.input.findItemFromData('projectScreenshot')
     );
@@ -193,11 +193,9 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
    */
   async onUploadFormChange() {
     let valid = true;
-    if (this.controls) {
-      await this.controls.title.input.getValidity().catch(() => {
-        valid = false;
-      });
-    }
+    await this.controls.title?.input.getValidity().catch(() => {
+      valid = false;
+    });
     this.emit('uploadValid', this.selectFileWidget.getValue() && valid);
   }
 
@@ -309,9 +307,9 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
         this.uploadPromise,
         this.filenameWidget.getValidity(),
         this.descriptionWidget.getValidity(),
-        this.controls?.source.input.getValidity(),
-        this.controls?.author.input.getValidity(),
-        this.controls?.license.input.getValidity(),
+        this.controls.source?.input.getValidity(),
+        this.controls.author?.input.getValidity(),
+        this.controls.license?.input.getValidity(),
       ].filter(defined)
     ).catch(() => {
       valid = false;
@@ -628,9 +626,9 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
 
     // Clear the fields we added as well. We add them on the "setup" step, so they aren't there
     // when .clear() initially runs.
-    this.controls?.source.input.setValue('').setValidityFlag(true);
-    this.controls?.author.input.setValue('').setValidityFlag(true);
-    this.controls?.license.input.setValue('').setValidityFlag(true);
+    this.controls.source?.input.setValue('').setValidityFlag(true);
+    this.controls.author?.input.setValue('').setValidityFlag(true);
+    this.controls.license?.input.setValue('').setValidityFlag(true);
   }
 
   /**
@@ -652,7 +650,10 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
     }
     const path = mw.util.getUrl(pageName, {
       action: 'history',
-      offset: generateFixedPosTimestamp(new Date(), zeroPad(new Date().getUTCSeconds(), 2)),
+      offset: generateFixedPosTimestamp(
+        new Date(),
+        String(new Date().getUTCSeconds()).padStart(2, '0')
+      ),
     });
     const link = `https://${hostname}${path}`;
     return `, see the [${link} page history]`;

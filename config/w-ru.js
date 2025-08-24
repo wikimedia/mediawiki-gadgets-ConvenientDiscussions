@@ -222,7 +222,7 @@ export default {
 
   indentationCharMode: 'unify',
 
-  signaturePrefixRegexp: /(?:\s*С уважением,?)?(?:\s[-–−—―]+\xa0?[A-Z][A-Za-z-_]*)?(?:\s+>+)?(?:[·•\-‑–−—―─~⁓/→⇒\s\u200d\u200e\u200f\u2060]|&\w+;|&#\d+;)*(?:\s+\()?$/,
+  signaturePrefixRegexp: /(?:\s*С уважением,?)?(?:\s[-–−—―]+\u00A0?[A-Z][A-Za-z-_]*)?(?:\s+>+)?(?:[·•\-‑–−—―─~⁓/→⇒\s\u200D\u200E\u200F\u2060]|&\w+;|&#\d+;)*(?:\s+\()?$/,
 
   signatureEndingRegexp: / \(обс\.\)$/,
 
@@ -355,7 +355,7 @@ export default {
   reflistTalkClasses: ['reflist-talk'],
 
   commentAntipatterns: [
-    /--\xa0?\[\[Участник:DimaBot\|DimaBot\]\]/,
+    /--\u00A0?\[\[Участник:DimaBot\|DimaBot\]\]/,
   ],
 
   excludeFromHeadlineClasses: [
@@ -409,7 +409,7 @@ export default {
     /^Википедия:Голосования\//,
   ],
 
-  indentationCharsPattern: '(?:\\{\\{(?:-vote|[зЗ]ачёркнутый голос|-голос)\\|)?([:*#]+)( *)',
+  indentationCharsPattern: String.raw`(?:\{\{(?:-vote|[зЗ]ачёркнутый голос|-голос)\|)?([:*#]+)( *)`,
 
   undoTexts: [
     'отмена правки',
@@ -598,7 +598,7 @@ mw.hook('convenientDiscussions.pageReadyFirstTime').add(function () {
 
 mw.hook('convenientDiscussions.commentFormCreated').add(function (commentForm) {
   commentForm.couldBeCloserClosing = (
-    /^Википедия:К удалению/.test(cd.page.name) &&
+    cd.page.name.startsWith('Википедия:К удалению') &&
     commentForm.getMode() === 'addSubsection' &&
     mw.config.get('wgUserGroups').includes('closer')
   );

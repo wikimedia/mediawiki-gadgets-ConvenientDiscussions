@@ -549,18 +549,6 @@ export function removeFromArrayIfPresent(arr, el) {
 }
 
 /**
- * Pad a number with zeros like this: `4` → `04` or `0004`.
- *
- * @param {number} number Number to pad.
- * @param {number} length Length of the resultant string.
- * @returns {string}
- * @private
- */
-export function zeroPad(number, length) {
-  return ('0000' + number).slice(-length);
-}
-
-/**
  * If the argument is an array, return its last element. Otherwise, return the value. (To process
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/getAll URLSearchParams#getAll}
  * return value. In MediaWiki, if there is more than one parameter with some name, the second value
@@ -762,11 +750,11 @@ export function getDayTimestamp() {
  */
 export function generateFixedPosTimestamp(date, seconds) {
   return (
-    zeroPad(date.getUTCFullYear(), 4) +
-    zeroPad(date.getUTCMonth() + 1, 2) +
-    zeroPad(date.getUTCDate(), 2) +
-    zeroPad(date.getUTCHours(), 2) +
-    zeroPad(date.getUTCMinutes(), 2) +
+    String(date.getUTCFullYear()).padStart(4, '0') +
+    String(date.getUTCMonth() + 1).padStart(2, '0') +
+    String(date.getUTCDate()).padStart(2, '0') +
+    String(date.getUTCHours()).padStart(2, '0') +
+    String(date.getUTCMinutes()).padStart(2, '0') +
     (seconds || '')
   );
 }

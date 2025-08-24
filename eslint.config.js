@@ -59,7 +59,7 @@ const config = tseslint.config(
       'no-one-time-vars': noOneTimeVarsPlugin,
       'unicorn': eslintPluginUnicorn,
       '@stylistic': stylistic,
-      //'@typescript-eslint': tseslint.plugin,
+      // '@typescript-eslint': tseslint.plugin,
     },
     linterOptions: {
       reportUnusedDisableDirectives: false,
@@ -131,9 +131,9 @@ const config = tseslint.config(
       //   enforceForClassFields: true,
       //   ignoreOverrideMethods: true,
       // }],
-      // '@typescript-eslint/no-unnecessary-condition': ['warn', {
-      //   allowConstantLoopConditions: true,
-      // }],
+      '@typescript-eslint/no-unnecessary-condition': ['warn', {
+        allowConstantLoopConditions: true,
+      }],
       '@typescript-eslint/prefer-promise-reject-errors': 'off',
 
       // We use it only when necessary.
@@ -143,9 +143,6 @@ const config = tseslint.config(
       '@typescript-eslint/no-extraneous-class': ['error', {
         allowEmpty: true,
       }],
-
-      // Disable for now
-      '@typescript-eslint/class-methods-use-this': 'off',
 
       // Wait until enough browsers support it
       'unicorn/prefer-string-replace-all': 'off',

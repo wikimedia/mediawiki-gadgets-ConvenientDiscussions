@@ -127,7 +127,7 @@ export class UploadDialog extends mixInClass(
    */
   getReadyProcess() {
     return super.getReadyProcess().next(() => {
-      this.uploadBooklet.controls?.title.input.focus();
+      this.uploadBooklet.controls.title.input.focus();
     });
   }
 
