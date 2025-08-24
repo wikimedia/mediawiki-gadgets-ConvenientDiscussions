@@ -1599,15 +1599,15 @@ class CommentSkeleton {
    *
    * @param {boolean} [visual=false] Get the visual parent (according to the
    *   {@link Comment#level level} property, not {@link Comment#logicalLevel logicalLevel}).
-   * @returns {this | undefined}
+   * @returns {this | null}
    */
   getParent(visual = false) {
     // Note: this.cachedParent.logicalLevel can be overriden in .processOutdents().
 
     const prop = visual ? 'level' : 'logicalLevel';
-    if (!(prop in this.cachedParent)) {
+    if (this.cachedParent[prop] === undefined) {
       // This can run many times during page load, so we better optimize.
-      this.cachedParent[prop] = undefined;
+      this.cachedParent[prop] = null;
       if (this[prop] !== 0) {
         for (let i = this.index - 1; i >= 0; i--) {
           const comment = cd.comments[i];
@@ -1624,7 +1624,7 @@ class CommentSkeleton {
       }
     }
 
-    return /** @type {this | undefined} */ (this.cachedParent[prop]);
+    return /** @type {this | null} */ (this.cachedParent[prop]);
   }
 
   /**

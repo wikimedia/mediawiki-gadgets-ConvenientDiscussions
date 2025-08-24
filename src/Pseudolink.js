@@ -2,15 +2,22 @@ import Button from './Button';
 import cd from './shared/cd';
 
 /**
+ * @typedef {object} PseudoLinkConfig
+ * @property {string} label
+ * @property {string} [text]
+ * @property {OO.ui.TextInputWidget} [input]
+ */
+
+/**
  * Button that inserts text in an input by click and looks like a link with a dashed underline.
  *
  * @private
  */
-class PseudoLink extends Button {
+class Pseudolink extends Button {
   /**
    * Create a pseudolink.
    *
-   * @param {object} config
+   * @param {PseudoLinkConfig} config
    */
   constructor(config) {
     super({
@@ -19,11 +26,24 @@ class PseudoLink extends Button {
       buttonClasses: ['cd-pseudolink'],
       tooltip: cd.s('pseudolink-tooltip'),
       label: config.label,
-      action: () => {
-        config.input.setValue(config.text || config.label).focus();
-      },
+    });
+
+    this.text = config.text;
+    if (config.input) {
+      this.setInput(config.input);
+    }
+  }
+
+  /**
+   * Set the input to insert text in.
+   *
+   * @param {OO.ui.TextInputWidget} input
+   */
+  setInput(input) {
+    this.setAction(() => {
+      input.setValue(this.text || this.labelElement.textContent).focus();
     });
   }
 }
 
-export default PseudoLink;
+export default Pseudolink;

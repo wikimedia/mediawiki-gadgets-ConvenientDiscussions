@@ -3678,12 +3678,16 @@ class Comment extends CommentSkeleton {
       .filter(
         (signature) =>
           (signature.author === this.author || signature.author.getName() === '<undated>') &&
-          (this.timestamp === signature.timestamp ||
+          (
+            this.timestamp === signature.timestamp ||
             // .startsWith() to account for cases where you can ignore the timezone string in
             // "unsigned" templates (it may be present and may be not), but it appears on the page.
-            (this.timestamp &&
+            (
+              this.timestamp &&
               signature.timestamp &&
-              this.timestamp.startsWith(signature.timestamp)))
+              this.timestamp.startsWith(signature.timestamp)
+            )
+          )
       )
       .map((signature) => new CommentSource(this, signature, contextCode, isInSectionContext))
       .map((source, _, sources) => source.calculateMatchScore(thisData, sources, signatures))
@@ -3724,7 +3728,7 @@ class Comment extends CommentSkeleton {
   locateInCode(sectionCode, code, commentData) {
     const customCodePassed = typeof code === 'string';
     if (!customCodePassed) {
-      code = sectionCode || this.getSourcePage().code;
+      code = sectionCode || this.getSourcePage().source.getCode();
       this.source = null;
     }
 

@@ -417,15 +417,14 @@ class CommentSource {
     }
 
     isPreviousCommentsDataEqual = Boolean(isPreviousCommentsDataEqual);
-    if (commentData.sectionHeadline === undefined) {
-      doesHeadlineMatch = !this.headingMatch;
+    if (commentData.followsHeading) {
+      doesHeadlineMatch =
+        this.headlineCode === undefined
+          ? -0.4999
+          : normalizeCode(removeWikiMarkup(this.headlineCode)) ===
+          normalizeCode(/** @type {string} */ (commentData.sectionHeadline));
     } else {
-      doesHeadlineMatch = this.headlineCode === undefined
-        ? -0.4999
-        : (
-            normalizeCode(removeWikiMarkup(this.headlineCode)) ===
-            normalizeCode(commentData.sectionHeadline)
-          );
+      doesHeadlineMatch = !this.headingMatch;
     }
 
     const wordOverlap = calculateWordOverlap(commentData.commentText, removeWikiMarkup(this.code));
@@ -806,7 +805,7 @@ class CommentSource {
     commentCode,
     contextCode: originalContextCode = this.isInSectionContext
       ? /** @type {import('./Section').default} */ (this.comment.section).presumedCode
-      : this.comment.getSourcePage().code,
+      : this.comment.getSourcePage().source.getCode(),
     doDelete,
     commentForm,
   }) {
