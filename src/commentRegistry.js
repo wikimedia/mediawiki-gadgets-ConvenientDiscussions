@@ -1,12 +1,13 @@
 import Comment from './Comment';
 import EventEmitter from './EventEmitter';
+import StorageItemWithKeys from './StorageItemWithKeys';
 import Thread from './Thread';
 import bootController from './bootController';
 import cd from './cd';
 import commentFormRegistry from './commentFormRegistry';
 import settings from './settings';
 import TreeWalker from './shared/TreeWalker';
-import { definedAndNotNull, reorderArray, sleep, unique } from './shared/utils-general';
+import { definedAndNotNull, reorderArray, sleep, subtractDaysFromNow, unique } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
 import { getPagesExistence } from './utils-api';
@@ -51,10 +52,26 @@ class CommentRegistry extends EventEmitter {
   layersContainers = [];
 
   /**
+   * @typedef {object} ThanksData
+   * @property {string} id
+   * @property {number} thankTime
+   */
+
+  /**
+   * @type {StorageItemWithKeys<ThanksData>}
+   * @private
+   */
+  thanksStorage;
+
+  /**
    * _For internal use._ Initialize the registry.
    */
   init() {
     this.reformatCommentsSetting = settings.get('reformatComments');
+
+    this.thanksStorage = new StorageItemWithKeys('thanks')
+      .cleanUp((entry) => (entry.thankTime || 0) < subtractDaysFromNow(60))
+      .save();
 
     talkPageController
       .on('scroll', this.registerSeen.bind(this))
@@ -1109,7 +1126,7 @@ class CommentRegistry extends EventEmitter {
 
     // If this element is a part of a comment, replace it in the Comment object instance.
     const commentIndex = element.dataset.cdCommentIndex;
-    if (commentIndex === null) {
+    if (commentIndex === undefined) {
       /** @type {HTMLElement} */ (element.parentElement).replaceChild(newElement, element);
     } else {
       this.items[Number(commentIndex)].replaceElement(element, newElement);
@@ -1346,6 +1363,15 @@ class CommentRegistry extends EventEmitter {
       /** @type {OO.ui.PopupWidget} */ (this.toggleChildThreadsPopup).$element.remove();
       this.toggleChildThreadsPopup = undefined;
     });
+  }
+
+  /**
+   * Get the storage for the "Thanks" feature.
+   *
+   * @returns {StorageItemWithKeys}
+   */
+  getThanksStorage() {
+    return this.thanksStorage;
   }
 }
 

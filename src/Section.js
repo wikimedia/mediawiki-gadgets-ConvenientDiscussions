@@ -724,25 +724,28 @@ class Section extends SectionSkeleton {
    * @private
    */
   createAuthorsPopupContent() {
+    const authorsSortSetting = settings.get('authorsSort');
     const data = this.comments
       .map((comment) => comment.author)
       .filter(unique)
-      .map(
-        (author) =>
-          /** @type {[import('./User').default, Comment[]]} */ ([
-            author,
-            this.comments.filter((comment) => comment.author === author),
-          ])
-      )
-      .flatMap(([author, comments]) => ({
-        name: author.getName(),
-        count: comments.length,
-        newestCommentDate: Comment.getNewest(comments, true)?.date,
-        $link: $('<a>')
-          .text(author.getName())
-          .attr('href', `#${comments[0].dtId || comments[0].id}`)
-          .on('click', () => Comment.scrollToFirstFlashAll(comments)),
-      }));
+      .flatMap((author) => {
+        const comments = this.comments.filter((comment) => comment.author === author);
+        const newestComment = /** @type {Comment} */ (Comment.getNewest(comments, true));
+        const targetComment = authorsSortSetting === 'date' ? newestComment : comments[0];
+
+        return {
+          name: author.getName(),
+          count: comments.length,
+          newestCommentDate: newestComment.date,
+          comments,
+          newestComment,
+          targetComment,
+          $link: $('<a>')
+            .text(author.getName())
+            .attr('href', `#${targetComment.dtId || targetComment.id}`)
+            .on('click', () => Comment.scrollToFirstFlashAll(comments)),
+        };
+      });
 
     /**
      * @typedef {'name'|'count'|'date'} PanelName
@@ -751,7 +754,6 @@ class Section extends SectionSkeleton {
     const getPanelByName = (/** @type {PanelName} */ name) =>
       name === 'name' ? namePanel : name === 'count' ? countPanel : datePanel;
 
-    const authorsSortSetting = settings.get('authorsSort');
     const sortSelect = new OO.ui.ButtonSelectWidget({
       items: [
         new OO.ui.ButtonOptionWidget({
@@ -810,7 +812,14 @@ class Section extends SectionSkeleton {
             (d1, d2) =>
               (d2.newestCommentDate?.getTime() || 0) - (d1.newestCommentDate?.getTime() || 0)
           )
-          .map((d) => $('<li>').append(d.$link.clone()))
+          .map((d) =>
+            $('<li>').append(
+              d.$link.clone(),
+              d.newestCommentDate
+                ? cd.mws('word-separator') + cd.mws('parentheses', formatDate(d.newestCommentDate))
+                : ''
+            )
+          )
       ),
       padded: false,
       expanded: false,

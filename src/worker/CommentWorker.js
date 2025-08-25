@@ -247,7 +247,7 @@ export default class CommentWorker extends CommentSkeleton {
       // The link may change
       link.removeAttribute('href');
 
-      // Here there is the relative date
+      // There is a relative date in the tooltip
       link.removeAttribute('title');
     });
   }
@@ -405,6 +405,7 @@ export default class CommentWorker extends CommentSkeleton {
         'parts',
         'signatureElement',
         'timestampElement',
+        'getListsUpTree',
       ]);
     });
   }

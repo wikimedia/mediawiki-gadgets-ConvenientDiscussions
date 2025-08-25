@@ -902,8 +902,8 @@ class UpdateChecker extends EventEmitter {
             undefined
           )
         );
+        this.initted = true;
       });
-    this.initted = true;
   }
 
   /**

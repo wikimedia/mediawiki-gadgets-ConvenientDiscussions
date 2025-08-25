@@ -234,7 +234,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
    * @throws {CdError}
    */
   async createDiffPanel() {
-    if (!this.isClosing() || !this.object.isComment()) {
+    if (this.isClosing() || !this.object.isComment()) {
       throw new CdError();
     }
 
@@ -373,21 +373,21 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
   createDiffPanelContent(diffPanelContent) {
     const copyCallback = this.copyCallback;
 
-    this.standard = createCopyTextControl({
+    this.controls.standard = createCopyTextControl({
       value: diffPanelContent.diffStandard,
       disabled: !diffPanelContent.diffStandard,
       label: cd.s('cld-diff'),
       copyCallback,
     });
 
-    this.short = createCopyTextControl({
+    this.controls.short = createCopyTextControl({
       value: diffPanelContent.diffShort,
       disabled: !diffPanelContent.diffShort,
       label: cd.s('cld-shortdiff'),
       copyCallback,
     });
 
-    this.wikilink = createCopyTextControl({
+    this.controls.wikilink = createCopyTextControl({
       value: diffPanelContent.diffWikilink,
       disabled: !diffPanelContent.diffWikilink,
       label: cd.s('cld-diffwikilink'),

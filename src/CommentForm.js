@@ -438,7 +438,7 @@ class CommentForm extends EventEmitter {
   containerListType = null;
 
   /**
-   * @typedef {Promise<import('./CommentSource').default|import('./SectionSource').default|import('./PageSource').default|null|void>} CheckCodeRequest
+   * @typedef {Promise<Source|null|void>} CheckCodeRequest
    */
 
   /**
@@ -3592,9 +3592,7 @@ class CommentForm extends EventEmitter {
 
         return target.isOwn ?
           cd.s('es-addition') :
-          removeDoubleSpaces(
-            cd.s('es-reply-to', target.author.getName(), target.author)
-          );
+          removeDoubleSpaces(cd.s('es-reply-to', target.author.getName(), target.author));
       }
     } else if (this.isMode('edit')) {
       // The codes for generating "edit" and "delete" descriptions are equivalent, so we provide
@@ -4296,7 +4294,6 @@ class CommentForm extends EventEmitter {
    * Check whether the target is a comment opening a section and it is is edited.
    *
    * @returns {this is CommentForm<'edit'>}
-   * @private
    */
   isSectionOpeningCommentEdited() {
     return this.isMode('edit') && this.isTargetOpeningSection();
@@ -4337,7 +4334,7 @@ class CommentForm extends EventEmitter {
    * @private
    */
   isTargetOpeningSection() {
-    return this.isCommentTarget() && Boolean(this.target.isOpeningSection());
+    return this.isCommentTarget() && this.target.isOpeningSection();
   }
 
   static counter = 0;
