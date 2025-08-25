@@ -3585,7 +3585,7 @@ class CommentForm extends EventEmitter {
     // FIXME: distribute this code across the classes of targets? Not sure this belongs here.
     if (this.isMode('reply') || substituteTarget) {
       const target = substituteTarget || /** @type {Comment} */ (this.target);
-      if (target.openingSection) {
+      if (target.isOpeningSection()) {
         return cd.s('es-reply');
       } else {
         target.maybeRequestAuthorGender(this.updateAutoSummary);
@@ -4337,7 +4337,7 @@ class CommentForm extends EventEmitter {
    * @private
    */
   isTargetOpeningSection() {
-    return this.isCommentTarget() && Boolean(this.target.openingSection);
+    return this.isCommentTarget() && Boolean(this.target.isOpeningSection());
   }
 
   static counter = 0;

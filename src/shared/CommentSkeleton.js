@@ -169,6 +169,7 @@ class CommentSkeleton {
    * zeroth level).
    *
    * @type {boolean}
+   * @protected
    */
   openingSection;
 

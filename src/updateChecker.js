@@ -590,8 +590,8 @@ class UpdateChecker extends EventEmitter {
           commentsData,
         });
 
-        if (comment.openingSection) {
-          comment.section?.resubscribeIfRenamed(currentComment, oldComment);
+        if (comment.isOpeningSection()) {
+          comment.section.resubscribeIfRenamed(currentComment, oldComment);
         }
 
         changeList.push({ comment, commentsData });
