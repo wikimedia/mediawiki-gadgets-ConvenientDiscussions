@@ -2,7 +2,7 @@
 
 import CheckboxInputWidget from './CheckboxInputWidget';
 import TextInputWidget from './TextInputWidget';
-import ConvenientDiscussions from './shared/cd';
+import ConvenientDiscussions from './cd';
 
 declare global {
   const IS_TEST: boolean;
@@ -383,4 +383,4 @@ declare global {
   }
 }
 
-export { };
+export {};

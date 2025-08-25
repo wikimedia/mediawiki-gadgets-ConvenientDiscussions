@@ -7,9 +7,9 @@
  */
 
 import Comment from './Comment';
+import cd from './cd';
 import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
-import cd from './shared/cd';
 import { defined, sleep, underlinesToSpaces } from './shared/utils-general';
 import { removeWikiMarkup } from './shared/utils-wikitext';
 import { formatDateNative, isExistentAnchor, wrapHtml } from './utils-window';

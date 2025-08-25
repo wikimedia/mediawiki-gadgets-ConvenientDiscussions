@@ -6,8 +6,8 @@
 
 import StorageItem from './StorageItem';
 import User from './User';
+import cd from './cd';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { subtractDaysFromNow, ucFirst, underlinesToSpaces } from './shared/utils-general';
 import { handleApiReject } from './utils-api';
 

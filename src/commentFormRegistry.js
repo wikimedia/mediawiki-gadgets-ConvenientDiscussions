@@ -2,9 +2,9 @@ import CommentForm from './CommentForm';
 import EventEmitter from './EventEmitter';
 import StorageItemWithKeysAndSaveTime from './StorageItemWithKeysAndSaveTime';
 import bootController from './bootController';
+import cd from './cd';
 import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
-import cd from './shared/cd';
 import { defined, removeFromArrayIfPresent, subtractDaysFromNow } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import { isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
@@ -359,10 +359,6 @@ class CommentFormRegistry extends EventEmitter {
       });
     }
   }
-
-  /**
-   * @typedef {}
-   */
 
   /**
    * Given identifying data (created by e.g. {@link Comment#getIdentifyingData}), get a comment or

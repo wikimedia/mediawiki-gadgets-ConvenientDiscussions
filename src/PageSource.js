@@ -1,5 +1,5 @@
+import cd from './cd';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { parseTimestamp } from './shared/utils-timestamp';
 import { maskDistractingCode } from './shared/utils-wikitext';
 import { findFirstTimestamp } from './utils-window';

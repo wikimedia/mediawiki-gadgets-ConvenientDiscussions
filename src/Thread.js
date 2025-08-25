@@ -3,11 +3,11 @@ import EventEmitter from './EventEmitter';
 import PrototypeRegistry from './PrototypeRegistry';
 import StorageItemWithKeysAndSaveTime from './StorageItemWithKeysAndSaveTime';
 import bootController from './bootController';
+import cd from './cd';
 import commentRegistry from './commentRegistry';
 import settings from './settings';
 import CdError from './shared/CdError';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
-import cd from './shared/cd';
 import { defined, isHeadingNode, removeFromArrayIfPresent, subtractDaysFromNow, unique } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
@@ -974,7 +974,7 @@ class Thread extends mixInObject(
 
     if (this.endElement !== this.visualEndElement) {
       for (
-        let /** @type {import('./Comment').default | null} */ c = this.rootComment;
+        let /** @type {import('./Comment').default | undefined} */ c = this.rootComment;
         c;
         c = c.getParent(true)
       ) {
@@ -1035,7 +1035,7 @@ class Thread extends mixInObject(
 
     if (this.endElement !== this.visualEndElement && areOutdentedCommentsShown) {
       for (
-        let /** @type {import('./Comment').default | null} */ c = this.rootComment;
+        let /** @type {import('./Comment').default | undefined} */ c = this.rootComment;
         c;
         c = c.getParent()
       ) {

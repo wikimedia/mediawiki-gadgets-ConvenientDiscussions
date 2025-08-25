@@ -8,9 +8,9 @@
 
 import PageSource from './PageSource';
 import TextMasker from './TextMasker';
+import cd from './cd';
 import pageRegistry from './pageRegistry';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { defined, isProbablyTalkPage, mergeRegexps } from './shared/utils-general';
 import { handleApiReject, requestInBackground } from './utils-api';
 

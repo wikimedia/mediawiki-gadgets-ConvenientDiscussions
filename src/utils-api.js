@@ -7,8 +7,8 @@
  */
 
 import TextMasker from './TextMasker';
+import cd from './cd';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { unique } from './shared/utils-general';
 import { brsToNewlines } from './shared/utils-wikitext';
 import userRegistry from './userRegistry';

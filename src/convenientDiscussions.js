@@ -7,9 +7,9 @@
 
 import Comment from './Comment';
 import bootController from './bootController';
+import cd from './cd';
 import debug from './debug';
 import pageRegistry from './pageRegistry';
-import cd from './shared/cd';
 import { buildEditSummary, getQueryParamBooleanValue, underlinesToSpaces } from './shared/utils-general';
 import { wrapDiffBody, wrapHtml } from './utils-window';
 import WebpackWorker from './worker/worker-gate';

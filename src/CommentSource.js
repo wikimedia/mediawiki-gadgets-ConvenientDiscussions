@@ -1,7 +1,7 @@
 import TextMasker from './TextMasker';
+import cd from './cd';
 import settings from './settings';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { calculateWordOverlap, countOccurrences, definedAndNotNull, generatePageNamePattern } from './shared/utils-general';
 import { brsToNewlines, maskDistractingCode, normalizeCode, removeWikiMarkup } from './shared/utils-wikitext';
 import { extractSignatures } from './utils-window';

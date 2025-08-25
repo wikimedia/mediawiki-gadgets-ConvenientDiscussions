@@ -8,8 +8,8 @@
 
 import Button from './Button';
 import bootController from './bootController';
+import cd from './cd';
 import sectionRegistry from './sectionRegistry';
-import cd from './shared/cd';
 import talkPageController from './talkPageController';
 import toc from './toc';
 import { getVisibilityByRects } from './utils-window';
