@@ -280,16 +280,15 @@ class TalkPageController extends EventEmitter {
             this.scrollData.element.closest('.cd-hidden')
           );
           if (closestHidden) {
-            /** @type {JQuery} */ (
-              commentRegistry.getAll()
-                .map((comment) => comment.thread)
-                .filter(defined)
-                .filter((thread) => thread.isCollapsed)
-                .find((thread) =>
-                  /** @type {HTMLElement[]} */ (thread.collapsedRange).includes(closestHidden)
-                )
-                ?.$expandNote
-            ).cdScrollTo('top', false);
+            commentRegistry.getAll()
+              .map((comment) => comment.thread)
+              .filter(defined)
+              .filter((thread) => thread.isCollapsed)
+              .find((thread) =>
+                /** @type {HTMLElement[]} */ (thread.collapsedRange).includes(closestHidden)
+              )
+              ?.$expandNote
+              ?.cdScrollTo('top', false);
           }
         }
       }

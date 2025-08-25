@@ -12,16 +12,17 @@ import { escapePipesOutsideLinks, generateTagsRegexp } from './shared/utils-wiki
  */
 class CommentFormInputTransformer extends TextMasker {
   /**
-   * @typedef {object} CommentFormTargetExtension
-   * @property {import('./CommentForm').Source} source When {@link CommentFormInputTransformer} is
-   *   instantiated, `source` is never `null`.
+   * @typedef {object} CommentFormTargetWithSourceSet
+   * @property {import('./CommentForm').Source} source When
+   *   {@link CommentFormInputTransformer} is instantiated, `source` is never `null`.
    */
 
   /**
-   * @typedef {import('./CommentForm').Target<Mode> & CommentFormTargetExtension} CommentFormWithTargetSet
+   * @template {import('./CommentForm').CommentFormMode} [M=Mode]
+   * @typedef {import('./CommentForm').Target<M> & CommentFormTargetWithSourceSet} CommentFormTarget
    */
 
-  /** @type {CommentFormWithTargetSet} */
+  /** @type {CommentFormTarget} */
   target;
 
   /** @type {string} */
@@ -41,7 +42,7 @@ class CommentFormInputTransformer extends TextMasker {
     super(text.trim());
     this.initialText = this.text;
     this.commentForm = commentForm;
-    this.target = /** @type {CommentFormWithTargetSet} */ (commentForm.getTarget());
+    this.target = /** @type {CommentFormTarget} */ (commentForm.getTarget());
     this.action = action;
 
     this.initIndentationData();
@@ -456,27 +457,26 @@ class CommentFormInputTransformer extends TextMasker {
     // TypeScript can't do exhaustiveness checking here
     const equalSigns = '='.repeat(/** @type {number} */ (level));
 
-    let target;
     if (
       this.isMode('addSection') ||
 
       // To have pretty diffs
-      (
-        this.isMode('edit') &&
-
-        // Set temporary variable `target`, because otherwise TypeScript can't infer the correct
-        // type.
-        (target = /** @type {import('./Comment').default} */ (this.target)) &&
-
-        target.isOpeningSection() &&
-        /^\n/.test(this.target.source.code)
-      )
+      (this.isMode('edit') && this.isTargetOpeningSection() && /^\n/.test(this.target.source.code))
     ) {
       this.text = '\n' + this.text;
     }
     this.text = `${equalSigns} ${headline} ${equalSigns}\n${this.text}`;
 
     return this;
+  }
+
+  /**
+   * Helper to allow TypeScript correctly infer the type.
+   *
+   * @returns {this is { target: import('./Comment').default<boolean, true> }}
+   */
+  isTargetOpeningSection() {
+    return (this.isMode('reply') || this.isMode('edit')) && this.target.isOpeningSection();
   }
 
   /**

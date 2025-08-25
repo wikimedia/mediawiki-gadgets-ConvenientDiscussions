@@ -15,7 +15,7 @@ import CdError from './shared/CdError';
 import CommentSkeleton from './shared/CommentSkeleton';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
 import TreeWalker from './shared/TreeWalker';
-import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './shared/utils-general';
+import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, underlinesToSpaces, unique } from './shared/utils-general';
 import { extractNumeralAndConvertToNumber, removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
@@ -399,6 +399,16 @@ class Comment extends CommentSkeleton {
    * @type {OpeningSection extends true ? import('./Section').default : import('./Section').default | null}
    */
   section = this.section;
+
+  /**
+   * Does the comment open a section (has a heading as the first element and is placed at the
+   * zeroth level).
+   *
+   * @override
+   * @type {OpeningSection}
+   * @protected
+   */
+  openingSection = this.openingSection;
 
   /**
    * Comment's source code object.
@@ -920,7 +930,7 @@ class Comment extends CommentSkeleton {
   addThankButton() {
     if (!cd.user.isRegistered() || !this.author.isRegistered() || !this.date || this.isOwn) return;
 
-    const isThanked = Object.values(Comment.thanksStorage.getData()).some(
+    const isThanked = Object.values(commentRegistry.getThanksStorage().getData()).some(
       (thank) => this.dtId === thank.id || this.id === thank.id
     );
 
@@ -3190,10 +3200,11 @@ class Comment extends CommentSkeleton {
         return;
       }
 
-      mw.notify(cd.s('thank-success'));
+      mw.notify(cd.s('thank-success'), { type: 'success' });
       this.setThanked();
 
-      Comment.thanksStorage
+      commentRegistry
+        .getThanksStorage()
         .set(editRevisionId, {
           id: /** @type {string} */ (this.dtId || this.id),
           thankTime: Date.now(),
@@ -4423,10 +4434,7 @@ class Comment extends CommentSkeleton {
   /**
    * Check if this comment opens a section and has a reference to it.
    *
-   * @returns {this is {
-   *   openingSection: true,
-   *   section: import('./Section').default,
-   * }}
+   * @returns {this is Comment<boolean, true>}
    */
   isOpeningSection() {
     return this.openingSection;
@@ -4441,17 +4449,6 @@ class Comment extends CommentSkeleton {
    *   overlay: HTMLElement
    * }>} */
   static prototypes = new PrototypeRegistry();
-
-  /**
-   * @typedef {object} ThanksData
-   * @property {string} id
-   * @property {number} thankTime
-   */
-
-  /** @type {StorageItemWithKeys<ThanksData>} */
-  static thanksStorage = new StorageItemWithKeys('thanks')
-    .cleanUp((entry) => (entry.thankTime || 0) < subtractDaysFromNow(60))
-    .save();
 
   /** @type {RegExp} */
   static dtIdRegexp;
