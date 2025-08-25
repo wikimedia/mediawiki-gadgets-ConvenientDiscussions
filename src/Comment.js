@@ -403,7 +403,7 @@ class Comment extends CommentSkeleton {
   /**
    * Comment's source code object.
    *
-   * @type {?CommentSource|undefined}
+   * @type {CommentSource|null|undefined}
    */
   source;
 
@@ -4423,7 +4423,10 @@ class Comment extends CommentSkeleton {
   /**
    * Check if this comment opens a section and has a reference to it.
    *
-   * @returns {this is Comment<boolean, true>}
+   * @returns {this is {
+   *   openingSection: true,
+   *   section: import('./Section').default,
+   * }}
    */
   isOpeningSection() {
     return this.openingSection;
