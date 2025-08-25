@@ -41,11 +41,6 @@ export default class Page {
   TYPE = 'page';
 
   /**
-   * User for polymorphism with Comment.
-   */
-  isOpeningSection = null;
-
-  /**
    * Page ID on the wiki. Filled upon running {@link Page#loadCode} or {@link Page#edit}. In the
    * latter case, it is useful for newly created pages.
    *

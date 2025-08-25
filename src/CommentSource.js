@@ -97,7 +97,7 @@ class CommentSource {
       // Try to edit the first comment at
       // https://ru.wikipedia.org/wiki/Википедия:Голосования/Отметки_статусных_статей_в_навигационных_шаблонах#Да
       // to see the bug happening if we don't check for this.comment.isOpeningSection.
-      this.lineStartIndex = this.comment.isOpeningSection ?
+      this.lineStartIndex = this.comment.openingSection ?
         this.headingStartIndex :
         this.startIndex;
     } else {
@@ -333,7 +333,7 @@ class CommentSource {
     // If the comment contains different indentation character sets for different lines, then use
     // different sets depending on the mode (edit/reply).
     let replyIndentation = this.indentation;
-    if (!this.comment.isOpeningSection) {
+    if (!this.comment.openingSection) {
       // If the last line ends with `#`, it's probably a numbered list _inside_ the comment, not two
       // comments in one, so we exclude such cases. The signature code is used because it may start
       // with a newline.
@@ -839,7 +839,7 @@ class CommentSource {
         if (doDelete) {
           let startIndex;
           let endIndex;
-          if (this.comment.isOpeningSection && this.headingStartIndex !== undefined) {
+          if (this.comment.openingSection && this.headingStartIndex !== undefined) {
             // Usually, `.source` is set in CommentForm#buildSource(), but sometimes it's not.
             const source = /** @type {import('./Section').default} */ (
               this.comment.section

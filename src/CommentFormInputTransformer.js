@@ -460,7 +460,7 @@ class CommentFormInputTransformer extends TextMasker {
       this.isMode('addSection') ||
 
       // To have pretty diffs.
-      (this.isMode('edit') && this.target.isOpeningSection && /^\n/.test(this.target.source.code))
+      (this.isMode('edit') && this.target.openingSection && /^\n/.test(this.target.source.code))
     ) {
       this.text = '\n' + this.text;
     }
