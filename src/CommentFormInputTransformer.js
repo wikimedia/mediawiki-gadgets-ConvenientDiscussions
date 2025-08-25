@@ -456,11 +456,21 @@ class CommentFormInputTransformer extends TextMasker {
     // TypeScript can't do exhaustiveness checking here
     const equalSigns = '='.repeat(/** @type {number} */ (level));
 
+    let target;
     if (
       this.isMode('addSection') ||
 
-      // To have pretty diffs.
-      (this.isMode('edit') && this.target.openingSection && /^\n/.test(this.target.source.code))
+      // To have pretty diffs
+      (
+        this.isMode('edit') &&
+
+        // Set temporary variable `target`, because otherwise TypeScript can't infer the correct
+        // type.
+        (target = /** @type {import('./Comment').default} */ (this.target)) &&
+
+        target.isOpeningSection() &&
+        /^\n/.test(this.target.source.code)
+      )
     ) {
       this.text = '\n' + this.text;
     }
