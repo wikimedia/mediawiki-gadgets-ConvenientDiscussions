@@ -2819,7 +2819,7 @@ class Comment extends CommentSkeleton {
         (
           alignment ||
           (
-            this.isOpeningSection ||
+            this.openingSection ||
             this.editForm ||
             (offset && offset.bottom !== offset.bottomForVisibility)
               ? 'top'
@@ -3396,7 +3396,7 @@ class Comment extends CommentSkeleton {
       // beginning and should stay so when reshowing the comment.
       this.$elements.addClass('cd-hidden').data('cd-comment-form', commentForm);
       this.unhighlightHovered();
-      if (this.isOpeningSection) {
+      if (this.openingSection) {
         /** @type {import('./Section').default} */ (this.section).hideBar();
       }
 
@@ -3416,7 +3416,7 @@ class Comment extends CommentSkeleton {
       // form is on a right one. The exception is comments that open a section (otherwise a bug will
       // be introduced that will manifest when opening an "Add subsection" form of the previous
       // section).
-      if (this.isOpeningSection) {
+      if (this.openingSection) {
         this.$elements.last().after($outermostElement);
       } else {
         this.$elements.first().before($outermostElement);
@@ -3438,7 +3438,7 @@ class Comment extends CommentSkeleton {
     } else if (mode === 'edit') {
       commentForm.$element.parent('.cd-commentForm-outerWrapper').remove();
       this.$elements.removeClass('cd-hidden').removeData('cd-comment-form');
-      if (this.isOpeningSection) {
+      if (this.openingSection) {
         /** @type {import('./Section').default} */ (this.section).$bar?.removeClass('cd-hidden');
       }
 
@@ -4275,7 +4275,7 @@ class Comment extends CommentSkeleton {
       return '';
     }
 
-    if (this.isOpeningSection) {
+    if (this.openingSection) {
       return cd.s(
         'cf-comment-placeholder-replytosection',
         /** @type {import('./Section').default} */ (this.section).headline
@@ -4293,7 +4293,7 @@ class Comment extends CommentSkeleton {
    * @returns {boolean}
    */
   isDeletable() {
-    return this.isOpeningSection
+    return this.openingSection
       ? /** @type {import('./Section').default} */ (this.section).comments.length === 1
       : !this.getChildren().length;
   }

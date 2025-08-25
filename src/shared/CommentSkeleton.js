@@ -57,6 +57,129 @@ class CommentSkeleton {
   cachedParent = {};
 
   /**
+   * Is the comment preceded by a heading.
+   *
+   * @type {boolean}
+   */
+  followsHeading;
+
+  /**
+   * _For internal use._ Comment signature element.
+   *
+   * @type {ElementLike}
+   */
+  signatureElement;
+
+  /**
+   * Comment signature text.
+   *
+   * @type {string}
+   */
+  signatureText;
+
+  /**
+   * Comment date.
+   *
+   * @type {?Date}
+   */
+  date;
+
+  /**
+   * _For internal use._ Comment author name.
+   *
+   * @type {string}
+   */
+  authorName;
+
+  /**
+   * Comment ID.
+   *
+   * @type {string | undefined}
+   */
+  id;
+
+  /**
+   * Comment index. Same as the index in the array returned by
+   * {@link module:commentRegistry.getAll}.
+   *
+   * @type {number}
+   */
+  index;
+
+  /**
+   * Comment timestamp as originally present on the page.
+   *
+   * @type {string|undefined}
+   */
+  timestamp;
+
+  /**
+   * _For internal use._ Comment timestamp element.
+   *
+   * @type {ElementFor<N>}
+   */
+  timestampElement;
+
+  /**
+   * Additional signatures in this comment (that go after the "official" signature).
+   *
+   * @type {import('./Parser.js').SignatureTarget<N>[]}
+   */
+  extraSignatures;
+
+  /**
+   * _For internal use._ User page (in the "User" namespace) link element.
+   *
+   * @type {ElementFor<N> | undefined}
+   */
+  authorLink;
+
+  /**
+   * _For internal use._ User talk page (in the "User talk" namespace) link element.
+   *
+   * @type {ElementFor<N> | undefined}
+   */
+  authorTalkLink;
+
+  /**
+   * Does the comment belong to the current user.
+   *
+   * @type {boolean}
+   */
+  isOwn;
+
+  /**
+   * Is the comment unsigned or not properly signed (an unsigned template class is present).
+   *
+   * Not used anywhere in the script yet.
+   *
+   * @type {boolean}
+   */
+  isUnsigned;
+
+  /**
+   * _For internal use._ Elements containing all parts of the comment.
+   *
+   * @type {ElementFor<N>[]}
+   */
+  elements;
+
+  /**
+   * Does the comment open a section (has a heading as the first element and is placed at the
+   * zeroth level).
+   *
+   * @type {boolean}
+   */
+  openingSection;
+
+  /**
+   * Is the comment outdented with the `{{outdent}}` template.
+   *
+   * @type {boolean}
+   */
+  isOutdented;
+
+  /**
    * Create a comment skeleton instance.
    *
    * @param {import('./Parser').default<N>} parser
@@ -70,46 +193,11 @@ class CommentSkeleton {
 
     const signatureIndex = targets.indexOf(signature);
 
-    /**
-     * Is the comment preceded by a heading.
-     *
-     * @type {boolean}
-     */
     this.followsHeading = targets[signatureIndex - 1]?.type === 'heading';
-
-    /**
-     * _For internal use._ Comment signature element.
-     *
-     * @type {ElementLike}
-     */
     this.signatureElement = signature.element;
-
-    /**
-     * Comment signature text.
-     *
-     * @type {string}
-     */
     this.signatureText = signature.element.textContent;
-
-    /**
-     * Comment date.
-     *
-     * @type {?Date}
-     */
     this.date = signature.date || null;
-
-    /**
-     * _For internal use._ Comment author name.
-     *
-     * @type {string}
-     */
     this.authorName = signature.authorName;
-
-    /**
-     * Comment ID.
-     *
-     * @type {string | undefined}
-     */
     this.id = CommentSkeleton.generateId(this.date, this.authorName, parser.existingCommentIds);
 
     // Identify all comment nodes and save a path to them. The parameter is the heading element
@@ -134,75 +222,21 @@ class CommentSkeleton {
     // Wrap <ol> into <div> or <dl> & <dd> if the comment starts with numbered list items.
     this.wrapNumberedList();
 
-    /**
-     * Comment index. Same as the index in the array returned by
-     * {@link module:commentRegistry.getAll}.
-     *
-     * @type {number}
-     */
     this.index = cd.comments.length;
 
     // Double spaces are from removed dir marks.
-    /**
-     * Comment timestamp as originally present on the page.
-     *
-     * @type {string|undefined}
-     */
     this.timestamp = signature.timestampText?.replace(/ {2,}/g, ' ');
 
     // For debugging
     this.timestampText = signature.timestampText;
 
-    /**
-     * _For internal use._ Comment timestamp element.
-     *
-     * @type {ElementFor<N>}
-     */
     this.timestampElement = signature.timestampElement;
-
-    /**
-     * Additional signatures in this comment (that go after the "official" signature).
-     *
-     * @type {import('./Parser.js').SignatureTarget<N>[]}
-     */
     this.extraSignatures = signature.extraSignatures;
-
-    /**
-     * _For internal use._ User page (in the "User" namespace) link element.
-     *
-     * @type {ElementFor<N> | undefined}
-     */
     this.authorLink = signature.authorLink;
-
-    /**
-     * _For internal use._ User talk page (in the "User talk" namespace) link element.
-     *
-     * @type {ElementFor<N> | undefined}
-     */
     this.authorTalkLink = signature.authorTalkLink;
-
-    /**
-     * Does the comment belong to the current user.
-     *
-     * @type {boolean}
-     */
     this.isOwn = this.authorName === cd.g.userName;
-
-    /**
-     * Is the comment unsigned or not properly signed (an unsigned template class is present).
-     *
-     * Not used anywhere in the script yet.
-     *
-     * @type {boolean}
-     */
     this.isUnsigned = signature.isUnsigned;
-
-    /**
-     * _For internal use._ Elements containing all parts of the comment.
-     *
-     * @type {ElementFor<N>[]}
-     */
-    this.elements = this.parts.map((part) => /** @type {ElementFor<N>} */ (part.node));
+    this.elements = this.parts.map((part) => /** @type {ElementFor<N>} */(part.node));
 
     this.updateHighlightables();
     this.updateLevels();
@@ -212,29 +246,11 @@ class CommentSkeleton {
       this.elements.shift();
     }
 
-    /**
-     * Does the comment open a section (has a heading as the first element and is placed at the
-     * zeroth level).
-     *
-     * @type {boolean}
-     */
-    this.isOpeningSection = this.parts[0].isHeading;
+    this.openingSection = this.parts[0].isHeading;
 
     this.addAttributes();
 
-    /**
-     * Section that the comment is directly in (the section with lowest level / the biggest level
-     * number).
-     *
-     * @type {?import('./SectionSkeleton').default<N>}
-     */
     this.section = null;
-
-    /**
-     * Is the comment outdented with the `{{outdent}}` template.
-     *
-     * @type {boolean}
-     */
     this.isOutdented = false;
 
     signature.comment = this;

@@ -3582,10 +3582,10 @@ class CommentForm extends EventEmitter {
    * @private
    */
   generateStaticSummaryText(substituteTarget) {
-    // FIXME: distribute this across the classes of targets? Not sure this belongs here.
+    // FIXME: distribute this code across the classes of targets? Not sure this belongs here.
     if (this.isMode('reply') || substituteTarget) {
       const target = substituteTarget || /** @type {Comment} */ (this.target);
-      if (target.isOpeningSection) {
+      if (target.openingSection) {
         return cd.s('es-reply');
       } else {
         target.maybeRequestAuthorGender(this.updateAutoSummary);
@@ -4337,7 +4337,7 @@ class CommentForm extends EventEmitter {
    * @private
    */
   isTargetOpeningSection() {
-    return Boolean(this.target.isOpeningSection);
+    return this.isCommentTarget() && Boolean(this.target.openingSection);
   }
 
   static counter = 0;

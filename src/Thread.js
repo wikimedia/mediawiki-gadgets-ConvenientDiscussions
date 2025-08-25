@@ -964,7 +964,7 @@ class Thread extends mixInObject(
       this.rootComment.getParent()?.updateToggleChildThreadsButton();
     }
 
-    if (this.rootComment.isOpeningSection) {
+    if (this.rootComment.openingSection) {
       /** @type {OO.ui.MenuOptionWidget} */ (
         /** @type {import('./Section').default} */ (this.rootComment.section).actions.moreMenuSelect
           ?.getMenu()
@@ -1011,7 +1011,7 @@ class Thread extends mixInObject(
     this.expandNoteContainer?.remove();
     this.expandNoteContainer = undefined;
 
-    if (this.rootComment.isOpeningSection) {
+    if (this.rootComment.openingSection) {
       /** @type {OO.ui.MenuOptionWidget} */ (
         /** @type {import('./Section').default} */ (this.rootComment.section).actions.moreMenuSelect
           ?.getMenu()
