@@ -104,12 +104,12 @@ declare global {
 
   // Conditional type that adds properties based on the presence of strings in the array
   type RevisionConditionalProperties<T extends readonly string[]> =
-    & (HasProperty<T, 'ids'> extends true ? { ids: string } : object)
-    & (HasProperty<T, 'timestamp'> extends true ? { timestamp: string } : object)
-    & (HasProperty<T, 'flags'> extends true ? { minor: boolean } : object)
-    & (HasProperty<T, 'comment'> extends true ? { comment: string } : object)
-    & (HasProperty<T, 'user'> extends true ? { user: string } : object)
-    & (HasProperty<T, 'parsedcomment'> extends true ? { parsedcomment: string } : object);
+    & (HasProperty<T, 'ids'> extends true ? { ids: string } : {})
+    & (HasProperty<T, 'timestamp'> extends true ? { timestamp: string } : {})
+    & (HasProperty<T, 'flags'> extends true ? { minor: boolean } : {})
+    & (HasProperty<T, 'comment'> extends true ? { comment: string } : {})
+    & (HasProperty<T, 'user'> extends true ? { user: string } : {})
+    & (HasProperty<T, 'parsedcomment'> extends true ? { parsedcomment: string } : {});
 
   interface FromTo {
     from: string;
