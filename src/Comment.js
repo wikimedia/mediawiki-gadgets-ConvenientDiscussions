@@ -2819,7 +2819,7 @@ class Comment extends CommentSkeleton {
         (
           alignment ||
           (
-            this.openingSection ||
+            this.isOpeningSection() ||
             this.editForm ||
             (offset && offset.bottom !== offset.bottomForVisibility)
               ? 'top'
@@ -3396,8 +3396,8 @@ class Comment extends CommentSkeleton {
       // beginning and should stay so when reshowing the comment.
       this.$elements.addClass('cd-hidden').data('cd-comment-form', commentForm);
       this.unhighlightHovered();
-      if (this.openingSection) {
-        /** @type {import('./Section').default} */ (this.section).hideBar();
+      if (this.isOpeningSection()) {
+        this.section.hideBar();
       }
 
       commentForm.$element.toggleClass('cd-commentForm-highlighted', this.isNew || this.isOwn);
@@ -3416,7 +3416,7 @@ class Comment extends CommentSkeleton {
       // form is on a right one. The exception is comments that open a section (otherwise a bug will
       // be introduced that will manifest when opening an "Add subsection" form of the previous
       // section).
-      if (this.openingSection) {
+      if (this.isOpeningSection()) {
         this.$elements.last().after($outermostElement);
       } else {
         this.$elements.first().before($outermostElement);
@@ -3438,8 +3438,8 @@ class Comment extends CommentSkeleton {
     } else if (mode === 'edit') {
       commentForm.$element.parent('.cd-commentForm-outerWrapper').remove();
       this.$elements.removeClass('cd-hidden').removeData('cd-comment-form');
-      if (this.openingSection) {
-        /** @type {import('./Section').default} */ (this.section).$bar?.removeClass('cd-hidden');
+      if (this.isOpeningSection()) {
+        this.section.$bar?.removeClass('cd-hidden');
       }
 
       // Wait until the comment form is removed - its presence can e.g. affect the presence of a
@@ -4275,10 +4275,10 @@ class Comment extends CommentSkeleton {
       return '';
     }
 
-    if (this.openingSection) {
+    if (this.isOpeningSection()) {
       return cd.s(
         'cf-comment-placeholder-replytosection',
-        /** @type {import('./Section').default} */ (this.section).headline
+        this.section.headline
       );
     }
 
@@ -4293,8 +4293,8 @@ class Comment extends CommentSkeleton {
    * @returns {boolean}
    */
   isDeletable() {
-    return this.openingSection
-      ? /** @type {import('./Section').default} */ (this.section).comments.length === 1
+    return this.isOpeningSection()
+      ? this.section.comments.length === 1
       : !this.getChildren().length;
   }
 
@@ -4414,6 +4414,15 @@ class Comment extends CommentSkeleton {
       invisibleLabel: true,
       classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
     });
+  }
+
+  /**
+   * Check if this comment opens a section and has a reference to it.
+   *
+   * @returns {this is { section: import('./Section').default }}
+   */
+  isOpeningSection() {
+    return this.openingSection;
   }
 
   /** @type {PrototypeRegistry<{

@@ -600,7 +600,7 @@ class Section extends SectionSkeleton {
     return Boolean(
       this.isActionable &&
       this.commentsInFirstChunk.length &&
-      this.comments[0].openingSection &&
+      this.comments[0].isOpeningSection() &&
       (this.comments[0].canBeEdited()) &&
       !this.comments[0].isCollapsed
     );
@@ -2044,7 +2044,7 @@ class Section extends SectionSkeleton {
    * @returns {?Comment}
    */
   getRelevantComment() {
-    return this.comments[0]?.openingSection ? this.comments[0] : null;
+    return this.comments[0]?.isOpeningSection() ? this.comments[0] : null;
   }
 
   /**
