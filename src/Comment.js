@@ -79,6 +79,7 @@ import { createSvg, extractSignatures, formatDate, formatDateNative, getExtended
  * A comment (any signed, and in some cases unsigned, text on a wiki talk page).
  *
  * @template {boolean} [Reformatted=boolean]
+ * @template {boolean} [OpeningSection=boolean]
  * @augments CommentSkeleton<Node>
  */
 class Comment extends CommentSkeleton {
@@ -121,7 +122,10 @@ class Comment extends CommentSkeleton {
    */
   extraSignatures = this.extraSignatures;
 
-  /** @type {Reformatted} */
+  /**
+   * @type {Reformatted}
+   * @private
+   */
   reformatted;
 
   /** @type {Direction} */
@@ -392,7 +396,7 @@ class Comment extends CommentSkeleton {
 
   /**
    * @override
-   * @type {?import('./Section').default}
+   * @type {OpeningSection extends true ? import('./Section').default : import('./Section').default | null}
    */
   section = this.section;
 
@@ -4419,7 +4423,7 @@ class Comment extends CommentSkeleton {
   /**
    * Check if this comment opens a section and has a reference to it.
    *
-   * @returns {this is { section: import('./Section').default }}
+   * @returns {this is Comment<boolean, true>}
    */
   isOpeningSection() {
     return this.openingSection;

@@ -116,7 +116,7 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
  *         $replyButtonWrapper: JQuery;
  *         $replyButtonContainer: JQuery;
  *       }
- *     : object
+ *     : {}
  * )} CommentFormTargetMapExtension
  */
 

@@ -13,8 +13,8 @@ import { escapePipesOutsideLinks, generateTagsRegexp } from './shared/utils-wiki
 class CommentFormInputTransformer extends TextMasker {
   /**
    * @typedef {object} CommentFormTargetExtension
-   * @property {import('./CommentForm').Source} source When
-   *   {@link CommentFormInputTransformer} is instantiated, `source` is never `null`.
+   * @property {import('./CommentForm').Source} source When {@link CommentFormInputTransformer} is
+   *   instantiated, `source` is never `null`.
    */
 
   /**
