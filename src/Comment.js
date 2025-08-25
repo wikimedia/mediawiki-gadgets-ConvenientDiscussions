@@ -7,6 +7,7 @@ import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import bootController from './bootController';
+import cd from './cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import settings from './settings';
@@ -14,7 +15,6 @@ import CdError from './shared/CdError';
 import CommentSkeleton from './shared/CommentSkeleton';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
 import TreeWalker from './shared/TreeWalker';
-import cd from './shared/cd';
 import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, subtractDaysFromNow, underlinesToSpaces, unique } from './shared/utils-general';
 import { extractNumeralAndConvertToNumber, removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
@@ -3439,9 +3439,7 @@ class Comment extends CommentSkeleton {
       commentForm.$element.parent('.cd-commentForm-outerWrapper').remove();
       this.$elements.removeClass('cd-hidden').removeData('cd-comment-form');
       if (this.isOpeningSection) {
-        /** @type {JQuery} */ (
-          /** @type {import('./Section').default} */ (this.section).$bar
-        ).removeClass('cd-hidden');
+        /** @type {import('./Section').default} */ (this.section).$bar?.removeClass('cd-hidden');
       }
 
       // Wait until the comment form is removed - its presence can e.g. affect the presence of a

@@ -1,4 +1,4 @@
-import cd from './shared/cd';
+import cd from './cd';
 import { isElement, isText } from './shared/utils-general';
 import { createSvg } from './utils-window';
 
@@ -23,33 +23,49 @@ export default class TocItem {
   /**
    * Create a table of contents item object.
    *
-   * @param {object} a
-   * @param {object} toc
+   * @param {HTMLAnchorElement} a
+   * @param {typeof import('./toc').default} toc
    * @throws {Array.<string|Element>}
    */
   constructor(a, toc) {
     this.toc = toc;
     this.canBeModified = this.toc.canBeModified;
 
-    const textSpan = a.querySelector(this.toc.isInSidebar() ? '.vector-toc-text' : '.toctext');
+    const textSpan = /** @type {HTMLElement | null} */ (
+      a.querySelector(this.toc.isInSidebar() ? '.vector-toc-text' : '.toctext')
+    );
     if (!textSpan) {
-      throw ['Couldn\'t find text for a link', a];
+      throw [`Couldn't find text for a TOC link`, a];
     }
 
-    const li = a.parentNode;
+    const li = /** @type {HTMLElement} */ (a.parentNode);
+    if (li.tagName !== 'LI') {
+      throw [`Couldn't find the <li> for a TOC link`, a];
+    }
+
     const numberSpan = a.querySelector(this.toc.isInSidebar() ? '.vector-toc-numb' : '.tocnumber');
     let number;
     if (numberSpan) {
       number = numberSpan.textContent;
     } else {
-      console.error(['Couldn\'t find a number for a link', a]);
+      console.error(`Couldn't find the number for a TOC link`, a);
       number = '?';
     }
 
-    this.id = a.getAttribute('href').slice(1);
-    this.level = Number(
-      li.className.match(this.toc.isInSidebar() ? /vector-toc-level-(\d+)/ : /\btoclevel-(\d+)/)[1]
+    this.id = /** @type {string} */ (a.getAttribute('href')).slice(1);
+    if (!this.id) {
+      console.error(`Couldn't find the ID for a TOC link`, a);
+    }
+
+    const levelMatch = li.className.match(
+      this.toc.isInSidebar() ? /vector-toc-level-(\d+)/ : /\btoclevel-(\d+)/
     );
+    if (levelMatch) {
+      this.level = Number(levelMatch[1]);
+    } else {
+      console.error(`Couldn't find the level for a TOC link`, a);
+    }
+    /** @type {string} */
     this.number = number;
     this.$element = $(li);
     this.$link = $(a);

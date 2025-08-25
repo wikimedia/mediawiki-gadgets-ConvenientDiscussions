@@ -1,8 +1,8 @@
 import MultilineTextInputWidget from './MultilineTextInputWidget';
 import ProcessDialog from './ProcessDialog';
 import bootController from './bootController';
+import cd from './cd';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { sleep, unique } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import { getPageIds, getPageTitles } from './utils-api';

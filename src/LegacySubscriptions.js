@@ -1,9 +1,9 @@
 import LZString from 'lz-string';
 
 import Subscriptions from './Subscriptions';
+import cd from './cd';
 import sectionRegistry from './sectionRegistry';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { typedKeysOf } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import { getUserInfo, saveLocalOption } from './utils-api';

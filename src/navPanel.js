@@ -1,10 +1,10 @@
 import Button from './Button';
 import LiveTimestamp from './LiveTimestamp';
 import bootController from './bootController';
+import cd from './cd';
 import commentFormRegistry from './commentFormRegistry';
 import commentRegistry from './commentRegistry';
 import settings from './settings';
-import cd from './shared/cd';
 import { removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
@@ -135,6 +135,7 @@ class NavPanel {
   mount() {
     this.$element = $('<div>')
       .attr('id', 'cd-navPanel')
+      .addClass('noprint')
       .appendTo(document.body);
 
     this.state = /** @type {State} */ ({});

@@ -8,12 +8,12 @@ import Comment from './Comment';
 import LiveTimestamp from './LiveTimestamp';
 import TocItem from './TocItem';
 import bootController from './bootController';
+import cd from './cd';
 import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
 import CdError from './shared/CdError';
 import SectionSkeleton from './shared/SectionSkeleton';
-import cd from './shared/cd';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
 import { formatDate, formatDateNative, getLinkedAnchor } from './utils-window';
@@ -141,11 +141,13 @@ class Toc {
       try {
         // It is executed first time before added (gray) sections are added to the TOC, so we use a
         // simple algorithm to obtain items.
-        this.items = [...this.$element[0].querySelectorAll('li > a')]
+        this.items = /** @type {HTMLAnchorElement[]} */ ([
+          ...this.$element[0].querySelectorAll('li > a[href]'),
+        ])
           .filter((link) => link.getAttribute('href') !== '#')
           .map((link) => new TocItem(link, this));
       } catch (error) {
-        console.error("Couldn't find an element of a table of contents item.", error);
+        console.error("Couldn't find an element for an item of the table of contents.", error);
         this.items = [];
 
         // Override the setting value - we better not touch the TOC if something is broken there.

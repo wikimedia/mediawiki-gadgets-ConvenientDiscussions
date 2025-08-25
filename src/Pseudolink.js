@@ -1,5 +1,5 @@
 import Button from './Button';
-import cd from './shared/cd';
+import cd from './cd';
 
 /**
  * @typedef {object} PseudoLinkConfig

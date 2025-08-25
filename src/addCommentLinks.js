@@ -6,9 +6,9 @@
 
 import PrototypeRegistry from './PrototypeRegistry';
 import bootController from './bootController';
+import cd from './cd';
 import pageRegistry from './pageRegistry';
 import settings from './settings';
-import cd from './shared/cd';
 import { definedAndNotNull, generatePageNamePattern, isCommentEdit, isProbablyTalkPage, isUndo, removeDirMarks, spacesToUnderlines } from './shared/utils-general';
 import { parseTimestamp } from './shared/utils-timestamp';
 import { initDayjs } from './utils-window';

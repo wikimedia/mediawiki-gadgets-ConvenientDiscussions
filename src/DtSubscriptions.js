@@ -1,8 +1,8 @@
 import Button from './Button';
 import Subscriptions from './Subscriptions';
+import cd from './cd';
 import sectionRegistry from './sectionRegistry';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { definedAndNotNull, spacesToUnderlines, unique } from './shared/utils-general';
 import { handleApiReject, splitIntoBatches } from './utils-api';
 
@@ -116,11 +116,11 @@ class DtSubscriptions extends Subscriptions {
       action: async () => {
         this.pageSubscribeButton.setPending(true);
         try {
-          if (this.getState(this.pageSubscribeId)) {
-            await this.unsubscribe(this.pageSubscribeId);
-          } else {
-            await this.subscribe(this.pageSubscribeId);
-          }
+          await (
+            this.getState(this.pageSubscribeId)
+              ? this.unsubscribe(this.pageSubscribeId)
+              : this.subscribe(this.pageSubscribeId)
+          );
           this.updatePageSubscribeButton();
         } finally {
           this.pageSubscribeButton.setPending(false);

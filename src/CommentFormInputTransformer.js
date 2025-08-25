@@ -1,6 +1,6 @@
 import TextMasker from './TextMasker';
+import cd from './cd';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { isKeyOf } from './shared/utils-general';
 import { escapePipesOutsideLinks, generateTagsRegexp } from './shared/utils-wikitext';
 

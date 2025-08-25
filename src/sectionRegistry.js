@@ -1,5 +1,5 @@
+import cd from './cd';
 import settings from './settings';
-import cd from './shared/cd';
 import { areObjectsEqual, calculateWordOverlap, generateFixedPosTimestamp, spacesToUnderlines } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import { getExtendedRect, getVisibilityByRects } from './utils-window';

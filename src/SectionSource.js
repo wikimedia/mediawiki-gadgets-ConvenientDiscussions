@@ -1,6 +1,6 @@
+import cd from './cd';
 import sectionRegistry from './sectionRegistry';
 import CdError from './shared/CdError';
-import cd from './shared/cd';
 import { calculateWordOverlap, genericGetOldestOrNewestByDateProp } from './shared/utils-general';
 import { endWithTwoNewlines, normalizeCode, removeWikiMarkup } from './shared/utils-wikitext';
 import { extractSignatures } from './utils-window';

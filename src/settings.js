@@ -1,6 +1,6 @@
 import TextMasker from './TextMasker';
+import cd from './cd';
 import pageRegistry from './pageRegistry';
-import cd from './shared/cd';
 import { areObjectsEqual, defined, definedAndNotNull, subtractDaysFromNow, typedKeysOf, ucFirst } from './shared/utils-general';
 import { getUserInfo, saveGlobalOption, saveLocalOption } from './utils-api';
 import { showConfirmDialog } from './utils-oojs';

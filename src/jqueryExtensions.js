@@ -5,7 +5,7 @@
  */
 
 import bootController from './bootController';
-import cd from './shared/cd';
+import cd from './cd';
 import { isMetadataNode, sleep } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import { createSvg } from './utils-window';
