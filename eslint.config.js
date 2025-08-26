@@ -1,4 +1,4 @@
-import babelParser from '@babel/eslint-parser';
+// import babelParser from '@babel/eslint-parser';
 import eslint from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
@@ -24,13 +24,18 @@ const config = tseslint.config(
 
   // Main configuration
   {
-    ignores: ['**/*.ts'],
+    //ignores: ['**/*.ts'],
+    files: ['**/*.js', '**/*.ts'],
     languageOptions: {
       sourceType: 'module',
       ecmaVersion: 2018,
-      parser: babelParser,
+      // parser: '@typescript-eslint/parser',
+      // parserOptions: {
+      //   requireConfigFile: false,
+      // },
       parserOptions: {
-        requireConfigFile: false,
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
       globals: {
         CONFIG_FILE_NAME: 'readonly',

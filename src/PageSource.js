@@ -6,14 +6,24 @@ import { findFirstTimestamp } from './utils-window';
 
 /**
  * Class that keeps the methods and data related to the page's source code.
+ *
+ * @template {boolean} [HasCode=boolean]
  */
 export default class PageSource {
   /**
    * Page's source code (wikitext), ending with `\n`. Filled upon running {@link Page#loadCode}.
    *
-   * @type {string | undefined}
+   * @type {HasCode extends true ? string : undefined}
+   * @private
    */
   code;
+
+  /**
+   * Whether code is not empty.
+   *
+   * @type {HasCode}
+   */
+  hasCode;
 
   /**
    * Whether new topics go on top on this page. Filled upon running
@@ -46,7 +56,7 @@ export default class PageSource {
    * @param {string} code
    */
   setCode(code) {
-    this.code = code;
+    this.code = /** @type {HasCode extends true ? string : undefined} */ (code);
   }
 
   /**
@@ -62,10 +72,10 @@ export default class PageSource {
   }
 
   /**
-   * Get the page's source code.
+   * Throw an error if the page code is not set.
    *
    * @param {string} [message]
-   * @returns {asserts this is { code: string }}
+   * @returns {asserts this is PageSource<true>}
    * @throws {CdError}
    */
   assertCode(message) {

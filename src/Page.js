@@ -280,7 +280,7 @@ export default class Page {
    * @param {import('./CommentForm').default} [_] Not used.
    * @param {boolean} [tolerateMissing=true] Return `null` if the page is missing instead of
    *   throwing an error.
-   * @returns {Promise<PageSource|null>}
+   * @returns {Promise<PageSource<true>|null>}
    * @throws {CdError}
    */
   async loadCode(_, tolerateMissing = true) {
