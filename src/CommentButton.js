@@ -38,6 +38,9 @@ class CommentButton extends Button {
       config.buttonElement = /** @type {HTMLElement} */ (config.element.firstChild);
     }
 
+    // Make accidental double clicks not select text around
+    config.href ||= '';
+
     super(config);
 
     // Don't hide the menu on right button click.

@@ -6,24 +6,14 @@ import { findFirstTimestamp } from './utils-window';
 
 /**
  * Class that keeps the methods and data related to the page's source code.
- *
- * @template {boolean} [HasCode=boolean]
  */
 export default class PageSource {
   /**
    * Page's source code (wikitext), ending with `\n`. Filled upon running {@link Page#loadCode}.
    *
-   * @type {HasCode extends true ? string : undefined}
-   * @private
+   * @type {string | undefined}
    */
   code;
-
-  /**
-   * Whether code is not empty.
-   *
-   * @type {HasCode}
-   */
-  hasCode;
 
   /**
    * Whether new topics go on top on this page. Filled upon running
@@ -56,11 +46,11 @@ export default class PageSource {
    * @param {string} code
    */
   setCode(code) {
-    this.code = /** @type {HasCode extends true ? string : undefined} */ (code);
+    this.code = code;
   }
 
   /**
-   * Get the page's source code.
+   * Throw an error if the page code is not set.
    *
    * @returns {string} code
    * @throws {CdError}
@@ -72,10 +62,10 @@ export default class PageSource {
   }
 
   /**
-   * Throw an error if the page code is not set.
+   * Get the page's source code.
    *
    * @param {string} [message]
-   * @returns {asserts this is PageSource<true>}
+   * @returns {asserts this is { code: string }}
    * @throws {CdError}
    */
   assertCode(message) {
@@ -109,21 +99,20 @@ export default class PageSource {
     if (commentForm.isNewTopicOnTop()) {
       const firstSectionStartIndex = maskDistractingCode(this.code)
         .search(/^(=+).*\1[ \t\u0001\u0002]*$/m);
-      contextCode = (
+      contextCode =
         (
-          firstSectionStartIndex === -1 ?
-            (this.code ? this.code + '\n' : '') :
-            this.code.slice(0, firstSectionStartIndex)
+          firstSectionStartIndex === -1
+          ? this.code
+            ? this.code + '\n'
+            : ''
+          : this.code.slice(0, firstSectionStartIndex)
         ) +
         commentCode +
         '\n' +
-        this.code.slice(firstSectionStartIndex)
-      );
+        this.code.slice(firstSectionStartIndex);
     } else {
-      contextCode = (
-        (commentForm.isNewSectionApi() ? '' : (this.code + '\n').trimStart()) +
-        commentCode
-      );
+      contextCode =
+        (commentForm.isNewSectionApi() ? '' : (this.code + '\n').trimStart()) + commentCode;
     }
 
     return { contextCode, commentCode };
