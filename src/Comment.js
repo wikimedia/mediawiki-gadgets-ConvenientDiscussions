@@ -264,8 +264,8 @@ class Comment extends CommentSkeleton {
   $overlayGradient;
 
   /**
-   * Is the comment new. Is set to boolean only on active pages (not archived, not old diffs)
-   * excluding pages that are visited for the first time.
+   * Is the comment new. Is set to a boolean only on active pages (not archived pages, not old
+   * diffs) excluding pages that are visited for the first time.
    *
    * @type {?boolean}
    */
@@ -305,16 +305,16 @@ class Comment extends CommentSkeleton {
    * Has the comment changed while the page was idle. (The new version may be rendered and may be
    * not, if the layout is too complex.)
    *
-   * @type {?boolean}
+   * @type {boolean}
    */
-  isChanged = null;
+  isChanged = false;
 
   /**
    * Was the comment deleted while the page was idle.
    *
-   * @type {?boolean}
+   * @type {boolean}
    */
-  isDeleted = null;
+  isDeleted = false;
 
   /**
    * Should the comment be flashed as changed when it appears in sight.
@@ -1963,9 +1963,9 @@ class Comment extends CommentSkeleton {
   updateLayersStyles(wereJustCreated = false) {
     if (!this.underlay) return;
 
-    this.updateClassesForType('new', this.isNew);
-    this.updateClassesForType('own', this.isOwn);
-    this.updateClassesForType('deleted', this.isDeleted);
+    this.updateClassesForFlag('new', Boolean(this.isNew));
+    this.updateClassesForFlag('own', this.isOwn);
+    this.updateClassesForFlag('deleted', this.isDeleted);
 
     if (wereJustCreated && this.isLineGapped) {
         this.line.classList.add('cd-comment-overlay-line-gapCloser');
@@ -1973,25 +1973,27 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Set classes to the underlay, overlay, and other elements according to a type.
+   * @typedef {'new' | 'own' | 'target' | 'hovered' | 'deleted' | 'changed'} CommentFlag
+   */
+
+  /**
+   * Set classes to the underlay, overlay, and other elements according to a comment flag.
    *
-   * @param {string} type
-   * @param {*} add
+   * @param {CommentFlag} flag
+   * @param {boolean} add
    * @private
    */
-  updateClassesForType(type, add) {
-    if (!this.underlay) return;
+  updateClassesForFlag(flag, add) {
+    if (!this.underlay || this.underlay.classList.contains(`cd-comment-underlay-${flag}`) === add)
+      return;
 
-    add = Boolean(add);
-    if (this.underlay.classList.contains(`cd-comment-underlay-${type}`) === add) return;
+    this.underlay.classList.toggle(`cd-comment-underlay-${flag}`, add);
+    /** @type {HTMLElement} */ (this.overlay).classList.toggle(`cd-comment-overlay-${flag}`, add);
 
-    this.underlay.classList.toggle(`cd-comment-underlay-${type}`, add);
-    /** @type {HTMLElement} */ (this.overlay).classList.toggle(`cd-comment-overlay-${type}`, add);
-
-    if (type === 'deleted') {
+    if (flag === 'deleted') {
       this.replyButton?.setDisabled(add);
       this.editButton?.setDisabled(add);
-    } else if (type === 'hovered' && !add) {
+    } else if (flag === 'hovered' && !add) {
       this.overlayInnerWrapper.style.display = '';
     }
   }
@@ -2111,7 +2113,7 @@ class Comment extends CommentSkeleton {
       return;
     }
 
-    this.updateClassesForType('hovered', true);
+    this.updateClassesForFlag('hovered', true);
     this.isHovered = true;
   }
 
@@ -2126,7 +2128,7 @@ class Comment extends CommentSkeleton {
 
     this.dontHideMenu();
 
-    this.updateClassesForType('hovered', false);
+    this.updateClassesForFlag('hovered', false);
     this.isHovered = false;
   }
 
@@ -2171,13 +2173,13 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Animate the comment's background and marker color back from the colors of a given type.
+   * Animate the comment's background and marker color back from the colors of a given comment flag.
    *
-   * @param {string} type
+   * @param {CommentFlag} flag
    * @param {() => void} [callback]
    * @private
    */
-  animateBack(type, callback) {
+  animateBack(flag, callback) {
     if (!this.$underlay?.parent().length) {
       callback?.();
       return;
@@ -2189,7 +2191,7 @@ class Comment extends CommentSkeleton {
     const initialBackgroundColor = this.$underlay.css('background-color');
 
     // Reset the classes that produce these colors
-    this.updateClassesForType(type, false);
+    this.updateClassesForFlag(flag, false);
 
     // Get the final (destination) colors
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -2217,14 +2219,14 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Change the comment's background and marker color to a color of the provided comment type for
+   * Change the comment's background and marker color to a color of the provided comment flag for
    * the given number of milliseconds, then smoothly change it back.
    *
-   * @param {string} type
+   * @param {CommentFlag} flag
    * @param {number} delay
    * @param {() => void} [callback]
    */
-  flash(type, delay, callback) {
+  flash(flag, delay, callback) {
     this.configureLayers();
     if (!this.$underlay) {
       callback?.();
@@ -2241,13 +2243,13 @@ class Comment extends CommentSkeleton {
     // Reset animations and colors
     this.$animatedBackground.add(this.$marker).stop(true, true);
 
-    this.updateClassesForType(type, true);
+    this.updateClassesForFlag(flag, true);
 
     // If there was an animation scheduled, run it first
     this.unhighlightDeferred?.resolve();
 
     this.unhighlightDeferred = $.Deferred();
-    this.unhighlightDeferred.then(this.animateBack.bind(this, type, callback));
+    this.unhighlightDeferred.then(this.animateBack.bind(this, flag, callback));
     sleep(delay).then(this.unhighlightDeferred.resolve);
   }
 
@@ -2270,14 +2272,15 @@ class Comment extends CommentSkeleton {
   flashChanged() {
     this.willFlashChangedOnSight = false;
 
-    // Use the `changed` type, not `new`, to get the `cd-comment-underlay-changed` class that helps
+    // Use the `changed` flag, not `new`, to get the `cd-comment-underlay-changed` class that helps
     // to set background if the user has switched off background highlighting for new comments.
     this.flash('changed', 1000);
 
     /**
      * @typedef {object} SeenRenderedChange
      * @property {string} htmlToCompare HTML content used for comparison.
-     * @property {number} seenTime Timestamp when the comment was seen, in milliseconds since the Unix epoch.
+     * @property {number} seenTime Timestamp when the comment was seen, in milliseconds since the
+     *   Unix epoch.
      */
 
     /**
