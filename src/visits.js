@@ -182,8 +182,7 @@ class Visits extends EventEmitter {
       await saveLocalOption(cd.g.visitsOptionName, compressed);
     } catch (error) {
       if (error instanceof CdError) {
-        const { type, code } = error.data;
-        if (type === 'internal' && code === 'sizeLimit') {
+        if (error.getType() === 'internal' && error.getCode() === 'sizeLimit') {
           this.cleanUp(0.1);
           this.save();
         } else {

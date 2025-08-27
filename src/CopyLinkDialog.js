@@ -262,8 +262,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
       });
     } catch (error) {
       if (error instanceof CdError) {
-        const { type } = error.data;
-        errorText = type === 'network'
+        errorText = error.getType() === 'network'
           ? cd.s('cld-diff-error-network')
           : cd.s('cld-diff-error');
       } else {

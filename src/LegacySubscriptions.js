@@ -124,8 +124,7 @@ class LegacySubscriptions extends Subscriptions {
       } catch (error) {
         this.data = currentPageDataBackup;
         if (error instanceof CdError) {
-          const { type, code } = error.data;
-          if (type === 'internal' && code === 'sizeLimit') {
+          if (error.getType() === 'internal' && error.getCode() === 'sizeLimit') {
             mw.notify(
               wrapHtml(cd.sParse('section-watch-error-maxsize'), {
                 callbacks: {

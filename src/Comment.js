@@ -2230,6 +2230,7 @@ class Comment extends CommentSkeleton {
     this.configureLayers();
     if (!this.$underlay) {
       callback?.();
+
       return;
     }
 

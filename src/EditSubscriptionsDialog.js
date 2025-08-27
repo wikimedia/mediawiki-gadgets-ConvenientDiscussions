@@ -292,8 +292,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
       this.subscriptions.save(allPagesData);
     } catch (error) {
       if (error instanceof CdError) {
-        const { type, code } = error.data;
-        if (type === 'internal' && code === 'sizeLimit') {
+        if (error.getType() === 'internal' && error.getCode() === 'sizeLimit') {
           this.handleError(error, 'ewsd-error-maxsize', false);
         } else {
           this.handleError(error, 'ewsd-error-processing', true);

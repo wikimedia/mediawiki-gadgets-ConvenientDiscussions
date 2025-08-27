@@ -58,7 +58,10 @@
  * @augments Error
  */
 class CdError extends Error {
-  /** @type {ErrorData<ErrorType>} */
+  /**
+   * @type {ErrorData<ErrorType>}
+   * @private
+   */
   data;
 
   /**

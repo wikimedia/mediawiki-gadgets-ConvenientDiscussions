@@ -430,7 +430,7 @@ export async function saveGlobalOption(name, value) {
     await saveOptions({ [name]: value }, true);
   } catch (error) {
     // The site doesn't support global preferences.
-    if (error instanceof CdError && error.data.code === 'badvalue') {
+    if (error instanceof CdError && error.getCode() === 'badvalue') {
       await saveLocalOption(name, value);
     } else {
       throw error;

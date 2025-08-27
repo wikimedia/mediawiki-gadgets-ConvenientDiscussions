@@ -196,7 +196,7 @@ class MoveSectionDialog extends ProcessDialog {
         if (error instanceof CdError) {
           this.abort({
             message: cd.sParse(
-              error.data.code === 'locateSection' ? 'error-locatesection' : 'error-unknown'
+              error.getCode() === 'locateSection' ? 'error-locatesection' : 'error-unknown'
             ),
             recoverable: false,
           });
@@ -631,7 +631,7 @@ class MoveSectionDialog extends ProcessDialog {
       // already edited the source page.
       const genericMessage = cd.sParse('msd-error-editingsourcepage');
       if (error instanceof CdError) {
-        const { details } = error.data;
+        const { details } = error.getDetails();
         if (error.getType() === 'network') {
           throw new CdError({
             details: [genericMessage + ' ' + cd.sParse('error-network'), false, true],

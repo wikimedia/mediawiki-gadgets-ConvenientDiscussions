@@ -121,8 +121,8 @@ class UpdateChecker extends EventEmitter {
   /**
    * Tell the worker to wake the script up after a given interval.
    *
-   * Chrome and probably other browsers throttle background tabs. To bypass this, we use a web worker
-   * to wake the script up when we say, making it work as an alarm clock.
+   * Chrome and probably other browsers throttle background tabs. To bypass this, we use the web
+   * worker to wake the script up when we say, making it work as an alarm clock.
    *
    * @param {number} interval
    * @private
@@ -148,7 +148,7 @@ class UpdateChecker extends EventEmitter {
   }
 
   /**
-   * Perform a task in a web worker.
+   * Perform a task in the web worker.
    *
    * @param {object} payload
    * @returns {Promise.<MessageFromWorkerParse | undefined>}
@@ -163,7 +163,8 @@ class UpdateChecker extends EventEmitter {
   }
 
   /**
-   * Process the current page in a web worker.
+   * Process the current page in the web worker. If this was already done for an revision, take its
+   * data from cache.
    *
    * @param {number} [revisionToParseId]
    * @returns {Promise<MessageFromWorkerParse | RevisionData>}
@@ -173,10 +174,7 @@ class UpdateChecker extends EventEmitter {
       return /** @type {RevisionData} */ (this.revisionData.get(revisionToParseId));
     }
 
-    const {
-      text,
-      revid: revisionId,
-    } = await cd.page.parse({ oldid: revisionToParseId }, true) || {};
+    const { text, revid: revisionId } = await cd.page.parse({ oldid: revisionToParseId }, true);
 
     const message = /** @type {MessageFromWorkerParse} */ (
       await this.runWorkerTask({
@@ -193,7 +191,7 @@ class UpdateChecker extends EventEmitter {
     }
 
     // Clean up revisionData from values that can't be reused as it may grow really big. (The newest
-    // revision could be reused as the current revision; the current revision could be reused as the
+    // revision could be reused as a current revision; the current revision could be reused as a
     // previous visit revision.)
     this.revisionData.keys().forEach((revId) => {
       if (
@@ -243,40 +241,34 @@ class UpdateChecker extends EventEmitter {
   }
 
   /**
-   * Map sections obtained from a revision to the sections present on the page. (Contrast with
-   * `updateChecker#mapComments` which maps CommentWorker objects together.)
+   * Map sections obtained from a revision to the sections present on the rendered page. (Contrast
+   * with `UpdateChecker#mapWorkerCommentsToWorkerComments` which maps CommentWorker objects
+   * together.)
    *
-   * @param {import('./worker/SectionWorker').default[] | SectionWorkerMatched[]} otherSections
+   * @param {import('./worker/SectionWorker').default[] | SectionWorkerMatched[]} workerSections
    * @param {number} lastCheckedRevisionId
    * @private
    */
-  mapWorkerSectionsToSections(otherSections, lastCheckedRevisionId) {
-    if (!this.areSectionsEnriched(otherSections)) return;
-
-    // otherSections could contain simple SectionWorker types from
-    // SectionWorker, not SectionWorkerEnriched, but for simplicity let's
-    // treat them as SectionWorkerEnriched.
+  mapWorkerSectionsToSections(workerSections, lastCheckedRevisionId) {
+    if (this.areWorkerSectionsMatched(workerSections)) return;
 
     // Reset values set in the previous run.
     sectionRegistry.getAll().forEach((section) => {
       delete section.match;
       delete section.matchScore;
     });
-    otherSections.forEach((otherSection) => {
-      delete otherSection.match;
-    });
 
-    otherSections.forEach((otherSection) => {
-      const match = sectionRegistry.search(otherSection);
+    workerSections.forEach((workerSection) => {
+      const match = sectionRegistry.search(workerSection);
       if (match) {
         const { section, score } = match;
         if ((section.matchScore === undefined || match.score > section.matchScore)) {
           if (section.match) {
             delete section.match.match;
           }
-          section.match = otherSection;
+          section.match = workerSection;
           section.matchScore = score;
-          otherSection.match = section;
+          /** @type {SectionWorkerMatched} */ (workerSection).match = section;
         }
       }
     });
@@ -287,13 +279,15 @@ class UpdateChecker extends EventEmitter {
   }
 
   /**
-   * Check if sections instances received from a web worker were previously enriched by this class.
+   * Check if section instances received from the web worker were previously matched to the sections
+   * present on the rendered page (if they were taken from cache) so that we don't do the same
+   * again.
    *
    * @param {import('./worker/SectionWorker').default[] | SectionWorkerMatched[]} sections
    * @returns {sections is SectionWorkerMatched[]}
    */
-  areSectionsEnriched(sections) {
-    return 'match' in sections[0];
+  areWorkerSectionsMatched(sections) {
+    return sections.some((section) => 'match' in section);
   }
 
   /**
@@ -350,7 +344,8 @@ class UpdateChecker extends EventEmitter {
   /**
    * Map comments obtained from the current revision to comments obtained from another revision
    * (newer or older) by adding the `match` property to the first ones. (Contrast with
-   * `updateChecker#mapSections` which maps SectionWorker objects to actual sections on the page.)
+   * `updateChecker#mapWorkerSectionsToSections` which maps SectionWorker objects to actual sections
+   * on the page.)
    *
    * The function also adds the `hasPoorMatch` property to comments that have possible matches that
    * are not good enough to confidently state a match.
@@ -422,7 +417,7 @@ class UpdateChecker extends EventEmitter {
   }
 
   /**
-   * Check if comment instances received from a web worker were previously enriched by this class.
+   * Check if comment instances received from the web worker were previously enriched by this class.
    *
    * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} comments
    * @returns {comments is CommentWorkerMatched[]}
@@ -435,7 +430,7 @@ class UpdateChecker extends EventEmitter {
   }
 
   /**
-   * Check for new comments in a web worker, update the navigation panel, and schedule the next
+   * Check for new comments in the web worker, update the navigation panel, and schedule the next
    * check.
    *
    * @private
@@ -471,11 +466,7 @@ class UpdateChecker extends EventEmitter {
         revisions.length &&
         revisions[0].revid > (this.lastCheckedRevisionId || currentRevisionId)
       ) {
-        const {
-          revisionId,
-          comments: newComments,
-          sections,
-        } = await this.processPage();
+        const { revisionId, comments: newComments, sections } = await this.processPage();
         if (this.isPageStillAtRevision(currentRevisionId)) {
           const { comments: currentComments } = await this.processPage(currentRevisionId);
 
@@ -507,7 +498,7 @@ class UpdateChecker extends EventEmitter {
         }
       }
     } catch (error) {
-      if (!(error instanceof CdError) || (error.data && error.data.type !== 'network')) {
+      if (!(error instanceof CdError) || error.getCode() !== 'network') {
         console.warn(error);
       }
     }
@@ -789,7 +780,7 @@ class UpdateChecker extends EventEmitter {
   }
 
   /**
-   * Process comments retrieved by a web worker.
+   * Process comments retrieved by the web worker.
    *
    * @param {CommentWorkerMatched[]} comments Comments in the recent revision.
    * @param {CommentWorkerMatched[]} currentComments Comments in the currently shown revision mapped
