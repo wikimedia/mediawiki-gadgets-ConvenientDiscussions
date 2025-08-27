@@ -864,6 +864,7 @@ class Section extends SectionSkeleton {
       if (latestComment) {
         const latestCommentLink = document.createElement('a');
         latestCommentLink.href = `#${latestComment.dtId || latestComment.id}`;
+        latestCommentLink.className = 'cd-clickHandled';
         latestCommentLink.addEventListener('click', this.scrollToLatestComment.bind(this));
         latestCommentLink.textContent = formatDate(latestComment.date);
         (new LiveTimestamp(latestCommentLink, latestComment.date, false)).init();
@@ -1282,6 +1283,7 @@ class Section extends SectionSkeleton {
     let newLink = document.createElement('a');
     newLink.textContent = newText;
     newLink.href = `#${this.newComments[0].dtId}`;
+    newLink.className = 'cd-clickHandled';
     newLink.addEventListener('click', this.scrollToNewComments.bind(this));
 
     const newCommentCountWrapper = document.createElement('span');

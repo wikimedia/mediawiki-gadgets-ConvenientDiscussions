@@ -93,26 +93,31 @@ export default class PageSource {
    * @throws {CdError}
    */
   modifyContext({ commentCode, commentForm }) {
-    this.assertCode('Can\'t modify the context: context (page) code is not set.');
-
     let contextCode;
     if (commentForm.isNewTopicOnTop()) {
+      this.assertCode('Can\'t modify the context: context (page) code is not set.');
+
       const firstSectionStartIndex = maskDistractingCode(this.code)
         .search(/^(=+).*\1[ \t\u0001\u0002]*$/m);
       contextCode =
         (
           firstSectionStartIndex === -1
-          ? this.code
-            ? this.code + '\n'
-            : ''
-          : this.code.slice(0, firstSectionStartIndex)
+            ? this.code
+              ? this.code + '\n'
+              : ''
+            : this.code.slice(0, firstSectionStartIndex)
         ) +
         commentCode +
         '\n' +
         this.code.slice(firstSectionStartIndex);
     } else {
-      contextCode =
-        (commentForm.isNewSectionApi() ? '' : (this.code + '\n').trimStart()) + commentCode;
+      if (commentForm.isNewSectionApi()) {
+        contextCode = /** @type {string} */ (commentCode);
+      } else {
+        this.assertCode('Can\'t modify the context: context (page) code is not set.');
+
+        contextCode = (this.code + '\n').trimStart() + commentCode;
+      }
     }
 
     return { contextCode, commentCode };

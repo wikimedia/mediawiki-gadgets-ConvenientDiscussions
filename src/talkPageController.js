@@ -814,8 +814,8 @@ class TalkPageController extends EventEmitter {
       .find(`a[href^="#"], a[href^="${goToCommentUrl}"]`)
       .filter((_, el) =>
         Boolean(
-          // `onclick` and `cdCallback` may be added by us in other places
-          !el.onclick && !el.cdCallback && commentRegistry.getByAnyId(extractCommentId(el), true)
+          !el.classList.contains('cd-clickHandled') &&
+          commentRegistry.getByAnyId(extractCommentId(el), true)
         )
       )
       // eslint-disable-next-line jsdoc/require-param

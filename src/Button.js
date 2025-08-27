@@ -221,7 +221,7 @@ class Button {
     if (this.callback) {
       this.buttonElement.removeEventListener('click', this.callback);
       this.buttonElement.removeEventListener('keydown', this.callback);
-      this.buttonElement.cdCallback = undefined;
+      this.buttonElement.classList.remove('cd-clickHandled');
       this.callback = undefined;
     }
 
@@ -236,7 +236,7 @@ class Button {
       };
       this.buttonElement.addEventListener('click', this.callback);
       this.buttonElement.addEventListener('keydown', this.callback);
-      this.buttonElement.cdCallback = this.callback;
+      this.buttonElement.classList.add('cd-clickHandled');
     }
 
     return this;

@@ -272,7 +272,6 @@ declare global {
     cdMarginBottom: number;
     cdMarginLeft: number;
     cdMarginRight: number;
-    cdCallback?: (...args: any) => any;
     cdInput?: TextInputWidget;
   }
 
