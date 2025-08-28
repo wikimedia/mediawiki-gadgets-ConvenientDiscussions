@@ -364,7 +364,7 @@ class CommentSource {
   /**
    * @typedef {object} CommentData
    * @property {number} index
-   * @property {import('./updateChecker').CommentWorkerMatched[]|import('./Comment').default[]} previousComments
+   * @property {import('./updateChecker').CommentWorkerBase[]|import('./Comment').default[]} previousComments
    * @property {boolean} followsHeading
    * @property {string} [sectionHeadline]
    * @property {string} commentText

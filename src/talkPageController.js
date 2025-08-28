@@ -1118,11 +1118,11 @@ class TalkPageController extends EventEmitter {
   /**
    * Show a regular notification (`mw.notification`) to the user.
    *
-   * @param {import('./updateChecker').CommentWorkerMatched[]} comments
+   * @param {import('./updateChecker').CommentWorkerNew[]} comments
    * @private
    */
   showRegularNotification(comments) {
-    /** @type {import('./updateChecker').CommentWorkerMatched[]} */
+    /** @type {import('./updateChecker').CommentWorkerNew[]} */
     let filteredComments = [];
     if (settings.get('notifications') === 'all') {
       filteredComments = comments;
@@ -1149,9 +1149,9 @@ class TalkPageController extends EventEmitter {
         'notification-reload',
 
         // Note about the form data
-        commentFormRegistry.getAll().some((cf) => cf.isAltered()) ?
-          wordSeparator + cd.mws('parentheses', cd.s('notification-formdata')) :
-          ''
+        commentFormRegistry.getAll().some((cf) => cf.isAltered())
+          ? wordSeparator + cd.mws('parentheses', cd.s('notification-formdata'))
+          : ''
       );
       if (filteredComments.length === 1) {
         const comment = filteredComments[0];
@@ -1178,7 +1178,7 @@ class TalkPageController extends EventEmitter {
               'notification-insection',
               comment.author.getName(),
               comment.author,
-              comment.sectionSubscribedTo.headline
+              /** @type {import('./Section').default} */ (comment.sectionSubscribedTo).headline
             ) +
             wordSeparator +
             rebootHtml;
@@ -1233,11 +1233,11 @@ class TalkPageController extends EventEmitter {
   /**
    * Show a desktop notification to the user.
    *
-   * @param {import('./updateChecker').CommentWorkerMatched[]} comments
+   * @param {import('./updateChecker').CommentWorkerNew[]} comments
    * @private
    */
   showDesktopNotification(comments) {
-    /** @type {import('./updateChecker').CommentWorkerMatched[]} */
+    /** @type {import('./updateChecker').CommentWorkerNew[]} */
     let filteredComments = [];
     if (settings.get('desktopNotifications') === 'all') {
       filteredComments = comments;
@@ -1300,9 +1300,9 @@ class TalkPageController extends EventEmitter {
         String(filteredComments.length),
 
         // Where the comments are
-        section ?
-          wordSeparator + cd.s('notification-part-insection', section.headline) :
-          '',
+        section
+          ? wordSeparator + cd.s('notification-part-insection', section.headline)
+          : '',
 
         currentPageName,
 

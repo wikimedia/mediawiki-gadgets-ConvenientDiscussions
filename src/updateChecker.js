@@ -17,7 +17,7 @@ import visits from './visits';
 // this.emit(). Move worker-related stuff to controller.
 
 /**
- * @typedef {Omit<RemoveMethods<import('./worker/SectionWorker').default>, 'parent'>} SectionWorkerBase
+ * @typedef {RemoveMethods<import('./worker/SectionWorker').default>} SectionWorkerBase
  */
 
 /**
@@ -32,32 +32,52 @@ import visits from './visits';
  * @typedef {SectionWorkerBase & SectionWorkerExtension} SectionWorkerMatched
  */
 
+// Remove the props to override their type subsequently
 /**
- * @typedef {object} CommentWorkerExtension
- * @property {import('./User').default} author
- * @property {SectionWorkerMatched} [section]
- * @property {CommentWorkerMatched} [match]
- * @property {import('./Comment').default} [parentMatch]
+ * @typedef {Omit<RemoveMethods<import('./worker/CommentWorker').default>, 'children' | 'previousComments' | 'parent'>} CommentWorkerCropped
+ */
+
+/**
+ * @typedef {object} CommentWorkerUpdatedTypes
+ * @property {CommentWorkerBase[]} children
+ * @property {CommentWorkerBase[]} previousComments
+ * @property {CommentWorkerBase} [parent]
+ */
+
+/**
+ * @typedef {CommentWorkerCropped & CommentWorkerUpdatedTypes} CommentWorkerBase
+ */
+
+/**
+ * @typedef {object} CommentWorkerExtension_Matched
+ * @property {CommentWorkerBase} [match]
  * @property {number} [matchScore]
  * @property {boolean} [hasPoorMatch]
- * @property {CommentWorkerMatched} parent
- * @property {CommentWorkerMatched[]} children
- * @property {CommentWorkerMatched[]} previousComments
- * @property {import('./Section').default} sectionSubscribedTo
  */
 
 /**
- * @typedef {Omit<RemoveMethods<import('./worker/CommentWorker').default>, 'children' | 'previousComments'>} CommentWorkerBase
+ * @typedef {object} CommentWorkerExtension_New
+ * @property {import('./User').default} author
+ * @property {CommentWorkerNew[]} children
+ * @property {CommentWorkerNew[]} previousComments
+ * @property {CommentWorkerNew} [parent]
+ * @property {import('./Comment').default} [parentMatch]
+ * @property {SectionWorkerMatched} [section]
+ * @property {import('./Section').default} [sectionSubscribedTo]
  */
 
 /**
- * @typedef {CommentWorkerBase & CommentWorkerExtension} CommentWorkerMatched
+ * @typedef {CommentWorkerBase & CommentWorkerExtension_Matched} CommentWorkerMatched
+ */
+
+/**
+ * @typedef {CommentWorkerCropped & CommentWorkerExtension_New} CommentWorkerNew
  */
 
 /**
  * @typedef {object} RevisionData
  * @property {number} revisionId
- * @property {CommentWorkerMatched[]} comments
+ * @property {CommentWorkerMatched[] | CommentWorkerNew[]} comments
  * @property {SectionWorkerMatched[]} sections
  */
 
@@ -69,9 +89,9 @@ import visits from './visits';
 
 /**
  * @typedef {object} AddedComments
- * @property {import('./updateChecker').CommentWorkerMatched[]} all
- * @property {import('./updateChecker').CommentWorkerMatched[]} relevant
- * @property {Map<import('./updateChecker').SectionWorkerMatched | null, import('./updateChecker').CommentWorkerMatched[]>} bySection
+ * @property {import('./updateChecker').CommentWorkerNew[]} all
+ * @property {import('./updateChecker').CommentWorkerNew[]} relevant
+ * @property {Map<import('./updateChecker').SectionWorkerMatched | null, import('./updateChecker').CommentWorkerNew[]>} bySection
  */
 
 /**
@@ -87,11 +107,11 @@ import visits from './visits';
  * supply one object both to the event and to Comment#markAsChanged().
  *
  * @typedef {{
+ *   old?: CommentWorkerBase
  *   current: CommentWorkerMatched
- *   old?: CommentWorkerMatched
- *   new?: CommentWorkerMatched
- *   0: CommentWorkerMatched
- *   1?: CommentWorkerMatched
+ *   new?: CommentWorkerBase | CommentWorkerNew
+ *   0: CommentWorkerBase | CommentWorkerMatched
+ *   1?: CommentWorkerBase | CommentWorkerMatched
  * }} CommentsData
  */
 
@@ -107,7 +127,7 @@ class UpdateChecker extends EventEmitter {
   /** @type {{ [key: number]: (value: any) => void }} */
   resolvers = {};
 
-  isBackgroundCheckArranged = false;
+  backgroundCheckScheduled = false;
 
   /** @type {number|undefined} */
   previousVisitRevisionId = undefined;
@@ -170,7 +190,7 @@ class UpdateChecker extends EventEmitter {
    * @returns {Promise<MessageFromWorkerParse | RevisionData>}
    */
   async processPage(revisionToParseId) {
-    if (typeof revisionToParseId === 'number' && this.revisionData.has(revisionToParseId)) {
+    if (revisionToParseId !== undefined && this.revisionData.has(revisionToParseId)) {
       return /** @type {RevisionData} */ (this.revisionData.get(revisionToParseId));
     }
 
@@ -230,9 +250,11 @@ class UpdateChecker extends EventEmitter {
       const { comments: oldComments } = await this.processPage(this.previousVisitRevisionId);
       const { comments: currentComments } = await this.processPage(currentRevisionId);
       if (this.isPageStillAtRevision(currentRevisionId)) {
-        this.mapWorkerCommentsToWorkerComments(currentComments, oldComments);
         this.checkForChangesSincePreviousVisit(
-          /** @type {CommentWorkerMatched[]} */ (currentComments),
+          this.mapWorkerCommentsToWorkerComments(
+            currentComments,
+            oldComments
+          ),
           this.previousVisitRevisionId,
           submittedCommentId
         );
@@ -247,10 +269,12 @@ class UpdateChecker extends EventEmitter {
    *
    * @param {import('./worker/SectionWorker').default[] | SectionWorkerMatched[]} workerSections
    * @param {number} lastCheckedRevisionId
-   * @private
+   * @returns {SectionWorkerMatched[]}
    */
   mapWorkerSectionsToSections(workerSections, lastCheckedRevisionId) {
-    if (this.areWorkerSectionsMatched(workerSections)) return;
+    if (this.areWorkerSectionsMatched(workerSections)) {
+      return workerSections;
+    }
 
     // Reset values set in the previous run.
     sectionRegistry.getAll().forEach((section) => {
@@ -276,6 +300,8 @@ class UpdateChecker extends EventEmitter {
     sectionRegistry.getAll().forEach((section) => {
       section.cleanUpLiveData(lastCheckedRevisionId);
     });
+
+    return workerSections;
   }
 
   /**
@@ -350,41 +376,38 @@ class UpdateChecker extends EventEmitter {
    * The function also adds the `hasPoorMatch` property to comments that have possible matches that
    * are not good enough to confidently state a match.
    *
-   * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} currentComments
-   * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} otherComments
-   * @private
+   * @param {CommentWorkerBase[]} currentComments
+   * @param {CommentWorkerBase[]} otherComments
+   * @returns {CommentWorkerMatched[]}
    */
   mapWorkerCommentsToWorkerComments(currentComments, otherComments) {
-    if (!this.areCommentsEnriched(currentComments) || !this.areCommentsEnriched(otherComments)) {
-      return;
-    }
-
-    // currentComments and otherComments could contain simple CommentWorker types from
-    // CommentWorker, not CommentWorkerEnriched, but for simplicity let's treat them as
-    // CommentWorkerEnriched.
-
-    // Reset values set in the previous run ("derich").
-    currentComments.forEach((comment) => {
+    // Reset values set in one of previous runs: a newest revision in otherComments is always
+    // different, so the mathes are different.
+    //
+    // Also,
+    //
+    // 1. What was previously a newest revision in otherComments could be reused as a current
+    //    revision in currentComments.
+    // 2. What was previously a current revision in currentComments could be reused as a previous
+    //    visit revision in otherComments (that doesn't concern us here).
+    //
+    // but that doesn't seem to affect anything meaningfully.
+    /** @type {CommentWorkerMatched[]} */ (currentComments).forEach((comment) => {
       delete comment.match;
       delete comment.matchScore;
       delete comment.hasPoorMatch;
-      delete comment.parentMatch;
     });
 
+    // We choose to traverse "other" (newer/older) comments in the top cycle, and current comments
+    // in the bottom cycle, not vice versa.
     otherComments.forEach((otherComment) => {
-      delete otherComment.match;
-    });
-
-    // We choose to traverse "other" (newer/older) comments in the top cycle, and current comments in
-    // the bottom cycle, not vice versa.
-    otherComments.forEach((otherComment) => {
-      const ccFiltered = currentComments.filter(
+      const ccFiltered = /** @type {CommentWorkerMatched[]} */ (currentComments.filter(
         (currentComment) =>
           currentComment.authorName === otherComment.authorName &&
           currentComment.date &&
           otherComment.date &&
           currentComment.date.getTime() === otherComment.date.getTime()
-      );
+      ));
       const isTotalCountEqual = currentComments.length === otherComments.length;
       if (ccFiltered.length === 1) {
         ccFiltered[0].match = ccFiltered[0].match
@@ -397,106 +420,60 @@ class UpdateChecker extends EventEmitter {
       } else if (ccFiltered.length > 1) {
         /** @type {boolean} */
         let found;
-        this.sortCommentsByMatchScore(ccFiltered, otherComment, isTotalCountEqual).forEach((match) => {
-          // If the current comment already has a match (from a previous iteration of the
-          // otherComments cycle), compare their scores.
-          if (!found && (!match.comment.matchScore || match.comment.matchScore < match.score)) {
-            match.comment.match = otherComment;
-            match.comment.matchScore = match.score;
-            delete match.comment.hasPoorMatch;
-            found = true;
-          } else {
-            if (!match.comment.match) {
-              // There is a poor match for a current comment.
-              match.comment.hasPoorMatch = true;
+        this.sortCommentsByMatchScore(ccFiltered, otherComment, isTotalCountEqual).forEach(
+          (match) => {
+            // If the current comment already has a match (from a previous iteration of the
+            // otherComments cycle), compare their scores.
+            if (!found && (!match.comment.matchScore || match.comment.matchScore < match.score)) {
+              match.comment.match = otherComment;
+              match.comment.matchScore = match.score;
+              delete match.comment.hasPoorMatch;
+              found = true;
+            } else {
+              if (!match.comment.match) {
+                // There is a poor match for a current comment.
+                match.comment.hasPoorMatch = true;
+              }
             }
           }
-        });
+        );
       }
     });
+
+    return currentComments;
   }
 
   /**
-   * Check if comment instances received from the web worker were previously enriched by this class.
+   * Orchestrate a check for page updates in the web worker:
+   * 1. run it now, then schedule the next check, or
+   * 2. reschedule it (if the page is hidden).
    *
-   * @param {import('./worker/CommentWorker').default[] | CommentWorkerMatched[]} comments
-   * @returns {comments is CommentWorkerMatched[]}
-   */
-  areCommentsEnriched(comments) {
-    return Boolean(
-      comments.length &&
-      ('match' in comments[0] || 'hasPoorMatch' in comments[0] || 'parentMatch' in comments[0])
-    );
-  }
-
-  /**
-   * Check for new comments in the web worker, update the navigation panel, and schedule the next
-   * check.
+   * The method that actually performs the check is `check()`.
    *
    * @private
    */
-  async checkForUpdates() {
+  async check() {
     if (!cd.page.isActive() || bootController.isBooting()) return;
 
     // We need a value that wouldn't change during `await`s.
     const documentHidden = document.hidden;
 
-    if (documentHidden && !this.isBackgroundCheckArranged) {
+    if (documentHidden && !this.isBackgroundCheckScheduled()) {
       $(document).one('visibilitychange', () => {
-        this.isBackgroundCheckArranged = false;
-        this.removeAlarmViaWorker();
-        this.checkForUpdates();
+        this.unscheduleCheck();
+        this.check();
       });
 
-      this.setAlarmViaWorker(
-        Math.abs(cd.g.backgroundUpdateCheckInterval - cd.g.updateCheckInterval) * 1000
+      this.scheduleCheck(
+        Math.abs(cd.g.backgroundUpdateCheckInterval - cd.g.updateCheckInterval),
+        true
       );
-      this.isBackgroundCheckArranged = true;
+
       return;
     }
 
     try {
-      const revisions = await cd.page.getRevisions({
-        rvprop: ['ids'],
-        rvlimit: 1,
-      }, true);
-
-      const currentRevisionId = mw.config.get('wgRevisionId');
-      if (
-        revisions.length &&
-        revisions[0].revid > (this.lastCheckedRevisionId || currentRevisionId)
-      ) {
-        const { revisionId, comments: newComments, sections } = await this.processPage();
-        if (this.isPageStillAtRevision(currentRevisionId)) {
-          const { comments: currentComments } = await this.processPage(currentRevisionId);
-
-          // We set the value here, not after the first `await`, so that we are sure that
-          // lastCheckedRevisionId corresponds to the versions of comments that are currently
-          // rendered.
-          this.lastCheckedRevisionId = revisionId;
-          this.emit('check', revisionId);
-
-          if (this.isPageStillAtRevision(currentRevisionId)) {
-            this.mapWorkerSectionsToSections(sections, revisionId);
-            this.mapWorkerCommentsToWorkerComments(currentComments, newComments);
-
-            this.emit('sectionsUpdate', /** @type {SectionWorkerMatched[]} */ (sections));
-
-            // We check for changes before notifying about new comments to notify about changes in
-            // renamed sections if any were watched.
-            this.checkForNewChanges(
-              /** @type {CommentWorkerMatched[]} */ (currentComments),
-              revisionId
-            );
-
-            await this.processComments(
-              /** @type {CommentWorkerMatched[]} */ (newComments),
-              /** @type {CommentWorkerMatched[]} */ (currentComments),
-              currentRevisionId
-            );
-          }
-        }
-      }
+      await this.performCheck();
     } catch (error) {
       if (!(error instanceof CdError) || error.getCode() !== 'network') {
         console.warn(error);
@@ -504,11 +481,87 @@ class UpdateChecker extends EventEmitter {
     }
 
     if (documentHidden) {
-      this.setAlarmViaWorker(cd.g.backgroundUpdateCheckInterval * 1000);
-      this.isBackgroundCheckArranged = true;
+      this.scheduleCheck(cd.g.backgroundUpdateCheckInterval, true);
     } else {
-      this.setAlarmViaWorker(cd.g.updateCheckInterval * 1000);
+      this.scheduleCheck(cd.g.updateCheckInterval, false);
     }
+  }
+
+  /**
+   * Schedule a check for page updates in the web worker.
+   *
+   * @param {number} interval
+   * @param {boolean} background
+   */
+  scheduleCheck(interval, background) {
+    this.setAlarmViaWorker(interval * 1000);
+    if (background) {
+      this.backgroundCheckScheduled = true;
+    }
+  }
+
+  /**
+   * Remove a check for page updates from the schedule, if any.
+   */
+  unscheduleCheck() {
+    if (!this.initted) return;
+
+    this.removeAlarmViaWorker();
+    this.backgroundCheckScheduled = false;
+  }
+
+  /**
+   * Check if a background check for page updates is scheduled.
+   *
+   * @returns {boolean}
+   */
+  isBackgroundCheckScheduled() {
+    return this.backgroundCheckScheduled;
+  }
+
+  /**
+   * update the navigation panel, and
+   */
+  async performCheck() {
+    const revisions = await cd.page.getRevisions({
+      rvprop: ['ids'],
+      rvlimit: 1,
+    }, true);
+
+    const currentRevisionId = mw.config.get('wgRevisionId');
+    if (
+      !revisions.length ||
+      revisions[0].revid <= (this.lastCheckedRevisionId || currentRevisionId)
+    )
+      return;
+
+    const { revisionId, comments: newComments, sections } = await this.processPage();
+    if (!this.isPageStillAtRevision(currentRevisionId)) return;
+
+    const { comments: currentComments } = await this.processPage(currentRevisionId);
+
+    // We set the value here, not after the first `await`, so that we are sure that
+    // lastCheckedRevisionId corresponds to the versions of comments that are currently
+    // rendered.
+    this.lastCheckedRevisionId = revisionId;
+    this.emit('check', revisionId);
+
+    if (!this.isPageStillAtRevision(currentRevisionId)) return;
+
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const matchedSections = this.mapWorkerSectionsToSections(sections, revisionId);
+    const matchedCurrentComments = this.mapWorkerCommentsToWorkerComments(
+      currentComments,
+      newComments
+    );
+
+    this.emit('sectionsUpdate', matchedSections);
+
+    // We check for changes before notifying about new comments to notify about changes in
+    // renamed sections if any were watched.
+    this.checkForNewChanges(matchedCurrentComments, revisionId);
+
+    await this.processComments(newComments, matchedCurrentComments, currentRevisionId);
   }
 
   /**
@@ -782,21 +835,21 @@ class UpdateChecker extends EventEmitter {
   /**
    * Process comments retrieved by the web worker.
    *
-   * @param {CommentWorkerMatched[]} comments Comments in the recent revision.
+   * @param {CommentWorkerBase[]} newComments Comments in the newer revision.
    * @param {CommentWorkerMatched[]} currentComments Comments in the currently shown revision mapped
-   *   to the comments in the recent revision.
+   *   to the comments in the newer revision.
    * @param {number} currentRevisionId ID of the revision that can be seen on the page.
    * @private
    */
-  async processComments(comments, currentComments, currentRevisionId) {
-    comments.forEach((comment) => {
+  async processComments(newComments, currentComments, currentRevisionId) {
+    /** @type {CommentWorkerNew[]} */ (newComments).forEach((comment) => {
       comment.author = userRegistry.get(comment.authorName);
       if (comment.parent?.authorName) {
         comment.parent.author = userRegistry.get(comment.parent.authorName);
       }
     });
 
-    const all = /** @type {CommentWorkerMatched[]} */ (comments
+    const all = /** @type {CommentWorkerNew[]} */ (newComments)
       .filter((comment) => comment.id && !currentComments.some((mcc) => mcc.match === comment))
       // Detach comments in the newComments object from those in the `comments` object.
       .map((comment) => {
@@ -809,7 +862,7 @@ class UpdateChecker extends EventEmitter {
         }
 
         return newComment;
-      }));
+      });
 
     if (cd.g.genderAffectsUserString) {
       await loadUserGenders(all.map((comment) => comment.author), true);
@@ -818,11 +871,15 @@ class UpdateChecker extends EventEmitter {
 
     this.emit('commentsUpdate', {
       all,
-      relevant: /** @type {CommentWorkerMatched[]} */ (all
+      relevant: /** @type {CommentWorkerNew[]} */ (all
         .filter((comment) => {
           if (!settings.get('notifyCollapsedThreads') && comment.logicalLevel !== 0) {
             let parentMatch;
-            for (let c = comment; c && !parentMatch; c = c.parent) {
+            for (
+              let /** @type {CommentWorkerNew | undefined} */ c = comment;
+              c && !parentMatch;
+              c = c.parent
+            ) {
               parentMatch = c.parentMatch;
             }
             if (parentMatch?.isCollapsed) {
@@ -864,7 +921,7 @@ class UpdateChecker extends EventEmitter {
     const message = event.data;
 
     if (message.type === 'wakeUp') {
-      this.checkForUpdates();
+      this.check();
     } else {
       const resolverId = message.resolverId;
       delete message.resolverId;
@@ -904,11 +961,9 @@ class UpdateChecker extends EventEmitter {
    * @param {string} [submittedCommentId]
    */
   async setup(previousVisitTime, submittedCommentId) {
-    this.isBackgroundCheckArranged = false;
+    this.unscheduleCheck();
     this.previousVisitRevisionId = undefined;
-    if (this.initted) {
-      this.removeAlarmViaWorker();
-    } else {
+    if (!this.initted) {
       cd.getWorker().addEventListener('message', this.onMessageFromWorker);
     }
     this.setAlarmViaWorker(cd.g.updateCheckInterval * 1000);

@@ -42,6 +42,17 @@ declare module 'domhandler' {
      * The parent element of the node.
      */
     parentElement: Element | null;
+
+    /**
+     * Iterate over child nodes, testing the node using the provided callback.
+     *
+     * Returns `true` to stop walking through subtree (after founding the required amounts for
+     * elements, for instance).
+     */
+    traverseSubtree: (
+      callback: (node: Node) => boolean | void,
+      checkSelf?: boolean
+    ) => boolean | undefined;
   }
 
   interface NodeWithChildren extends Node {
@@ -56,14 +67,6 @@ declare module 'domhandler' {
      * function.
      */
     filterRecursively(func: (node: Node) => boolean, limit?: number): Node[];
-
-    /**
-     * Iterate over child nodes, testing the node using the provided callback.
-     *
-     * Returns `true` to stop walking through subtree (after founding the required amounts for
-     * elements, for instance).
-     */
-    traverseSubtree: (callback: (node: Node) => boolean | void, checkSelf?: boolean) => boolean | undefined;
   }
 
   interface Document {
@@ -172,5 +175,3 @@ declare module 'domhandler' {
     movedFromClassAttr: boolean;
   }
 }
-
-export {};

@@ -57,7 +57,7 @@ function setAlarm(interval) {
  */
 function getAllTextNodes() {
   let nodes = /** @type {import('domhandler').Text[]} */ ([]);
-  /** @type {NonNullable<typeof rootElement>} */ (rootElement).traverseSubtree(
+  /** @type {import('domhandler').Element} */ (rootElement).traverseSubtree(
     (/** @type {import('domhandler').Node} */ node) => {
       if (isText(node)) {
         nodes.push(node);

@@ -72,10 +72,6 @@ import { createSvg, extractSignatures, formatDate, formatDateNative, getExtended
  */
 
 /**
- * @typedef {Map<Comment | import('./Section').default, import('./updateChecker').CommentWorkerMatched[]>} RenderedCommentsByParent
- */
-
-/**
  * A comment (any signed, and in some cases unsigned, text on a wiki talk page).
  *
  * @template {boolean} [Reformatted=boolean]
@@ -3658,7 +3654,7 @@ class Comment extends CommentSkeleton {
    * Search for the comment in the source code and return possible matches.
    *
    * @param {string} contextCode
-   * @param {import('./updateChecker').CommentWorkerMatched} [commentData]
+   * @param {import('./updateChecker').CommentWorkerBase} [commentData]
    * @param {boolean} [isInSectionContext=false]
    * @returns {CommentSource|undefined}
    * @private
@@ -4625,14 +4621,18 @@ class Comment extends CommentSkeleton {
   }
 
   /**
+   * @typedef {Map<Comment | import('./Section').default, import('./updateChecker').CommentWorkerNew[]>} WorkerCommentsByRenderedParent
+   */
+
+  /**
    * Turn an array of comments that came from the web worker into a map with their parent comments
    * or sections (the actual ones on the page, not the ones from the web worker) as keys.
    *
-   * @param {import('./updateChecker').CommentWorkerMatched[]} comments
-   * @returns {RenderedCommentsByParent}
+   * @param {import('./updateChecker').CommentWorkerNew[]} comments
+   * @returns {WorkerCommentsByRenderedParent}
    */
   static groupByParent(comments) {
-    const commentsByParent = /** @type {RenderedCommentsByParent} */ (new Map());
+    const commentsByParent = /** @type {WorkerCommentsByRenderedParent} */ (new Map());
     comments.forEach((comment) => {
       let key;
       if (comment.parent) {
@@ -4656,7 +4656,7 @@ class Comment extends CommentSkeleton {
       if (!commentsByParent.get(key)) {
         commentsByParent.set(key, []);
       }
-      /** @type {import('./updateChecker').CommentWorkerMatched[]} */ (
+      /** @type {import('./updateChecker').CommentWorkerNew[]} */ (
         commentsByParent.get(key)
       ).push(comment);
     });

@@ -693,7 +693,7 @@ class CommentRegistry extends EventEmitter {
   /**
    * _For internal use._ Add new comments notifications to threads and sections.
    *
-   * @param {import('./updateChecker').CommentWorkerMatched[]} newComments
+   * @param {import('./updateChecker').CommentWorkerNew[]} newComments
    */
   addNewCommentsNotes(newComments) {
     talkPageController.saveRelativeScrollPosition();
@@ -716,7 +716,7 @@ class CommentRegistry extends EventEmitter {
           .filter((comment) => comment.logicalLevel === 0)
           .reduce((arr, child) =>
             this.searchForNewCommentsInSubtree(child, arr, newCommentIndexes),
-            /** @type {import('./updateChecker').CommentWorkerMatched[]} */ ([])
+            /** @type {import('./updateChecker').CommentWorkerNew[]} */ ([])
           );
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const threadComments = comments.filter((comment) => !sectionComments.includes(comment));
@@ -734,7 +734,7 @@ class CommentRegistry extends EventEmitter {
    * Add an individual new comments notification to a thread or section.
    *
    * @param {Comment|import('./Section').default} parent
-   * @param {import('./updateChecker').CommentWorkerMatched[]} childComments
+   * @param {import('./updateChecker').CommentWorkerNew[]} childComments
    * @param {'thread'|'section'} type
    * @param {number[]} newCommentIndexes
    * @private
@@ -745,7 +745,7 @@ class CommentRegistry extends EventEmitter {
     const descendantComments = parent instanceof Comment
       ? childComments.reduce(
           (arr, child) => this.searchForNewCommentsInSubtree(child, arr, newCommentIndexes),
-          /** @type {import('./updateChecker').CommentWorkerMatched[]} */ ([])
+          /** @type {import('./updateChecker').CommentWorkerNew[]} */ ([])
         )
       : childComments;
 
@@ -967,10 +967,10 @@ class CommentRegistry extends EventEmitter {
    * Add comment's children, including indirect, into an array, if they are in the array of all new
    * comments.
    *
-   * @param {import('./updateChecker').CommentWorkerMatched} childComment
-   * @param {import('./updateChecker').CommentWorkerMatched[]} newCommentsInSubtree
+   * @param {import('./updateChecker').CommentWorkerNew} childComment
+   * @param {import('./updateChecker').CommentWorkerNew[]} newCommentsInSubtree
    * @param {number[]} newCommentIndexes
-   * @returns {import('./updateChecker').CommentWorkerMatched[]}
+   * @returns {import('./updateChecker').CommentWorkerNew[]}
    * @private
    */
   searchForNewCommentsInSubtree(childComment, newCommentsInSubtree, newCommentIndexes) {

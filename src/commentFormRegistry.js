@@ -415,7 +415,8 @@ class CommentFormRegistry extends EventEmitter {
 
     const dialog = new OO.ui.MessageDialog();
     cd.getWindowManager().addWindows([dialog]);
-    cd.getWindowManager().openWindow(dialog, {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const win = cd.getWindowManager().openWindow(dialog, {
       message: new OO.ui.FieldLayout(
         new OO.ui.MultilineTextInputWidget({
           value: content
@@ -439,8 +440,9 @@ class CommentFormRegistry extends EventEmitter {
       ],
       size: 'large',
     });
-
-    this.saveSession();
+    win.closed.then(() => {
+      this.saveSession();
+    });
   }
 
   /**

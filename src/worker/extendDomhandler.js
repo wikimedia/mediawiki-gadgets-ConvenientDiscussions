@@ -37,6 +37,27 @@ Node.prototype.follows = function (node) {
   return Boolean(DomUtils.compareDocumentPosition(this, node) & 4 /* FOLLOWING */);
 };
 
+/**
+ * @param {(node: Node) => boolean | void} callback
+ * @param {boolean} [checkSelf=false]
+ * @returns {boolean}
+ */
+Node.prototype.traverseSubtree = function (callback, checkSelf = false) {
+  if (checkSelf && callback(this)) {
+    return true;
+  }
+
+  if (this instanceof NodeWithChildren) {
+    for (let n = this.firstChild; n; n = n.nextSibling) {
+      if (n.traverseSubtree(callback, true)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
 Object.defineProperty(Node.prototype, 'textContent', {
   /**
    * @returns {''}
@@ -88,25 +109,6 @@ NodeWithChildren.prototype.contains = function (node) {
 
   for (let /** @type {Node | null} */ n = node; n; n = n.parentNode) {
     if (n === this) {
-      return true;
-    }
-  }
-
-  return false;
-};
-
-/**
- * @param {(node: Node) => boolean | void} callback
- * @param {boolean} [checkSelf=false]
- * @returns {boolean}
- */
-NodeWithChildren.prototype.traverseSubtree = function (callback, checkSelf = false) {
- if (checkSelf && callback(this)) {
-   return true;
- }
-
-  for (let n = this.firstChild; n; n = n.nextSibling) {
-    if (n instanceof NodeWithChildren && n.traverseSubtree(callback, true)) {
       return true;
     }
   }
