@@ -103,7 +103,7 @@ export default class Page {
 
     /**
      * Page name, with a namespace name, not necessarily normalized (not normalized if a gendered
-     * name is available). The word separator is a space, not an underline.
+     * name is available). The word separator is space, not underline.
      *
      * @type {string}
      */

@@ -1523,7 +1523,10 @@ class CommentForm extends EventEmitter {
    */
   async preloadTemplate() {
     const operation = this.operations.add('load', { affectsHeadline: false });
-    const preloadPage = pageRegistry.get(/** @type {string} */ (this.preloadConfig.commentTemplate));
+    const preloadPage = pageRegistry.get(
+      /** @type {string} */ (this.preloadConfig.commentTemplate),
+      true
+    );
     if (!preloadPage) return;
 
     try {

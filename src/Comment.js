@@ -2178,6 +2178,7 @@ class Comment extends CommentSkeleton {
   animateBack(flag, callback) {
     if (!this.$underlay?.parent().length) {
       callback?.();
+
       return;
     }
 
@@ -2728,8 +2729,10 @@ class Comment extends CommentSkeleton {
           }
         } else {
           const $element = this.$elements.eq(i);
+          // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+          const newElement = this.replaceElement($element, html);
           if ($element.hasClass('cd-hidden')) {
-            $(this.replaceElement($element, html)).addClass('cd-hidden');
+            $(newElement).addClass('cd-hidden');
           }
         }
       });

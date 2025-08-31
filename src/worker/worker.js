@@ -33,7 +33,6 @@ let alarmTimeout;
 /** @type {import('domhandler').Element | undefined} */
 let rootElement;
 
-cd.debug = debug;
 debug.init();
 
 /**

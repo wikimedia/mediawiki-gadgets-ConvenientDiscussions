@@ -29,7 +29,11 @@ import cd from './shared/cd';
  */
 
 /**
- * @typedef {import('./shared/cd').ConvenientDiscussionsBase & ConvenientDiscussionsWindowExtension} ConvenientDiscussions
+ * @typedef {(
+ *   & import('./shared/cd').ConvenientDiscussionsBase
+ *   & typeof import('./convenientDiscussions').convenientDiscussionsWindow
+ *   & ConvenientDiscussionsWindowExtension
+ * )} ConvenientDiscussions
  */
 
 // We change the type here, which is impossible with export...from

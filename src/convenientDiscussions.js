@@ -1,6 +1,6 @@
 /**
- * Module that populates the {@link convenientDiscussions} object. It is run in the window context
- * and is passed partially to the worker context.
+ * Module that populates the {@link convenientDiscussionsWindow} object. It is run in the window
+ * context and is passed partially to the worker context.
  *
  * @module convenientDiscussions
  */
@@ -62,7 +62,7 @@ const devicePixelRatioToDivisor = [
   [0, 1],
 ];
 
-const convenientDiscussions = {
+const convenientDiscussionsWindow = {
   /**
    * @type {{
    *   [key: string]: OO.ui.WindowManager;
@@ -250,18 +250,6 @@ const convenientDiscussions = {
   },
 
   /**
-   * Checks whether the current execution context is a web worker.
-   *
-   * @returns {boolean}
-   */
-  isWorker() {
-    return (
-      'WorkerGlobalScope' in self &&
-      self instanceof /** @type {any} */ (self.WorkerGlobalScope)
-    );
-  },
-
-  /**
    * Reference to the {@link module:debug debug} module.
    *
    * @memberof convenientDiscussions
@@ -342,7 +330,7 @@ const convenientDiscussions = {
   },
 };
 
-Object.assign(cd, convenientDiscussions);
+Object.assign(cd, convenientDiscussionsWindow);
 
 /**
  * Collection of properties accessible from anywhere in the script that are not grouped in any other
@@ -395,9 +383,9 @@ const globalProperties = {
 
   pixelDeviationRatio: /** @type {number} */ (
     devicePixelRatioToDivisor.reduce(
-      (/** @type {number | undefined} */ value, [dpr, divisor]) =>
+      (value, [dpr, divisor]) =>
         value || (window.devicePixelRatio >= dpr ? window.devicePixelRatio / divisor : value),
-      undefined
+      /** @type {number | undefined} */ (undefined)
     )
   ),
 
@@ -660,10 +648,8 @@ const globalProperties = {
   // Check for mw.user.isNamed() to treat temporary accounts as unregistered (we can't save
   // options for them anyway). `<unregistered>` is a workaround for anonymous users (there are
   // such!).
-  userName: (
-    ((!mw.user.isNamed || mw.user.isNamed()) && mw.config.get('wgUserName')) ||
-    '<unregistered>'
-  ),
+  userName:
+    ((!mw.user.isNamed || mw.user.isNamed()) && mw.config.get('wgUserName')) || '<unregistered>',
 
   contentDirection: /** @type {Direction} */ (
     bodyClassList.contains('sitedir-rtl') ? 'rtl' : 'ltr'
@@ -675,10 +661,7 @@ const globalProperties = {
   // https://stackoverflow.com/a/24600597 (sends to
   // https://developer.mozilla.org/en-US/docs/Browser_detection_using_the_user_agent) and
   // https://stackoverflow.com/a/14301832.
-  isMobile: (
-    /Mobi|Android/i.test(navigator.userAgent) ||
-    typeof window.orientation !== 'undefined'
-  ),
+  isMobile: /Mobi|Android/i.test(navigator.userAgent) || typeof window.orientation !== 'undefined',
 
   isDtReplyToolEnabled: bodyClassList.contains('ext-discussiontools-replytool-enabled'),
   isDtNewTopicToolEnabled: bodyClassList.contains('ext-discussiontools-newtopictool-enabled'),
@@ -701,4 +684,4 @@ if (cd.g.debug) {
   window.cd = cd;
 }
 
-export { convenientDiscussions, globalProperties };
+export { convenientDiscussionsWindow, globalProperties };

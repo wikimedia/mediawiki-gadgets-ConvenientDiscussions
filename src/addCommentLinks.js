@@ -472,7 +472,7 @@ function processContributions($content) {
     );
     if (!linkElement || isWikidataItem(linkElement)) return;
 
-    const page = pageRegistry.get(linkElement.textContent);
+    const page = pageRegistry.get(linkElement.textContent, true);
     if (!page || !page.isProbablyTalkPage()) return;
 
     const link = linkElement.href;
@@ -660,7 +660,7 @@ function processDiff($diff) {
         const title = (new URL(dateElement.href)).searchParams.get('title');
         if (!title) return;
 
-        page = pageRegistry.get(title);
+        page = pageRegistry.get(title, true);
         if (!page) return;
       } else {
         comment = require('./commentRegistry').default.getById(id, true) || undefined;

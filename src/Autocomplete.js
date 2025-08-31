@@ -1012,7 +1012,6 @@ class Autocomplete {
           limit: 10,
         }).catch(handleApiReject));
 
-        cd.debug.startTimer('getRelevantTemplateNames');
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const results = response[1]
           ?.filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
@@ -1022,7 +1021,6 @@ class Autocomplete {
               name :
               this.useOriginalFirstCharCase(name, text)
           ));
-        cd.debug.logAndResetEverything();
 
         resolve(results);
       } catch (error) {

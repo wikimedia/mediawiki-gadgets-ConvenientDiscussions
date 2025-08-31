@@ -23,12 +23,12 @@ const pageRegistry = {
   /**
    * @overload
    * @param {string} nameOrMwTitle
-   * @param {true} [isGendered=true]
+   * @param {true} [isGendered=false]
    * @returns {?Page}
    *
    * @overload
    * @param {string|mw.Title} nameOrMwTitle
-   * @param {false} [isGendered=true]
+   * @param {false} [isGendered=false]
    * @returns {?Page}
    */
 
@@ -36,11 +36,11 @@ const pageRegistry = {
    * Get a page object for a page with the specified name (either a new one or already existing).
    *
    * @param {string | mw.Title} nameOrMwTitle
-   * @param {boolean} [isGendered=true] Used to keep the gendered namespace name (`nameOrMwTitle`
+   * @param {boolean} [isGendered=false] Used to keep the gendered namespace name (`nameOrMwTitle`
    *   should be a string).
    * @returns {?Page}
    */
-  get(nameOrMwTitle, isGendered = true) {
+  get(nameOrMwTitle, isGendered = false) {
     const title = nameOrMwTitle instanceof mw.Title ?
       nameOrMwTitle :
       mw.Title.newFromText(nameOrMwTitle);
@@ -50,11 +50,12 @@ const pageRegistry = {
 
     const name = title.getPrefixedText();
     if (!this.items[name]) {
-      this.items[name] = new (name === cd.g.pageName ? CurrentPage : Page)(
+      this.items[name] = new (nameOrMwTitle === cd.g.pageName ? CurrentPage : Page)(
         title,
         isGendered ? /** @type {string} */ (nameOrMwTitle) : undefined
       );
     } else if (isGendered) {
+      // Set the gendered name which could be missing for the page.
       this.items[name].name = /** @type {string} */ (nameOrMwTitle);
     }
 
@@ -67,7 +68,7 @@ const pageRegistry = {
    * @returns {import('./CurrentPage').default}
    */
   getCurrent() {
-    return /** @type {import('./CurrentPage').default} */ (this.get(cd.g.pageName, true));
+    return /** @type {import('./CurrentPage').default} */ (this.get(cd.g.pageName));
   },
 };
 
