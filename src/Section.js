@@ -1,4 +1,3 @@
-/* eslint-disable no-self-assign */
 import Button from './Button';
 import Comment from './Comment';
 import LiveTimestamp from './LiveTimestamp';

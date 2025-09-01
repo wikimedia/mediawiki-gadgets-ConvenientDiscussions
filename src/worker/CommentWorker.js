@@ -1,4 +1,3 @@
-/* eslint-disable no-self-assign */
 import { isText } from 'domhandler';
 
 import CommentSkeleton from '../shared/CommentSkeleton';
@@ -68,19 +67,10 @@ export default class CommentWorker extends CommentSkeleton {
   signatureElement = this.signatureElement;
 
   /**
-   * Create a comment worker instance.
-   *
-   * @param {import('../shared/Parser').default<import('domhandler').Node>} parser
-   * @param {import('../shared/Parser').SignatureTarget<import('domhandler').Node>} signature
-   *   Signature object returned by {@link Parser#findSignatures}.
-   * @param {import('../shared/Parser').Target<import('domhandler').Node>[]} targets
-   * @throws {CdError}
+   * @override
+   * @type {import('domhandler').Element[]}
    */
-  constructor(parser, signature, targets) {
-    super(parser, signature, targets);
-
-    this.elements = /** @type {import('domhandler').Element[]} */ (this.elements);
-  }
+  elements = this.elements;
 
   /**
    * Remove unnecessary content, hide dynamic content in a comment.

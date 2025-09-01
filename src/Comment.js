@@ -1,4 +1,3 @@
-/* eslint-disable no-self-assign */
 import Button from './Button';
 import CommentButton from './CommentButton';
 import CommentSource from './CommentSource';
@@ -111,6 +110,12 @@ class Comment extends CommentSkeleton {
    * @type {HTMLElement[]}
    */
   elements = this.elements;
+
+  /**
+   * @override
+   * @type {HTMLElement[]}
+   */
+  highlightables = this.highlightables;
 
   /**
    * @override
@@ -284,7 +289,7 @@ class Comment extends CommentSkeleton {
   isTarget = false;
 
   /**
-   * Is the comment currently hovered.
+   * Is the comment currently hovered (when comments are reformatted).
    *
    * @type {boolean}
    */
@@ -424,11 +429,6 @@ class Comment extends CommentSkeleton {
    */
   constructor(parser, signature, targets) {
     super(parser, signature, targets);
-
-    /**
-     * @see CommentSkeleton#highlightables
-     */
-    this.highlightables = /** @type {HTMLElement[]} */ (this.highlightables);
 
     this.reformatted = /** @type {Reformatted} */ (settings.get('reformatComments') || false);
     this.showContribsLink = settings.get('showContribsLink');
@@ -577,10 +577,9 @@ class Comment extends CommentSkeleton {
       ((!isSpaced &&
         (node.getAttribute('style') || ['SUP', 'SUB'].includes(node.tagName)) &&
         // Templates like "citation needed" or https://ru.wikipedia.org/wiki/Template:-:
-        !node.classList.length) ||
+        !node.classList.length) || // https://ru.wikipedia.org/wiki/Обсуждение_участника:Adamant.pwn/Архив/2023#c-Adamant.pwn-20230722131600-Rampion-20230722130800
         // Cases like https://ru.wikipedia.org/?diff=119667594
-        (// https://ru.wikipedia.org/wiki/Обсуждение_участника:Adamant.pwn/Архив/2023#c-Adamant.pwn-20230722131600-Rampion-20230722130800
-        (node.getAttribute('style') ||
+        ((node.getAttribute('style') ||
           // https://en.wikipedia.org/?oldid=1220458782#c-Dxneo-20240423211700-Dilettante-20240423210300
           ['B', 'STRONG'].includes(node.tagName)) &&
           node.textContent.toLowerCase() === this.author.getName().toLowerCase()))
@@ -820,9 +819,7 @@ class Comment extends CommentSkeleton {
 
     // The menu may be re-added (after a comment's content is updated). We need to restore
     // something.
-    if (this.targetChild) {
-      this.maybeAddGoToChildButton(this.targetChild);
-    }
+    this.maybeAddGoToChildButton();
 
     // We need a wrapper to ensure correct positioning in LTR-in-RTL situations and vice versa.
     const menuWrapper = document.createElement('div');
@@ -998,8 +995,8 @@ class Comment extends CommentSkeleton {
         classes: ['cd-comment-button-icon', 'cd-comment-button-goToParent', 'cd-icon'],
         action,
       });
-      this.goToParentButton.element.append(Comment.prototypes.get('goToParentButtonSvg'));
 
+      this.goToParentButton.element.append(Comment.prototypes.get('goToParentButtonSvg'));
       this.headerElement.append(this.goToParentButton.element);
     } else {
       const buttonElement = this.createGoToParentButton().$element[0];
@@ -1013,18 +1010,25 @@ class Comment extends CommentSkeleton {
   }
 
   /**
+   * Set the comment to go to when the "Go to the child comment" button is clicked.
+   *
+   * @param {Comment} targetChild
+   */
+  setTargetChild(targetChild) {
+    this.targetChild = targetChild;
+  }
+
+  /**
    * Create a {@link Comment#goToChildButton "Go to child" button} and add it to the comment header
    * ({@link Comment#$header} or {@link Comment#$overlayMenu}), if it was not already added.
    *
-   * @param {Comment} child Child comment to go to.
    * @private
    */
-  maybeAddGoToChildButton(child) {
-    this.targetChild = child;
-
-    if (this.goToChildButton?.isConnected()) return;
+  maybeAddGoToChildButton() {
+    if (!this.targetChild) return;
 
     this.configureLayers();
+    if (this.goToChildButton?.isConnected()) return;
 
     const action = () => {
       /** @type {Comment} */ (this.targetChild).scrollTo({ pushState: true });
@@ -1040,8 +1044,8 @@ class Comment extends CommentSkeleton {
         classes: ['cd-comment-button-icon', 'cd-comment-button-goToChild', 'cd-icon'],
         action,
       });
-      this.goToChildButton.element.append(Comment.prototypes.get('goToChildButtonSvg'));
 
+      this.goToChildButton.element.append(Comment.prototypes.get('goToChildButtonSvg'));
       this.headerElement.insertBefore(
         this.goToChildButton.element,
         (this.goToParentButton?.element || this.timestampElement)?.nextSibling
@@ -1053,6 +1057,10 @@ class Comment extends CommentSkeleton {
         action,
         widgetConstructor: this.createGoToChildButton.bind(this),
       });
+      this.overlayMenu.insertBefore(
+        buttonElement,
+        this.toggleChildThreadsButton?.buttonElement.nextSibling || null
+      );
       this.overlayMenu.prepend(buttonElement);
     }
   }
@@ -1071,22 +1079,33 @@ class Comment extends CommentSkeleton {
       return;
     }
 
-    /**
-     * "Toggle children comments" button.
-     *
-     * @type {CommentButton}
-     */
-    this.toggleChildThreadsButton = new CommentButton({
-      tooltip: cd.s('cm-togglechildthreads-tooltip'),
-      classes: ['cd-comment-button-icon', 'cd-comment-button-toggleChildThreads', 'cd-icon'],
-      action: this.toggleChildThreadsButtonClick.bind(this),
-    });
-    this.updateToggleChildThreadsButton();
+    const action = this.toggleChildThreadsButtonClick.bind(this);
+    if (this.isReformatted()) {
+      /**
+       * "Toggle children comments" button.
+       *
+       * @type {CommentButton}
+       */
+      this.toggleChildThreadsButton = new CommentButton({
+        tooltip: cd.s('cm-togglechildthreads-tooltip'),
+        classes: ['cd-comment-button-icon', 'cd-comment-button-toggleChildThreads', 'cd-icon'],
+        action,
+      });
 
-    this.headerElement.insertBefore(
-      this.toggleChildThreadsButton.element,
-      this.$changeNote?.[0] || null
-    );
+      this.updateToggleChildThreadsButton();
+      this.headerElement.insertBefore(
+        this.toggleChildThreadsButton.element,
+        this.$changeNote?.[0] || null
+      );
+    } else if (this.overlayMenu) {
+      const buttonElement = this.createToggleChildThreadsButton().$element[0];
+      this.toggleChildThreadsButton = new CommentButton({
+        buttonElement,
+        action,
+        widgetConstructor: this.createToggleChildThreadsButton.bind(this),
+      });
+      this.overlayMenu.prepend(buttonElement);
+    }
   }
 
   /**
@@ -1095,14 +1114,18 @@ class Comment extends CommentSkeleton {
   updateToggleChildThreadsButton() {
     if (!this.toggleChildThreadsButton) return;
 
-    this.toggleChildThreadsButton.element.innerHTML = '';
-    this.toggleChildThreadsButton.element.append(
-      Comment.prototypes.get(
-        this.areChildThreadsCollapsed()
-          ? 'expandChildThreadsButtonSvg'
-          : 'collapseChildThreadsButtonSvg'
-      )
-    );
+    if (this.isReformatted()) {
+      this.toggleChildThreadsButton.element.innerHTML = '';
+      this.toggleChildThreadsButton.element.append(
+        Comment.prototypes.get(
+          this.areChildThreadsCollapsed()
+            ? 'expandChildThreadsButtonSvg'
+            : 'collapseChildThreadsButtonSvg'
+        )
+      );
+    } else {
+      this.toggleChildThreadsButton.setIcon(this.areChildThreadsCollapsed() ? 'subtract' : 'add');
+    }
   }
 
   /**
@@ -1307,8 +1330,6 @@ class Comment extends CommentSkeleton {
    *   offset will stay wrong.
    */
 
-
-
   /**
    * @overload
    * @param {GetOffsetOptions} [options]
@@ -1363,14 +1384,11 @@ class Comment extends CommentSkeleton {
     // `true` wrongly if the comment is around floating elements, but that doesn't hurt much.
     if (
       this.offset &&
-
       // Has the top stayed the same? With scale other than 100% values of less than 0.001 appear
       // in Chrome and Firefox.
       Math.abs(scrollY + rectTop.top - this.offset.top) < 0.01 &&
-
       // Has the height stayed the same?
       Math.abs(rectBottom.bottom - rectTop.top - (this.offset.bottom - this.offset.top)) < 0.01 &&
-
       // Has the width of the first highlightable stayed the same?
       Math.abs(this.highlightables[0].offsetWidth - this.offset.firstHighlightableWidth) < 0.01
     ) {
@@ -1506,7 +1524,9 @@ class Comment extends CommentSkeleton {
         // Prevent issues with comments like this:
         // https://en.wikipedia.org/wiki/Wikipedia:Village_pump_(technical)#202107140040_SGrabarczuk_(WMF).
         this.highlightables.forEach((el, i) => {
-          if (talkPageController.getFloatingElements().some((floatingEl) => el.contains(floatingEl))) {
+          if (
+            talkPageController.getFloatingElements().some((floatingEl) => el.contains(floatingEl))
+          ) {
             el.style.overflow = initialOverflows[i];
           }
         });
@@ -1863,6 +1883,7 @@ class Comment extends CommentSkeleton {
       this.addThankButton();
       this.addEditButton();
       this.addReplyButton();
+      this.addToggleChildThreadsButton();
     }
 
     this.updateLayersStyles(true);
@@ -1962,8 +1983,8 @@ class Comment extends CommentSkeleton {
     this.updateClassesForFlag('deleted', this.isDeleted);
 
     if (wereJustCreated && this.isLineGapped) {
-        this.line.classList.add('cd-comment-overlay-line-gapCloser');
-      }
+      this.line.classList.add('cd-comment-overlay-line-gapCloser');
+    }
   }
 
   /**
@@ -2072,7 +2093,7 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Highlight the comment when it is hovered.
+   * Highlight the comment (show the underlay and overlay) when it is hovered.
    *
    * @param {MouseEvent | TouchEvent} [event]
    */
@@ -2099,16 +2120,21 @@ class Comment extends CommentSkeleton {
     // Add classes if the comment isn't moved. If it is moved, the layers are removed and created
     // again when the next event fires.
     if (
-      // Has the comment moved?
+      // Is the comment moved?
       this.configureLayers() ||
 
       !this.underlay
     ) {
+
       return;
     }
 
-    this.updateClassesForFlag('hovered', true);
     this.isHovered = true;
+    this.updateClassesForFlag('hovered', true);
+
+    if (this.toggleChildThreadsButton) {
+      commentRegistry.onboardOntoToggleChildThreads(this);
+    }
   }
 
   /**
@@ -2329,7 +2355,8 @@ class Comment extends CommentSkeleton {
      */
     const lineNumbers = [[], []];
     revisions.forEach((revision, i) => {
-      const pageCode = /** @type {NonNullable<typeof revision.slots>} */ (revision.slots).main.content;
+      const pageCode = /** @type {NonNullable<typeof revision.slots>} */ (revision.slots).main
+        .content;
       let source;
       try {
         source = this.locateInCode(undefined, pageCode, commentsData[/** @type {0 | 1} */ (i)]);
@@ -2689,19 +2716,15 @@ class Comment extends CommentSkeleton {
       // Are there references? References themselves may be out of the comment's HTML and might be
       // edited.
       !newComment.hiddenElementsData.some((data) => data.type === 'reference') &&
-
       // Are style tags kept? If a style element is replaced with a link element, we can't replace
       // HTML.
-      (
-        !newComment.hiddenElementsData.length ||
+      (!newComment.hiddenElementsData.length ||
         newComment.hiddenElementsData.every(
           (data) => data.type !== 'templateStyles' || data.tagName === 'STYLE'
         ) ||
         currentComment.hiddenElementsData.every(
           (data) => data.type !== 'templateStyles' || data.tagName !== 'STYLE'
-        )
-      ) &&
-
+        )) &&
       areObjectsEqual(elementNames, newComment.elementNames)
     ) {
       // TODO: support non-Arabic digits (e.g. fa.wikipedia.org). Also not sure square brackets are
@@ -2831,16 +2854,12 @@ class Comment extends CommentSkeleton {
     } else {
       const offset = this.getOffset({ considerFloating: true });
       (this.editForm?.$element || this.$elements).cdScrollIntoView(
-        (
-          alignment ||
-          (
-            this.isOpeningSection() ||
-            this.editForm ||
-            (offset && offset.bottom !== offset.bottomForVisibility)
-              ? 'top'
-              : 'center'
-          )
-        ),
+        alignment ||
+          (this.isOpeningSection() ||
+          this.editForm ||
+          (offset && offset.bottom !== offset.bottomForVisibility)
+            ? 'top'
+            : 'center'),
         smooth,
         callback
       );
@@ -2862,7 +2881,8 @@ class Comment extends CommentSkeleton {
     }
 
     parent.scrollTo({ pushState: true });
-    parent.maybeAddGoToChildButton(this);
+    parent.setTargetChild(this);
+    parent.maybeAddGoToChildButton();
   }
 
   /**
@@ -2979,11 +2999,9 @@ class Comment extends CommentSkeleton {
       );
       if (
         !diffMatches.length ||
-        (
-          diffMatches[1] &&
+        (diffMatches[1] &&
           diffMatches[0].wordOverlap === diffMatches[1].wordOverlap &&
-          diffMatches[0].dateProximity === diffMatches[1].dateProximity
-        )
+          diffMatches[0].dateProximity === diffMatches[1].dateProximity)
       ) {
         throw new CdError({
           type: 'parse',
@@ -3022,7 +3040,6 @@ class Comment extends CommentSkeleton {
     const commentFullText = this.getText(false) + ' ' + this.signatureText;
     const matches = [];
     for (const [i, diffBody] of compareBodies.entries()) {
-
       // Currently even empty diffs have newlines and a comment.
       if (!diffBody) continue;
 
@@ -3123,7 +3140,10 @@ class Comment extends CommentSkeleton {
     const historyUrl = this.getSourcePage().getArchivedPage().getUrl({ action: 'history' });
     switch (type) {
       case 'parse': {
-        text = cd.sParse('error-diffnotfound') + ' ' + cd.sParse('error-diffnotfound-history', historyUrl);
+        text =
+          cd.sParse('error-diffnotfound') +
+          ' ' +
+          cd.sParse('error-diffnotfound-history', historyUrl);
         break;
       }
 
@@ -3134,7 +3154,10 @@ class Comment extends CommentSkeleton {
 
       default: {
         if (code === 'noData') {
-          text = cd.sParse('error-diffnotfound') + ' ' + cd.sParse('error-diffnotfound-history', historyUrl);
+          text =
+            cd.sParse('error-diffnotfound') +
+            ' ' +
+            cd.sParse('error-diffnotfound-history', historyUrl);
         } else {
           text = cd.sParse('thank-error');
           console.warn(error);
@@ -3511,7 +3534,6 @@ class Comment extends CommentSkeleton {
 
     if (
       registerAllInDirection &&
-
       // Makes sense to register further?
       commentRegistry.getAll().some((comment) => comment.isSeen || comment.willFlashChangedOnSight)
     ) {
@@ -3614,10 +3636,7 @@ class Comment extends CommentSkeleton {
   getText(cleanUpSignature = true) {
     if (this.cachedText === undefined) {
       const $dummy = $('<div>').append(
-        this.$elements
-          .not(':header, .mw-heading')
-          .clone()
-          .removeClass('cd-hidden')
+        this.$elements.not(':header, .mw-heading').clone().removeClass('cd-hidden')
       );
       const selectorParts = [
         '.cd-signature',
@@ -3629,9 +3648,7 @@ class Comment extends CommentSkeleton {
       if (cd.config.unsignedClass) {
         selectorParts.push(`.${cd.config.unsignedClass}`);
       }
-      $dummy
-        .find(selectorParts.join(', '))
-        .remove();
+      $dummy.find(selectorParts.join(', ')).remove();
       let text = $dummy.cdGetText();
       if (cleanUpSignature) {
         if (cd.g.signatureEndingRegexp) {
@@ -3692,16 +3709,12 @@ class Comment extends CommentSkeleton {
       .filter(
         (signature) =>
           (signature.author === this.author || signature.author.getName() === '<undated>') &&
-          (
-            this.timestamp === signature.timestamp ||
+          (this.timestamp === signature.timestamp ||
             // .startsWith() to account for cases where you can ignore the timezone string in
             // "unsigned" templates (it may be present and may be not), but it appears on the page.
-            (
-              this.timestamp &&
+            (this.timestamp &&
               signature.timestamp &&
-              this.timestamp.startsWith(signature.timestamp)
-            )
-          )
+              this.timestamp.startsWith(signature.timestamp)))
       )
       .map((signature) => new CommentSource(this, signature, contextCode, isInSectionContext))
       .map((source, _, sources) => source.calculateMatchScore(thisData, sources, signatures))
@@ -4062,7 +4075,6 @@ class Comment extends CommentSkeleton {
     // Let's take 3 minutes as a tolerable time discrepancy.
     if (
       !this.date ||
-
       // Is the comment date in the future?
       (this.date && this.date.getTime() > Date.now() + cd.g.msInMin * 3)
     ) {
@@ -4248,13 +4260,10 @@ class Comment extends CommentSkeleton {
   getSiblingsAndSelf() {
     return (
       this.getParent()?.getChildren() ||
-      (
-        this.section
-          ? this.section.commentsInFirstChunk.filter((comment) => !comment.getParent())
-
-          // Parentless comments in the lead section
-          : commentRegistry.query((comment) => !comment.section && !comment.getParent())
-      )
+      (this.section
+        ? this.section.commentsInFirstChunk.filter((comment) => !comment.getParent())
+        : // Parentless comments in the lead section
+          commentRegistry.query((comment) => !comment.section && !comment.getParent()))
     );
   }
 
@@ -4292,10 +4301,7 @@ class Comment extends CommentSkeleton {
     }
 
     if (this.isOpeningSection()) {
-      return cd.s(
-        'cf-comment-placeholder-replytosection',
-        this.section.headline
-      );
+      return cd.s('cf-comment-placeholder-replytosection', this.section.headline);
     }
 
     this.maybeRequestAuthorGender(callback, true);
@@ -4382,7 +4388,12 @@ class Comment extends CommentSkeleton {
       invisibleLabel: true,
       title: cd.s('cm-thank-tooltip'),
       framed: false,
-      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon', 'cd-comment-button-ooui-icon-thank'],
+      classes: [
+        'cd-button-ooui',
+        'cd-comment-button-ooui',
+        'cd-comment-button-ooui-icon',
+        'cd-comment-button-ooui-icon-thank',
+      ],
     });
   }
 
@@ -4429,6 +4440,22 @@ class Comment extends CommentSkeleton {
       icon: 'downTriangle',
       invisibleLabel: true,
       title: cd.s('cm-gotochild-tooltip'),
+      framed: false,
+      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
+    });
+  }
+
+  /**
+   * Create a "Toggle child threads" button.
+   *
+   * @returns {OO.ui.ButtonWidget}
+   */
+  createToggleChildThreadsButton() {
+    return new OO.ui.ButtonWidget({
+      label: cd.s('cm-togglechildthreads'),
+      icon: 'subtract',
+      invisibleLabel: true,
+      title: cd.s('cm-togglechildthreads-tooltip'),
       framed: false,
       classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
     });
@@ -4617,12 +4644,17 @@ class Comment extends CommentSkeleton {
    * @returns {Map<import('./shared/SectionSkeleton').SectionBase | null, import('./shared/CommentSkeleton').CommentBase[]>}
    */
   static groupBySection(comments) {
-    const map = /** @type {Map<import('./shared/SectionSkeleton').SectionBase | null, import('./shared/CommentSkeleton').CommentBase[]>} */ (new Map());
+    const map =
+      /** @type {Map<import('./shared/SectionSkeleton').SectionBase | null, import('./shared/CommentSkeleton').CommentBase[]>} */ (
+        new Map()
+      );
     for (const comment of comments) {
       if (!map.has(comment.section)) {
         map.set(comment.section, []);
       }
-      /** @type {import('./shared/CommentSkeleton').CommentBase[]} */ (map.get(comment.section)).push(comment);
+      /** @type {import('./shared/CommentSkeleton').CommentBase[]} */ (
+        map.get(comment.section)
+      ).push(comment);
     }
 
     return map;
@@ -4664,9 +4696,9 @@ class Comment extends CommentSkeleton {
       if (!commentsByParent.get(key)) {
         commentsByParent.set(key, []);
       }
-      /** @type {import('./updateChecker').CommentWorkerNew[]} */ (
-        commentsByParent.get(key)
-      ).push(comment);
+      /** @type {import('./updateChecker').CommentWorkerNew[]} */ (commentsByParent.get(key)).push(
+        comment
+      );
     });
 
     return commentsByParent;

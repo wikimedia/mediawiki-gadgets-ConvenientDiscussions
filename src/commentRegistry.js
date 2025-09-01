@@ -1205,7 +1205,9 @@ class CommentRegistry extends EventEmitter {
     this.items.forEach((comment) => {
       comment.addToggleChildThreadsButton();
     });
-    this.onboardOntoToggleChildThreads();
+    if (this.reformatCommentsSetting) {
+      this.onboardOntoToggleChildThreads();
+    }
   }
 
   /**
@@ -1313,18 +1315,26 @@ class CommentRegistry extends EventEmitter {
   /**
    * Show an popup onboarding onto the "Toggle child threads" feature.
    *
-   * @private
+   * @param {Comment} [comment] The comment to show the popup for (when comments are not
+   *   reformatted).
    */
-  async onboardOntoToggleChildThreads() {
-    if (settings.get('toggleChildThreads-onboarded') || this.toggleChildThreadsPopup) return;
+  async onboardOntoToggleChildThreads(comment) {
+    if (settings.get('toggleChildThreads-onboarded') || (!this.reformatCommentsSetting && !comment))
+      return;
 
-    // Wait for jumpy stuff on the page to jump to prevent repositioning (e.g. the subscribe
-    // button). This is only to mitigate; too tricky to track all possible events here, and it's not
-    // critical.
+    // When comments are reformatted, wait for jumpy stuff on the page to jump to prevent
+    // repositioning (e.g. the subscribe button). This is only to mitigate; too tricky to track all
+    // possible events here, and it's not critical.
+    //
+    // When comments are not reformatted, wait some time to be sure this isn't an accidental
+    // hovering.
     await sleep(1000);
 
-    const suitableElement = this.items.find((c) => 'toggleChildThreadsButton' in c && c.getOffset())
-      ?.toggleChildThreadsButton?.element;
+    if (this.toggleChildThreadsPopup || (comment && !comment.isHovered)) return;
+
+    const suitableElement = (
+      comment || this.items.find((c) => c.toggleChildThreadsButton && c.getOffset())
+    )?.toggleChildThreadsButton?.element;
     if (!suitableElement) return;
 
     const button = new OO.ui.ButtonWidget({
@@ -1359,11 +1369,14 @@ class CommentRegistry extends EventEmitter {
     this.toggleChildThreadsPopup.on('closing', () => {
       settings.saveSettingOnTheFly('toggleChildThreads-onboarded', true);
     });
-    talkPageController.once('startReboot', () => {
-      /** @type {OO.ui.PopupWidget} */ (this.toggleChildThreadsPopup).$element.remove();
-      this.toggleChildThreadsPopup = undefined;
-    });
+    talkPageController.once('startReboot', this.teardownOnboardOntoToggleChildThreadsPopup);
+    this.once('', this.teardownOnboardOntoToggleChildThreadsPopup);
   }
+
+  teardownOnboardOntoToggleChildThreadsPopup = () => {
+    this.toggleChildThreadsPopup?.$element.remove();
+    this.toggleChildThreadsPopup = undefined;
+  };
 
   /**
    * Get the storage for the "Thanks" feature.

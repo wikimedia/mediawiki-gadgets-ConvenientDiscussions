@@ -306,6 +306,15 @@ class Button {
   }
 
   /**
+   * Set the icon for the button by a name.
+   *
+   * @param {OO.ui.Icon} icon
+   */
+  setIcon(icon) {
+    this.iconElement?.classList.add(`oo-ui-icon-${icon}`);
+  }
+
+  /**
    * Set the class to an OOUI icon to make it look like icons with the "progressive" flag do. Somehow
    * OOUI doesn't set it at the building stage.
    */
