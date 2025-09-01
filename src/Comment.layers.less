@@ -1,4 +1,4 @@
-@comment-button-ooui-padding: 7px;
+@import 'variables.less';
 
 .cd-comment-underlay {
   position: absolute;
@@ -215,7 +215,7 @@ body:not(.skin-monobook) .cd-comment-button-ooui-icon.cd-comment-button-ooui-ico
   min-width: unset;
   padding-inline-start: 1.4285714em;
   padding-inline-end: calc(2 * @comment-button-ooui-padding);
-  margin: calc(-1 * @comment-button-ooui-padding);
+  margin-inline: calc(-1 * @comment-button-ooui-padding);
 
   > .oo-ui-iconElement-icon {
     inset-inline-start: @comment-button-ooui-padding;

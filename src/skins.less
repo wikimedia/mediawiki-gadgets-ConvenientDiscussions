@@ -1,3 +1,5 @@
+@import 'variables.less';
+
 :root {
   --cd-link-active-color: #faa700;
 }
@@ -13,11 +15,20 @@
 
   .cd-comment-button-ooui-icon.cd-comment-button-ooui-icon.cd-comment-button-ooui-icon > .oo-ui-buttonElement-button {
     padding: 0;
+    padding-inline: 7px;
+    margin-inline: calc(-1 * 7px);
 
     > .oo-ui-iconElement-icon {
       margin: 0;
       width: 20px;
       height: 20px;
+    }
+
+    > .oo-ui-icon-heart {
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      min-height: 16px;
     }
   }
 
