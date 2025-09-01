@@ -1022,38 +1022,38 @@ class Comment extends CommentSkeleton {
   maybeAddGoToChildButton(child) {
     this.targetChild = child;
 
+    if (this.goToChildButton?.isConnected()) return;
+
     this.configureLayers();
 
-    if (!this.goToChildButton?.isConnected()) {
-      const action = () => {
-        /** @type {Comment} */ (this.targetChild).scrollTo({ pushState: true });
-      };
-      if (this.isReformatted()) {
-        /**
-         * "Go to the child comment" button.
-         *
-         * @type {CommentButton}
-         */
-        this.goToChildButton = new CommentButton({
-          tooltip: cd.s('cm-gotochild-tooltip'),
-          classes: ['cd-comment-button-icon', 'cd-comment-button-goToChild', 'cd-icon'],
-          action,
-        });
-        this.goToChildButton.element.append(Comment.prototypes.get('goToChildButtonSvg'));
+    const action = () => {
+      /** @type {Comment} */ (this.targetChild).scrollTo({ pushState: true });
+    };
+    if (this.isReformatted()) {
+      /**
+       * "Go to the child comment" button.
+       *
+       * @type {CommentButton}
+       */
+      this.goToChildButton = new CommentButton({
+        tooltip: cd.s('cm-gotochild-tooltip'),
+        classes: ['cd-comment-button-icon', 'cd-comment-button-goToChild', 'cd-icon'],
+        action,
+      });
+      this.goToChildButton.element.append(Comment.prototypes.get('goToChildButtonSvg'));
 
-        this.headerElement.insertBefore(
-          this.goToChildButton.element,
-          (this.goToParentButton?.element || this.timestampElement)?.nextSibling
-        );
-      } else if (this.overlayMenu) {
-        const buttonElement = this.createGoToChildButton().$element[0];
-        this.goToChildButton = new CommentButton({
-          element: buttonElement,
-          action,
-          widgetConstructor: this.createGoToChildButton.bind(this),
-        });
-        this.overlayMenu.prepend(buttonElement);
-      }
+      this.headerElement.insertBefore(
+        this.goToChildButton.element,
+        (this.goToParentButton?.element || this.timestampElement)?.nextSibling
+      );
+    } else if (this.overlayMenu) {
+      const buttonElement = this.createGoToChildButton().$element[0];
+      this.goToChildButton = new CommentButton({
+        element: buttonElement,
+        action,
+        widgetConstructor: this.createGoToChildButton.bind(this),
+      });
+      this.overlayMenu.prepend(buttonElement);
     }
   }
 
