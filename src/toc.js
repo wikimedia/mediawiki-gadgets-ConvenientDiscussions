@@ -209,7 +209,9 @@ class Toc {
           String(unseenCount)
         );
       } else {
-        bdi.textContent = usedFullForm ? String(count) : cd.s('toc-commentcount-full', String(count));
+        bdi.textContent = usedFullForm
+          ? String(count)
+          : cd.s('toc-commentcount-full', String(count));
       }
 
       span.append(bdi);

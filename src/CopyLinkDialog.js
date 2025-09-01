@@ -170,7 +170,7 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
    */
   getSetupProcess(data) {
     return super.getSetupProcess(data).next(() => {
-      this.title.setLabel(this.isComment() ? cd.s('cld-title-comment') : cd.s('cld-title-section'));
+      this.title.setLabel(cd.s(this.isComment() ? 'cld-title-comment' : 'cld-title-section'));
       this.message.setLabel(
         mergeJquery(
           this.linkTypeSelect?.$element,
@@ -262,9 +262,9 @@ class CopyLinkDialog extends OO.ui.MessageDialog {
       });
     } catch (error) {
       if (error instanceof CdError) {
-        errorText = error.getType() === 'network'
-          ? cd.s('cld-diff-error-network')
-          : cd.s('cld-diff-error');
+        errorText = cd.s(
+          error.getType() === 'network' ? 'cld-diff-error-network' : 'cld-diff-error'
+        );
       } else {
         errorText = cd.s('cld-diff-error-unknown');
         console.warn(error);

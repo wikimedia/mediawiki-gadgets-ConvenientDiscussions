@@ -858,12 +858,13 @@ class CommentForm extends EventEmitter {
               subscribableSection?.subscriptionState
             )
           ),
-          label:
+          label: cd.s(
             this.useTopicSubscription ||
             this.isMode('addSection') ||
             (!this.isMode('addSubsection') && this.targetSection && this.targetSection.level <= 2)
-              ? cd.s('cf-watchsection-topic')
-              : cd.s('cf-watchsection-subsection'),
+              ? 'cf-watchsection-topic'
+              : 'cf-watchsection-subsection'
+          ),
           tabIndex: this.getTabIndex(22),
           title: cd.s('cf-watchsection-tooltip'),
         }));

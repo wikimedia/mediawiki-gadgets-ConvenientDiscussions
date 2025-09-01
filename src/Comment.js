@@ -821,7 +821,7 @@ class Comment extends CommentSkeleton {
     // The menu may be re-added (after a comment's content is updated). We need to restore
     // something.
     if (this.targetChild) {
-      this.addGoToChildButton(this.targetChild);
+      this.maybeAddGoToChildButton(this.targetChild);
     }
 
     // We need a wrapper to ensure correct positioning in LTR-in-RTL situations and vice versa.
@@ -998,28 +998,28 @@ class Comment extends CommentSkeleton {
         classes: ['cd-comment-button-icon', 'cd-comment-button-goToParent', 'cd-icon'],
         action,
       });
-
       this.goToParentButton.element.append(Comment.prototypes.get('goToParentButtonSvg'));
 
       this.headerElement.append(this.goToParentButton.element);
     } else {
+      const buttonElement = this.createGoToParentButton().$element[0];
       this.goToParentButton = new CommentButton({
-        buttonElement: this.createGoToParentButton().$element[0],
+        buttonElement,
         action,
         widgetConstructor: this.createGoToParentButton.bind(this),
       });
-      this.overlayMenu.append(this.goToParentButton.element);
+      this.overlayMenu.append(buttonElement);
     }
   }
 
   /**
    * Create a {@link Comment#goToChildButton "Go to child" button} and add it to the comment header
-   * ({@link Comment#$header} or {@link Comment#$overlayMenu}).
+   * ({@link Comment#$header} or {@link Comment#$overlayMenu}), if it was not already added.
    *
    * @param {Comment} child Child comment to go to.
    * @private
    */
-  addGoToChildButton(child) {
+  maybeAddGoToChildButton(child) {
     this.targetChild = child;
 
     this.configureLayers();
@@ -1028,7 +1028,6 @@ class Comment extends CommentSkeleton {
       const action = () => {
         /** @type {Comment} */ (this.targetChild).scrollTo({ pushState: true });
       };
-
       if (this.isReformatted()) {
         /**
          * "Go to the child comment" button.
@@ -1040,22 +1039,20 @@ class Comment extends CommentSkeleton {
           classes: ['cd-comment-button-icon', 'cd-comment-button-goToChild', 'cd-icon'],
           action,
         });
-        $(this.goToChildButton.element).append(
-          createSvg(16, 16, 20, 20).html(`<path d="M10 15L2 5h16z" />`)
-        );
+        this.goToChildButton.element.append(Comment.prototypes.get('goToChildButtonSvg'));
 
         this.headerElement.insertBefore(
           this.goToChildButton.element,
           (this.goToParentButton?.element || this.timestampElement)?.nextSibling
         );
-      } else if (this.$overlayMenu) {
+      } else if (this.overlayMenu) {
         const buttonElement = this.createGoToChildButton().$element[0];
         this.goToChildButton = new CommentButton({
           element: buttonElement,
           action,
           widgetConstructor: this.createGoToChildButton.bind(this),
         });
-        this.$overlayMenu.prepend(buttonElement);
+        this.overlayMenu.prepend(buttonElement);
       }
     }
   }
@@ -1068,7 +1065,6 @@ class Comment extends CommentSkeleton {
    */
   addToggleChildThreadsButton() {
     if (
-      !this.isReformatted() ||
       !this.getChildren().some((child) => child.thread) ||
       this.toggleChildThreadsButton?.isConnected()
     ) {
@@ -1101,9 +1097,11 @@ class Comment extends CommentSkeleton {
 
     this.toggleChildThreadsButton.element.innerHTML = '';
     this.toggleChildThreadsButton.element.append(
-      this.areChildThreadsCollapsed()
-        ? Comment.prototypes.get('expandChildThreadsButtonSvg')
-        : Comment.prototypes.get('collapseChildThreadsButtonSvg')
+      Comment.prototypes.get(
+        this.areChildThreadsCollapsed()
+          ? 'expandChildThreadsButtonSvg'
+          : 'collapseChildThreadsButtonSvg'
+      )
     );
   }
 
@@ -2864,7 +2862,7 @@ class Comment extends CommentSkeleton {
     }
 
     parent.scrollTo({ pushState: true });
-    parent.addGoToChildButton(this);
+    parent.maybeAddGoToChildButton(this);
   }
 
   /**
@@ -4448,6 +4446,7 @@ class Comment extends CommentSkeleton {
   /** @type {PrototypeRegistry<{
    *   headerWrapperElement: HTMLElement
    *   goToParentButtonSvg: SVGElement
+   *   goToChildButtonSvg: SVGElement
    *   collapseChildThreadsButtonSvg: SVGElement
    *   expandChildThreadsButtonSvg: SVGElement
    *   underlay: HTMLElement
@@ -4524,6 +4523,10 @@ class Comment extends CommentSkeleton {
       this.prototypes.add(
         'goToParentButtonSvg',
         createSvg(16, 16, 20, 20).html(`<path d="M10 5l8 10H2z" />`)[0]
+      );
+      this.prototypes.add(
+        'goToChildButtonSvg',
+        createSvg(16, 16, 20, 20).html(`<path d="M10 15L2 5h16z" />`)[0]
       );
       this.prototypes.add(
         'collapseChildThreadsButtonSvg',
