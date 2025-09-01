@@ -1124,7 +1124,7 @@ class Comment extends CommentSkeleton {
         )
       );
     } else {
-      this.toggleChildThreadsButton.setIcon(this.areChildThreadsCollapsed() ? 'subtract' : 'add');
+      this.toggleChildThreadsButton.setIcon(this.areChildThreadsCollapsed() ? 'add' : 'subtract');
     }
   }
 
@@ -2047,12 +2047,11 @@ class Comment extends CommentSkeleton {
   removeLayers() {
     if (!this.underlay) return;
 
-    this.$animatedBackground?.add(this.$marker).stop(true, true);
+    this.$marker.stop(true, true);
+    this.unhighlightHovered();
 
     // TODO: add add/remove methods to commentRegistry.underlays
     removeFromArrayIfPresent(commentRegistry.underlays, this.underlay);
-
-    this.dontHideMenu();
 
     this.underlay.remove();
     this.underlay = null;
@@ -2061,8 +2060,6 @@ class Comment extends CommentSkeleton {
     /** @type {HTMLElement} */ (this.overlay).remove();
     this.overlay = null;
     this.$overlay = null;
-
-    this.isHovered = false;
   }
 
   /**
@@ -2077,6 +2074,7 @@ class Comment extends CommentSkeleton {
     if (!layersOffset || !layersContainerOffset) {
       // Something has happened with the comment (or the layers container); it disappeared.
       this.removeLayers();
+
       return;
     }
     if (
@@ -2132,15 +2130,83 @@ class Comment extends CommentSkeleton {
     this.isHovered = true;
     this.updateClassesForFlag('hovered', true);
 
-    if (this.toggleChildThreadsButton) {
-      commentRegistry.onboardOntoToggleChildThreads(this);
-    }
+    this.maybeOnboardOntoToggleChildThreads();
   }
+
+  /**
+   * Check if a popup onboarding onto the "Toggle child threads" feature should be shown.
+   *
+   * @returns {this is { toggleChildThreadsButton: CommentButton }}
+   */
+  shouldOnboardOntoToggleChildThreads() {
+    return Boolean(
+      this.toggleChildThreadsButton &&
+      !settings.get('toggleChildThreads-onboarded') &&
+      (this.isReformatted() || this.isHovered) &&
+      !commentRegistry.query((c) => Boolean(c.toggleChildThreadsPopup)).length
+    );
+  }
+
+  /**
+   * Show a popup onboarding onto the "Toggle child threads" feature.
+   */
+  async maybeOnboardOntoToggleChildThreads() {
+    if (!this.shouldOnboardOntoToggleChildThreads()) return;
+
+    await sleep(1000);
+    if (!this.shouldOnboardOntoToggleChildThreads()) return;
+
+    // When comments are reformatted, wait for jumpy stuff on the page to jump to prevent
+    // repositioning (e.g. the subscribe button). This is only to mitigate; too tricky to track all
+    // possible events here, and it's not critical.
+    //
+    // When comments are not reformatted, wait some time to be sure this isn't an accidental
+    // hovering.
+
+    const button = new OO.ui.ButtonWidget({
+      label: cd.mws('visualeditor-educationpopup-dismiss'),
+      flags: ['progressive', 'primary'],
+    });
+    button.on('click', () => {
+      /** @type {OO.ui.PopupWidget} */ (this.toggleChildThreadsPopup).toggle(false);
+    });
+    this.toggleChildThreadsPopup = new OO.ui.PopupWidget({
+      icon: 'newspaper',
+      label: cd.s('togglechildthreads-popup-title'),
+      $content: mergeJquery(
+        wrapHtml(cd.sParse('togglechildthreads-popup-text'), {
+          callbacks: {
+            'cd-notification-settings': () => {
+              settings.showDialog('talkPage', '.cd-setting-collapseThreadsLevel input');
+            },
+          },
+        }).children(),
+        $('<p>').append(button.$element),
+      ),
+      head: true,
+      $floatableContainer: $(this.toggleChildThreadsButton.element),
+      $container: $(document.body),
+      position: 'below',
+      padded: true,
+      classes: ['cd-popup-onboarding'],
+    });
+    $(document.body).append(this.toggleChildThreadsPopup.$element);
+    this.toggleChildThreadsPopup.toggle(true);
+    this.toggleChildThreadsPopup.on('closing', () => {
+      settings.saveSettingOnTheFly('toggleChildThreads-onboarded', true);
+    });
+    talkPageController.once('startReboot', this.teardownOnboardOntoToggleChildThreadsPopup);
+  }
+
+  teardownOnboardOntoToggleChildThreadsPopup = () => {
+    this.toggleChildThreadsPopup?.$element.remove();
+    this.toggleChildThreadsPopup = undefined;
+  };
 
   /**
    * Unhighlight the comment when it has lost focus.
    */
-  unhighlightHovered() {
+  async unhighlightHovered() {
     if (!this.isHovered || this.isReformatted()) return;
 
     // Animation will be directed to wrong properties if we keep it going.
@@ -2150,6 +2216,15 @@ class Comment extends CommentSkeleton {
 
     this.updateClassesForFlag('hovered', false);
     this.isHovered = false;
+
+    if (this.toggleChildThreadsPopup) {
+      // This can run when there was no true unhover, but only a change in what is the element under
+      // cursor. So, wait a bit to make sure.
+      await sleep(10);
+      if (!this.isHovered) {
+        this.teardownOnboardOntoToggleChildThreadsPopup();
+      }
+    }
   }
 
   /**

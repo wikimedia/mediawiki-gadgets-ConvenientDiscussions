@@ -76,6 +76,7 @@ class CommentButton extends Button {
     this.element.replaceWith(element);
     this.element = element;
     this.buttonElement = /** @type {HTMLElement} */ (element.firstChild);
+    this.iconElement = this.buttonWidget.$icon[0];
     if (this.action) {
       this.setAction(this.action);
     }
@@ -97,7 +98,6 @@ class CommentButton extends Button {
    * @override
    */
   setDisabled(disabled) {
-    disabled = Boolean(disabled);
     if (this.widgetConstructor) {
       this.getButtonWidget().setDisabled(disabled);
     } else {

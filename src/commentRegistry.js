@@ -11,7 +11,7 @@ import { definedAndNotNull, reorderArray, sleep, subtractDaysFromNow, unique } f
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
 import { getPagesExistence } from './utils-api';
-import { getCommonGender, getExtendedRect, getHigherNodeAndOffsetInSelection, mergeJquery, wrapHtml } from './utils-window';
+import { getCommonGender, getExtendedRect, getHigherNodeAndOffsetInSelection } from './utils-window';
 import visits from './visits';
 
 // TODO: Make it extend a generic registry.
@@ -1205,8 +1205,10 @@ class CommentRegistry extends EventEmitter {
     this.items.forEach((comment) => {
       comment.addToggleChildThreadsButton();
     });
-    if (this.reformatCommentsSetting) {
-      this.onboardOntoToggleChildThreads();
+    if (this.reformatCommentsSetting && !settings.get('toggleChildThreads-onboarded')) {
+      this.items
+        .find((c) => c.toggleChildThreadsButton && c.getOffset())
+        ?.maybeOnboardOntoToggleChildThreads();
     }
   }
 
@@ -1311,72 +1313,6 @@ class CommentRegistry extends EventEmitter {
       },
     });
   }
-
-  /**
-   * Show an popup onboarding onto the "Toggle child threads" feature.
-   *
-   * @param {Comment} [comment] The comment to show the popup for (when comments are not
-   *   reformatted).
-   */
-  async onboardOntoToggleChildThreads(comment) {
-    if (settings.get('toggleChildThreads-onboarded') || (!this.reformatCommentsSetting && !comment))
-      return;
-
-    // When comments are reformatted, wait for jumpy stuff on the page to jump to prevent
-    // repositioning (e.g. the subscribe button). This is only to mitigate; too tricky to track all
-    // possible events here, and it's not critical.
-    //
-    // When comments are not reformatted, wait some time to be sure this isn't an accidental
-    // hovering.
-    await sleep(1000);
-
-    if (this.toggleChildThreadsPopup || (comment && !comment.isHovered)) return;
-
-    const suitableElement = (
-      comment || this.items.find((c) => c.toggleChildThreadsButton && c.getOffset())
-    )?.toggleChildThreadsButton?.element;
-    if (!suitableElement) return;
-
-    const button = new OO.ui.ButtonWidget({
-      label: cd.mws('visualeditor-educationpopup-dismiss'),
-      flags: ['progressive', 'primary'],
-    });
-    button.on('click', () => {
-      /** @type {OO.ui.PopupWidget} */ (this.toggleChildThreadsPopup).toggle(false);
-    });
-    this.toggleChildThreadsPopup = new OO.ui.PopupWidget({
-      icon: 'newspaper',
-      label: cd.s('togglechildthreads-popup-title'),
-      $content: mergeJquery(
-        wrapHtml(cd.sParse('togglechildthreads-popup-text'), {
-          callbacks: {
-            'cd-notification-settings': () => {
-              settings.showDialog('talkPage', '.cd-setting-collapseThreadsLevel input');
-            },
-          },
-        }).children(),
-        $('<p>').append(button.$element),
-      ),
-      head: true,
-      $floatableContainer: $(suitableElement),
-      $container: $(document.body),
-      position: 'below',
-      padded: true,
-      classes: ['cd-popup-onboarding'],
-    });
-    $(document.body).append(this.toggleChildThreadsPopup.$element);
-    this.toggleChildThreadsPopup.toggle(true);
-    this.toggleChildThreadsPopup.on('closing', () => {
-      settings.saveSettingOnTheFly('toggleChildThreads-onboarded', true);
-    });
-    talkPageController.once('startReboot', this.teardownOnboardOntoToggleChildThreadsPopup);
-    this.once('', this.teardownOnboardOntoToggleChildThreadsPopup);
-  }
-
-  teardownOnboardOntoToggleChildThreadsPopup = () => {
-    this.toggleChildThreadsPopup?.$element.remove();
-    this.toggleChildThreadsPopup = undefined;
-  };
 
   /**
    * Get the storage for the "Thanks" feature.
