@@ -129,7 +129,6 @@ class Button {
    * @returns {Button} This button.
    */
   setDisabled(disabled) {
-    disabled = Boolean(disabled);
     this.element.classList.toggle('cd-button-disabled', disabled);
     this.buttonElement.ariaDisabled = String(disabled);
     this.buttonElement.tabIndex = disabled ? -1 : 0;
@@ -144,7 +143,6 @@ class Button {
    * @returns {Button} This button.
    */
   setPending(pending) {
-    pending = Boolean(pending);
     this.setDisabled(pending);
     this.element.classList.toggle('cd-button-pending', pending);
 

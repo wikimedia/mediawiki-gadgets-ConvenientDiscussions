@@ -138,7 +138,7 @@ class PageNav {
    *
    * @private
    */
-  updateWidth() {
+  updateWidth = () => {
     if (!this.isMounted() || !bootController.$contentColumn.length) return;
 
     const left =

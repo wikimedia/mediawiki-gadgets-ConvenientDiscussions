@@ -1052,8 +1052,8 @@ class Comment extends CommentSkeleton {
         const buttonElement = this.createGoToChildButton().$element[0];
         this.goToChildButton = new CommentButton({
           element: buttonElement,
-          widgetConstructor: this.createGoToChildButton.bind(this),
           action,
+          widgetConstructor: this.createGoToChildButton.bind(this),
         });
         this.$overlayMenu.prepend(buttonElement);
       }
@@ -2243,8 +2243,8 @@ class Comment extends CommentSkeleton {
 
     this.updateClassesForFlag(flag, true);
 
-    // If there was an animation scheduled, run it first
-    this.unhighlightDeferred?.resolve();
+    // If there was an animation scheduled, cancel it
+    this.unhighlightDeferred?.reject();
 
     this.unhighlightDeferred = $.Deferred();
     this.unhighlightDeferred.then(this.animateBack.bind(this, flag, callback));
@@ -4380,9 +4380,11 @@ class Comment extends CommentSkeleton {
   createThankButton() {
     return new OO.ui.ButtonWidget({
       label: cd.s('cm-thank'),
+      icon: 'heart',
+      invisibleLabel: true,
       title: cd.s('cm-thank-tooltip'),
       framed: false,
-      classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
+      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon', 'cd-comment-button-ooui-icon-thank'],
     });
   }
 
@@ -4395,9 +4397,9 @@ class Comment extends CommentSkeleton {
     return new OO.ui.ButtonWidget({
       label: cd.s('cm-copylink'),
       icon: 'link',
+      invisibleLabel: true,
       title: cd.s('cm-copylink-tooltip'),
       framed: false,
-      invisibleLabel: true,
       classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
     });
   }
@@ -4411,9 +4413,9 @@ class Comment extends CommentSkeleton {
     return new OO.ui.ButtonWidget({
       label: cd.s('cm-gotoparent'),
       icon: 'upTriangle',
+      invisibleLabel: true,
       title: cd.s('cm-gotoparent-tooltip'),
       framed: false,
-      invisibleLabel: true,
       classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
     });
   }
@@ -4427,9 +4429,9 @@ class Comment extends CommentSkeleton {
     return new OO.ui.ButtonWidget({
       label: cd.s('cm-gotochild'),
       icon: 'downTriangle',
+      invisibleLabel: true,
       title: cd.s('cm-gotochild-tooltip'),
       framed: false,
-      invisibleLabel: true,
       classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
     });
   }

@@ -20,14 +20,6 @@ import CdError from './shared/CdError';
  */
 class CommentButton extends Button {
   /**
-   * Function executed by clicking or pressing Enter on the button.
-   *
-   * @type {?import('./Button').Action}
-   * @private
-   */
-  action;
-
-  /**
    * Create a comment button.
    *
    * @param {CommentButtonConfig} config Button config, see the details at {@link Button}.
@@ -182,6 +174,13 @@ class CommentButton extends Button {
     // OOUI widgets don't pass the event object to the handler, so we use the traditional method of
     // handling events.
     super.setAction(action);
+
+    /**
+     * Function executed by clicking or pressing Enter on the button.
+     *
+     * @type {?import('./Button').Action}
+     * @private
+     */
     this.action = action;
 
     return this;

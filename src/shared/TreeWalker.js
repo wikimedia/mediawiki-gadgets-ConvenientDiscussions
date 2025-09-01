@@ -40,7 +40,9 @@ class TreeWalker {
   nextSiblingProp;
 
   /**
-   * @typedef {(node: NodeLike) => node is AcceptedNode} AcceptNode
+   * @callback AcceptNode
+   * @param {NodeLike} node
+   * @returns {node is AcceptedNode}
    */
 
   /**
