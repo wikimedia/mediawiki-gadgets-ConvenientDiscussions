@@ -854,7 +854,7 @@ class Comment extends CommentSkeleton {
       this.menuElement.append(this.replyButton.element);
     } else {
       this.replyButton = new CommentButton({
-        buttonElement: this.createReplyButton().$element[0],
+        element: this.createReplyButton().$element[0],
         action,
         widgetConstructor: this.createReplyButton.bind(this),
       });
@@ -906,7 +906,7 @@ class Comment extends CommentSkeleton {
       this.menuElement.append(this.editButton.element);
     } else {
       this.editButton = new CommentButton({
-        buttonElement: this.createEditButton().$element[0],
+        element: this.createEditButton().$element[0],
         action,
         widgetConstructor: this.createEditButton.bind(this),
       });
@@ -944,7 +944,7 @@ class Comment extends CommentSkeleton {
       this.menuElement.append(this.thankButton.element);
     } else {
       this.thankButton = new CommentButton({
-        buttonElement: this.createThankButton().$element[0],
+        element: this.createThankButton().$element[0],
         action,
         widgetConstructor: this.createThankButton.bind(this),
       });
@@ -965,8 +965,10 @@ class Comment extends CommentSkeleton {
   addCopyLinkButton() {
     if (!this.id || this.isReformatted()) return;
 
+    const element = this.createCopyLinkButton().$element[0];
     this.copyLinkButton = new CommentButton({
-      buttonElement: this.createCopyLinkButton().$element[0],
+      element,
+      buttonElement: /** @type {HTMLElement} */ (element.firstChild),
       action: this.copyLink.bind(this),
       widgetConstructor: this.createCopyLinkButton.bind(this),
       href: this.dtId && '#' + this.dtId,
@@ -1051,17 +1053,17 @@ class Comment extends CommentSkeleton {
         (this.goToParentButton?.element || this.timestampElement)?.nextSibling
       );
     } else if (this.overlayMenu) {
-      const buttonElement = this.createGoToChildButton().$element[0];
+      const element = this.createGoToChildButton().$element[0];
       this.goToChildButton = new CommentButton({
-        element: buttonElement,
+        element,
         action,
         widgetConstructor: this.createGoToChildButton.bind(this),
       });
       this.overlayMenu.insertBefore(
-        buttonElement,
+        element,
         this.toggleChildThreadsButton?.buttonElement.nextSibling || null
       );
-      this.overlayMenu.prepend(buttonElement);
+      this.overlayMenu.prepend(element);
     }
   }
 
@@ -1098,13 +1100,14 @@ class Comment extends CommentSkeleton {
         this.$changeNote?.[0] || null
       );
     } else if (this.overlayMenu) {
-      const buttonElement = this.createToggleChildThreadsButton().$element[0];
+      const element = this.createToggleChildThreadsButton().$element[0];
       this.toggleChildThreadsButton = new CommentButton({
-        buttonElement,
+        element,
+        iconElement: /** @type {HTMLElement} */ (element.querySelector('.oo-ui-iconElement-icon')),
         action,
         widgetConstructor: this.createToggleChildThreadsButton.bind(this),
       });
-      this.overlayMenu.prepend(buttonElement);
+      this.overlayMenu.prepend(element);
     }
   }
 
@@ -1206,7 +1209,9 @@ class Comment extends CommentSkeleton {
     if (this.isReformatted()) return;
 
     element.addEventListener('mouseenter', this.highlightHovered.bind(this));
-    element.addEventListener('mouseleave', this.unhighlightHovered.bind(this));
+    element.addEventListener('mouseleave', () => {
+      this.unhighlightHovered();
+    });
     element.addEventListener('touchstart', this.highlightHovered.bind(this));
   }
 
@@ -2039,6 +2044,8 @@ class Comment extends CommentSkeleton {
     this.underlay.style.left = overlay.style.left = this.layersOffset.left + 'px';
     this.underlay.style.width = overlay.style.width = this.layersOffset.width + 'px';
     this.underlay.style.height = overlay.style.height = this.layersOffset.height + 'px';
+
+    this.teardownOnboardOntoToggleChildThreadsPopup();
   }
 
   /**
@@ -2048,7 +2055,7 @@ class Comment extends CommentSkeleton {
     if (!this.underlay) return;
 
     this.$marker.stop(true, true);
-    this.unhighlightHovered();
+    this.unhighlightHovered(true);
 
     // TODO: add add/remove methods to commentRegistry.underlays
     removeFromArrayIfPresent(commentRegistry.underlays, this.underlay);
@@ -2123,7 +2130,6 @@ class Comment extends CommentSkeleton {
 
       !this.underlay
     ) {
-
       return;
     }
 
@@ -2199,15 +2205,19 @@ class Comment extends CommentSkeleton {
   }
 
   teardownOnboardOntoToggleChildThreadsPopup = () => {
-    this.toggleChildThreadsPopup?.$element.remove();
+    if (!this.toggleChildThreadsPopup) return;
+
+    this.toggleChildThreadsPopup.$element.remove();
     this.toggleChildThreadsPopup = undefined;
   };
 
   /**
    * Unhighlight the comment when it has lost focus.
+   *
+   * @param {boolean} [force=false] Unhighlight even if the "Toggle child threads" popup is open.
    */
-  async unhighlightHovered() {
-    if (!this.isHovered || this.isReformatted()) return;
+  unhighlightHovered(force = false) {
+    if (!this.isHovered || this.isReformatted() || (this.toggleChildThreadsPopup && !force)) return;
 
     // Animation will be directed to wrong properties if we keep it going.
     this.$animatedBackground?.stop(true, true);
@@ -2217,14 +2227,7 @@ class Comment extends CommentSkeleton {
     this.updateClassesForFlag('hovered', false);
     this.isHovered = false;
 
-    if (this.toggleChildThreadsPopup) {
-      // This can run when there was no true unhover, but only a change in what is the element under
-      // cursor. So, wait a bit to make sure.
-      await sleep(10);
-      if (!this.isHovered) {
-        this.teardownOnboardOntoToggleChildThreadsPopup();
-      }
-    }
+    this.teardownOnboardOntoToggleChildThreadsPopup();
   }
 
   /**
@@ -4528,7 +4531,7 @@ class Comment extends CommentSkeleton {
   createToggleChildThreadsButton() {
     return new OO.ui.ButtonWidget({
       label: cd.s('cm-togglechildthreads'),
-      icon: 'subtract',
+      icon: this.areChildThreadsCollapsed() ? 'add' : 'subtract',
       invisibleLabel: true,
       title: cd.s('cm-togglechildthreads-tooltip'),
       framed: false,

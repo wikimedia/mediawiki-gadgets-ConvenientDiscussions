@@ -311,15 +311,25 @@ class Button {
    * @param {OO.ui.Icon} icon
    */
   setIcon(icon) {
-    this.iconElement?.classList.add(`oo-ui-icon-${icon}`);
+    const iconElement = this.iconElement;
+    if (!iconElement) return;
+
+    [...iconElement.classList]
+      .filter((className) => className.startsWith('oo-ui-icon-'))
+      .forEach((className) => {
+        iconElement.classList.remove(className);
+      });
+    iconElement.classList.add(`oo-ui-icon-${icon}`);
   }
 
   /**
-   * Set the class to an OOUI icon to make it look like icons with the "progressive" flag do. Somehow
-   * OOUI doesn't set it at the building stage.
+   * Set the class to an OOUI icon to make it look like icons with the "progressive" flag do.
+   * Somehow OOUI doesn't set it at the building stage.
    */
   setIconProgressive() {
-    this.iconElement?.classList.add('oo-ui-image-progressive');
+    if (!this.iconElement) return;
+
+    this.iconElement.classList.add('oo-ui-image-progressive');
   }
 
   /**
@@ -328,9 +338,9 @@ class Button {
   static prototypes = {};
 
   /**
-   * Clone a button prototype (a skeleton with few properties set) without recreating it if it already
-   * exists. When these buttons are created en masse, this is marginally faster than creating a new
-   * one from scratch.
+   * Clone a button prototype (a skeleton with few properties set) without recreating it if it
+   * already exists. When these buttons are created en masse, this is marginally faster than
+   * creating a new one from scratch.
    *
    * @param {string} tagName Tag name.
    * @returns {HTMLElement}
