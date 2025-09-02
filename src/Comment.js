@@ -1202,6 +1202,7 @@ class Comment extends CommentSkeleton {
     this.toggleChildThreadsPopup.toggle(true);
     this.toggleChildThreadsPopup.on('closing', () => {
       settings.saveSettingOnTheFly('toggleChildThreads-onboarded', true);
+      this.teardownOnboardOntoToggleChildThreadsPopup();
     });
     talkPageController.once('startReboot', this.teardownOnboardOntoToggleChildThreadsPopup);
   }

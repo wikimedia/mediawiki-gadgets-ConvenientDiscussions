@@ -36,7 +36,7 @@ class Subscriptions extends EventEmitter {
   async loadToTalkPage(bootProcess, ...args) {
     await this.load(bootProcess, ...args);
 
-    this.processOnTalkPage();
+    this.processOnTalkPage(bootProcess);
   }
 
   /**
@@ -81,8 +81,10 @@ class Subscriptions extends EventEmitter {
 
   /**
    * Process subscriptions when they are {@link Subscriptions#loadToTalkPage loaded to a talk page}.
+   *
+   * @param {import('./BootProcess').default} [_bootProcess]
    */
-  processOnTalkPage() {
+  processOnTalkPage(_bootProcess) {
     this.emit('process');
   }
 
