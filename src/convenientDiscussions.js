@@ -363,7 +363,7 @@ const globalProperties = {
    *
    * @memberof convenientDiscussions.g
    */
-  commentFallbackSideMargin: /** @type {const} */ (10),
+  commentFallbackSideMargin: /** @type {const} */ (7),
 
   /**
    * Left and right padding of thread lines.
