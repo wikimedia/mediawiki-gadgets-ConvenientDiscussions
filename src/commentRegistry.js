@@ -1205,11 +1205,6 @@ class CommentRegistry extends EventEmitter {
     this.items.forEach((comment) => {
       comment.addToggleChildThreadsButton();
     });
-    if (this.reformatCommentsSetting && !settings.get('toggleChildThreads-onboarded')) {
-      this.items
-        .find((c) => c.toggleChildThreadsButton && c.getOffset())
-        ?.maybeOnboardOntoToggleChildThreads();
-    }
   }
 
   /**

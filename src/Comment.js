@@ -1109,6 +1109,9 @@ class Comment extends CommentSkeleton {
       });
       this.overlayMenu.prepend(element);
     }
+    this.toggleChildThreadsButton?.element.addEventListener('mouseenter', () => {
+      this.maybeOnboardOntoToggleChildThreads();
+    });
   }
 
   /**
@@ -1139,6 +1142,77 @@ class Comment extends CommentSkeleton {
   areChildThreadsCollapsed() {
     return this.getChildren().every((child) => !child.thread || child.thread.isCollapsed);
   }
+
+  /**
+   * Check if a popup onboarding onto the "Toggle child threads" feature should be shown.
+   *
+   * @returns {this is { toggleChildThreadsButton: CommentButton }}
+   */
+  shouldOnboardOntoToggleChildThreads() {
+    return Boolean(
+      this.toggleChildThreadsButton?.element.matches(':hover') &&
+      !settings.get('toggleChildThreads-onboarded') &&
+      !commentRegistry.query((c) => Boolean(c.toggleChildThreadsPopup)).length
+    );
+  }
+
+  /**
+   * Show a popup onboarding onto the "Toggle child threads" feature.
+   */
+  async maybeOnboardOntoToggleChildThreads() {
+    if (!this.shouldOnboardOntoToggleChildThreads()) return;
+
+    await sleep(100);
+    if (!this.shouldOnboardOntoToggleChildThreads()) return;
+
+    // When comments are reformatted, wait for jumpy stuff on the page to jump to prevent
+    // repositioning (e.g. the subscribe button). This is only to mitigate; too tricky to track all
+    // possible events here, and it's not critical.
+    //
+    // When comments are not reformatted, wait some time to be sure this isn't an accidental
+    // hovering.
+
+    const button = new OO.ui.ButtonWidget({
+      label: cd.mws('visualeditor-educationpopup-dismiss'),
+      flags: ['progressive', 'primary'],
+    });
+    button.on('click', () => {
+      /** @type {OO.ui.PopupWidget} */ (this.toggleChildThreadsPopup).toggle(false);
+    });
+    this.toggleChildThreadsPopup = new OO.ui.PopupWidget({
+      icon: 'newspaper',
+      label: cd.s('togglechildthreads-popup-title'),
+      $content: mergeJquery(
+        wrapHtml(cd.sParse('togglechildthreads-popup-text'), {
+          callbacks: {
+            'cd-notification-settings': () => {
+              settings.showDialog('talkPage', '.cd-setting-collapseThreadsLevel input');
+            },
+          },
+        }).children(),
+        $('<p>').append(button.$element),
+      ),
+      head: true,
+      $floatableContainer: $(this.toggleChildThreadsButton.element),
+      $container: $(document.body),
+      position: 'below',
+      padded: true,
+      classes: ['cd-popup-onboarding'],
+    });
+    $(document.body).append(this.toggleChildThreadsPopup.$element);
+    this.toggleChildThreadsPopup.toggle(true);
+    this.toggleChildThreadsPopup.on('closing', () => {
+      settings.saveSettingOnTheFly('toggleChildThreads-onboarded', true);
+    });
+    talkPageController.once('startReboot', this.teardownOnboardOntoToggleChildThreadsPopup);
+  }
+
+  teardownOnboardOntoToggleChildThreadsPopup = () => {
+    if (!this.toggleChildThreadsPopup) return;
+
+    this.toggleChildThreadsPopup.$element.remove();
+    this.toggleChildThreadsPopup = undefined;
+  };
 
   /**
    * Given a date, format it as per user settings, and build a title (tooltip) too.
@@ -2045,7 +2119,7 @@ class Comment extends CommentSkeleton {
     this.underlay.style.width = overlay.style.width = this.layersOffset.width + 'px';
     this.underlay.style.height = overlay.style.height = this.layersOffset.height + 'px';
 
-    this.teardownOnboardOntoToggleChildThreadsPopup();
+    this.toggleChildThreadsPopup?.position();
   }
 
   /**
@@ -2135,81 +2209,7 @@ class Comment extends CommentSkeleton {
 
     this.isHovered = true;
     this.updateClassesForFlag('hovered', true);
-
-    this.maybeOnboardOntoToggleChildThreads();
   }
-
-  /**
-   * Check if a popup onboarding onto the "Toggle child threads" feature should be shown.
-   *
-   * @returns {this is { toggleChildThreadsButton: CommentButton }}
-   */
-  shouldOnboardOntoToggleChildThreads() {
-    return Boolean(
-      this.toggleChildThreadsButton &&
-      !settings.get('toggleChildThreads-onboarded') &&
-      (this.isReformatted() || this.isHovered) &&
-      !commentRegistry.query((c) => Boolean(c.toggleChildThreadsPopup)).length
-    );
-  }
-
-  /**
-   * Show a popup onboarding onto the "Toggle child threads" feature.
-   */
-  async maybeOnboardOntoToggleChildThreads() {
-    if (!this.shouldOnboardOntoToggleChildThreads()) return;
-
-    await sleep(1000);
-    if (!this.shouldOnboardOntoToggleChildThreads()) return;
-
-    // When comments are reformatted, wait for jumpy stuff on the page to jump to prevent
-    // repositioning (e.g. the subscribe button). This is only to mitigate; too tricky to track all
-    // possible events here, and it's not critical.
-    //
-    // When comments are not reformatted, wait some time to be sure this isn't an accidental
-    // hovering.
-
-    const button = new OO.ui.ButtonWidget({
-      label: cd.mws('visualeditor-educationpopup-dismiss'),
-      flags: ['progressive', 'primary'],
-    });
-    button.on('click', () => {
-      /** @type {OO.ui.PopupWidget} */ (this.toggleChildThreadsPopup).toggle(false);
-    });
-    this.toggleChildThreadsPopup = new OO.ui.PopupWidget({
-      icon: 'newspaper',
-      label: cd.s('togglechildthreads-popup-title'),
-      $content: mergeJquery(
-        wrapHtml(cd.sParse('togglechildthreads-popup-text'), {
-          callbacks: {
-            'cd-notification-settings': () => {
-              settings.showDialog('talkPage', '.cd-setting-collapseThreadsLevel input');
-            },
-          },
-        }).children(),
-        $('<p>').append(button.$element),
-      ),
-      head: true,
-      $floatableContainer: $(this.toggleChildThreadsButton.element),
-      $container: $(document.body),
-      position: 'below',
-      padded: true,
-      classes: ['cd-popup-onboarding'],
-    });
-    $(document.body).append(this.toggleChildThreadsPopup.$element);
-    this.toggleChildThreadsPopup.toggle(true);
-    this.toggleChildThreadsPopup.on('closing', () => {
-      settings.saveSettingOnTheFly('toggleChildThreads-onboarded', true);
-    });
-    talkPageController.once('startReboot', this.teardownOnboardOntoToggleChildThreadsPopup);
-  }
-
-  teardownOnboardOntoToggleChildThreadsPopup = () => {
-    if (!this.toggleChildThreadsPopup) return;
-
-    this.toggleChildThreadsPopup.$element.remove();
-    this.toggleChildThreadsPopup = undefined;
-  };
 
   /**
    * Unhighlight the comment when it has lost focus.
