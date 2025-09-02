@@ -842,9 +842,9 @@ class CommentForm extends EventEmitter {
         tabIndex: this.getTabIndex(21),
       }));
 
-      const subscribableSection = this.useTopicSubscription ?
-        this.targetSection?.getBase(true) :
-        this.targetSection;
+      const subscribableSection = this.useTopicSubscription
+        ? this.targetSection?.getBase(true)
+        : this.targetSection;
       if (
         (subscribableSection?.subscribeId || this.isMode('addSection')) &&
         (!talkPageController.isSubscribingDisabled() || subscribableSection?.subscriptionState)

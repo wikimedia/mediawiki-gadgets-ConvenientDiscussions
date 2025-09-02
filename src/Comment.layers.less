@@ -157,7 +157,7 @@
 
 .cd-comment-overlay-content {
   display: inline-flex;
-  padding: 0 0.5em;
+  padding-inline-start: 0.5em;
   flex-direction: row;
   pointer-events: all;
 
@@ -199,14 +199,11 @@
 }
 
 .cd-comment-button-ooui.cd-comment-button-ooui {
-  margin-inline-end: 0;
+  margin: 0;
 
-  &:not(:first-child) {
-    margin-inline-start: 1em;
-  }
-
-  &.oo-ui-iconElement:first-child {
-    margin-inline-start: 0;
+  > .oo-ui-buttonElement-button {
+    padding-block: 0;
+    padding-inline: @comment-button-ooui-padding;
   }
 }
 
@@ -215,7 +212,6 @@ body:not(.skin-monobook) .cd-comment-button-ooui-icon.cd-comment-button-ooui-ico
   min-width: unset;
   padding-inline-start: 1.4285714em;
   padding-inline-end: calc(2 * @comment-button-ooui-padding);
-  margin-inline: calc(-1 * @comment-button-ooui-padding);
 
   > .oo-ui-iconElement-icon {
     inset-inline-start: @comment-button-ooui-padding;

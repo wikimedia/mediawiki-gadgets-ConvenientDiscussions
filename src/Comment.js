@@ -1061,9 +1061,8 @@ class Comment extends CommentSkeleton {
       });
       this.overlayMenu.insertBefore(
         element,
-        this.toggleChildThreadsButton?.buttonElement.nextSibling || null
+        this.toggleChildThreadsButton?.element.nextSibling || null
       );
-      this.overlayMenu.prepend(element);
     }
   }
 
