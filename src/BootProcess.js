@@ -1008,9 +1008,7 @@ class BootProcess {
         ? saveOptions(options, true).catch(handleApiReject)
         : cd
             .getApi()
-            .saveOptions({
-              'discussiontools-topicsubscription': '1',
-            })
+            .saveOptions(options)
             .catch(handleApiReject);
       await request;
     } catch {
