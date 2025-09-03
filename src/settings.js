@@ -266,12 +266,12 @@ class Settings {
       'upload-onboarded': false,
       'useBackgroundHighlighting': true,
       'useTemplateData': true,
-      'useTopicSubscription': Boolean(mw.loader.getState('ext.discussionTools.init')),
+      'useTopicSubscription': cd.g.isDtInstalled,
       'useUiTime': true,
 
       // On wikis where there is no topic subscriptions, watching pages on replying is the
       // alternative to keep track of discussions.
-      'watchOnReply': !mw.loader.getState('ext.discussionTools.init'),
+      'watchOnReply': !cd.g.isDtInstalled,
     };
   }
 

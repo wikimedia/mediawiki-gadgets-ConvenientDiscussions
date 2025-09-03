@@ -923,8 +923,11 @@ class Comment extends CommentSkeleton {
   addThankButton() {
     if (!cd.user.isRegistered() || !this.author.isRegistered() || !this.date || this.isOwn) return;
 
-    const isThanked = Object.values(commentRegistry.getThanksStorage().getData()).some(
-      (thank) => this.dtId === thank.id || this.id === thank.id
+    const isThanked = Object.entries(commentRegistry.getThanksStorage().getData()).some(
+      // TODO: Remove `|| this.dtId === thank.id || this.id === thank.id` part after migration is
+      // complete on December 1, 2025
+      ([id, thank]) =>
+        this.dtId === id || this.id === id || this.dtId === thank.id || this.id === thank.id
     );
 
     const action = this.thankButtonClick.bind(this);
@@ -1059,10 +1062,11 @@ class Comment extends CommentSkeleton {
         action,
         widgetConstructor: this.createGoToChildButton.bind(this),
       });
-      this.overlayMenu.insertBefore(
-        element,
-        this.toggleChildThreadsButton?.element.nextSibling || null
-      );
+      // this.overlayMenu.insertBefore(
+      //   element,
+      //   this.toggleChildThreadsButton?.element.nextSibling || null
+      // );
+      this.overlayMenu.prepend(element);
     }
   }
 
@@ -1106,7 +1110,8 @@ class Comment extends CommentSkeleton {
         action,
         widgetConstructor: this.createToggleChildThreadsButton.bind(this),
       });
-      this.overlayMenu.prepend(element);
+      // this.overlayMenu.prepend(element);
+      this.overlayMenu.insertBefore(element, this.copyLinkButton?.element || null);
     }
     this.toggleChildThreadsButton?.element.addEventListener('mouseenter', () => {
       this.maybeOnboardOntoToggleChildThreads();
@@ -2889,7 +2894,7 @@ class Comment extends CommentSkeleton {
       this.expandAllThreadsDownTo();
     }
 
-    const id = this.dtId || this.id;
+    const id = this.getUrlFragment();
     if (pushState && id) {
       history.pushState({ ...history.state, cdJumpedToComment: true }, '', `#${id}`);
     }
@@ -3200,7 +3205,6 @@ class Comment extends CommentSkeleton {
    */
   setThanked() {
     /** @type {import('./CommentButton').default} */ (this.thankButton)
-      .setPending(false)
       .setDisabled(true)
       .setLabel(cd.s('cm-thanked'))
       .setTooltip(cd.s('cm-thanked-tooltip'));
@@ -3248,32 +3252,66 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Find the edit that added the comment, ask for a confirmation, and send a "thank you"
-   * notification.
+   * Thank for the comment using the DiscussionTools' thank API if available and the regular thank
+   * API if not.
    */
   async thank() {
-    /** @type {import('./CommentButton').default} */ (this.thankButton).setPending(true);
+    const id = this.getUrlFragment();
+    if (!this.thankButton || !id) return;
 
-    let editRevisionId;
+    this.thankButton.setPending(true);
+    let accepted;
     try {
-      const [edit] = await Promise.all([
-        this.findEdit(),
-        cd.g.genderAffectsUserString ? loadUserGenders([this.author]) : undefined,
-        mw.loader.using(['mediawiki.diff', 'mediawiki.diff.styles']),
-      ]);
-      editRevisionId = edit.revision.revid;
+      const versionMatch = mw.config.get('wgVersion').match(/^(\d+\.\d+).*/);
+      accepted = await (
+        !this.dtId || (versionMatch && Number(versionMatch[1]) < 1.43)
+          ? this.thankLegacy()
+          : this.thankStandard()
+      );
     } catch (error) {
       this.thankFail(/** @type {Error|CdError} */ (error));
 
       return;
+    } finally {
+      this.thankButton.setPending(false);
     }
+
+    if (accepted) {
+      mw.notify(cd.s('thank-success'), { type: 'success' });
+      this.setThanked();
+
+      commentRegistry
+        .getThanksStorage()
+        .set(id, {
+          thankTime: Date.now(),
+        })
+        .save();
+    }
+  }
+
+  /**
+   * For DiscussionTools versions that don't support the thank API: Find the edit that added the
+   * comment, ask for a confirmation, and send a "thank you" notification.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async thankLegacy() {
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const loadThanksExtensionPromise = mw.loader.using('ext.thanks');
+    const [edit] = await Promise.all([
+      this.findEdit(),
+      cd.g.genderAffectsUserString ? loadUserGenders([this.author]) : undefined,
+      mw.loader.using(['mediawiki.diff', 'mediawiki.diff.styles']),
+    ]);
+    const editRevisionId = edit.revision.revid;
 
     const $question = wrapHtml(
       cd.sParse(
         'thank-confirm',
         this.author.getName(),
         this.author,
-        this.getSourcePage().getArchivedPage().getUrl({ diff: editRevisionId })
+        this.getSourcePage().getArchivedPage().getUrl({ diff: editRevisionId }),
+        mw.user
       ),
       {
         tagName: 'div',
@@ -3284,45 +3322,67 @@ class Comment extends CommentSkeleton {
     const $diffView = await this.generateDiffView();
 
     const answer = await showConfirmDialog(mergeJquery($question, $diffView), { size: 'larger' });
-    if (answer === 'accept') {
-      try {
-        await cd
-          .getApi()
-          .postWithEditToken(
-            cd.getApi().assertCurrentUser({
-              action: 'thank',
-              rev: editRevisionId,
-              source: cd.config.scriptCodeName,
-            })
-          )
-          .catch(handleApiReject);
-      } catch (error) {
-        this.thankFail(/** @type {Error|CdError} */ (error));
+    const accepted = answer === 'accept';
+    if (accepted) {
+      await cd
+        .getApi()
+        .postWithEditToken(
+          cd.getApi().assertCurrentUser({
+            action: 'thank',
+            rev: editRevisionId,
+            source: cd.config.scriptCodeName,
+          })
+        )
+        .catch(handleApiReject);
 
-        return;
-      }
-
-      mw.notify(cd.s('thank-success'), { type: 'success' });
-      this.setThanked();
-
-      commentRegistry
-        .getThanksStorage()
-        .set(editRevisionId, {
-          id: /** @type {string} */ (this.dtId || this.id),
-          thankTime: Date.now(),
-        })
-        .save();
-
-      try {
-        await mw.loader.using('ext.thanks');
+      // This isn't critical (affects only the "thanked" label in history), so we don't do anything
+      // in case of an error
+      loadThanksExtensionPromise.then(() => {
         mw.thanks.thanked.push(editRevisionId);
-      } catch {
-        // This isn't critical (affects only the "thanked" label in history), so we don't do
-        // anything
-      }
-    } else {
-      /** @type {import('./CommentButton').default} */ (this.thankButton).setPending(false);
+      });
     }
+
+    return accepted;
+  }
+
+  /**
+   * Ask for a confirmation to thank for the comment, and send a "thank you" notification if
+   * confirmed.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async thankStandard() {
+    const answer = await showConfirmDialog(wrapHtml(cd.mws('thanks-confirmation2', mw.user)));
+    const accepted = answer === 'accept';
+    if (accepted) {
+      /**
+       * @typedef {object} ApiResponseDtThank
+       * @property {object} result
+       * @property {boolean} result.success
+       * @property {string} result.error
+       */
+
+      /** @type {ApiResponseDtThank} */
+      const response = await cd
+        .getApi()
+        .postWithEditToken(
+          cd.getApi().assertCurrentUser({
+            action: 'discussiontoolsthank',
+            page: cd.page.name,
+            commentid: this.dtId,
+          })
+        )
+        .catch(handleApiReject);
+
+      if (!response.result.success) {
+        throw new CdError({
+          type: 'response',
+          details: response.result.error,
+        });
+      }
+    }
+
+    return accepted;
   }
 
   /**
@@ -3927,7 +3987,7 @@ class Comment extends CommentSkeleton {
    * @returns {?string}
    */
   getUrl(permanent = false) {
-    const id = this.dtId || this.id;
+    const id = this.getUrlFragment();
 
     return id ? cd.page.getDecodedUrlWithFragment(id, permanent) : null;
   }
@@ -4106,11 +4166,13 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Get the fragment for use in a comment wikilink.
+   * Get the fragment for use in URLs and wikilinks for this comment. It's DT's ID, if it's
+   * available, of CD's standard ID (still used in links from pages listing edits and for comments
+   * that weren't recognized by DT).
    *
    * @returns {string | undefined}
    */
-  getWikilinkFragment() {
+  getUrlFragment() {
     return this.dtId || this.id;
   }
 
@@ -4437,6 +4499,7 @@ class Comment extends CommentSkeleton {
     return new OO.ui.ButtonWidget({
       label: cd.s('cm-reply'),
       framed: false,
+      flags: ['progressive'],
       classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
     });
   }

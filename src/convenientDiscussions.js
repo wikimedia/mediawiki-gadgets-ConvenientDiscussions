@@ -663,6 +663,7 @@ const globalProperties = {
   // https://stackoverflow.com/a/14301832.
   isMobile: /Mobi|Android/i.test(navigator.userAgent) || typeof window.orientation !== 'undefined',
 
+  isDtInstalled: Boolean(mw.loader.getState('ext.discussionTools.init')),
   isDtReplyToolEnabled: bodyClassList.contains('ext-discussiontools-replytool-enabled'),
   isDtNewTopicToolEnabled: bodyClassList.contains('ext-discussiontools-newtopictool-enabled'),
   isDtTopicSubscriptionEnabled: bodyClassList

@@ -53,7 +53,7 @@ class CommentRegistry extends EventEmitter {
 
   /**
    * @typedef {object} ThanksData
-   * @property {string} id
+   * @property {string} [id] TODO: Remove after migration is complete on December 1, 2025
    * @property {number} thankTime
    */
 
@@ -761,6 +761,7 @@ class CommentRegistry extends EventEmitter {
         getCommonGender(authors)
       ),
       framed: false,
+      flags: ['progressive'],
       classes: ['cd-button-ooui'],
     });
     button.on('click', () => {
@@ -1312,7 +1313,7 @@ class CommentRegistry extends EventEmitter {
   /**
    * Get the storage for the "Thanks" feature.
    *
-   * @returns {StorageItemWithKeys}
+   * @returns {StorageItemWithKeys<ThanksData>}
    */
   getThanksStorage() {
     return this.thanksStorage;

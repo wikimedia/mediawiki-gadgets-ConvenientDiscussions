@@ -225,7 +225,7 @@ class BootController {
       'colon-separator', 'nextdiff', 'timezone-utc', 'pagetitle',
     ]
       .concat(
-        mw.loader.getState('ext.discussionTools.init')
+        cd.g.isDtInstalled
           ? [
               'discussiontools-topicsubscription-button-subscribe',
               'discussiontools-topicsubscription-button-subscribe-tooltip',
@@ -243,6 +243,7 @@ class BootController {
               'discussiontools-newtopicssubscription-notify-subscribed-body',
               'discussiontools-newtopicssubscription-notify-unsubscribed-title',
               'discussiontools-newtopicssubscription-notify-unsubscribed-body',
+              'thanks-confirmation2',
             ]
           : []
       )

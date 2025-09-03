@@ -198,6 +198,7 @@ export default class CurrentPage extends Page {
         new OO.ui.ButtonWidget({
           label: cd.s('addtopic'),
           framed: false,
+          flags: ['progressive'],
           classes: ['cd-button-ooui', 'cd-section-button'],
         }).on('click', () => {
           this.addSection();

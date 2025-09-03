@@ -21,7 +21,7 @@ import { handleApiReject } from './utils-api';
  * @typedef {object} CommentLinksItemType
  * @property {string} key
  * @property {string} [id]
- * @property {string} [author]
+ * @property {string} [authorName]
  * @property {string} [timestamp]
  * @property {string} [headline]
  */
@@ -297,7 +297,8 @@ class Autocomplete {
         values: async (text, callback) => {
           this.commentLinks.default ||= this.commentLinks.comments
             .reduce((acc, comment) => {
-              let { id, dtId, author, timestamp } = comment;
+              const authorName = comment.author.getName();
+              const timestamp = comment.timestamp;
               /** @type {string} */
               let snippet;
               const snippetMaxLength = 80;
@@ -316,14 +317,14 @@ class Autocomplete {
               } else {
                 snippet = comment.getText();
               }
-              let authorTimestamp = author.getName();
+              let authorTimestamp = authorName;
               if (timestamp) {
                 authorTimestamp += cd.mws('comma-separator', { language: 'content' }) + timestamp;
               }
               acc.push({
                 key: authorTimestamp + cd.mws('colon-separator', { language: 'content' }) + snippet,
-                id: dtId || id,
-                author: author.getName(),
+                id: comment.getUrlFragment(),
+                authorName,
                 timestamp,
               });
 
@@ -653,7 +654,7 @@ class Autocomplete {
             end: ']]',
             content:
               'timestamp' in object
-                ? cd.s('cf-autocomplete-commentlinks-text', object.author, object.timestamp)
+                ? cd.s('cf-autocomplete-commentlinks-text', object.authorName, object.timestamp)
                 : object.headline,
           };
         },

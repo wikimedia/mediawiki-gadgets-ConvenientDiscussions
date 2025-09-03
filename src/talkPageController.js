@@ -976,7 +976,7 @@ class TalkPageController extends EventEmitter {
 
     event.preventDefault();
 
-    const fragment = object.getWikilinkFragment();
+    const fragment = object.getUrlFragment();
     const permalinkSpecialPagePrefix = (
       mw.config.get('wgFormattedNamespaces')[-1] +
       ':' +

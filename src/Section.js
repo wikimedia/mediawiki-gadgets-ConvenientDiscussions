@@ -723,14 +723,16 @@ class Section extends SectionSkeleton {
    * @private
    */
   createAuthorsPopupContent() {
+    // Collect the data needed to display the content
+
     const authorsSortSetting = settings.get('authorsSort');
     const data = this.comments
       .map((comment) => comment.author)
       .filter(unique)
       .flatMap((author) => {
+        // Calculate data used more than in one listing
         const comments = this.comments.filter((comment) => comment.author === author);
         const newestComment = /** @type {Comment} */ (Comment.getNewest(comments, true));
-        const targetComment = authorsSortSetting === 'date' ? newestComment : comments[0];
 
         return {
           name: author.getName(),
@@ -738,13 +740,14 @@ class Section extends SectionSkeleton {
           newestCommentDate: newestComment.date,
           comments,
           newestComment,
-          targetComment,
-          $link: $('<a>')
+          $authorLink: $('<a>')
             .text(author.getName())
-            .attr('href', `#${targetComment.dtId || targetComment.id}`)
+            .attr('href', `#${comments[0].getUrlFragment()}`)
             .on('click', () => Comment.scrollToFirstFlashAll(comments)),
         };
       });
+
+    // Create the select
 
     /**
      * @typedef {'name'|'count'|'date'} PanelName
@@ -778,14 +781,16 @@ class Section extends SectionSkeleton {
       settings.saveSettingOnTheFly('authorsSort', item.getData());
     });
 
+    // Create the panels
+
     const wrapInHlist = (/** @type {JQuery[]} */ content) =>
       $('<ul>').addClass('cd-hlist').append(content);
 
     const namePanel = new OO.ui.PanelLayout({
       $content: wrapInHlist(
         data
-          .sort((d1, d2) => d2.name > d1.name ? -1 : 1)
-          .map((d) => $('<li>').append(d.$link.clone()))
+          .sort((datum1, datum2) => datum2.name > datum1.name ? -1 : 1)
+          .map((datum) => $('<li>').append(datum.$authorLink.clone(true)))
       ),
       padded: false,
       expanded: false,
@@ -793,11 +798,11 @@ class Section extends SectionSkeleton {
     const countPanel = new OO.ui.PanelLayout({
       $content: wrapInHlist(
         data
-          .sort((d1, d2) => d2.count - d1.count)
-          .map((d) => (
+          .sort((datum1, datum2) => datum2.count - datum1.count)
+          .map((datum) => (
             $('<li>').append(
-              d.$link.clone(),
-              cd.mws('word-separator') + cd.mws('parentheses', d.count)
+              datum.$authorLink.clone(),
+              cd.mws('word-separator') + cd.mws('parentheses', datum.count)
             )
           ))
       ),
@@ -808,17 +813,34 @@ class Section extends SectionSkeleton {
       $content: wrapInHlist(
         data
           .sort(
-            (d1, d2) =>
-              (d2.newestCommentDate?.getTime() || 0) - (d1.newestCommentDate?.getTime() || 0)
+            (datum1, datum2) =>
+              (datum2.newestCommentDate?.getTime() || 0) -
+              (datum1.newestCommentDate?.getTime() || 0)
           )
-          .map((d) =>
-            $('<li>').append(
-              d.$link.clone(),
-              d.newestCommentDate
-                ? cd.mws('word-separator') + cd.mws('parentheses', formatDate(d.newestCommentDate))
-                : ''
-            )
-          )
+          .map((datum) => {
+            /** @type {(Text | string | JQuery)[]} */
+            const contents = [document.createTextNode(datum.name)];
+            if (datum.newestCommentDate) {
+              const id = datum.newestComment.getUrlFragment();
+              contents.push(
+                cd.mws('word-separator'),
+                cd.mws('parentheses-start'),
+                $('<a>')
+                  .text(formatDate(datum.newestCommentDate))
+                  .attr('href', `#${id}`)
+
+                  // Without the event handler, there will be a problem jumping to the comment when
+                  // the URL already has its ID.
+                  .on('click', (event) => {
+                    event.preventDefault();
+                    datum.newestComment.scrollTo({ pushState: true });
+                  }),
+                cd.mws('parentheses-end')
+              );
+            }
+
+            return $('<li>').append(...contents);
+          })
       ),
       padded: false,
       expanded: false,
@@ -862,7 +884,8 @@ class Section extends SectionSkeleton {
     if (this.comments.length) {
       if (latestComment) {
         const latestCommentLink = document.createElement('a');
-        latestCommentLink.href = `#${latestComment.dtId || latestComment.id}`;
+        const id = latestComment.getUrlFragment();
+        latestCommentLink.href = `#${id}`;
         latestCommentLink.className = 'cd-clickHandled';
         latestCommentLink.addEventListener('click', this.scrollToLatestComment.bind(this));
         latestCommentLink.textContent = formatDate(latestComment.date);
@@ -1121,7 +1144,6 @@ class Section extends SectionSkeleton {
         action: (event) => {
           this.copyLink(event);
         },
-        flags: ['progressive'],
       });
       copyLinkButton.buttonElement.classList.add('mw-selflink-fragment');
     }
@@ -2295,6 +2317,7 @@ class Section extends SectionSkeleton {
       new OO.ui.ButtonWidget({
         label: cd.s('section-reply'),
         framed: false,
+        flags: ['progressive'],
 
         // Add the thread button class as it behaves as a thread button in fact, being positioned
         // inside a "cd-commentLevel" list.
@@ -2309,6 +2332,7 @@ class Section extends SectionSkeleton {
         label: ' ',
 
         framed: false,
+        flags: ['progressive'],
         classes: ['cd-button-ooui', 'cd-section-button'],
       }).$element[0]
     );
@@ -2317,7 +2341,6 @@ class Section extends SectionSkeleton {
       'copyLinkButton',
       new OO.ui.ButtonWidget({
         framed: false,
-        flags: ['progressive'],
         icon: 'link',
         label: cd.s('sm-copylink'),
         invisibleLabel: true,

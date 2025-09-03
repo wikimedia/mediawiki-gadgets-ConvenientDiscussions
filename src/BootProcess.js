@@ -55,6 +55,7 @@ function processAndRemoveDtElements(elements) {
   // Tool doesn't seem to make difference for our purposes here.
   const moveNotRemove =
     cd.g.isDtTopicSubscriptionEnabled ||
+
     // DT enabled by default. Don't know how to capture that another way.
     !['registered', null].includes(mw.loader.getState('ext.discussionTools.init'));
 
