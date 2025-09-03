@@ -894,7 +894,6 @@ class TalkPageController extends EventEmitter {
    */
   reset() {
     bootController.cleanUpUrlAndDom();
-    this.originalPageTitle = document.title;
     this.mutationObserver?.disconnect();
     commentRegistry.reset();
     sectionRegistry.reset();
@@ -907,6 +906,16 @@ class TalkPageController extends EventEmitter {
     this.relevantAddedCommentIds = null;
     delete this.dtSubscribableThreads;
     this.updatePageTitle();
+  }
+
+  /**
+   * Set the page title to use as a base for possible transformations (like adding "Replying on"
+   * when there is a reply form and "(1)" when there is 1 new comment).
+   *
+   * @param {string} title
+   */
+  updateOriginalPageTitle(title) {
+    this.originalPageTitle = title;
   }
 
   /**

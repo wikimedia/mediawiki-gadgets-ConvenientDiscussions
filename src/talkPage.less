@@ -1,8 +1,9 @@
 .cd-section-button.cd-section-button.cd-section-button,
 .cd-thread-button.cd-thread-button.cd-thread-button.cd-thread-button {
-  &:first-child {
-    margin-inline: 0;
-  }
+  // Compensation for the 1px border
+  margin-inline-start: -1px;
+
+  margin-inline-end: 0;
 
   > .oo-ui-buttonElement-button {
     padding: 0;
@@ -19,8 +20,6 @@
   // .cd-section-button-container and .cd-replyButtonWrapper (just as like for
   // .cd-thread-button-container), but need to deal with disappeared margin collapsing then.
   display: flex;
-
-  margin-inline-start: -1px;
 
   > .oo-ui-buttonElement-button {
     white-space: normal;

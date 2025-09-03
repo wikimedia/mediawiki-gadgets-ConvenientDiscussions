@@ -784,7 +784,7 @@ class BootController {
 
     cd.settings = settings;
 
-    const controller = require('./talkPageController').default;
+    const talkPageController = require('./talkPageController').default;
     const commentRegistry = require('./commentRegistry').default;
     const sectionRegistry = require('./sectionRegistry').default;
     const commentFormRegistry = require('./commentFormRegistry').default;
@@ -799,10 +799,10 @@ class BootController {
      */
     cd.commentForms = commentFormRegistry.getAll();
 
-    cd.tests.controller = controller;
+    cd.tests.controller = talkPageController;
     cd.tests.processPageInBackground = require('./updateChecker').processPage;
     cd.tests.showSettingsDialog = settings.showDialog.bind(settings);
-    cd.tests.editSubscriptions = controller.showEditSubscriptionsDialog.bind(controller);
+    cd.tests.editSubscriptions = talkPageController.showEditSubscriptionsDialog.bind(talkPageController);
     cd.tests.visits = require('./visits').default;
 
 
@@ -1346,6 +1346,10 @@ class BootController {
 
     $('#firstHeading').text(cd.page.name);
     document.title = cd.mws('pagetitle', cd.page.name);
+
+    // We need talkPageController here since bootController can't emit events. Use `require()`, not
+    // `import`, to avoid importing it before `oojs-ui` module is loaded.
+    require('./talkPageController').default.updateOriginalPageTitle(document.title);
   }
 
   /**
