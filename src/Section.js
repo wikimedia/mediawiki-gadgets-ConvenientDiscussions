@@ -2096,11 +2096,11 @@ class Section extends SectionSkeleton {
   }
 
   /**
-   * Get the fragment for use in a section wikilink.
+   * Get the fragment for use in URLs and wikilinks for this section.
    *
    * @returns {string}
    */
-  getWikilinkFragment() {
+  getUrlFragment() {
     return encodeWikilink(underlinesToSpaces(this.id));
   }
 

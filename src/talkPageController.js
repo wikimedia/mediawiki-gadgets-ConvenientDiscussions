@@ -986,15 +986,14 @@ class TalkPageController extends EventEmitter {
     event.preventDefault();
 
     const fragment = object.getUrlFragment();
-    const permalinkSpecialPagePrefix = (
+    const permalinkSpecialPagePrefix =
       mw.config.get('wgFormattedNamespaces')[-1] +
       ':' +
       (
         object.isComment()
           ? 'GoToComment/'
           : cd.g.specialPageAliases.PermanentLink[0] + '/' + mw.config.get('wgRevisionId') + '#'
-      )
-    );
+      );
 
     /** @type {import('./CopyLinkDialog').CopyLinkDialogContent} */
     const content = {

@@ -436,7 +436,7 @@ const globalProperties = {
    * @type {string[]}
    * @memberof convenientDiscussions.g
    */
-  popularInlineElements: ['A', 'ABBR', 'B', 'BDI', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DEL', 'EM', 'FONT', 'I', 'IMG', 'INS', 'KBD', 'MW:DT-TIMESTAMPLINK', 'Q', 'S', 'SAMP', 'SMALL', 'SPAN', 'STRIKE', 'STRONG', 'SUB', 'SUP', 'TIME', 'TT', 'U', 'VAR'],
+  popularInlineElements: ['A', 'ABBR', 'B', 'BDI', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DEL', 'EM', 'FONT', 'I', 'IMG', 'INS', 'KBD', 'MW:DT-TIMESTAMPLINK', 'Q', 'RT', 'RP', 'RUBY', 'S', 'SAMP', 'SMALL', 'SPAN', 'STRIKE', 'STRONG', 'SUB', 'SUP', 'TIME', 'TT', 'U', 'VAR'],
 
   /**
    * Elements with classes listed here won't be considered legit comment timestamp containers. They

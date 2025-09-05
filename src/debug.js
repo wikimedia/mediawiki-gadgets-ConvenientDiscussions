@@ -148,7 +148,7 @@ class Debug {
       this.stopTimer(label);
     }
     if (this.timerTotal[label] !== undefined) {
-      console.debug(`${label}: ${this.timerTotal[label].toFixed(1)}`);
+      console.debug(`Convenient Discussions: ${label}: ${this.timerTotal[label].toFixed(1)}`);
       this.resetTimer(label);
     }
   }
