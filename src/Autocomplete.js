@@ -800,7 +800,7 @@ class Autocomplete {
 
     input
       .setDisabled(false)
-      .cdInsertContent(paramsString)
+      .insertContent(paramsString)
       .selectRange(
         // Current caret index
         /** @type {number} */ (input.getRange().to) +

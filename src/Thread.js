@@ -1202,6 +1202,7 @@ class Thread extends mixInObject(
       if (rectOrOffset instanceof DOMRect) {
         offset += scrollX;
       }
+
       return offset - cd.g.threadLineSidePadding;
     };
     const getTop = (/** @type {DOMRect|import('./Comment').CommentOffset} */ rectOrOffset) => (
@@ -1214,6 +1215,7 @@ class Thread extends mixInObject(
 
     if (comment.isCollapsed && !this.isCollapsed) {
       this.removeLine();
+
       return false;
     }
 
@@ -1228,9 +1230,28 @@ class Thread extends mixInObject(
       this.startElement.tagName === 'DIV'
     );
 
-    const rectTop = this.isCollapsed || !needCalculateMargins
-      ? this.getAdjustedStartElement().getBoundingClientRect()
-      : undefined;
+    let rectTop;
+    if (this.isCollapsed || !needCalculateMargins) {
+      const adjustedStartElement = this.getAdjustedStartElement();
+      if ('checkVisibility' in adjustedStartElement && adjustedStartElement.checkVisibility()) {
+        rectTop = adjustedStartElement.getBoundingClientRect();
+      }
+    }
+
+    /** @type {DOMRect | undefined} */
+    let rectBottom;
+    if (this.isCollapsed) {
+      rectBottom = rectTop;
+    } else {
+      const adjustedEndElement = this.getAdjustedEndElement(true);
+      if (
+        adjustedEndElement &&
+        'checkVisibility' in adjustedEndElement &&
+        adjustedEndElement.checkVisibility()
+      ) {
+        rectBottom = adjustedEndElement.getBoundingClientRect();
+      }
+    }
 
     const rectOrOffset = rectTop || comment.getOffset({ floatingRects });
 
@@ -1246,10 +1267,6 @@ class Thread extends mixInObject(
       top = getTop(rectOrOffset);
       left = getLeft(rectOrOffset, commentMargins, dir);
     }
-
-    const rectBottom = this.isCollapsed
-      ? rectTop
-      : this.getAdjustedEndElement(true)?.getBoundingClientRect();
 
     const areTopAndBottomAligned = () => {
       // FIXME: We use the first comment part's margins for the bottom rectangle which can lead to

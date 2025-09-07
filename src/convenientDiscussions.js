@@ -670,6 +670,7 @@ const globalProperties = {
     .contains('ext-discussiontools-topicsubscription-enabled'),
   isDtVisualEnhancementsEnabled: bodyClassList
     .contains('ext-discussiontools-visualenhancements-enabled'),
+  isCodeMirror6Installed: Boolean(mw.loader.getState('ext.CodeMirror.v6.WikiEditor')),
 
   isParsoidUsed: $('#mw-content-text > .mw-parser-output')
     .contents()

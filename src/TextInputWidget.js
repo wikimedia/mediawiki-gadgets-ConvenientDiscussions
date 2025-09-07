@@ -28,17 +28,20 @@ class TextInputWidget extends OO.ui.TextInputWidget {
   /**
    * Insert text while keeping the undo/redo functionality.
    *
-   * @param {string} text
-   * @returns {TextInputWidget}
+   * @param {string} content
+   * @returns {this}
+   * @override
    */
-  cdInsertContent(text) {
+  insertContent(content) {
     this.focus();
-    if (!document.execCommand('insertText', false, text)) {
-      this.insertContent(text);
+    if (!document.execCommand('insertText', false, content)) {
+      super.insertContent(content);
     }
 
     return this;
   }
+
+
 
   /**
    * Given a selection, get its content as wikitext.

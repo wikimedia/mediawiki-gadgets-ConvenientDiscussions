@@ -74,6 +74,10 @@ class CommentFormRegistry extends EventEmitter {
     commentRegistry
       .on('select', this.toggleQuoteButtonsHighlighting.bind(this, true))
       .on('unselect', this.toggleQuoteButtonsHighlighting.bind(this, false));
+
+    mw.hook('ext.CodeMirror.toggle').add((enabled, codeMirror) => {
+      this.items.find((item) => item.codeMirror === codeMirror)?.setCodeMirrorEnabled(enabled);
+    });
   }
 
   /**

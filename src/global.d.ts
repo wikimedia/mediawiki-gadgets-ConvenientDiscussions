@@ -381,5 +381,3 @@ declare global {
     wikiEditor: any;
   }
 }
-
-export {};

@@ -782,6 +782,12 @@ class CommentForm extends EventEmitter {
       }));
     }
 
+    // Keep this synced with CommentForm.less: @num-rows-comment and @num-rows-section
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const NUM_ROWS_COMMENT = 3;
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const NUM_ROWS_SECTION = 5;
+
     this.commentInput = new (require('./MultilineTextInputWidget').default)({
       value: initialState.comment ?? '',
       placeholder:
@@ -794,7 +800,7 @@ class CommentForm extends EventEmitter {
             )
           );
         }) || undefined,
-      rows: this.headlineInput ? 5 : 3,
+      rows: this.headlineInput ? NUM_ROWS_SECTION : NUM_ROWS_COMMENT,
       autosize: true,
       maxRows: 9999,
       classes: ['cd-commentForm-commentInput'],
@@ -1115,7 +1121,15 @@ class CommentForm extends EventEmitter {
       .addClass('cd-toolbarPlaceholder')
       .insertBefore(this.commentInput.$element);
 
-    await mw.loader.using(['ext.wikiEditor', ...requestedModulesNames]);
+    await mw.loader.using([
+      'ext.wikiEditor',
+      ...(
+        cd.g.isCodeMirror6Installed
+          ? ['ext.CodeMirror.v6.WikiEditor', 'ext.CodeMirror.v6.mode.mediawiki']
+          : []
+      ),
+      ...requestedModulesNames,
+    ]);
 
     $toolbarPlaceholder.remove();
 
@@ -1304,6 +1318,8 @@ class CommentForm extends EventEmitter {
       .find('.tool[rel="quote"]')
       .wrap($('<span>').addClass('cd-tool-button-wrapper'));
 
+    this.addCodeMirror();
+
     // A hack to make the WikiEditor cookies related to active sections and pages saved correctly.
     $input.data('wikiEditor-context').instance = 5;
     $.wikiEditor.instances = Array.from({ length: 5 });
@@ -1318,6 +1334,63 @@ class CommentForm extends EventEmitter {
      */
     mw.hook('convenientDiscussions.commentFormToolbarReady').fire(this, cd);
   }
+
+  /**
+   *
+   */
+  addCodeMirror() {
+    if (!cd.g.isCodeMirror6Installed) return;
+
+    this.commentInput.$element
+      .children('.wikiEditor-ui')
+      .first()
+      .addClass('ext-codemirror-mediawiki');
+
+    this.commentInput.$input.wikiEditor('addToToolbar', {
+      section: 'main', groups: {
+        codemirror: {
+          tools: {
+            CodeMirror: {
+              type: 'element',
+              element: () => {
+                const button = new OO.ui.ToggleButtonWidget({
+                  label: mw.msg('codemirror-toggle-label-short'),
+                  title: mw.msg('codemirror-toggle-label'),
+                  icon: 'syntax-highlight',
+                  value: false,
+                  framed: false,
+                  classes: ['tool', 'cm-mw-toggle-wikieditor']
+                });
+
+                // After the button is clicked for the first time, it is replaced by the
+                // CodeMirror extension with its own, so initCodeMirror() runs only once.
+                button.on('click', this.initCodeMirror);
+
+                return button.$element;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Initialize a {@link https://www.mediawiki.org/wiki/Extension:CodeMirror CodeMirror} instance.
+   *
+   * @private
+   */
+  initCodeMirror = () => {
+    this.codeMirror =
+      /** @type {import('./CodeMirrorWikiEditor').CodeMirrorWikiEditor} */ (
+        new (mw.loader.require('ext.CodeMirror.v6.WikiEditor'))(
+          this.commentInput.$input[0],
+          mw.loader.require('ext.CodeMirror.v6.mode.mediawiki')()
+        )
+      );
+    this.codeMirror.mode = 'mediawiki';
+    this.codeMirror.initialize();
+  };
 
   /**
    * Add the insert buttons block under the comment input.
@@ -1662,7 +1735,7 @@ class CommentForm extends EventEmitter {
 
       this.commentInput
         .selectRange(position - insertedText.length, position)
-        .cdInsertContent(text);
+        .insertContent(text);
       this.teardownInputPopups();
     });
     this.teardownInputPopups();
@@ -3720,7 +3793,7 @@ class CommentForm extends EventEmitter {
       const text = data.start + data.content + data.end;
       this.commentInput
         .selectRange(0)
-        .cdInsertContent(text)
+        .insertContent(text)
 
         // Restore the selection
         .selectRange(range.from + text.length, range.to + text.length);
@@ -3743,7 +3816,7 @@ class CommentForm extends EventEmitter {
       if (/** @type {NonNullable<typeof data.usePipeTrickCheck>} */ (data.usePipeTrickCheck)()) {
         data.content = '';
       }
-      this.commentInput.cdInsertContent(data.start + data.content + data.end);
+      this.commentInput.insertContent(data.start + data.content + data.end);
 
       return;
     }
@@ -3763,13 +3836,21 @@ class CommentForm extends EventEmitter {
   async quote(allowEmptySelection, comment, mentionSource) {
     let selection;
     if (isInputFocused()) {
-      const activeElement = /** @type {HTMLInputElement} */ (document.activeElement);
-      const selectionStart = activeElement.selectionStart;
-      if (selectionStart !== null) {
-        selection = activeElement.value.substring(
-          selectionStart,
-          /** @type {number} */ (activeElement.selectionEnd)
-        );
+      const activeElement = /** @type {HTMLElement} */ (document.activeElement);
+      if (
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement
+      ) {
+        const selectionStart = activeElement.selectionStart;
+        if (selectionStart !== null) {
+          selection = activeElement.value.substring(
+            selectionStart,
+            /** @type {number} */ (activeElement.selectionEnd)
+          );
+        }
+      } else {
+        // `contenteditable` element
+        selection = window.getSelection().toString();
       }
     }
     if (!isInputFocused() || selection === undefined) {
@@ -3784,19 +3865,19 @@ class CommentForm extends EventEmitter {
       let rangeEnd = Math.max(range.to, range.from);
 
       // Reset the selection if the input is not focused to prevent losing text.
-      if (!this.commentInput.$input.is(':focus') && rangeStart !== rangeEnd) {
+      if (!this.commentInput.isFocused() && rangeStart !== rangeEnd) {
         this.commentInput.selectRange(range.to);
         rangeStart = rangeEnd = range.to;
       }
 
-      const [pre, post] = typeof cd.config.quoteFormatting === 'function' ?
-        cd.config.quoteFormatting.apply(
-          null,
-          comment && (mentionSource ?? comment !== this.parentComment) ?
-            [true, comment.author.getName(), comment.timestamp, comment.dtId] :
-            [selection.match(new RegExp(`<${cd.g.pniePattern}\\b|(^|\n)[:*#;]`, 'i'))]
-        ) :
-        cd.config.quoteFormatting;
+      const [pre, post] = typeof cd.config.quoteFormatting === 'function'
+        ? cd.config.quoteFormatting.apply(
+            null,
+            comment && (mentionSource ?? comment !== this.parentComment) ?
+              [true, comment.author.getName(), comment.timestamp, comment.dtId] :
+              [selection.match(new RegExp(`<${cd.g.pniePattern}\\b|(^|\n)[:*#;]`, 'i'))]
+          )
+        : cd.config.quoteFormatting;
 
       if (pre.includes('{{')) {
         selection = escapePipesOutsideLinks(selection);
@@ -3821,7 +3902,7 @@ class CommentForm extends EventEmitter {
     if (selection && (commentRegistry.getByAnyId(selection) || isExistentAnchor(selection, true))) {
       // Valid ID
 
-      this.commentInput.cdInsertContent(`[[#${selection}]]`);
+      this.commentInput.insertContent(`[[#${selection}]]`);
 
       return;
     }
@@ -3847,7 +3928,7 @@ class CommentForm extends EventEmitter {
 
     // Insert a space if the preceding text doesn't end with one
     if (rangeEnd && !/\s/.test(this.commentInput.getValue().slice(rangeEnd - 1, rangeEnd))) {
-      this.commentInput.cdInsertContent(' ');
+      this.commentInput.insertContent(' ');
     }
 
     this.encapsulateSelection({ pre: content });
@@ -3903,14 +3984,14 @@ class CommentForm extends EventEmitter {
     const [trailingSpace] = /** @type {RegExpMatchArray} */ (selection.match(/ *$/));
     const middleText = selection || peri;
 
-    this.commentInput.cdInsertContent(
+    this.commentInput.insertContent(
       leadingNewline +
-        leadingSpace +
-        pre +
-        middleText.slice(leadingSpace.length, middleText.length - trailingSpace.length) +
-        post +
-        trailingSpace +
-        trailingNewline
+      leadingSpace +
+      pre +
+      middleText.slice(leadingSpace.length, middleText.length - trailingSpace.length) +
+      post +
+      trailingSpace +
+      trailingNewline
     );
     if (periStartIndex !== undefined) {
       this.commentInput.selectRange(periStartIndex, periStartIndex + peri.length);
@@ -4339,6 +4420,15 @@ class CommentForm extends EventEmitter {
    */
   isTargetOpeningSection() {
     return this.isCommentTarget() && this.target.isOpeningSection();
+  }
+
+  /**
+   * Set whether CodeMirror is enabled.
+   *
+   * @param {boolean} enabled
+   */
+  setCodeMirrorEnabled(enabled) {
+    this.commentInput.setCodeMirror(enabled ? this.codeMirror : undefined);
   }
 
   static counter = 0;

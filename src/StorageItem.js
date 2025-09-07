@@ -29,7 +29,7 @@ class StorageItem {
    * @param {string} key Local storage item key (will be prepended by {@link StorageItem.prefix}).
    */
   constructor(key) {
-    // Workaround to make this.constructor in methods to be type checked correctly
+    // Workaround to make this.constructor in methods to be type-checked correctly
     /** @type {typeof StorageItem} */
     // eslint-disable-next-line no-self-assign
     this.constructor = this.constructor;

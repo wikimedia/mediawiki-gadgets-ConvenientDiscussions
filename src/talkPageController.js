@@ -773,7 +773,7 @@ class TalkPageController extends EventEmitter {
 
     // Mutation observer doesn't follow all possible comment position changes (for example,
     // initiated with adding new CSS) unfortunately.
-    setInterval(this.handlePageMutate.bind(this), 1000);
+    setInterval(this.handlePageMutate.bind(this), 1500);
 
     if (cd.page.isCommentable()) {
       $(document).on('keydown', this.handleGlobalKeyDown.bind(this));

@@ -1456,6 +1456,7 @@ class Comment extends CommentSkeleton {
 
     if (!getVisibilityByRects(rectTop, rectBottom)) {
       this.setOffset(undefined, options);
+
       return;
     }
 

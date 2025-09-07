@@ -86,8 +86,10 @@ class Parser {
     this.context = context;
     this.existingCommentIds = /** @type {string[]} */ ([]);
 
-    // Workaround to make this.constructor in methods to be type checked correctly
-    this.constructor = Parser;
+    // Workaround to make this.constructor in methods to be type-checked correctly
+    /** @type {typeof this} */
+    // eslint-disable-next-line no-self-assign
+    this.constructor = this.constructor;
   }
 
   /**

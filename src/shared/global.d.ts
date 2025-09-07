@@ -14,6 +14,7 @@ declare global {
   type NumbersByKey = TypeByKey<number>;
   type AnyByKey = TypeByKey<any>;
   type StringArraysByKey = TypeByKey<string[]>;
+  type AnyFunction = (...args: any) => any;
 
   interface Message {
     type: string;
@@ -178,5 +179,3 @@ declare global {
     getElementByClassName: (element: ElementFor<N>, className: string) => ElementFor<N> | null;
   }
 }
-
-export {};

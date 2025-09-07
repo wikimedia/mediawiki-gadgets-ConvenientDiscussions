@@ -1,3 +1,10 @@
+@line-height: 1.4285714em;
+@codemirror-editor-additional-padding: 5px;
+
+// Keep this synced with CommentForm#createTextInputs
+@num-rows-comment: 3;
+@num-rows-section: 5;
+
 .cd-commentForm {
   display: flow-root;
   font-weight: normal;
@@ -70,6 +77,51 @@
   .wikiEditor-ui-text {
     position: relative;
   }
+
+
+  /* CodeMirror */
+
+  // For autoresize
+  .cm-editor.cm-editor.cm-editor {
+    height: 100% !important;
+  }
+
+  .cm-gutters,
+  .cm-content.cm-content {
+    min-height: calc(@line-height * (@num-rows-comment + 1) + @codemirror-editor-additional-padding) !important;
+  }
+
+  &-addSection,
+  &-addSubsection {
+    .cm-gutters,
+    .cm-content.cm-content {
+      min-height: calc(@line-height * (@num-rows-section + 1) + @codemirror-editor-additional-padding) !important;
+    }
+  }
+
+  .ext-codemirror-wrapper--hidden textarea {
+    // By default, it's `inline-block` which creates a gap between the textarea and the buttons.
+    display: block !important;
+  }
+
+  .cm-editor {
+    border: 1px solid var(--border-color-base, #a2a9b1);
+    &.cm-focused {
+      border-color: var(--border-color-progressive--focus, #36c);
+      outline: 1px solid var(--color-progressive, #36c);
+      outline-offset: -2px;
+    }
+  }
+
+  .cm-gutters {
+    padding: 1px 0 1px 1px;
+    box-sizing: content-box;
+  }
+
+  .cm-focused .cm-gutters {
+    padding: 0;
+    margin: 1px 0 1px 1px;
+  }
 }
 
 .cd-commentForm-checkboxes {
@@ -133,8 +185,9 @@
   .oo-ui-inputWidget-input.oo-ui-inputWidget-input.oo-ui-inputWidget-input {
     position: relative;
 
-    // Fix for jumping text until T169335 is resolved.
-    padding-bottom: 1.4285714em;
+    // Fix for jumping text until T169335 is resolved. Add 2px to make the height match the
+    // default CodeMirror editor's height.
+    padding-bottom: calc(@line-height + 2px);
     overflow-y: hidden;
 
     // Safer for the case with page scaling according to the system font.
