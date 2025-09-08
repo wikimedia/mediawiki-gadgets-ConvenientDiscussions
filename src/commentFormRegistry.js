@@ -5,6 +5,7 @@ import bootController from './bootController';
 import cd from './cd';
 import commentRegistry from './commentRegistry';
 import sectionRegistry from './sectionRegistry';
+import settings from './settings';
 import { defined, removeFromArrayIfPresent, subtractDaysFromNow } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import { isCmdModifierPressed, isInputFocused, keyCombination } from './utils-window';
@@ -76,7 +77,8 @@ class CommentFormRegistry extends EventEmitter {
       .on('unselect', this.toggleQuoteButtonsHighlighting.bind(this, false));
 
     mw.hook('ext.CodeMirror.toggle').add((enabled, codeMirror) => {
-      this.items.find((item) => item.codeMirror === codeMirror)?.setCodeMirrorEnabled(enabled);
+      this.items.find((item) => item.codeMirror === codeMirror)?.setCodeMirrorActive(enabled);
+      settings.saveSettingOnTheFly('useCodeMirror', enabled);
     });
   }
 

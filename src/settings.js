@@ -39,6 +39,7 @@ import { createSvg, formatDateImproved, formatDateNative, formatDateRelative, ge
  * @property {import('./LiveTimestamp').TimestampFormat} timestampFormat
  * @property {boolean} upload-onboarded
  * @property {boolean} useBackgroundHighlighting
+ * @property {boolean} useCodeMirror
  * @property {boolean} useTemplateData
  * @property {boolean} useTopicSubscription
  * @property {boolean} useUiTime
@@ -160,6 +161,7 @@ class Settings {
       'manyForms-onboarded',
       'toggleChildThreads-onboarded',
       'upload-onboarded',
+      'useCodeMirror',
     ],
 
     /**
@@ -202,6 +204,7 @@ class Settings {
       subscribeOnReply: 'checkbox',
       timestampFormat: 'radio',
       useBackgroundHighlighting: 'checkbox',
+      useCodeMirror: 'checkbox',
       useTemplateData: 'checkbox',
       useTopicSubscription: 'checkbox',
       useUiTime: 'checkbox',
@@ -272,6 +275,7 @@ class Settings {
       // On wikis where there is no topic subscriptions, watching pages on replying is the
       // alternative to keep track of discussions.
       'watchOnReply': !cd.g.isDtInstalled,
+      'useCodeMirror': cd.g.isCodeMirror6Installed && false,
     };
   }
 

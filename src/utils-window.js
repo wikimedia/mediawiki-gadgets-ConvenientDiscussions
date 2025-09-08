@@ -111,6 +111,8 @@ export function transparentize(color) {
  * @returns {boolean}
  */
 export function isInputFocused() {
+  // Use document.activeElement instead of $(':input') for performance reasons - this runs very
+  // often
   if (!document.activeElement) {
     return false;
   }

@@ -513,6 +513,7 @@ class CommentForm extends EventEmitter {
     this.autopreview = settings.get('autopreview');
     this.alwaysExpandAdvanced = settings.get('alwaysExpandAdvanced');
     this.showToolbar = settings.get('showToolbar');
+    this.useCodeMirror = settings.get('useCodeMirror');
     this.insertButtons = settings.get('insertButtons');
     this.improvePerformance = settings.get('improvePerformance');
     this.manyFormsOnboarded = settings.get('manyForms-onboarded');
@@ -707,7 +708,7 @@ class CommentForm extends EventEmitter {
         wrapHtml(
           cd.sParse(
             'cf-notice-outdent',
-            (new mw.Title(cd.config.outdentTemplates[0], 10)).toString()
+            new mw.Title(cd.config.outdentTemplates[0], 10).toString()
           ),
           { targetBlank: true }
         ),
@@ -743,9 +744,10 @@ class CommentForm extends EventEmitter {
     this.target = target;
     this.targetSection = /** @type {CommentFormTargetSection} */ (this.target.getRelevantSection());
     this.targetPage = this.targetSection?.getSourcePage() || cd.page;
-    this.parentComment = this.isMode('reply') || this.isMode('replyInSection') ?
-      this.target.getRelevantComment() :
-      null;
+    this.parentComment =
+      this.isMode('reply') || this.isMode('replyInSection')
+        ? this.target.getRelevantComment()
+        : null;
   }
 
   /**
@@ -767,19 +769,17 @@ class CommentForm extends EventEmitter {
    */
   createTextInputs(initialState) {
     if (
-      (
-        (this.isMode('addSection') || this.isMode('addSubsection')) &&
-        !this.preloadConfig.noHeadline
-      ) ||
+      ((this.isMode('addSection') || this.isMode('addSubsection')) &&
+        !this.preloadConfig.noHeadline) ||
       this.isSectionOpeningCommentEdited()
     ) {
       this.headlineInputPlaceholder = this.target.getCommentFormHeadlineInputPlaceholder(this.mode);
-      this.headlineInput = (new (require('./TextInputWidget').default)({
+      this.headlineInput = new (require('./TextInputWidget').default)({
         value: initialState.headline ?? '',
         placeholder: this.headlineInputPlaceholder,
         classes: ['cd-commentForm-headlineInput'],
         tabIndex: this.getTabIndex(11),
-      }));
+      });
     }
 
     // Keep this synced with CommentForm.less: @num-rows-comment and @num-rows-section
@@ -793,8 +793,7 @@ class CommentForm extends EventEmitter {
       placeholder:
         this.target.getCommentFormCommentInputPlaceholder(this.mode, () => {
           const target = /** @type {Comment} */ (this.target);
-          this.commentInput.$input.attr(
-            'placeholder',
+          this.updateCommentInputPlaceholder(
             removeDoubleSpaces(
               cd.s('cf-comment-placeholder-replytocomment', target.author.getName(), target.author)
             )
@@ -821,6 +820,24 @@ class CommentForm extends EventEmitter {
   }
 
   /**
+   * Update the comment input placeholder.
+   *
+   * @param {string} [text = this.commentInput.$input.attr('placeholder')]
+   */
+  updateCommentInputPlaceholder(
+    text = /** @type {string} */ (this.commentInput.$input.attr('placeholder'))
+  ) {
+    this.commentInput.$input.attr('placeholder', text);
+
+    if (this.codeMirror) {
+      const { Compartment, placeholder } = mw.loader.require('ext.CodeMirror.v6.lib');
+      this.codeMirror.view.dispatch({
+        effects: new Compartment().reconfigure(placeholder(text)),
+      });
+    }
+  }
+
+  /**
    * Create the checkboxes and the horizontal layout containing them based on OOUI widgets.
    *
    * @param {CommentFormInitialState} initialState
@@ -829,12 +846,12 @@ class CommentForm extends EventEmitter {
   createCheckboxes(initialState) {
     if (cd.user.isRegistered()) {
       if (this.isMode('edit')) {
-         ({ field: this.minorField, input: this.minorCheckbox } = createCheckboxControl({
-           value: 'minor',
-           selected: initialState.minor ?? true,
-           label: cd.s('cf-minor'),
-           tabIndex: this.getTabIndex(20),
-         }));
+        ({ field: this.minorField, input: this.minorCheckbox } = createCheckboxControl({
+          value: 'minor',
+          selected: initialState.minor ?? true,
+          label: cd.s('cf-minor'),
+          tabIndex: this.getTabIndex(20),
+        }));
       }
 
       ({ field: this.watchField, input: this.watchCheckbox } = createCheckboxControl({
@@ -859,15 +876,13 @@ class CommentForm extends EventEmitter {
           value: 'subscribe',
           selected: Boolean(
             initialState.subscribe ??
-            (
-              (this.subscribeOnReply && !this.isMode('edit')) ||
-              subscribableSection?.subscriptionState
-            )
+              ((this.subscribeOnReply && !this.isMode('edit')) ||
+                subscribableSection?.subscriptionState)
           ),
           label: cd.s(
             this.useTopicSubscription ||
-            this.isMode('addSection') ||
-            (!this.isMode('addSubsection') && this.targetSection && this.targetSection.level <= 2)
+              this.isMode('addSection') ||
+              (!this.isMode('addSubsection') && this.targetSection && this.targetSection.level <= 2)
               ? 'cf-watchsection-topic'
               : 'cf-watchsection-subsection'
           ),
@@ -940,18 +955,20 @@ class CommentForm extends EventEmitter {
       classes: ['cd-button-ooui'],
       popup: {
         head: false,
-        $content: /** @type {JQuery} */ (wrapHtml(
-          cd.sParse(
-            'cf-help-content',
-            cd.config.mentionCharacter,
-            cd.g.cmdModifier,
-            cd.s('dot-separator')
-          ),
-          {
-            tagName: 'div',
-            targetBlank: true,
-          }
-        ).contents()),
+        $content: /** @type {JQuery} */ (
+          wrapHtml(
+            cd.sParse(
+              'cf-help-content',
+              cd.config.mentionCharacter,
+              cd.g.cmdModifier,
+              cd.s('dot-separator')
+            ),
+            {
+              tagName: 'div',
+              targetBlank: true,
+            }
+          ).contents()
+        ),
         padded: true,
         align: 'center',
         width: 400,
@@ -1018,23 +1035,19 @@ class CommentForm extends EventEmitter {
     } else if (this.isMode('edit')) {
       this.containerListType = this.target.containerListType;
     } else if (this.isMode('replyInSection')) {
-      this.containerListType = this.target.$replyButtonContainer
-        .prop('tagName')
-        .toLowerCase();
+      this.containerListType = this.target.$replyButtonContainer.prop('tagName').toLowerCase();
     }
 
-    this.$element = $('<div>').addClass([
-      `cd-commentForm cd-commentForm-${this.mode}`,
-      this.containerListType === 'ol' ?
-        'cd-commentForm-inNumberedList' :
-        undefined,
-        this.isSectionOpeningCommentEdited() ?
-        'cd-commentForm-sectionOpeningComment' :
-        undefined,
-      this.isSectionTarget() && this.isMode('addSubsection') ?
-        `cd-commentForm-addSubsection-${this.target.level}` :
-        undefined,
-    ].filter(defined));
+    this.$element = $('<div>').addClass(
+      [
+        `cd-commentForm cd-commentForm-${this.mode}`,
+        this.containerListType === 'ol' ? 'cd-commentForm-inNumberedList' : undefined,
+        this.isSectionOpeningCommentEdited() ? 'cd-commentForm-sectionOpeningComment' : undefined,
+        this.isSectionTarget() && this.isMode('addSubsection')
+          ? `cd-commentForm-addSubsection-${this.target.level}`
+          : undefined,
+      ].filter(defined)
+    );
 
     this.$messageArea = $('<div>').addClass('cd-commentForm-messageArea');
 
@@ -1042,18 +1055,14 @@ class CommentForm extends EventEmitter {
 
     this.$advanced = $('<div>')
       .addClass('cd-commentForm-advanced')
-      .append(
-        this.summaryInput.$element,
-        this.$summaryPreview,
-        this.checkboxesLayout.$element,
-      );
+      .append(this.summaryInput.$element, this.$summaryPreview, this.checkboxesLayout.$element);
 
     this.$buttonsStart = $('<div>')
       .addClass('cd-commentForm-buttons-start')
       .append(
         this.advancedButton.$element,
         this.helpPopupButton.$element,
-        this.settingsButton?.$element,
+        this.settingsButton?.$element
       );
 
     this.$buttonsEnd = $('<div>')
@@ -1062,20 +1071,22 @@ class CommentForm extends EventEmitter {
         this.cancelButton.$element,
         this.viewChangesButton.$element,
         this.previewButton.$element,
-        this.submitButton.$element,
+        this.submitButton.$element
       );
 
     this.$buttons = $('<div>')
       .addClass('cd-commentForm-buttons')
       .append(this.$buttonsStart, this.$buttonsEnd);
 
-    this.$element.append([
-      this.$messageArea,
-      this.headlineInput?.$element,
-      this.commentInput.$element,
-      this.$advanced,
-      this.$buttons,
-    ].filter(defined));
+    this.$element.append(
+      [
+        this.$messageArea,
+        this.headlineInput?.$element,
+        this.commentInput.$element,
+        this.$advanced,
+        this.$buttons,
+      ].filter(defined)
+    );
 
     if (!this.isMode('edit') && !this.alwaysExpandAdvanced) {
       this.$advanced.hide();
@@ -1085,23 +1096,16 @@ class CommentForm extends EventEmitter {
     this.$previewArea = $('<div>').addClass('cd-commentForm-previewArea mw-body-content');
 
     if (this.autopreview) {
-      this.$previewArea
-        .addClass('cd-commentForm-previewArea-below')
-        .appendTo(this.$element);
+      this.$previewArea.addClass('cd-commentForm-previewArea-below').appendTo(this.$element);
     } else {
-      this.$previewArea
-        .addClass('cd-commentForm-previewArea-above')
-        .prependTo(this.$element);
+      this.$previewArea.addClass('cd-commentForm-previewArea-above').prependTo(this.$element);
     }
 
     if (this.containerListType === 'ol' && $.client.profile().layout !== 'webkit') {
       // Dummy element for forms inside a numbered list so that the number is placed in front of
       // that area, not in some silly place. Note that in Chrome, the number is placed in front of
       // the textarea, so we don't need this in that browser.
-      $('<div>')
-        .html('&nbsp;')
-        .addClass('cd-commentForm-dummyElement')
-        .prependTo(this.$element);
+      $('<div>').html('&nbsp;').addClass('cd-commentForm-dummyElement').prependTo(this.$element);
     }
   }
 
@@ -1123,11 +1127,9 @@ class CommentForm extends EventEmitter {
 
     await mw.loader.using([
       'ext.wikiEditor',
-      ...(
-        cd.g.isCodeMirror6Installed
-          ? ['ext.CodeMirror.v6.WikiEditor', 'ext.CodeMirror.v6.mode.mediawiki']
-          : []
-      ),
+      ...(cd.g.isCodeMirror6Installed
+        ? ['ext.CodeMirror.v6.WikiEditor', 'ext.CodeMirror.v6.mode.mediawiki']
+        : []),
       ...requestedModulesNames,
     ]);
 
@@ -1154,7 +1156,9 @@ class CommentForm extends EventEmitter {
     $input.wikiEditor('addModule', dialogsDefaultConfig);
 
     this.commentInput.$element
-      .find('.tool[rel="redirect"], .tool[rel="signature"], .tool[rel="newline"], .tool[rel="reference"], .option[rel="heading-2"]')
+      .find(
+        '.tool[rel="redirect"], .tool[rel="signature"], .tool[rel="newline"], .tool[rel="reference"], .option[rel="heading-2"]'
+      )
       .remove();
     if (!this.isMode('addSection') && !this.isMode('addSubsection')) {
       this.commentInput.$element.find('.group-heading').remove();
@@ -1193,7 +1197,10 @@ class CommentForm extends EventEmitter {
       group: 'convenient-discussions',
       tools: {
         quote: {
-          label: `${cd.s('cf-quote-tooltip')} ${cd.mws('parentheses', `Q${cd.mws('comma-separator')}${cd.g.cmdModifier}+Alt+Q`)}`,
+          label: `${cd.s('cf-quote-tooltip')} ${cd.mws(
+            'parentheses',
+            `Q${cd.mws('comma-separator')}${cd.g.cmdModifier}+Alt+Q`
+          )}`,
           type: 'button',
           icon: `${scriptPath}/load.php?modules=oojs-ui.styles.icons-editing-advanced&image=quotes&lang=${lang}&skin=vector`,
           action: {
@@ -1218,9 +1225,10 @@ class CommentForm extends EventEmitter {
         commentLink: {
           label: `${cd.s('cf-commentlink-tooltip')}`,
           type: 'button',
-          icon: cd.g.userDirection === 'ltr' ?
-            `'data:image/svg+xml, %3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M3 2C2.46957 2 1.96086 2.21071 1.58579 2.58579C1.21071 2.96086 1 3.46957 1 4V20L5 16H17C17.5304 16 18.0391 15.7893 18.4142 15.4142C18.7893 15.0391 19 14.5304 19 14V4C19 3.46957 18.7893 2.96086 18.4142 2.58579C18.0391 2.21071 17.5304 2 17 2H3Z" /%3E%3C/svg%3E'` :
-            `'data:image/svg+xml, %3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M17 2C17.5304 2 18.0391 2.21071 18.4142 2.58579C18.7893 2.96086 19 3.46957 19 4V20L15 16H3C2.46957 16 1.96086 15.7893 1.58579 15.4142C1.21071 15.0391 1 14.5304 1 14V4C1 3.46957 1.21071 2.96086 1.58579 2.58579C1.96086 2.21071 2.46957 2 3 2H17Z" /%3E%3C/svg%3E'`,
+          icon:
+            cd.g.userDirection === 'ltr'
+              ? `'data:image/svg+xml, %3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M3 2C2.46957 2 1.96086 2.21071 1.58579 2.58579C1.21071 2.96086 1 3.46957 1 4V20L5 16H17C17.5304 16 18.0391 15.7893 18.4142 15.4142C18.7893 15.0391 19 14.5304 19 14V4C19 3.46957 18.7893 2.96086 18.4142 2.58579C18.0391 2.21071 17.5304 2 17 2H3Z" /%3E%3C/svg%3E'`
+              : `'data:image/svg+xml, %3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M17 2C17.5304 2 18.0391 2.21071 18.4142 2.58579C18.7893 2.96086 19 3.46957 19 4V20L15 16H3C2.46957 16 1.96086 15.7893 1.58579 15.4142C1.21071 15.0391 1 14.5304 1 14V4C1 3.46957 1.21071 2.96086 1.58579 2.58579C1.96086 2.21071 2.46957 2 3 2H17Z" /%3E%3C/svg%3E'`,
           action: {
             type: 'callback',
             execute: () => {
@@ -1236,7 +1244,10 @@ class CommentForm extends EventEmitter {
       group: 'format',
       tools: {
         code: {
-          label: `${cd.s('cf-code-tooltip')} ${cd.mws('parentheses', `${cd.g.cmdModifier}+Shift+6`)}`,
+          label: `${cd.s('cf-code-tooltip')} ${cd.mws(
+            'parentheses',
+            `${cd.g.cmdModifier}+Shift+6`
+          )}`,
           type: 'button',
           icon: `${scriptPath}/load.php?modules=oojs-ui.styles.icons-editing-advanced&image=code&lang=${lang}&skin=vector`,
           action: {
@@ -1258,7 +1269,10 @@ class CommentForm extends EventEmitter {
           },
         },
         underline: {
-          label: `${cd.s('cf-underline-tooltip')} ${cd.mws('parentheses', `${cd.g.cmdModifier}+U`)}`,
+          label: `${cd.s('cf-underline-tooltip')} ${cd.mws(
+            'parentheses',
+            `${cd.g.cmdModifier}+U`
+          )}`,
           type: 'button',
           icon: `${scriptPath}/load.php?modules=oojs-ui.styles.icons-editing-styling&image=underline&lang=${lang}&skin=vector`,
           action: {
@@ -1267,7 +1281,10 @@ class CommentForm extends EventEmitter {
           },
         },
         strikethrough: {
-          label: `${cd.s('cf-strikethrough-tooltip')} ${cd.mws('parentheses', `${cd.g.cmdModifier}+Shift+5`)}`,
+          label: `${cd.s('cf-strikethrough-tooltip')} ${cd.mws(
+            'parentheses',
+            `${cd.g.cmdModifier}+Shift+5`
+          )}`,
           type: 'button',
           icon: `${scriptPath}/load.php?modules=oojs-ui.styles.icons-editing-styling&image=strikethrough&lang=${lang}&skin=vector`,
           action: {
@@ -1280,43 +1297,63 @@ class CommentForm extends EventEmitter {
 
     this.$element
       .find('.tool[rel="bold"] a')
-      .attr('title', `${mw.msg('wikieditor-toolbar-tool-bold')} ${cd.mws('parentheses', `${cd.g.cmdModifier}+B`)}`);
+      .attr(
+        'title',
+        `${mw.msg('wikieditor-toolbar-tool-bold')} ${cd.mws(
+          'parentheses',
+          `${cd.g.cmdModifier}+B`
+        )}`
+      );
 
     this.$element
       .find('.tool[rel="italic"] a')
-      .attr('title', `${mw.msg('wikieditor-toolbar-tool-italic')} ${cd.mws('parentheses', `${cd.g.cmdModifier}+I`)}`);
+      .attr(
+        'title',
+        `${mw.msg('wikieditor-toolbar-tool-italic')} ${cd.mws(
+          'parentheses',
+          `${cd.g.cmdModifier}+I`
+        )}`
+      );
 
     this.$element
       .find('.tool[rel="link"] a')
-      .attr('title', `${mw.msg('wikieditor-toolbar-tool-link')} ${cd.mws('parentheses', `${cd.g.cmdModifier}+K`)}`);
+      .attr(
+        'title',
+        `${mw.msg('wikieditor-toolbar-tool-link')} ${cd.mws(
+          'parentheses',
+          `${cd.g.cmdModifier}+K`
+        )}`
+      );
 
     this.$element
       .find('.tool[rel="ulist"] a')
-      .attr('title', `${mw.msg('wikieditor-toolbar-tool-ulist')} ${cd.mws('parentheses', `${cd.g.cmdModifier}+Shift+8`)}`);
+      .attr(
+        'title',
+        `${mw.msg('wikieditor-toolbar-tool-ulist')} ${cd.mws(
+          'parentheses',
+          `${cd.g.cmdModifier}+Shift+8`
+        )}`
+      );
 
-    this.$element
-      .find('.tool[rel="link"] a, .tool[rel="file"] a')
-      .on('click', (event) => {
-        // Fix text being inserted in a wrong textarea.
-        const rel = event.currentTarget.parentElement?.getAttribute('rel');
-        if (!rel) return;
+    this.$element.find('.tool[rel="link"] a, .tool[rel="file"] a').on('click', (event) => {
+      // Fix text being inserted in a wrong textarea.
+      const rel = event.currentTarget.parentElement?.getAttribute('rel');
+      if (!rel) return;
 
-        const $dialog = $(`#wikieditor-toolbar-${rel}-dialog`);
-        if ($dialog.length) {
-          const context = $dialog.data('context');
-          if (context) {
-            context.$textarea = context.$focusedElem = this.commentInput.$input;
-          }
-
-          // Fix the error when trying to submit the dialog by pressing Enter after doing so by
-          // pressing a button.
-          $dialog.parent().data('dialogaction', false);
+      const $dialog = $(`#wikieditor-toolbar-${rel}-dialog`);
+      if ($dialog.length) {
+        const context = $dialog.data('context');
+        if (context) {
+          context.$textarea = context.$focusedElem = this.commentInput.$input;
         }
-      });
 
-    this.$element
-      .find('.tool[rel="quote"]')
-      .wrap($('<span>').addClass('cd-tool-button-wrapper'));
+        // Fix the error when trying to submit the dialog by pressing Enter after doing so by
+        // pressing a button.
+        $dialog.parent().data('dialogaction', false);
+      }
+    });
+
+    this.$element.find('.tool[rel="quote"]').wrap($('<span>').addClass('cd-tool-button-wrapper'));
 
     this.addCodeMirror();
 
@@ -1346,33 +1383,38 @@ class CommentForm extends EventEmitter {
       .first()
       .addClass('ext-codemirror-mediawiki');
 
-    this.commentInput.$input.wikiEditor('addToToolbar', {
-      section: 'main', groups: {
-        codemirror: {
-          tools: {
-            CodeMirror: {
-              type: 'element',
-              element: () => {
-                const button = new OO.ui.ToggleButtonWidget({
-                  label: mw.msg('codemirror-toggle-label-short'),
-                  title: mw.msg('codemirror-toggle-label'),
-                  icon: 'syntax-highlight',
-                  value: false,
-                  framed: false,
-                  classes: ['tool', 'cm-mw-toggle-wikieditor']
-                });
+    if (this.useCodeMirror) {
+      this.initCodeMirror();
+    } else {
+      this.commentInput.$input.wikiEditor('addToToolbar', {
+        section: 'main',
+        groups: {
+          codemirror: {
+            tools: {
+              CodeMirror: {
+                type: 'element',
+                element: () => {
+                  const button = new OO.ui.ToggleButtonWidget({
+                    label: mw.msg('codemirror-toggle-label-short'),
+                    title: mw.msg('codemirror-toggle-label'),
+                    icon: 'syntax-highlight',
+                    value: false,
+                    framed: false,
+                    classes: ['tool', 'cm-mw-toggle-wikieditor'],
+                  });
 
-                // After the button is clicked for the first time, it is replaced by the
-                // CodeMirror extension with its own, so initCodeMirror() runs only once.
-                button.on('click', this.initCodeMirror);
+                  // After the button is clicked for the first time, it is replaced by the
+                  // CodeMirror extension with its own, so initCodeMirror() runs only once.
+                  button.on('click', this.initCodeMirror);
 
-                return button.$element;
-              }
-            }
-          }
-        }
-      }
-    });
+                  return button.$element;
+                },
+              },
+            },
+          },
+        },
+      });
+    }
   }
 
   /**
@@ -1381,15 +1423,17 @@ class CommentForm extends EventEmitter {
    * @private
    */
   initCodeMirror = () => {
-    this.codeMirror =
-      /** @type {import('./CodeMirrorWikiEditor').CodeMirrorWikiEditor} */ (
-        new (mw.loader.require('ext.CodeMirror.v6.WikiEditor'))(
-          this.commentInput.$input[0],
-          mw.loader.require('ext.CodeMirror.v6.mode.mediawiki')()
-        )
-      );
+    this.codeMirror = /** @type {import('./CodeMirrorWikiEditor').CodeMirrorWikiEditor} */ (
+      new (mw.loader.require('ext.CodeMirror.v6.WikiEditor'))(
+        this.commentInput.$input[0],
+        mw.loader.require('ext.CodeMirror.v6.mode.mediawiki')()
+      )
+    );
     this.codeMirror.mode = 'mediawiki';
     this.codeMirror.initialize();
+    this.updateCommentInputPlaceholder();
+
+    this.setCodeMirrorActive(true);
   };
 
   /**
@@ -1449,7 +1493,7 @@ class CommentForm extends EventEmitter {
           this.encapsulateSelection({ pre, post });
         },
       }).element,
-      ' ',
+      ' '
     );
   }
 
@@ -1500,7 +1544,7 @@ class CommentForm extends EventEmitter {
 
       operation.close();
 
-      (initialState.focusHeadline && this.headlineInput || this.commentInput).focus();
+      ((initialState.focusHeadline && this.headlineInput) || this.commentInput).focus();
       this.preview();
     } catch (error) {
       this.handleError({
@@ -1543,15 +1587,11 @@ class CommentForm extends EventEmitter {
       // Just making a parse request with both edit intro and edit notices is simpler than making
       // two requests for each of them.
       result = await parseCode(
-        (
-          (
-            this.preloadConfig.editIntro ?
-              `<div class="cd-editintro">{{${this.preloadConfig.editIntro}}}</div>\n` :
-              ''
-          ) +
+        (this.preloadConfig.editIntro
+          ? `<div class="cd-editintro">{{${this.preloadConfig.editIntro}}}</div>\n`
+          : '') +
           `<div class="cd-editnotice">{{MediaWiki:Editnotice-${cd.g.namespaceNumber}}}</div>` +
-          `<div class="cd-editnotice">{{MediaWiki:Editnotice-${cd.g.namespaceNumber}-${title}}}</div>`
-        ),
+          `<div class="cd-editnotice">{{MediaWiki:Editnotice-${cd.g.namespaceNumber}-${title}}}</div>`,
         { title: cd.page.name }
       );
     } catch {
@@ -1572,19 +1612,17 @@ class CommentForm extends EventEmitter {
 
     // We mirror the functionality of the ext.charinsert module to keep the undo/redo
     // functionality.
-    this.$messageArea
-      .find('.mw-charinsert-item')
-      .each((_, el) => {
-        const $el = $(el);
-        $el
-          .on('click', () => {
-            this.encapsulateSelection({
-              pre: $el.data('mw-charinsert-start'),
-              post: $el.data('mw-charinsert-end'),
-            });
-          })
-          .data('mw-charinsert-done', true);
-      });
+    this.$messageArea.find('.mw-charinsert-item').each((_, el) => {
+      const $el = $(el);
+      $el
+        .on('click', () => {
+          this.encapsulateSelection({
+            pre: $el.data('mw-charinsert-start'),
+            post: $el.data('mw-charinsert-end'),
+          });
+        })
+        .data('mw-charinsert-done', true);
+    });
 
     mw.hook('wikipage.content').fire(this.$messageArea);
   }
@@ -1623,10 +1661,8 @@ class CommentForm extends EventEmitter {
       code = code
         .replace(generateTagsRegexp(['includeonly']), '$3')
         .replace(generateTagsRegexp(['noinclude']), '')
-        .replace(
-          /\$(\d+)/g,
-          (m, s) =>
-            this.preloadConfig.params === undefined ? m : (this.preloadConfig.params[s - 1] ?? m)
+        .replace(/\$(\d+)/g, (m, s) =>
+          this.preloadConfig.params === undefined ? m : this.preloadConfig.params[s - 1] ?? m
         );
       code = code.trim();
 
@@ -1733,16 +1769,14 @@ class CommentForm extends EventEmitter {
       // loading stage.
       const text = await this.commentInput.getWikitextFromPaste(html);
 
-      this.commentInput
-        .selectRange(position - insertedText.length, position)
-        .insertContent(text);
+      this.commentInput.selectRange(position - insertedText.length, position).insertContent(text);
       this.teardownInputPopups();
     });
     this.teardownInputPopups();
 
-    const $textareaWrapper = this.showToolbar ?
-      this.$element.find('.wikiEditor-ui-text') :
-      this.commentInput.$element;
+    const $textareaWrapper = this.showToolbar
+      ? this.$element.find('.wikiEditor-ui-text')
+      : this.commentInput.$element;
     this.$commentInputPopupFloatableContainer = this.getCommentInputDummyFloatableContainer();
     $textareaWrapper.append(this.$commentInputPopupFloatableContainer);
 
@@ -1877,17 +1911,33 @@ class CommentForm extends EventEmitter {
       this.preview();
     };
 
-    this.$element
-      // Hotkeys
-      .on('keydown', (event) => {
+    // Use capture to get ahead of CodeMirror's keydown handler
+    this.$element[0].addEventListener(
+      'keydown',
+      (event) => {
+        if (
+          this.codeMirror?.isActive &&
+          /** @type {Element} */ (event.target).tagName === 'TEXTAREA'
+        )
+          return;
+
+        // Hotkeys
+
+        // Esc
+        if (
+          keyCombination(event, 27) &&
+          // When there is a search panel, CodeMirror closes it on Esc even when the caret is in the
+          // main text box. With the preferences panel, it is so only when the panel itself is
+          // focused.
+          (!this.codeMirror?.isActive ||
+            !this.$element.find('.cm-panels :focus, .cm-mw-panel--search-panel').length)
+        ) {
+          this.cancel();
+        }
+
         // Ctrl+Enter
         if (keyCombination(event, 13, ['cmd'])) {
           this.submit();
-        }
-
-        // Esc
-        if (keyCombination(event, 27)) {
-          this.cancel();
         }
 
         // WikiEditor started supporting these in October 2024
@@ -1937,13 +1987,15 @@ class CommentForm extends EventEmitter {
           this.commentInput.$element.find('.tool[rel="ulist"] a')[0]?.click();
           event.preventDefault();
         }
-      })
+      },
+      { capture: true }
+    );
 
-      // "focusin" is "focus" that bubbles, i.e. propagates up the node tree.
-      .on('focusin', () => {
-        this.lastFocused = new Date();
-        talkPageController.updatePageTitle();
-      });
+    // "focusin" is "focus" that bubbles, i.e. propagates up the node tree.
+    this.$element.on('focusin', () => {
+      this.lastFocused = new Date();
+      talkPageController.updatePageTitle();
+    });
 
     this.addEventListenersToTextInputs(emitChange, preview);
     this.addEventListenersToCheckboxes(emitChange, preview);
@@ -2002,8 +2054,7 @@ class CommentForm extends EventEmitter {
         .on('change', preview)
         .on('change', emitChange);
 
-      this.headlineInput
-        .on('enter', this.submit.bind(this));
+      this.headlineInput.on('enter', this.submit.bind(this));
     }
 
     this.commentInput
@@ -2034,7 +2085,7 @@ class CommentForm extends EventEmitter {
         const data = /** @type {DragEvent} */ (event.originalEvent).dataTransfer;
         if (
           !data ||
-          ![...data.items].some(((item) => CommentForm.allowedFileTypes.includes(item.type)))
+          ![...data.items].some((item) => CommentForm.allowedFileTypes.includes(item.type))
         ) {
           return;
         }
@@ -2105,8 +2156,7 @@ class CommentForm extends EventEmitter {
       })
       .on('change', emitChange);
 
-    this.summaryInput
-      .on('enter', this.submit.bind(this));
+    this.summaryInput.on('enter', this.submit.bind(this));
   }
 
   /**
@@ -2165,12 +2215,9 @@ class CommentForm extends EventEmitter {
    * @private
    */
   addEventListenersToCheckboxes(emitChange, preview) {
-    this.minorCheckbox
-      ?.on('change', emitChange);
-    this.watchCheckbox
-      ?.on('change', emitChange);
-    this.subscribeCheckbox
-      ?.on('change', emitChange);
+    this.minorCheckbox?.on('change', emitChange);
+    this.watchCheckbox?.on('change', emitChange);
+    this.subscribeCheckbox?.on('change', emitChange);
     this.omitSignatureCheckbox
       ?.on('change', preview)
       .on('manualChange', () => {
@@ -2314,9 +2361,7 @@ class CommentForm extends EventEmitter {
       this.$advanced.show();
       const value = this.summaryInput.getValue();
       const match = value.match(/^.+?\*\/ */);
-      this.summaryInput
-        .focus()
-        .selectRange(match ? match[0].length : 0, value.length);
+      this.summaryInput.focus().selectRange(match ? match[0].length : 0, value.length);
     } else {
       this.$advanced.hide();
       this.commentInput.focus();
@@ -2465,16 +2510,14 @@ class CommentForm extends EventEmitter {
 
     this.$messageArea
       .append(
-        isRaw ?
-          htmlOrJquery :
-          (
-            new OO.ui.MessageWidget({
+        isRaw
+          ? htmlOrJquery
+          : new OO.ui.MessageWidget({
               type,
               inline: true,
               label: typeof htmlOrJquery === 'string' ? wrapHtml(htmlOrJquery) : htmlOrJquery,
               classes: ['cd-message', name ? `cd-message-${name}` : undefined].filter(defined),
-            })
-          ).$element
+            }).$element
       )
       .cdAddCloseButton()
       .cdScrollIntoView('top');
@@ -2573,13 +2616,7 @@ class CommentForm extends EventEmitter {
    *
    * @param {HandleErrorOptions} options
    */
-  handleError({
-    error,
-    message,
-    messageType = 'error',
-    cancel = false,
-    operation,
-  }) {
+  handleError({ error, message, messageType = 'error', cancel = false, operation }) {
     if (!(error instanceof CdError)) {
       error = CdError.generateCdErrorFromJsError(error);
     }
@@ -2751,13 +2788,12 @@ class CommentForm extends EventEmitter {
         )[0].length;
         ({ contextCode } = commentSource.modifyContext({
           action: 'edit',
-          commentCode: (
+          commentCode:
             (commentSource.headingCode || '') +
             commentCodePart.slice(0, commentTextIndex) +
             anchorCode +
             commentCodePart.slice(commentTextIndex) +
-            commentSource.signatureDirtyCode
-          ),
+            commentSource.signatureDirtyCode,
           contextCode,
         }));
       } else if (!$('#' + id).length) {
@@ -2793,9 +2829,9 @@ class CommentForm extends EventEmitter {
     this.setNewSectionApi(
       Boolean(
         this.isMode('addSection') &&
-        !this.newTopicOnTop &&
-        this.headlineInput?.getValue().trim() &&
-        !commentIds.length
+          !this.newTopicOnTop &&
+          this.headlineInput?.getValue().trim() &&
+          !commentIds.length
       )
     );
 
@@ -2867,9 +2903,7 @@ class CommentForm extends EventEmitter {
     this.$previewArea
       .html(html)
       .prepend(
-        $('<div>')
-          .addClass('cd-commentForm-previewArea-label')
-          .text(cd.s('cf-block-preview'))
+        $('<div>').addClass('cd-commentForm-previewArea-label').text(cd.s('cf-block-preview'))
       )
       .cdAddCloseButton()
       .toggleClass('cd-commentForm-previewArea-indentedComment', this.willCommentBeIndented);
@@ -2896,10 +2930,7 @@ class CommentForm extends EventEmitter {
    * @fires previewReady
    */
   async preview(isAuto = true, operation) {
-    if (
-      this.isContentBeingLoaded() ||
-      (!this.autopreview && (isAuto || this.isBeingSubmitted()))
-    ) {
+    if (this.isContentBeingLoaded() || (!this.autopreview && (isAuto || this.isBeingSubmitted()))) {
       operation?.close();
 
       return;
@@ -2911,18 +2942,18 @@ class CommentForm extends EventEmitter {
       const lastPreviewTimestamp = this.lastPreviewTimestamp;
       if (lastPreviewTimestamp) {
         const isTooEarly = Date.now() - lastPreviewTimestamp < 1000;
-        if (
-          isTooEarly ||
-          this.operations.filterByType('preview').some((op) => op !== operation)
-        ) {
+        if (isTooEarly || this.operations.filterByType('preview').some((op) => op !== operation)) {
           if (this.previewTimeout) {
             operation.close();
           } else {
             operation.delay();
-            this.previewTimeout = setTimeout(() => {
-              this.previewTimeout = null;
-              this.preview(true, operation);
-            }, isTooEarly ? 1000 - (Date.now() - lastPreviewTimestamp) : 100);
+            this.previewTimeout = setTimeout(
+              () => {
+                this.previewTimeout = null;
+                this.preview(true, operation);
+              },
+              isTooEarly ? 1000 - (Date.now() - lastPreviewTimestamp) : 100
+            );
           }
 
           return;
@@ -2973,15 +3004,12 @@ class CommentForm extends EventEmitter {
 
     if (html) {
       if (
-        (
-          isAuto &&
-
+        (isAuto &&
           // In case of an empty comment input, we in fact make this request for the sake of parsing
           // the summary if there is a need. Alternatively, the user could click the "Preview"
           // button.
           !commentInputValue.trim() &&
-          !this.headlineInput?.getValue().trim()
-        ) ||
+          !this.headlineInput?.getValue().trim()) ||
         this.deleteCheckbox?.isSelected()
       ) {
         this.$previewArea.empty();
@@ -2993,7 +3021,7 @@ class CommentForm extends EventEmitter {
       // https://en.wikipedia.org/wiki/Template:Requested_move, are substituted.
       if (this.omitSignatureCheckbox && !this.omitSignatureCheckboxAltered) {
         const substAliasesString = ['subst:'].concat(cd.config.substAliases).join('|');
-        if ((new RegExp(`{{ *(${substAliasesString})`, 'i')).test(commentInputValue)) {
+        if (new RegExp(`{{ *(${substAliasesString})`, 'i').test(commentInputValue)) {
           const signatureText = this.$previewArea.find('.cd-commentForm-signature').text();
           const previewText = this.$previewArea.text();
           if (
@@ -3012,9 +3040,7 @@ class CommentForm extends EventEmitter {
         this.$summaryPreview.append(
           document.createTextNode(cd.sParse('cf-summary-preview')),
           document.createTextNode(cd.mws('colon-separator')),
-          $('<span>')
-            .addClass('comment')
-            .html(parsedSummary),
+          $('<span>').addClass('comment').html(parsedSummary)
         );
       }
     }
@@ -3028,9 +3054,7 @@ class CommentForm extends EventEmitter {
 
     if (!isAuto) {
       this.$previewArea.cdScrollIntoView(
-        this.$previewArea.hasClass('cd-commentForm-previewArea-above') ?
-          'top' :
-          'bottom'
+        this.$previewArea.hasClass('cd-commentForm-previewArea-above') ? 'top' : 'bottom'
       );
       this.commentInput.focus();
     }
@@ -3044,7 +3068,7 @@ class CommentForm extends EventEmitter {
 
     const operation = this.operations.add('viewChanges');
 
-    const { contextCode } = await this.buildSource('viewChanges', operation) || {};
+    const { contextCode } = (await this.buildSource('viewChanges', operation)) || {};
     if (contextCode === undefined) return;
 
     mw.loader.load('mediawiki.diff.styles');
@@ -3094,9 +3118,7 @@ class CommentForm extends EventEmitter {
       this.$previewArea
         .html(wrapDiffBody(html))
         .prepend(
-          $('<div>')
-            .addClass('cd-commentForm-previewArea-label')
-            .text(cd.s('cf-block-viewchanges'))
+          $('<div>').addClass('cd-commentForm-previewArea-label').text(cd.s('cf-block-viewchanges'))
         )
         .cdAddCloseButton();
     } else {
@@ -3114,9 +3136,7 @@ class CommentForm extends EventEmitter {
     operation.close();
 
     this.$previewArea.cdScrollIntoView(
-      this.$previewArea.hasClass('cd-commentForm-previewArea-above') ?
-        'top' :
-        'bottom'
+      this.$previewArea.hasClass('cd-commentForm-previewArea-above') ? 'top' : 'bottom'
     );
     this.commentInput.focus();
   }
@@ -3175,45 +3195,39 @@ class CommentForm extends EventEmitter {
       {
         condition: !doDelete && this.headlineInput?.getValue() === '',
         confirmation: () => {
-          const ending = this.headlineInputPlaceholder === cd.s('cf-headline-topic') ?
-            'topic' :
-            'subsection';
+          const ending =
+            this.headlineInputPlaceholder === cd.s('cf-headline-topic') ? 'topic' : 'subsection';
 
           return confirm(
-            cd.s(`cf-confirm-noheadline-${ending}`) +
-            ' ' +
-            cd.s('cf-confirm-noheadline-question')
+            cd.s(`cf-confirm-noheadline-${ending}`) + ' ' + cd.s('cf-confirm-noheadline-question')
           );
         },
       },
       {
-        condition: (
+        condition:
           !doDelete &&
           !this.commentInput.getValue().trim() &&
-          !cd.config.dontConfirmEmptyCommentPages.some((regexp) => cd.page.name.match(regexp))
-        ),
+          !cd.config.dontConfirmEmptyCommentPages.some((regexp) => cd.page.name.match(regexp)),
         confirmation: () => confirm(cd.s('cf-confirm-empty')),
       },
       {
-        condition: (
-          !doDelete &&
-          this.commentInput.getValue().trim().length > cd.config.longCommentThreshold
-        ),
-        confirmation: () => confirm(cd.s('cf-confirm-long', String(cd.config.longCommentThreshold))),
+        condition:
+          !doDelete && this.commentInput.getValue().trim().length > cd.config.longCommentThreshold,
+        confirmation: () =>
+          confirm(cd.s('cf-confirm-long', String(cd.config.longCommentThreshold))),
       },
       {
-        condition: (
+        condition:
           !doDelete &&
           /^==[^=]/m.test(this.commentInput.getValue()) &&
           !this.isMode('edit') &&
-          !this.preloadConfig?.commentTemplate
-        ),
+          !this.preloadConfig?.commentTemplate,
         confirmation: () => confirm(cd.s('cf-confirm-secondlevelheading')),
       },
       {
         condition: doDelete,
         confirmation: () => confirm(cd.s('cf-confirm-delete')),
-      }
+      },
     ];
 
     for (const check of checks) {
@@ -3252,9 +3266,10 @@ class CommentForm extends EventEmitter {
         options.sectiontitle = this.headlineInput.getValue().trim();
         options.section = 'new';
       } else if (this.isSectionSubmitted()) {
-        options.section = typeof this.targetSection.liveSectionNumber === 'number' ?
-          String(this.targetSection.liveSectionNumber) :
-          undefined;
+        options.section =
+          typeof this.targetSection.liveSectionNumber === 'number'
+            ? String(this.targetSection.liveSectionNumber)
+            : undefined;
         sectionOrPage = this.targetSection;
       } else {
         sectionOrPage = this.targetPage;
@@ -3333,10 +3348,8 @@ class CommentForm extends EventEmitter {
         // FIXME: fix behavior for sections added with no headline (that are, in fact, comments
         // added to the preceding section)
         this.isMode('addSection') ||
-        (
-          !this.useTopicSubscription &&
-          (this.isMode('addSubsection') || this.isSectionOpeningCommentEdited())
-        )
+        (!this.useTopicSubscription &&
+          (this.isMode('addSubsection') || this.isSectionOpeningCommentEdited()))
       ) {
         let rawHeadline = this.headlineInput?.getValue().trim();
         if (!rawHeadline && !this.isSectionOpeningCommentEdited()) {
@@ -3362,7 +3375,8 @@ class CommentForm extends EventEmitter {
           if (isHeadlineAltered) {
             bootData.justUnsubscribedFromSection = originalHeadline;
           }
-          talkPageController.getSubscriptionsInstance()
+          talkPageController
+            .getSubscriptionsInstance()
             .subscribe(subscribeId, headline, true, originalHeadline);
         }
       } else {
@@ -3397,21 +3411,25 @@ class CommentForm extends EventEmitter {
     // Timestamps on the page (and therefore anchors) have no seconds.
     date.setSeconds(0);
 
-    const commentAboveCommentToBeAddedIndex = this.target.getCommentAboveCommentToBeAdded(this)?.index;
+    const commentAboveCommentToBeAddedIndex =
+      this.target.getCommentAboveCommentToBeAdded(this)?.index;
 
-    return /** @type {string} */ (Comment.generateId(
-      date,
-      cd.user.getName(),
-      commentAboveCommentToBeAddedIndex ?
-        commentRegistry.getAll()
-          .slice(0, commentAboveCommentToBeAddedIndex + 1)
-          .filter((comment) => (
-            comment.author === cd.user &&
-            comment.date?.getTime() === date.getTime()
-          ))
-          .map((comment) => /** @type {string} */ (comment.id)) :
-        undefined
-    ));
+    return /** @type {string} */ (
+      Comment.generateId(
+        date,
+        cd.user.getName(),
+        commentAboveCommentToBeAddedIndex
+          ? commentRegistry
+              .getAll()
+              .slice(0, commentAboveCommentToBeAddedIndex + 1)
+              .filter(
+                (comment) =>
+                  comment.author === cd.user && comment.date?.getTime() === date.getTime()
+              )
+              .map((comment) => /** @type {string} */ (comment.id))
+          : undefined
+      )
+    );
   }
 
   /**
@@ -3431,14 +3449,14 @@ class CommentForm extends EventEmitter {
         error: new CdError({
           type: 'ui',
           message: cd.sParse('cf-error-othersubmitted'),
-        })
+        }),
       });
       return;
     }
 
     const operation = this.operations.add('submit', undefined, clearMessages);
 
-    const { contextCode, commentCode } = await this.buildSource('submit', operation) || {};
+    const { contextCode, commentCode } = (await this.buildSource('submit', operation)) || {};
     if (contextCode === undefined) return;
 
     const editTimestamp = await this.editPage(contextCode, operation, suppressTag);
@@ -3569,16 +3587,12 @@ class CommentForm extends EventEmitter {
     // In case of the comment being edited some properties would be undefined if its code was not
     // located in the source.
     return Boolean(
-      (
-        this.originalComment !== undefined &&
-        this.originalComment !== this.commentInput.getValue()
-      ) ||
-      this.autoSummary !== this.summaryInput.getValue() ||
-      (
-        this.headlineInput &&
-        this.originalHeadline !== undefined &&
-        this.originalHeadline !== this.headlineInput.getValue()
-      )
+      (this.originalComment !== undefined &&
+        this.originalComment !== this.commentInput.getValue()) ||
+        this.autoSummary !== this.summaryInput.getValue() ||
+        (this.headlineInput &&
+          this.originalHeadline !== undefined &&
+          this.originalHeadline !== this.headlineInput.getValue())
     );
   }
 
@@ -3614,7 +3628,8 @@ class CommentForm extends EventEmitter {
 
     let optionalText;
     if (this.isMode('reply') || this.isMode('replyInSection')) {
-      const commentText = this.commentInput.getValue()
+      const commentText = this.commentInput
+        .getValue()
         .trim()
         .replace(/\s+/g, ' ')
 
@@ -3622,9 +3637,9 @@ class CommentForm extends EventEmitter {
         .replace(cd.g.pipeTrickRegexp, '$1$2$3')
 
         // Remove user links to prevent sending a double notification.
-        .replace(/\[\[:?(?:([^|[\]<>\n]+)\|)?(.+?)\]\]/g, (s, wikilink, text) => (
+        .replace(/\[\[:?(?:([^|[\]<>\n]+)\|)?(.+?)\]\]/g, (s, wikilink, text) =>
           cd.g.userLinkRegexp.test(wikilink) ? text : s
-        ));
+        );
       if (commentText && commentText.length <= cd.config.commentToSummaryLengthLimit) {
         optionalText = `: ${commentText} (-)`;
       }
@@ -3637,11 +3652,11 @@ class CommentForm extends EventEmitter {
 
     this.autoSummary = buildEditSummary({
       text: this.generateStaticSummaryText(this.targetWithOutdentedReplies || undefined),
-      section: this.headlineInput && !this.isMode('addSubsection') ?
-        // Unclear why `this` becomes `never` here without a type hint
-        removeWikiMarkup(/** @type {this} */ (this).headlineInput.getValue()) :
-
-        this.target.getRelevantSection()?.headline,
+      section:
+        this.headlineInput && !this.isMode('addSubsection')
+          ? // Unclear why `this` becomes `never` here without a type hint
+            removeWikiMarkup(/** @type {this} */ (this).headlineInput.getValue())
+          : this.target.getRelevantSection()?.headline,
       optionalText,
       addPostfix: false,
     });
@@ -3667,9 +3682,9 @@ class CommentForm extends EventEmitter {
       } else {
         target.maybeRequestAuthorGender(this.updateAutoSummary);
 
-        return target.isOwn ?
-          cd.s('es-addition') :
-          removeDoubleSpaces(cd.s('es-reply-to', target.author.getName(), target.author));
+        return target.isOwn
+          ? cd.s('es-addition')
+          : removeDoubleSpaces(cd.s('es-reply-to', target.author.getName(), target.author));
       }
     } else if (this.isMode('edit')) {
       // The codes for generating "edit" and "delete" descriptions are equivalent, so we provide
@@ -3707,9 +3722,9 @@ class CommentForm extends EventEmitter {
         return removeDoubleSpaces(
           cd.s(
             `es-${action}-${subject}`,
-            subject === 'comment-by' && realTarget.author.isRegistered() ?
-              `[[${realTarget.author.getNamespaceAlias()}:${authorName}|${authorName}]]` :
-              authorName,
+            subject === 'comment-by' && realTarget.author.isRegistered()
+              ? `[[${realTarget.author.getNamespaceAlias()}:${authorName}|${authorName}]]`
+              : authorName,
             realTarget.author
           )
         );
@@ -3720,7 +3735,8 @@ class CommentForm extends EventEmitter {
       return cd.s('es-reply');
     } else if (this.isMode('addSection')) {
       return this.preloadConfig?.summary || cd.s('es-new-topic');
-    } else {  // if (this.isMode('addSubsection'))
+    } else {
+      // if (this.isMode('addSubsection'))
       return cd.s('es-new-subsection');
     }
   }
@@ -3747,9 +3763,9 @@ class CommentForm extends EventEmitter {
         .clearFlags()
         .setFlags(['destructive', 'primary'])
         .setLabel(
-          this.$element.hasClass('cd-commentForm-short') ?
-            this.submitButtonLabelStandard :
-            this.submitButtonLabelShort
+          this.$element.hasClass('cd-commentForm-short')
+            ? this.submitButtonLabelStandard
+            : this.submitButtonLabelShort
         );
     } else {
       this.minorCheckbox?.setSelected(/** @type {boolean} */ (this.initialMinorCheckboxSelected));
@@ -3765,9 +3781,9 @@ class CommentForm extends EventEmitter {
         .clearFlags()
         .setFlags(['progressive', 'primary'])
         .setLabel(
-          this.$element.hasClass('cd-commentForm-short') ?
-            this.submitButtonLabelStandard :
-            this.submitButtonLabelShort
+          this.$element.hasClass('cd-commentForm-short')
+            ? this.submitButtonLabelStandard
+            : this.submitButtonLabelShort
         );
     }
   }
@@ -3870,14 +3886,15 @@ class CommentForm extends EventEmitter {
         rangeStart = rangeEnd = range.to;
       }
 
-      const [pre, post] = typeof cd.config.quoteFormatting === 'function'
-        ? cd.config.quoteFormatting.apply(
-            null,
-            comment && (mentionSource ?? comment !== this.parentComment) ?
-              [true, comment.author.getName(), comment.timestamp, comment.dtId] :
-              [selection.match(new RegExp(`<${cd.g.pniePattern}\\b|(^|\n)[:*#;]`, 'i'))]
-          )
-        : cd.config.quoteFormatting;
+      const [pre, post] =
+        typeof cd.config.quoteFormatting === 'function'
+          ? cd.config.quoteFormatting.apply(
+              null,
+              comment && (mentionSource ?? comment !== this.parentComment)
+                ? [true, comment.author.getName(), comment.timestamp, comment.dtId]
+                : [selection.match(new RegExp(`<${cd.g.pniePattern}\\b|(^|\n)[:*#;]`, 'i'))]
+            )
+          : cd.config.quoteFormatting;
 
       if (pre.includes('{{')) {
         selection = escapePipesOutsideLinks(selection);
@@ -3968,9 +3985,7 @@ class CommentForm extends EventEmitter {
         : '';
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const trailingNewline =
-      ownline && !/^\n/.test(value.slice(selectionEndIndex)) && !/\n$/.test(post)
-        ? '\n'
-        : '';
+      ownline && !/^\n/.test(value.slice(selectionEndIndex)) && !/\n$/.test(post) ? '\n' : '';
     let periStartIndex;
     if (!selection && !replace) {
       periStartIndex = selectionStartIndex + leadingNewline.length + pre.length;
@@ -3986,12 +4001,12 @@ class CommentForm extends EventEmitter {
 
     this.commentInput.insertContent(
       leadingNewline +
-      leadingSpace +
-      pre +
-      middleText.slice(leadingSpace.length, middleText.length - trailingSpace.length) +
-      post +
-      trailingSpace +
-      trailingNewline
+        leadingSpace +
+        pre +
+        middleText.slice(leadingSpace.length, middleText.length - trailingSpace.length) +
+        post +
+        trailingSpace +
+        trailingNewline
     );
     if (periStartIndex !== undefined) {
       this.commentInput.selectRange(periStartIndex, periStartIndex + peri.length);
@@ -4234,13 +4249,10 @@ class CommentForm extends EventEmitter {
     if (
       this.manyFormsOnboarded ||
       !cd.user.isRegistered() ||
-
       // This form will be the second
       commentFormRegistry.getCount() !== 1 ||
-
       // Left column hidden in Timeless
       (cd.g.skin === 'timeless' && window.innerWidth < 1100) ||
-
       (cd.g.skin === 'vector-2022' && window.innerWidth < 1000)
     ) {
       return;
@@ -4258,7 +4270,7 @@ class CommentForm extends EventEmitter {
       label: cd.s('popup-manyForms-title'),
       $content: mergeJquery(
         $('<p>').text(cd.s('popup-manyForms-text')),
-        $('<p>').append(button.$element),
+        $('<p>').append(button.$element)
       ),
       head: true,
       $floatableContainer: this.commentInput.$element,
@@ -4267,11 +4279,9 @@ class CommentForm extends EventEmitter {
       // 404 pages.
       $container: bootController.$root.parent(),
 
-      position: (
-        $('#vector-main-menu-pinned-container, #vector-toc-pinned-container').is(':visible')
-      ) ?
-        'before' :
-        'below',
+      position: $('#vector-main-menu-pinned-container, #vector-toc-pinned-container').is(':visible')
+        ? 'before'
+        : 'below',
       padded: true,
       classes: ['cd-popup-onboarding'],
     });
@@ -4292,10 +4302,8 @@ class CommentForm extends EventEmitter {
       !this.uploadToCommons ||
       this.uploadOnboarded ||
       !cd.user.isRegistered() ||
-
       // Left column hidden in Timeless
       (cd.g.skin === 'timeless' && window.innerWidth < 1100) ||
-
       (cd.g.skin === 'vector-2022' && window.innerWidth < 1000)
     ) {
       return;
@@ -4313,7 +4321,7 @@ class CommentForm extends EventEmitter {
       label: cd.s('popup-upload-title'),
       $content: mergeJquery(
         $('<p>').text(cd.s('popup-upload-text')),
-        $('<p>').append(button.$element),
+        $('<p>').append(button.$element)
       ),
       head: true,
       $floatableContainer: this.commentInput.$element,
@@ -4322,11 +4330,9 @@ class CommentForm extends EventEmitter {
       // 404 pages.
       $container: bootController.$root.parent(),
 
-      position: (
-        $('#vector-main-menu-pinned-container, #vector-toc-pinned-container').is(':visible')
-      ) ?
-        'before' :
-        'below',
+      position: $('#vector-main-menu-pinned-container, #vector-toc-pinned-container').is(':visible')
+        ? 'before'
+        : 'below',
       padded: true,
       classes: ['cd-popup-onboarding'],
     });
@@ -4345,9 +4351,9 @@ class CommentForm extends EventEmitter {
   getOutermostElement() {
     const el = this.$element[0];
 
-    return el.parentElement?.classList.contains('cd-commentForm-outerWrapper') ?
-      /** @type {HTMLElement} */ (el.parentNode) :
-      el;
+    return el.parentElement?.classList.contains('cd-commentForm-outerWrapper')
+      ? /** @type {HTMLElement} */ (el.parentNode)
+      : el;
   }
 
   /**
@@ -4423,12 +4429,12 @@ class CommentForm extends EventEmitter {
   }
 
   /**
-   * Set whether CodeMirror is enabled.
+   * Set whether CodeMirror is active.
    *
-   * @param {boolean} enabled
+   * @param {boolean} active
    */
-  setCodeMirrorEnabled(enabled) {
-    this.commentInput.setCodeMirror(enabled ? this.codeMirror : undefined);
+  setCodeMirrorActive(active) {
+    this.commentInput.setCodeMirror(active ? this.codeMirror : undefined);
   }
 
   static counter = 0;

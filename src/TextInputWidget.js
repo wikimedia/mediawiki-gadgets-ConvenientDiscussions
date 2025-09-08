@@ -41,8 +41,6 @@ class TextInputWidget extends OO.ui.TextInputWidget {
     return this;
   }
 
-
-
   /**
    * Given a selection, get its content as wikitext.
    *

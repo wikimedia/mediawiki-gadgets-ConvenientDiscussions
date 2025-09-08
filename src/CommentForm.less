@@ -87,14 +87,20 @@
   }
 
   .cm-gutters,
+
+  // Need to override `.ͼ1 .cm-content`
   .cm-content.cm-content {
     min-height: calc(@line-height * (@num-rows-comment + 1) + @codemirror-editor-additional-padding) !important;
+  }
+
+  .cd-commentForm .cm-content.cm-content {
+    min-height: calc(1.4285714em * (3 + 1) + 7px) !important;
   }
 
   &-addSection,
   &-addSubsection {
     .cm-gutters,
-    .cm-content.cm-content {
+    .cm-content {
       min-height: calc(@line-height * (@num-rows-section + 1) + @codemirror-editor-additional-padding) !important;
     }
   }
@@ -105,12 +111,22 @@
   }
 
   .cm-editor {
+    outline: 0;
+  }
+
+  .cm-panels,
+  .cm-scroller {
     border: 1px solid var(--border-color-base, #a2a9b1);
-    &.cm-focused {
-      border-color: var(--border-color-progressive--focus, #36c);
-      outline: 1px solid var(--color-progressive, #36c);
-      outline-offset: -2px;
-    }
+  }
+
+  .cm-panels {
+    border-bottom: 0;
+  }
+
+  .cm-focused .cm-scroller {
+    border: 1px solid var(--border-color-progressive--focus, #36c);
+    outline: 1px solid var(--color-progressive, #36c);
+    outline-offset: -2px;
   }
 
   .cm-gutters {
@@ -119,8 +135,14 @@
   }
 
   .cm-focused .cm-gutters {
+    // Replace padding with margin to prevent the gutters from obstructing the blue outline.
     padding: 0;
     margin: 1px 0 1px 1px;
+  }
+
+  .cm-content {
+    // Match the padding (when unfocused) or margin (when focused) of `.cm-gutters`.
+    margin: 1px 1px 1px 0;
   }
 }
 

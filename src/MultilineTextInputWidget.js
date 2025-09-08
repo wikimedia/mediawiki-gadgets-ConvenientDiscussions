@@ -54,30 +54,13 @@ class MultilineTextInputWidget extends mixInClass(
   }
 
   /**
-   * Set the correspondent CodeMirror instance.
+   * Set the correspondent CodeMirror instance or `undefined` if CodeMirror is not active.
    *
    * @param {import('./CodeMirrorWikiEditor').CodeMirrorWikiEditor | undefined} codeMirror
    */
   setCodeMirror(codeMirror) {
     /** @type {import('./CodeMirrorWikiEditor').CodeMirrorWikiEditor} */
     this.codeMirror = codeMirror;
-  }
-
-  /**
-   * Insert text while keeping the undo/redo functionality.
-   *
-   * @param {string} content
-   * @returns {this}
-   * @override
-   */
-  insertContent(content) {
-    if (this.codeMirror) {
-      super.insertContent(content);
-
-      return this;
-    }
-
-    return super.insertContent(content);
   }
 
   /**
