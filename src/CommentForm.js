@@ -828,13 +828,7 @@ class CommentForm extends EventEmitter {
     text = /** @type {string} */ (this.commentInput.$input.attr('placeholder'))
   ) {
     this.commentInput.$input.attr('placeholder', text);
-
-    if (this.codeMirror) {
-      const { Compartment, placeholder } = mw.loader.require('ext.CodeMirror.v6.lib');
-      this.codeMirror.view.dispatch({
-        effects: new Compartment().reconfigure(placeholder(text)),
-      });
-    }
+    this.codeMirror?.updatePlaceholder(text);
   }
 
   /**
@@ -1423,16 +1417,8 @@ class CommentForm extends EventEmitter {
    * @private
    */
   initCodeMirror = () => {
-    this.codeMirror = /** @type {import('./CodeMirrorWikiEditor').CodeMirrorWikiEditor} */ (
-      new (mw.loader.require('ext.CodeMirror.v6.WikiEditor'))(
-        this.commentInput.$input[0],
-        mw.loader.require('ext.CodeMirror.v6.mode.mediawiki')()
-      )
-    );
-    this.codeMirror.mode = 'mediawiki';
-    this.codeMirror.initialize();
+    this.codeMirror = new (require('./CodeMirrorCommentInput').default)(this.commentInput);
     this.updateCommentInputPlaceholder();
-
     this.setCodeMirrorActive(true);
   };
 
