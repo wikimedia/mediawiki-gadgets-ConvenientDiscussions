@@ -56,10 +56,10 @@ class MultilineTextInputWidget extends mixInClass(
   /**
    * Set the correspondent CodeMirror instance or `undefined` if CodeMirror is not active.
    *
-   * @param {import('./CodeMirrorWikiEditor').CodeMirrorWikiEditor | undefined} codeMirror
+   * @param {import('./CodeMirrorWikiEditor').default | undefined} codeMirror
    */
   setCodeMirror(codeMirror) {
-    /** @type {import('./CodeMirrorWikiEditor').CodeMirrorWikiEditor} */
+    /** @type {import('./CodeMirrorWikiEditor').default} */
     this.codeMirror = codeMirror;
   }
 

@@ -2,7 +2,7 @@
  *
  */
 export default class CodeMirrorCommentInput
-  extends /** @type {typeof import('./CodeMirrorWikiEditor').CodeMirrorWikiEditor} */ (
+  extends /** @type {typeof import('./CodeMirrorWikiEditor').default} */ (
     mw.loader.require('ext.CodeMirror.v6.WikiEditor')
   )
 {
@@ -13,30 +13,33 @@ export default class CodeMirrorCommentInput
   constructor(commentInput) {
     super(commentInput.$input, mw.loader.require('ext.CodeMirror.v6.mode.mediawiki')());
 
-    this.mode = 'mediawiki';
-
-    const extensions = [
-      .../** @type {import('@codemirror/state').Extension[]} */ (this.defaultExtensions),
-    ];
-
     /** @type {{
      *   Compartment: typeof import('@codemirror/state').Compartment
      *   placeholder: import('@codemirror/view').placeholder
      * }} */
-    const { Compartment, placeholder } = mw.loader.require('ext.CodeMirror.v6.lib');
-    this.placeholderCompartment = new Compartment();
-    extensions.push(this.placeholderCompartment.of(placeholder('Initial placeholder text')));
+    this.lib = mw.loader.require('ext.CodeMirror.v6.lib');
+    this.placeholderCompartment = new this.lib.Compartment();
+  }
 
-    this.initialize(extensions);
+  /**
+   * @param {import('@codemirror/state').Extension[]} [extensions=[]]
+   * @param {string} [placeholderText='']
+   * @override
+   */
+  initialize(extensions = [], placeholderText = '') {
+    this.mode = 'mediawiki';
+
+    extensions.push(this.placeholderCompartment.of(this.lib.placeholder(placeholderText)));
+
+    super.initialize([this.defaultExtensions, ...extensions]);
   }
 
   /**
    * @param {string} text
    */
   updatePlaceholder(text) {
-    const { placeholder } = mw.loader.require('ext.CodeMirror.v6.lib');
     this.view.dispatch({
-      effects: this.placeholderCompartment.reconfigure(placeholder(text)),
+      effects: this.placeholderCompartment.reconfigure(this.lib.placeholder(text)),
     });
   }
 }

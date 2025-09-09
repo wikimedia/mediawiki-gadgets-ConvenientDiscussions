@@ -150,10 +150,10 @@ class UpdateChecker extends EventEmitter {
   setAlarmViaWorker(interval) {
     if (Number.isNaN(Number(interval))) return;
 
-    cd.getWorker().postMessage({
-      type: 'setAlarm',
+    cd.getWorker().postMessage(/** @type {MessageFromWindowSetAlarm} */ ({
+      task: 'setAlarm',
       interval,
-    });
+    }));
   }
 
   /**
@@ -162,9 +162,9 @@ class UpdateChecker extends EventEmitter {
    * @private
    */
   removeAlarmViaWorker() {
-    cd.getWorker().postMessage({
-      type: 'removeAlarm',
-    });
+    cd.getWorker().postMessage(/** @type {MessageFromWindowRemoveAlarm} */ ({
+      task: 'removeAlarm',
+    }));
   }
 
   /**
@@ -197,13 +197,13 @@ class UpdateChecker extends EventEmitter {
     const { text, revid: revisionId } = await cd.page.parse({ oldid: revisionToParseId }, true);
 
     const message = /** @type {MessageFromWorkerParse} */ (
-      await this.runWorkerTask({
-        type: 'parse',
+      await this.runWorkerTask(/** @type {MessageFromWindowParse} */ ({
+        task: 'parse',
         revisionId,
         text,
         g: keepWorkerSafeValues(cd.g, ['isIPv6Address']),
         config: keepWorkerSafeValues(cd.config, ['rejectNode']),
-      })
+      }))
     );
 
     if (!this.revisionData.has(message.revisionId)) {

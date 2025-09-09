@@ -11,7 +11,7 @@ import CodeMirrorExtension from './CodeMirror';
  * Use this class if you want WikiEditor's toolbar. If you don't need the toolbar,
  * using {@link CodeMirror} directly will be considerably more efficient.
  */
-declare class CodeMirrorWikiEditor extends CodeMirrorExtension {
+export default class CodeMirrorWikiEditor extends CodeMirrorExtension {
     /**
      * The Realtime Preview handler.
      */

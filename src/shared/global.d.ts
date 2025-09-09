@@ -17,12 +17,12 @@ declare global {
   type AnyFunction = (...args: any) => any;
 
   interface Message {
-    type: string;
+    task: string;
     [key: string]: any;
   }
 
   interface MessageFromWorkerParse extends Message {
-    type: 'parse';
+    task: 'parse';
     revisionId: number;
     resolverId: number;
     comments: CommentWorker[];
@@ -30,7 +30,7 @@ declare global {
   }
 
   interface MessageFromWindowParse extends Message {
-    type: 'parse';
+    task: 'parse';
     revisionId: number;
     resolverId: number;
     text: string;
@@ -39,12 +39,12 @@ declare global {
   }
 
   interface MessageFromWindowSetAlarm extends Message {
-    type: 'setAlarm';
+    task: 'setAlarm';
     interval: number;
   }
 
   interface MessageFromWindowRemoveAlarm extends Message {
-    type: 'removeAlarm';
+    task: 'removeAlarm';
   }
 
   type MessageFromWindow = MessageFromWindowParse | MessageFromWindowSetAlarm | MessageFromWindowRemoveAlarm;

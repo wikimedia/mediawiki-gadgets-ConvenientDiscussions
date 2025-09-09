@@ -44,7 +44,7 @@ debug.init();
 function setAlarm(interval) {
   clearTimeout(alarmTimeout);
   alarmTimeout = setTimeout(() => {
-    postMessage(/** @type {Message} */ ({ type: 'wakeUp' }));
+    postMessage(/** @type {Message} */ ({ task: 'wakeUp' }));
   }, interval);
 }
 
@@ -262,15 +262,15 @@ function onMessageFromWindow(event) {
     isFirstRun = false;
   }
 
-  if (message.type === 'setAlarm') {
+  if (message.task === 'setAlarm') {
     setAlarm(message.interval);
   }
 
-  if (message.type === 'removeAlarm') {
+  if (message.task === 'removeAlarm') {
     clearTimeout(alarmTimeout);
   }
 
-  if (message.type === 'parse') {
+  if (message.task === 'parse') {
     const timerLabel = `worker: processing revision ${message.revisionId}`;
     debug.startTimer(timerLabel);
 
@@ -294,7 +294,7 @@ function onMessageFromWindow(event) {
     parse();
 
     postMessage(/** @type {MessageFromWorkerParse} */ ({
-      type: message.type,
+      task: message.task,
       revisionId: message.revisionId,
       resolverId: message.resolverId,
       comments: cd.comments,
