@@ -9,8 +9,9 @@ export default class CodeMirrorCommentInput
   /**
    *
    * @param {import('./MultilineTextInputWidget').default} commentInput
+   * @param {number} cfIndex
    */
-  constructor(commentInput) {
+  constructor(commentInput, cfIndex) {
     super(commentInput.$input, mw.loader.require('ext.CodeMirror.v6.mode.mediawiki')());
 
     /** @type {{
@@ -19,6 +20,16 @@ export default class CodeMirrorCommentInput
      * }} */
     this.lib = mw.loader.require('ext.CodeMirror.v6.lib');
     this.placeholderCompartment = new this.lib.Compartment();
+
+    // Hack to fix duplicate IDs
+    /** @type {import('../../mediawiki-extensions-CodeMirror/resources/codemirror.panel.js')} */
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const codeMirrorPanelPrototype = Object.getPrototypeOf(Object.getPrototypeOf(this.preferences));
+    /** @type {import('../../mediawiki-extensions-CodeMirror/resources/codemirror.codex.js')} */
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const codeMirrorCodexPrototype = Object.getPrototypeOf(codeMirrorPanelPrototype);
+    codeMirrorPanelPrototype.getCheckbox = (name, ...args) =>
+      codeMirrorCodexPrototype.getCheckbox(name + '-' + cfIndex, ...args);
   }
 
   /**
