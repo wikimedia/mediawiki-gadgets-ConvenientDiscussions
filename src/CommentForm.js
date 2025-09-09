@@ -1417,10 +1417,7 @@ class CommentForm extends EventEmitter {
    * @private
    */
   initCodeMirror = () => {
-    this.codeMirror = new (require('./CodeMirrorCommentInput').default)(
-      this.commentInput,
-      this.index
-    );
+    this.codeMirror = new (require('./CodeMirrorCommentInput').default)(this.commentInput);
     this.codeMirror.initialize(
       undefined,
       /** @type {string} */ (this.commentInput.$input.attr('placeholder'))

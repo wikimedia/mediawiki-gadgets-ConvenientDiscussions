@@ -9,9 +9,8 @@ export default class CodeMirrorCommentInput
   /**
    *
    * @param {import('./MultilineTextInputWidget').default} commentInput
-   * @param {number} cfIndex
    */
-  constructor(commentInput, cfIndex) {
+  constructor(commentInput) {
     super(commentInput.$input, mw.loader.require('ext.CodeMirror.v6.mode.mediawiki')());
 
     /** @type {{
@@ -29,7 +28,7 @@ export default class CodeMirrorCommentInput
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const codeMirrorCodexPrototype = Object.getPrototypeOf(codeMirrorPanelPrototype);
     codeMirrorPanelPrototype.getCheckbox = (name, ...args) =>
-      codeMirrorCodexPrototype.getCheckbox(name + '-' + cfIndex, ...args);
+      codeMirrorCodexPrototype.getCheckbox(name + '-' + Math.random(), ...args);
   }
 
   /**
@@ -39,9 +38,7 @@ export default class CodeMirrorCommentInput
    */
   initialize(extensions = [], placeholderText = '') {
     this.mode = 'mediawiki';
-
     extensions.push(this.placeholderCompartment.of(this.lib.placeholder(placeholderText)));
-
     super.initialize([this.defaultExtensions, ...extensions]);
   }
 
