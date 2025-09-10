@@ -3530,6 +3530,7 @@ class CommentForm extends EventEmitter {
       this.$element.remove();
     }
     this.unregister();
+    this.codeMirror?.destroy();
     this.emit('teardown');
     this.torndown = true;
   }
