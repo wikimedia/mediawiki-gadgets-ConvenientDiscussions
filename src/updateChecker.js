@@ -124,7 +124,7 @@ class UpdateChecker extends EventEmitter {
   /** @type {Map<number, MessageFromWorkerParse | RevisionData>} */
   revisionData = new Map();
 
-  /** @type {{ [key: number]: (value: any) => void }} */
+  /** @type {{ [key: number]: (value: MessageFromWorker) => void }} */
   resolvers = {};
 
   backgroundCheckScheduled = false;
@@ -171,13 +171,13 @@ class UpdateChecker extends EventEmitter {
    * Perform a task in the web worker.
    *
    * @param {object} payload
-   * @returns {Promise.<MessageFromWorkerParse | undefined>}
+   * @returns {Promise.<MessageFromWorker>}
    * @private
    */
   runWorkerTask(payload) {
     return new Promise((resolve) => {
       const resolverId = this.resolverCount++;
-      cd.getWorker().postMessage(Object.assign(payload, { resolverId }));
+      cd.getWorker().postMessage({ ...payload, resolverId });
       this.resolvers[resolverId] = resolve;
     });
   }
@@ -246,20 +246,20 @@ class UpdateChecker extends EventEmitter {
     this.previousVisitRevisionId = revisions[0]?.revid;
     const currentRevisionId = mw.config.get('wgRevisionId');
 
-    if (this.previousVisitRevisionId && this.previousVisitRevisionId < currentRevisionId) {
-      const { comments: oldComments } = await this.processPage(this.previousVisitRevisionId);
-      const { comments: currentComments } = await this.processPage(currentRevisionId);
-      if (this.isPageStillAtRevision(currentRevisionId)) {
-        this.checkForChangesSincePreviousVisit(
-          this.mapWorkerCommentsToWorkerComments(
-            currentComments,
-            oldComments
-          ),
-          this.previousVisitRevisionId,
-          submittedCommentId
-        );
-      }
-    }
+    if (!this.previousVisitRevisionId || this.previousVisitRevisionId >= currentRevisionId) return;
+
+    const { comments: oldComments } = await this.processPage(this.previousVisitRevisionId);
+    const { comments: currentComments } = await this.processPage(currentRevisionId);
+    if (!this.isPageStillAtRevisionAndNotBlocked(currentRevisionId)) return;
+
+    this.checkForChangesSincePreviousVisit(
+      this.mapWorkerCommentsToWorkerComments(
+        currentComments,
+        oldComments
+      ),
+      this.previousVisitRevisionId,
+      submittedCommentId
+    );
   }
 
   /**
@@ -536,7 +536,7 @@ class UpdateChecker extends EventEmitter {
       return;
 
     const { revisionId, comments: newComments, sections } = await this.processPage();
-    if (!this.isPageStillAtRevision(currentRevisionId)) return;
+    if (!this.isPageStillAtRevisionAndNotBlocked(currentRevisionId)) return;
 
     const { comments: currentComments } = await this.processPage(currentRevisionId);
 
@@ -546,7 +546,7 @@ class UpdateChecker extends EventEmitter {
     this.lastCheckedRevisionId = revisionId;
     this.emit('check', revisionId);
 
-    if (!this.isPageStillAtRevision(currentRevisionId)) return;
+    if (!this.isPageStillAtRevisionAndNotBlocked(currentRevisionId)) return;
 
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const matchedSections = this.mapWorkerSectionsToSections(sections, revisionId);
@@ -801,7 +801,7 @@ class UpdateChecker extends EventEmitter {
         // Empty
       }
     }
-    if (!this.isPageStillAtRevision(revisionIdAtStart)) return;
+    if (!this.isPageStillAtRevisionAndNotBlocked(revisionIdAtStart)) return;
 
     data.forEach(({ comment, isNewRevisionRendered, comparedRevisionId, commentsData }) => {
       if (
@@ -824,10 +824,10 @@ class UpdateChecker extends EventEmitter {
    * @returns {boolean}
    * @private
    */
-  isPageStillAtRevision(revisionId) {
+  isPageStillAtRevisionAndNotBlocked(revisionId) {
     return (
       revisionId === mw.config.get('wgRevisionId') &&
-      !bootController.isBooting() &&
+      !bootController.isPageOverlayOn() &&
       !commentFormRegistry.getAll().some((commentForm) => commentForm.isBeingSubmitted())
     );
   }
@@ -867,7 +867,7 @@ class UpdateChecker extends EventEmitter {
     if (cd.g.genderAffectsUserString) {
       await loadUserGenders(all.map((comment) => comment.author), true);
     }
-    if (!this.isPageStillAtRevision(currentRevisionId)) return;
+    if (!this.isPageStillAtRevisionAndNotBlocked(currentRevisionId)) return;
 
     this.emit('commentsUpdate', {
       all,
@@ -918,16 +918,13 @@ class UpdateChecker extends EventEmitter {
    * @private
    */
   onMessageFromWorker = async (event) => {
-    const message = event.data;
+    const message = /** @type {MessageFromWorker} */ (event.data);
 
-    if (message.type === 'wakeUp') {
+    if (message.task === 'wakeUp') {
       this.check();
     } else {
-      const resolverId = message.resolverId;
-      delete message.resolverId;
-      delete message.type;
-      this.resolvers[resolverId](message);
-      delete this.resolvers[resolverId];
+      this.resolvers[message.resolverId](message);
+      delete this.resolvers[message.resolverId];
     }
   };
 

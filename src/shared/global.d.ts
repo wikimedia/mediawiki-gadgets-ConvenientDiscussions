@@ -21,6 +21,10 @@ declare global {
     [key: string]: any;
   }
 
+  interface MessageFromWorker extends Message {
+    resolverId: number;
+  }
+
   interface MessageFromWorkerParse extends Message {
     task: 'parse';
     revisionId: number;
