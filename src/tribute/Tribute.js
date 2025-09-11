@@ -43,39 +43,43 @@ import TributeSearch from "./TributeSearch";
  */
 
 /**
- * @typedef {object} TransformData
- * @property {string} start
- * @property {string} [end]
- * @property {string} [content]
- * @property {string} [name]
- * @property {() => boolean} [usePipeTrickCheck]
- * @property {() => void} [cmdModify]
- * @property {() => void} [shiftModify]
- * @property {boolean} [enterContent]
+ * @typedef {object} InsertData
+ * @property {string} start Start text
+ * @property {string} [end] End text
+ * @property {string} [content] Text between start and end
+ * @property {() => boolean} [omitContentCheck] Function that checks whether to omit
+ *   {@link InsertData#content}. This can be done so that the inserted text ends up having a pipe
+ *   trick (e.g. `[[User:Example|]]` that would be saved as `[[User:Example|Example]]`)
+ * @property {boolean} [selectContent] Whether to select content, or put caret at its place if it's
+ *   empty (this is done automatically when Shift is held)
+ * @property {() => void} [cmdModify] Function that modifies this data if the Command key is held
+ * @property {() => void} [shiftModify] Function that modifies this data if the Shift key is held
  */
 
 /**
+ * @template {any} T
  * @typedef {object} TributeItem
  * @property {string} string
  * @property {number} score
  * @property {number} index
- * @property {any} original
+ * @property {T} original
  */
 
 /**
+ * @template {any} [T=any]
  * @typedef {object} TributeCollection
  * @property {string} label
- * @property {( text: string, callback: (arr: any[]) => void) => void} values
+ * @property {T[] | ( text: string, callback: (arr: T[]) => void) => void} values
  * @property {string} [trigger]
  * @property {SearchOptions} [searchOpts]
  * @property {boolean} [requireLeadingSpace]
- * @property {(item: TributeItem, event: KeyboardEvent | MouseEvent) => string} [selectTemplate]
+ * @property {(item: TributeItem<T> | undefined, event: KeyboardEvent | MouseEvent) => string | InsertData} [selectTemplate]
  * @property {RegExp} [keepAsEnd]
  * @property {boolean} [replaceEnd]
  * @property {string} [selectClass]
  * @property {string} [containerClass]
  * @property {string} [itemClass]
- * @property {(item: TributeItem) => string} [menuItemTemplate]
+ * @property {(item: TributeItem<T>) => string} [menuItemTemplate]
  * @property {string | ((item: T, mentionText: string) => string)} [lookup]
  * @property {string} [fillAttr]
  * @property {number|null} [menuItemLimit]

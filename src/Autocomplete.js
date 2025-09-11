@@ -18,7 +18,7 @@ import { handleApiReject } from './utils-api';
  */
 
 /**
- * @typedef {object} CommentLinksItemType
+ * @typedef {object} CommentLinksItem
  * @property {string} key
  * @property {string} [id]
  * @property {string} [authorName]
@@ -27,7 +27,7 @@ import { handleApiReject } from './utils-api';
  */
 
 /**
- * @typedef {string | string[] | CommentLinksItemType} Item
+ * @typedef {string | string[] | CommentLinksItem} Item
  */
 
 /**
@@ -38,8 +38,8 @@ import { handleApiReject } from './utils-api';
  * @property {Item[]} [default] Default set of items to search across (may be more narrow than the
  *   list of all potential values, as in the case of user names)
  * @property {(() => Item[])} [defaultLazy] Function for lazy loading of the defaults
- * @property {() => import('./tribute/Tribute').TransformData} [transform] Data used to transform
- *   the item into the actually inserted text
+ * @property {() => import('./tribute/Tribute').InsertData} [transform] Function that transforms
+ *   the item into the data that is actually inserted
  * @property {AnyByKey} [data] Any additional data to be used by methods
  */
 
@@ -172,7 +172,7 @@ class Autocomplete {
    * @typedef {object} Value
    * @property {string} [key]
    * @property {T} item
-   * @property {(() => import('./tribute/Tribute').TransformData) | undefined} [transform]
+   * @property {(() => import('./tribute/Tribute').InsertData) | undefined} [transform]
    */
 
   /**
@@ -185,9 +185,17 @@ class Autocomplete {
    * @private
    */
   getCollections(types, comments = [], defaultUserNames = []) {
-    const selectTemplate = (/** @type {import('./tribute/Tribute').TributeItem} */ item) =>
-      item ? item.original.transform() : '';
-    const prepareValues = (/** @type {any[]} */ arr, /** @type {AutocompleteConfig} */ config) =>
+    /** @type {import('./tribute/Tribute').TributeCollection['selectTemplate']} */
+    const defaultSelectTemplate = (
+      /** @type {import('./tribute/Tribute').TributeItem<Value> | undefined} */ item
+    ) => (item && item.original.transform?.()) || '';
+    /**
+     * @template {Item} T
+     * @param {T[]} arr
+     * @param {AutocompleteConfig} config
+     * @returns {Value<T>[]}
+     */
+    const getValuesForItems = (arr, config) =>
       arr
         .filter(defined)
         .filter(unique)
@@ -205,7 +213,7 @@ class Autocomplete {
             key = item;
           }
 
-          /** @type {Value} */
+          /** @type {Value<T>} */
           const value = { key, item };
           value.transform = config.transform?.bind(value);
 
@@ -222,7 +230,7 @@ class Autocomplete {
         trigger: cd.config.mentionCharacter,
         searchOpts: { skip: true },
         requireLeadingSpace: cd.config.mentionRequiresLeadingSpace,
-        selectTemplate,
+        selectTemplate: defaultSelectTemplate,
         values: async (text, callback) => {
           if (!this.types.includes('mentions') && !this.tribute.current.externalTrigger) return;
 
@@ -234,7 +242,7 @@ class Autocomplete {
           this.mentions.lastQuery = text;
 
           if (this.mentions.cache[text]) {
-            callback(prepareValues(this.mentions.cache[text], this.mentions));
+            callback(getValuesForItems(this.mentions.cache[text], this.mentions));
           } else {
             const matches = Autocomplete.search(text, this.mentions.default);
             let values = matches.slice();
@@ -256,11 +264,11 @@ class Autocomplete {
               }
               values = Autocomplete.search(text, values);
 
-              // Make the typed text always appear last.
+              // Make the user-typed text always appear last.
               values[values.length] = text.trim();
             }
 
-            callback(prepareValues(values, this.mentions));
+            callback(getValuesForItems(values, this.mentions));
 
             if (makeRequest && !matches.length) {
               let vals;
@@ -276,7 +284,7 @@ class Autocomplete {
 
               this.mentions.lastResults = vals.slice();
 
-              // Make the typed text always appear last.
+              // Make the user-typed text always appear last.
               vals[vals.length] = text.trim();
 
               this.mentions.cache[text] = vals;
@@ -284,7 +292,7 @@ class Autocomplete {
               // The text has been updated since the request was made.
               if (this.mentions.lastQuery !== text) return;
 
-              callback(prepareValues(vals, this.mentions));
+              callback(getValuesForItems(vals, this.mentions));
             }
           }
         },
@@ -294,9 +302,9 @@ class Autocomplete {
         label: cd.s('cf-autocomplete-commentlinks-label'),
         trigger: '[[#',
         keepAsEnd: /^\]\]/,
-        selectTemplate,
+        selectTemplate: defaultSelectTemplate,
         values: async (text, callback) => {
-          this.commentLinks.default ||= /** @type {CommentLinksItemType[]} */ (
+          this.commentLinks.default ||= /** @type {CommentLinksItem[]} */ (
             this.commentLinks.defaultLazy()
           );
 
@@ -308,16 +316,14 @@ class Autocomplete {
           }
 
           callback(
-            prepareValues(
+            getValuesForItems(
               // Matches
-              // @ts-expect-error: Ignore Tribute stuff
-              this.tribute.search
-                .filter(text, this.commentLinks.default, {
-                  extract: (/** @type {Value} */ el) => el.key,
+              /** @type {import('./tribute/Tribute').TributeItem<CommentLinksItem>[]} */ (
+                // @ts-expect-error: Ignore Tribute stuff
+                this.tribute.search.filter(text, this.commentLinks.default, {
+                  extract: (/** @type {CommentLinksItem} */ el) => el.key,
                 })
-                .map(
-                  (/** @type {import('./tribute/Tribute').TributeItem} */ match) => match.original
-                ),
+              ).map((match) => match.original),
 
               this.commentLinks
             )
@@ -330,7 +336,7 @@ class Autocomplete {
         trigger: '[[',
         keepAsEnd: /^(?:\||\]\])/,
         searchOpts: { skip: true },
-        selectTemplate,
+        selectTemplate: defaultSelectTemplate,
         values: async (text, callback) => {
           text = removeDoubleSpaces(text);
 
@@ -340,7 +346,7 @@ class Autocomplete {
           this.wikilinks.lastQuery = text;
 
           if (this.wikilinks.cache[text]) {
-            callback(prepareValues(this.wikilinks.cache[text], this.wikilinks));
+            callback(getValuesForItems(this.wikilinks.cache[text], this.wikilinks));
           } else {
             /** @type {string[]} */
             let values = [];
@@ -364,11 +370,11 @@ class Autocomplete {
               values.push(...this.wikilinks.lastResults);
               values = Autocomplete.search(text, values);
 
-              // Make the typed text always appear last.
+              // Make the user-typed text always appear last.
               values[values.length] = text.trim();
             }
 
-            callback(prepareValues(values, this.wikilinks));
+            callback(getValuesForItems(values, this.wikilinks));
 
             if (valid) {
               let vals;
@@ -383,7 +389,7 @@ class Autocomplete {
 
               this.wikilinks.lastResults = vals.slice();
 
-              // Make the typed text always appear last.
+              // Make the user-typed text always appear last.
               vals[vals.length] = text.trim();
 
               this.wikilinks.cache[text] = vals;
@@ -391,7 +397,7 @@ class Autocomplete {
               // The text has been updated since the request was made.
               if (this.wikilinks.lastQuery !== text) return;
 
-              callback(prepareValues(vals, this.wikilinks));
+              callback(getValuesForItems(vals, this.wikilinks));
             }
           }
         },
@@ -405,7 +411,10 @@ class Autocomplete {
         selectTemplate: (item, event) => {
           if (item) {
             if (this.useTemplateData && event.shiftKey && !event.altKey) {
-              setTimeout(() => this.autocompleteTemplateData(item));
+              const input = /** @type {import('./TextInputWidget').default} */ (
+                /** @type {HTMLElement} */ (this.tribute.current.element).cdInput
+              );
+              setTimeout(() => this.autocompleteTemplateData(item, input));
             }
 
             return item.original.transform();
@@ -427,7 +436,7 @@ class Autocomplete {
           }
 
           if (this.templates.cache[text]) {
-            callback(prepareValues(this.templates.cache[text], this.templates));
+            callback(getValuesForItems(this.templates.cache[text], this.templates));
           } else {
             /** @type {string[]} */
             let values = [];
@@ -442,11 +451,11 @@ class Autocomplete {
               values.push(...this.templates.lastResults);
               values = Autocomplete.search(text, values);
 
-              // Make the typed text always appear last.
+              // Make the user-typed text always appear last.
               values[values.length] = text.trim();
             }
 
-            callback(prepareValues(values, this.templates));
+            callback(getValuesForItems(values, this.templates));
 
             if (makeRequest) {
               let vals;
@@ -461,7 +470,7 @@ class Autocomplete {
 
               this.templates.lastResults = vals.slice();
 
-              // Make the typed text always appear last.
+              // Make the user-typed text always appear last.
               vals[vals.length] = text.trim();
 
               this.templates.cache[text] = vals;
@@ -469,7 +478,7 @@ class Autocomplete {
               // The text has been updated since the request was made.
               if (this.templates.lastQuery !== text) return;
 
-              callback(prepareValues(vals, this.templates));
+              callback(getValuesForItems(vals, this.templates));
             }
           }
         },
@@ -481,7 +490,7 @@ class Autocomplete {
         keepAsEnd: /^>/,
         replaceEnd: false,
         searchOpts: { skip: true },
-        selectTemplate,
+        selectTemplate: defaultSelectTemplate,
         values: (text, callback) => {
           this.tags.default ||= /** @type {DefaultTags} */ (this.tags.defaultLazy());
 
@@ -493,7 +502,7 @@ class Autocomplete {
           }
 
           callback(
-            prepareValues(
+            getValuesForItems(
               // Matches
               /** @type {DefaultTags} */ (this.tags.default).filter((tag) =>
                 regexp.test(Array.isArray(tag) ? tag[0] : tag)
@@ -563,7 +572,7 @@ class Autocomplete {
 
         /**
          * @this {Value<string>}
-         * @returns {import('./tribute/Tribute').TransformData}
+         * @returns {import('./tribute/Tribute').InsertData}
          */
         transform() {
           const name = this.item.trim();
@@ -577,7 +586,7 @@ class Autocomplete {
             start: `@[[${pageName}|`,
             end: name.match(/[(,]/) ? `${name}]]` : ']]',
             content: name,
-            usePipeTrickCheck() {
+            omitContentCheck() {
               return !this.start.includes('/');
             },
             cmdModify() {
@@ -588,7 +597,7 @@ class Autocomplete {
       },
 
       commentLinks: {
-        default: /** @type {CommentLinksItemType[]|undefined} */ (undefined),
+        default: /** @type {CommentLinksItem[]|undefined} */ (undefined),
 
         // Lazy initialization, because getText() takes time
         defaultLazy: function () {
@@ -626,7 +635,7 @@ class Autocomplete {
               });
 
               return acc;
-            }, /** @type {CommentLinksItemType[]} */([]))
+            }, /** @type {CommentLinksItem[]} */([]))
             .concat(
               sectionRegistry.getAll().reduce((acc, section) => {
                 acc.push({
@@ -636,13 +645,13 @@ class Autocomplete {
                 });
 
                 return acc;
-              }, /** @type {CommentLinksItemType[]} */([]))
+              }, /** @type {CommentLinksItem[]} */([]))
             );
           },
 
         /**
-         * @this {Value<CommentLinksItemType>}
-         * @returns {import('./tribute/Tribute').TransformData}
+         * @this {Value<CommentLinksItem>}
+         * @returns {import('./tribute/Tribute').InsertData}
          */
         transform() {
           const object = this.item;
@@ -665,18 +674,15 @@ class Autocomplete {
 
         /**
          * @this {Value<string>}
-         * @returns {import('./tribute/Tribute').TransformData}
+         * @returns {import('./tribute/Tribute').InsertData}
          */
         transform() {
-          const name = this.item.trim();
-
           return {
-            start: '[[' + name,
+            start: '[[' + this.item.trim(),
             end: ']]',
-            name,
             shiftModify() {
+              this.content = this.start.slice(2);
               this.start += '|';
-              this.content = this.name;
             },
           };
         },
@@ -689,15 +695,12 @@ class Autocomplete {
 
         /**
          * @this {Value<string>}
-         * @returns {import('./tribute/Tribute').TransformData}
+         * @returns {import('./tribute/Tribute').InsertData}
          */
         transform() {
-          const name = this.item.trim();
-
           return {
-            start: '{{' + name,
+            start: '{{' + this.item.trim(),
             end: '}}',
-            name,
             shiftModify() {
               this.start += '|';
             },
@@ -724,7 +727,7 @@ class Autocomplete {
 
         /**
          * @this {Value<string | [string, string, string?]>}
-         * @returns {import('./tribute/Tribute').TransformData}
+         * @returns {import('./tribute/Tribute').InsertData}
          */
         transform() {
           const item = this.item;
@@ -732,7 +735,7 @@ class Autocomplete {
           return {
             start: Array.isArray(item) ? item[1] : `<${item}>`,
             end: Array.isArray(item) ? item[2] : `</${item}>`,
-            enterContent: true,
+            selectContent: true,
           };
         },
       },
@@ -742,14 +745,11 @@ class Autocomplete {
   /**
    * Get autocomplete data for a template.
    *
-   * @param {import('./tribute/Tribute').TributeItem} item
+   * @param {import('./tribute/Tribute').TributeItem<Value<string>>} item
+   * @param {import('./TextInputWidget').default} input
    * @returns {Promise<void>}
    */
-  async autocompleteTemplateData(item) {
-    const input = /** @type {import('./TextInputWidget').default} */ (
-      /** @type {HTMLElement} */ (this.tribute.current.element).cdInput
-    );
-
+  async autocompleteTemplateData(item, input) {
     input
       .setDisabled(true)
       .pushPending();

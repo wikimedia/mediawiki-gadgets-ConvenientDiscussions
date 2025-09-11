@@ -3799,7 +3799,7 @@ class CommentForm extends EventEmitter {
       const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
         Autocomplete.configs
       ).mentions.transform.call({ item: this.parentComment.author.getName() });
-      if (/** @type {NonNullable<typeof data.usePipeTrickCheck>} */ (data.usePipeTrickCheck)()) {
+      if (/** @type {NonNullable<typeof data.omitContentCheck>} */ (data.omitContentCheck)()) {
         data.content = '';
       }
       /** @type {NonNullable<typeof data.cmdModify>} */ (data.cmdModify)();
@@ -3826,7 +3826,7 @@ class CommentForm extends EventEmitter {
       const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
         Autocomplete.configs
       ).mentions.transform.call({ item: selection });
-      if (/** @type {NonNullable<typeof data.usePipeTrickCheck>} */ (data.usePipeTrickCheck)()) {
+      if (/** @type {NonNullable<typeof data.omitContentCheck>} */ (data.omitContentCheck)()) {
         data.content = '';
       }
       this.commentInput.insertContent(data.start + data.content + data.end);
