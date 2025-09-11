@@ -1900,7 +1900,8 @@ class CommentForm extends EventEmitter {
       this.preview();
     };
 
-    // Use capture to get ahead of CodeMirror's keydown handler
+    // Use capture to get ahead of CodeMirror's keydown handler. Note that there may be a dupliucate
+    // event dispatched by the textarea in CodeMirror#domEventHandlersExtension.
     this.$element[0].addEventListener(
       'keydown',
       (event) => {
@@ -1915,11 +1916,14 @@ class CommentForm extends EventEmitter {
         // Esc
         if (
           keyCombination(event, 27) &&
+
           // When there is a search panel, CodeMirror closes it on Esc even when the caret is in the
           // main text box. With the preferences panel, it is so only when the panel itself is
           // focused.
-          (!this.codeMirror?.isActive ||
-            !this.$element.find('.cm-panels :focus, .cm-mw-panel--search-panel').length)
+          (
+            !this.codeMirror?.isActive ||
+            !this.$element.find('.cm-panels :focus, .cm-mw-panel--search-panel').length
+          )
         ) {
           this.cancel();
         }
@@ -3512,6 +3516,7 @@ class CommentForm extends EventEmitter {
 
     if (confirmClose && !this.confirmClose()) {
       this.commentInput.focus();
+
       return;
     }
 
@@ -3524,6 +3529,8 @@ class CommentForm extends EventEmitter {
    * references to the form.
    */
   teardown() {
+    if (this.torndown) return;
+
     this.operations.closeAll();
     if (this.$element[0].isConnected) {
       this.target.cleanUpCommentFormTraces(this.mode, this);

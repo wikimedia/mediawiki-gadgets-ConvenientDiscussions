@@ -32,14 +32,15 @@ import { handleApiReject } from './utils-api';
 
 /**
  * @typedef {object} AutocompleteConfig
- * @property {StringArraysByKey} [byText]
- * @property {string[]} [cache]
- * @property {Item[]} [default]
+ * @property {StringArraysByKey} [cache] Results by query
+ * @property {string[]} [lastResults] Results of last query
+ * @property {string} [lastQuery] Last query
+ * @property {Item[]} [default] Default set of items to search across (may be more narrow than the
+ *   list of all potential values, as in the case of user names)
  * @property {(() => Item[])} [defaultLazy] Function for lazy loading of the defaults
- * @property {() => import('./tribute/Tribute').TransformData} [transform]
- * @property {import('./Comment').default[]} [comments]
- * @property {string} [snapshot]
- * @property {any} [item]
+ * @property {() => import('./tribute/Tribute').TransformData} [transform] Data used to transform
+ *   the item into the actually inserted text
+ * @property {AnyByKey} [data] Any additional data to be used by
  */
 
 /**
@@ -96,7 +97,7 @@ class Autocomplete {
    * @param {string[]} [options.defaultUserNames] Default list of user names for the mentions
    *   autocomplete.
    */
-  constructor({ types, inputs, comments: comments, defaultUserNames }) {
+  constructor({ types, inputs, comments, defaultUserNames }) {
     this.types = settings.get('autocompleteTypes');
     this.useTemplateData = settings.get('useTemplateData');
 
@@ -178,12 +179,12 @@ class Autocomplete {
    * Get the list of collections of specified types.
    *
    * @param {AutocompleteType[]} types
-   * @param {import('./Comment').default[]} [comments]
-   * @param {string[]} [defaultUserNames]
+   * @param {import('./Comment').default[]} [comments=[]]
+   * @param {string[]} [defaultUserNames=[]]
    * @returns {import('./tribute/Tribute').TributeCollection[]}
    * @private
    */
-  getCollections(types, comments, defaultUserNames) {
+  getCollections(types, comments = [], defaultUserNames = []) {
     const selectTemplate = (/** @type {import('./tribute/Tribute').TributeItem} */ item) =>
       item ? item.original.transform() : '';
     const prepareValues = (/** @type {any[]} */ arr, /** @type {AutocompleteConfig} */ config) =>
@@ -226,37 +227,36 @@ class Autocomplete {
 
           text = removeDoubleSpaces(text);
 
-          if (this.mentions.snapshot && !text.startsWith(this.mentions.snapshot)) {
-            this.mentions.cache = [];
+          if (this.mentions.lastQuery && !text.startsWith(this.mentions.lastQuery)) {
+            this.mentions.lastResults = [];
           }
-          this.mentions.snapshot = text;
+          this.mentions.lastQuery = text;
 
-          if (this.mentions.byText[text]) {
-            callback(prepareValues(this.mentions.byText[text], this.mentions));
+          if (this.mentions.cache[text]) {
+            callback(prepareValues(this.mentions.cache[text], this.mentions));
           } else {
             const matches = Autocomplete.search(text, this.mentions.default);
             let values = matches.slice();
 
-            const makeRequest = (
+            const makeRequest =
               text &&
               text.length <= 85 &&
               !/[#<>[\]|{}/@:]/.test(text) &&
 
               // 5 spaces in a user name seem too many. "Jack who built the house" has 4 :-)
-              (text.match(spacesRegexp) || []).length <= 4
-            );
+              (text.match(spacesRegexp) || []).length <= 4;
 
             if (makeRequest) {
               // Logically, either `matched` or this.mentions.cache should have a zero length (a
               // request is made only if there are no matches in the section; if there are,
               // this.mentions.cache is an empty array).
               if (!matches.length) {
-                values.push(...this.mentions.cache);
+                values.push(...this.mentions.lastResults);
               }
               values = Autocomplete.search(text, values);
 
-              // Make the typed text always appear on the last, 10th place.
-              values[9] = text.trim();
+              // Make the typed text always appear last.
+              values[values.length] = text.trim();
             }
 
             callback(prepareValues(values, this.mentions));
@@ -273,15 +273,15 @@ class Autocomplete {
               // then delete and type "<s" quickly.
               if (!this.tribute.current || this.tribute.current.trigger !== '@') return;
 
-              this.mentions.cache = vals.slice();
+              this.mentions.lastResults = vals.slice();
 
-              // Make the typed text always appear on the last, 10th place.
-              vals[9] = text.trim();
+              // Make the typed text always appear last.
+              vals[vals.length] = text.trim();
 
-              this.mentions.byText[text] = vals;
+              this.mentions.cache[text] = vals;
 
               // The text has been updated since the request was made.
-              if (this.mentions.snapshot !== text) return;
+              if (this.mentions.lastQuery !== text) return;
 
               callback(prepareValues(vals, this.mentions));
             }
@@ -295,52 +295,9 @@ class Autocomplete {
         keepAsEnd: /^\]\]/,
         selectTemplate,
         values: async (text, callback) => {
-          this.commentLinks.default ||= this.commentLinks.comments
-            .reduce((acc, comment) => {
-              const authorName = comment.author.getName();
-              const timestamp = comment.timestamp;
-              /** @type {string} */
-              let snippet;
-              const snippetMaxLength = 80;
-              if (comment.getText().length > snippetMaxLength) {
-                snippet = comment.getText().slice(0, snippetMaxLength);
-                const spacePos = snippet.lastIndexOf(
-                  cd.mws('word-separator', { language: 'content' })
-                );
-                if (spacePos !== -1) {
-                  snippet = snippet.slice(0, spacePos);
-                  if (/[.…,;!?:-—–]/.test(snippet[snippet.length - 1])) {
-                    snippet += ' ';
-                  }
-                  snippet += cd.s('ellipsis');
-                }
-              } else {
-                snippet = comment.getText();
-              }
-              let authorTimestamp = authorName;
-              if (timestamp) {
-                authorTimestamp += cd.mws('comma-separator', { language: 'content' }) + timestamp;
-              }
-              acc.push({
-                key: authorTimestamp + cd.mws('colon-separator', { language: 'content' }) + snippet,
-                id: comment.getUrlFragment(),
-                authorName,
-                timestamp,
-              });
-
-              return acc;
-            }, /** @type {CommentLinksItemType[]} */ ([]))
-            .concat(
-              sectionRegistry.getAll().reduce((acc, section) => {
-                acc.push({
-                  key: underlinesToSpaces(section.id),
-                  id: underlinesToSpaces(section.id),
-                  headline: section.headline,
-                });
-
-                return acc;
-              }, /** @type {CommentLinksItemType[]} */ ([]))
-            );
+          this.commentLinks.default ||= /** @type {CommentLinksItemType[]} */ (
+            this.commentLinks.defaultLazy()
+          );
 
           text = removeDoubleSpaces(text);
           if (/[#<>[\]|{}]/.test(text)) {
@@ -376,17 +333,17 @@ class Autocomplete {
         values: async (text, callback) => {
           text = removeDoubleSpaces(text);
 
-          if (this.wikilinks.snapshot && !text.startsWith(this.wikilinks.snapshot)) {
-            this.wikilinks.cache = [];
+          if (this.wikilinks.lastQuery && !text.startsWith(this.wikilinks.lastQuery)) {
+            this.wikilinks.lastResults = [];
           }
-          this.wikilinks.snapshot = text;
+          this.wikilinks.lastQuery = text;
 
-          if (this.wikilinks.byText[text]) {
-            callback(prepareValues(this.wikilinks.byText[text], this.wikilinks));
+          if (this.wikilinks.cache[text]) {
+            callback(prepareValues(this.wikilinks.cache[text], this.wikilinks));
           } else {
             /** @type {string[]} */
             let values = [];
-            const valid = (
+            const valid =
               text &&
               text !== ':' &&
               text.length <= 255 &&
@@ -398,14 +355,16 @@ class Autocomplete {
               !/[#<>[\]|{}]/.test(text) &&
 
               // Interwikis
-              !((text.startsWith(':') || /^[a-z-]\w*:/.test(text)) && !allNamespacesRegexp.test(text))
-            );
+              !(
+                (text.startsWith(':') || /^[a-z-]\w*:/.test(text)) &&
+                !allNamespacesRegexp.test(text)
+              );
             if (valid) {
-              values.push(...this.wikilinks.cache);
+              values.push(...this.wikilinks.lastResults);
               values = Autocomplete.search(text, values);
 
-              // Make the typed text always appear on the last, 10th place.
-              values[9] = text.trim();
+              // Make the typed text always appear last.
+              values[values.length] = text.trim();
             }
 
             callback(prepareValues(values, this.wikilinks));
@@ -421,15 +380,15 @@ class Autocomplete {
               // Type "[[Text", then delete and type "<s" quickly.
               if (!this.tribute.current || this.tribute.current.trigger !== '[[') return;
 
-              this.wikilinks.cache = vals.slice();
+              this.wikilinks.lastResults = vals.slice();
 
-              // Make the typed text always appear on the last, 10th place.
-              vals[9] = text.trim();
+              // Make the typed text always appear last.
+              vals[vals.length] = text.trim();
 
-              this.wikilinks.byText[text] = vals;
+              this.wikilinks.cache[text] = vals;
 
               // The text has been updated since the request was made.
-              if (this.wikilinks.snapshot !== text) return;
+              if (this.wikilinks.lastQuery !== text) return;
 
               callback(prepareValues(vals, this.wikilinks));
             }
@@ -456,35 +415,34 @@ class Autocomplete {
         values: async (text, callback) => {
           text = removeDoubleSpaces(text);
 
-          if (this.templates.snapshot && !text.startsWith(this.templates.snapshot)) {
-            this.templates.cache = [];
+          if (this.templates.lastQuery && !text.startsWith(this.templates.lastQuery)) {
+            this.templates.lastResults = [];
           }
-          this.templates.snapshot = text;
+          this.templates.lastQuery = text;
 
           if (text.includes('{{')) {
             callback([]);
             return;
           }
 
-          if (this.templates.byText[text]) {
-            callback(prepareValues(this.templates.byText[text], this.templates));
+          if (this.templates.cache[text]) {
+            callback(prepareValues(this.templates.cache[text], this.templates));
           } else {
             /** @type {string[]} */
             let values = [];
-            const makeRequest = (
+            const makeRequest =
               text &&
               text.length <= 255 &&
               !/[#<>[\]|{}]/.test(text) &&
 
               // 10 spaces in a page name seems too many.
-              (text.match(spacesRegexp) || []).length <= 9
-            );
+              (text.match(spacesRegexp) || []).length <= 9;
             if (makeRequest) {
-              values.push(...this.templates.cache);
+              values.push(...this.templates.lastResults);
               values = Autocomplete.search(text, values);
 
-              // Make the typed text always appear on the last, 10th place.
-              values[9] = text.trim();
+              // Make the typed text always appear last.
+              values[values.length] = text.trim();
             }
 
             callback(prepareValues(values, this.templates));
@@ -500,15 +458,15 @@ class Autocomplete {
               // Type "{{Text", then delete and type "<s" quickly.
               if (!this.tribute.current || this.tribute.current.trigger !== '{{') return;
 
-              this.templates.cache = vals.slice();
+              this.templates.lastResults = vals.slice();
 
-              // Make the typed text always appear on the last, 10th place.
-              vals[9] = text.trim();
+              // Make the typed text always appear last.
+              vals[vals.length] = text.trim();
 
-              this.templates.byText[text] = vals;
+              this.templates.cache[text] = vals;
 
               // The text has been updated since the request was made.
-              if (this.templates.snapshot !== text) return;
+              if (this.templates.lastQuery !== text) return;
 
               callback(prepareValues(vals, this.templates));
             }
@@ -550,7 +508,7 @@ class Autocomplete {
     /** @type {Partial<AutocompleteConfigs>} */
     const params = {
       mentions: { default: defaultUserNames || [] },
-      commentLinks: { comments: comments || [] },
+      commentLinks: { data: { comments } },
     };
 
     types.forEach((type) => {
@@ -590,25 +548,15 @@ class Autocomplete {
       ['syntaxhighlight', '<syntaxhighlight>\n', '\n</syntaxhighlight>'],
       ['templatestyles', '<templatestyles src="', '" />'],
     ];
-    const getDefaultTags = () =>
-      /** @type {Array<string|string[]>} */ (cd.g.allowedTags)
-        .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
-        .concat(tagAdditions)
-        .sort((item1, item2) =>
-          (typeof item1 === 'string' ? item1 : item1[0]) >
-          (typeof item2 === 'string' ? item2 : item2[0])
-            ? 1
-            : -1
-        );
 
     /**
      * Autocomplete configurations for every type.
      */
     this.configs = /** @satisfies {AutocompleteConfigs} */ ({
       mentions: {
-        byText: {},
+        cache: {},
         /** @type {string[]} */
-        cache: [],
+        lastResults: [],
         /** @type {string[]} */
         default: [],
 
@@ -639,8 +587,57 @@ class Autocomplete {
       },
 
       commentLinks: {
-        comments: /** @type {import('./Comment').default[]} */ ([]),
         default: /** @type {CommentLinksItemType[]|undefined} */ (undefined),
+
+        // Lazy initialization, because getText() takes time
+        defaultLazy: function () {
+          return /** @type {{ comments: import('./Comment').default[] }} */ (this.data).comments
+            .reduce((acc, comment) => {
+              const authorName = comment.author.getName();
+              const timestamp = comment.timestamp;
+              /** @type {string} */
+              let snippet;
+              const snippetMaxLength = 80;
+              if (comment.getText().length > snippetMaxLength) {
+                snippet = comment.getText().slice(0, snippetMaxLength);
+                const spacePos = snippet.lastIndexOf(
+                  cd.mws('word-separator', { language: 'content' })
+                );
+                if (spacePos !== -1) {
+                  snippet = snippet.slice(0, spacePos);
+                  if (/[.…,;!?:-—–]/.test(snippet[snippet.length - 1])) {
+                    snippet += ' ';
+                  }
+                  snippet += cd.s('ellipsis');
+                }
+              } else {
+                snippet = comment.getText();
+              }
+              let authorTimestamp = authorName;
+              if (timestamp) {
+                authorTimestamp += cd.mws('comma-separator', { language: 'content' }) + timestamp;
+              }
+              acc.push({
+                key: authorTimestamp + cd.mws('colon-separator', { language: 'content' }) + snippet,
+                id: comment.getUrlFragment(),
+                authorName,
+                timestamp,
+              });
+
+              return acc;
+            }, /** @type {CommentLinksItemType[]} */([]))
+            .concat(
+              sectionRegistry.getAll().reduce((acc, section) => {
+                acc.push({
+                  key: underlinesToSpaces(section.id),
+                  id: underlinesToSpaces(section.id),
+                  headline: section.headline,
+                });
+
+                return acc;
+              }, /** @type {CommentLinksItemType[]} */([]))
+            );
+          },
 
         /**
          * @this {Value<CommentLinksItemType>}
@@ -661,9 +658,9 @@ class Autocomplete {
       },
 
       wikilinks: {
-        byText: {},
+        cache: {},
         /** @type {string[]} */
-        cache: [],
+        lastResults: [],
 
         /**
          * @this {Value<string>}
@@ -685,9 +682,9 @@ class Autocomplete {
       },
 
       templates: {
-        byText: {},
+        cache: {},
         /** @type {string[]} */
-        cache: [],
+        lastResults: [],
 
         /**
          * @this {Value<string>}
@@ -708,7 +705,18 @@ class Autocomplete {
       },
 
       tags: {
-        defaultLazy: getDefaultTags,
+        defaultLazy: () =>
+          /** @type {Array<string|string[]>} */(cd.g.allowedTags)
+            .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
+            .concat(tagAdditions)
+            .sort((item1, item2) =>
+              (
+                (typeof item1 === 'string' ? item1 : item1[0]) >
+                (typeof item2 === 'string' ? item2 : item2[0])
+              )
+                ? 1
+                : -1
+            ),
 
         /** @type {DefaultTags | undefined} */
         default: undefined,
@@ -801,13 +809,10 @@ class Autocomplete {
     input
       .setDisabled(false)
       .insertContent(paramsString)
-      .selectRange(
-        // Current caret index
-        /** @type {number} */ (input.getRange().to) +
 
-        firstValueIndex -
-        1
-      )
+      // `input.getRange().to` is the current caret index
+      .selectRange(/** @type {number} */ (input.getRange().to) + firstValueIndex - 1)
+
       .popPending();
   }
 
