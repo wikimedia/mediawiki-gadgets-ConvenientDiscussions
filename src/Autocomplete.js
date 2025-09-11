@@ -40,7 +40,7 @@ import { handleApiReject } from './utils-api';
  * @property {(() => Item[])} [defaultLazy] Function for lazy loading of the defaults
  * @property {() => import('./tribute/Tribute').TransformData} [transform] Data used to transform
  *   the item into the actually inserted text
- * @property {AnyByKey} [data] Any additional data to be used by
+ * @property {AnyByKey} [data] Any additional data to be used by methods
  */
 
 /**

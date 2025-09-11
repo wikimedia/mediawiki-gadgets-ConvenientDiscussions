@@ -442,14 +442,18 @@ export function removeDirMarks(text, replaceWithSpace = false) {
   return text.replace(/[\u200E\u200F]/g, replaceWithSpace ? ' ' : '');
 }
 
+// keepWorkerSafeValues() actually returns Partial<T>, but for our purposes we can consider it T (we
+// won't use non-worker-safe in worker anyway).
+
 /**
  * _For internal use._ Filter out values of an object that can't be safely passed to worker (see
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm}).
  *
- * @param {UnknownsByKey} obj
+ * @template {{ [key: ValidKey]: any }} T
+ * @param {T} obj
  * @param {string[]} [allowedFuncNames=[]] Names of the properties that should be passed to the
  *   worker despite their values are functions (they are passed in a stringified form).
- * @returns {UnknownsByKey}
+ * @returns {T}
  */
 export function keepWorkerSafeValues(obj, allowedFuncNames = []) {
   const newObj = { ...obj };
@@ -461,7 +465,7 @@ export function keepWorkerSafeValues(obj, allowedFuncNames = []) {
       !(val instanceof RegExp || val instanceof Date)
     ) {
       try {
-        if (!areObjectsEqual(/** @type {UnknownsByKey} */ (val), JSON.parse(JSON.stringify(val)))) {
+        if (!areObjectsEqual(/** @type {T} */ (val), JSON.parse(JSON.stringify(val)))) {
           delete newObj[key];
         }
       } catch {
@@ -469,7 +473,7 @@ export function keepWorkerSafeValues(obj, allowedFuncNames = []) {
       }
     } else if (typeof val === 'function') {
       if (allowedFuncNames.includes(key)) {
-        newObj[key] = val.toString();
+        newObj[/** @type {keyof T} */ (key)] = val.toString();
       } else {
         delete newObj[key];
       }

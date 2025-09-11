@@ -18,7 +18,6 @@ declare global {
 
   type Direction = 'ltr' | 'rtl';
   type ListType = 'dl' | 'ul' | 'ol';
-  type ValidKey = string | number;
 
   // Helper type to check if a string is present in the array
   type HasProperty<T extends readonly string[], K extends string> = K extends T[number]

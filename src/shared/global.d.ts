@@ -9,12 +9,13 @@ import { ConvenientDiscussionsBase } from './cd';
 import { HeadingTarget, SignatureTarget, Target } from './Parser';
 
 declare global {
-  type TypeByKey<T> = { [key: string]: T; };
+  type TypeByKey<T> = { [key: string]: T };
   type StringsByKey = TypeByKey<string>;
   type NumbersByKey = TypeByKey<number>;
   type AnyByKey = TypeByKey<any>;
   type StringArraysByKey = TypeByKey<string[]>;
   type AnyFunction = (...args: any) => any;
+  type ValidKey = string | number | symbol;
 
   interface Message {
     task: string;
@@ -36,7 +37,6 @@ declare global {
   interface MessageFromWindowParse extends Message {
     task: 'parse';
     revisionId: number;
-    resolverId: number;
     text: string;
     g: ConvenientDiscussionsBase['g'];
     config: ConvenientDiscussionsBase['config'];
