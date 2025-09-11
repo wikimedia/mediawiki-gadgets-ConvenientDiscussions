@@ -45,7 +45,7 @@ import TributeSearch from "./TributeSearch";
 /**
  * @typedef {object} TransformData
  * @property {string} start
- * @property {string} end
+ * @property {string} [end]
  * @property {string} [content]
  * @property {string} [name]
  * @property {() => boolean} [usePipeTrickCheck]
@@ -76,7 +76,7 @@ import TributeSearch from "./TributeSearch";
  * @property {string} [containerClass]
  * @property {string} [itemClass]
  * @property {(item: TributeItem) => string} [menuItemTemplate]
- * @property {string} [lookup]
+ * @property {string | ((item: T, mentionText: string) => string)} [lookup]
  * @property {string} [fillAttr]
  * @property {number|null} [menuItemLimit]
  * @property {number} [menuShowMinLength]
@@ -88,7 +88,7 @@ import TributeSearch from "./TributeSearch";
  * @property {string} [containerClass='tribute-container']
  * @property {string} [itemClass='']
  * @property {string} [trigger='@']
- * @property {string} [lookup='key']
+ * @property {string | ((item: T, mentionText: string) => string)} [lookup='key']
  * @property {string} [fillAttr='value']
  * @property {TributeCollection[]|null} [collection=null]
  * @property {HTMLElement|null} [menuContainer=null]

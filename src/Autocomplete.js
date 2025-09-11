@@ -192,7 +192,8 @@ class Autocomplete {
         .filter(defined)
         .filter(unique)
         .map((item) => {
-          let /** @type {string} */ key;
+          /** @type {string} */
+          let key;
           if (Array.isArray(item)) {
             // Tags
             key = item[0];
@@ -722,7 +723,7 @@ class Autocomplete {
         default: undefined,
 
         /**
-         * @this {Value<string | [string, string, string]>}
+         * @this {Value<string | [string, string, string?]>}
          * @returns {import('./tribute/Tribute').TransformData}
          */
         transform() {
