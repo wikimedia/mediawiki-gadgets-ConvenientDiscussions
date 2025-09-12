@@ -149,6 +149,9 @@ const config = tseslint.config(
         allowEmpty: true,
       }],
 
+      // We use it for Tribute
+      "@typescript-eslint/ban-ts-comment": "off",
+
       // Wait until enough browsers support it
       'unicorn/prefer-string-replace-all': 'off',
       'unicorn/prefer-at': 'off',

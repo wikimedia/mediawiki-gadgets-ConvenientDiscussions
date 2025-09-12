@@ -36,59 +36,81 @@ import TributeRange from "./TributeRange";
 import TributeSearch from "./TributeSearch";
 
 /**
- * A collection object.
+ * Properties that are shared between global config and individual collections. Global config
+ * properties serve as defaults that can be overridden at the collection level.
  *
  * @template {any} [I=any]
- * @typedef {object} TributeCollection
- * @property {string} label
- * @property {I[] | (text: string, callback: (arr: I[]) => void) => void} values
- * @property {string} [trigger]
- * @property {SearchOptions} [searchOpts]
- * @property {boolean} [requireLeadingSpace]
- * @property {(item: TributeSearchResults<I> | undefined, event: KeyboardEvent | MouseEvent) => string | InsertData} [selectTemplate]
- * @property {RegExp} [keepAsEnd]
- * @property {boolean} [replaceEnd]
- * @property {string} [selectClass]
- * @property {string} [containerClass]
- * @property {string} [itemClass]
- * @property {(item: TributeSearchResults<I>) => string} [menuItemTemplate]
- * @property {string | ((item: I, mentionText: string) => string)} [lookup]
- * @property {string} [fillAttr]
- * @property {number|null} [menuItemLimit]
- * @property {number} [menuShowMinLength]
+ * @typedef {object} TributeSharedOptions
+ * @property {string} [containerClass='tribute-container'] Class added to the menu container
+ * @property {string} [fillAttr='value'] Column that contains the content to insert by default
+ * @property {string} [itemClass=''] Class added to each list item
+ * @property {string | ((item: I, mentionText: string) => string)} [lookup='key'] Column to search
+ *   against in the object
+ * @property {number | null} [menuItemLimit=null] Limits the number of items in the menu
+ * @property {number} [menuShowMinLength=0] Minimum number of characters that must be typed before
+ *   menu appears
+ * @property {object} [searchOpts={}] Customize the elements used to wrap matched strings within the
+ *   results list
+ * @property {string} [selectClass='highlight'] Class added in the flyout menu for active item
+ * @property {string} [trigger='@'] Symbol or string that starts the lookup
  */
 
 /**
- * A config object supplied to the constructor. It has some props intended to be defaults for all
- * collections.
+ * Properties unique to individual collections.
  *
  * @template {any} [I=any]
- * @typedef {object} TributeConfig
- * @property {string} [selectClass='highlight']
- * @property {string} [containerClass='tribute-container']
- * @property {string} [itemClass='']
- * @property {string} [trigger='@']
- * @property {string | ((item: I, mentionText: string) => string)} [lookup='key']
- * @property {string} [fillAttr='value']
- * @property {TributeCollection[] | null} [collection=null]
- * @property {HTMLElement | null} [menuContainer=null]
- * @property {string | ((value: string) => string  |  null) | null} [noMatchTemplate=null]
- * @property {boolean} [allowSpaces=false]
- * @property {string | null} [replaceTextSuffix=null]
- * @property {boolean} [positionMenu=true]
- * @property {object} [searchOpts={}]
- * @property {number | null} [menuItemLimit=null]
- * @property {number} [menuShowMinLength=0]
- * @property {'ltr' | 'rtl'} [direction='ltr']
+ * @typedef {object} TributeCollectionSpecific
+ * @property {string} label Collection identifier/label
+ * @property {I[] | ((text: string, callback: (arr: I[]) => void) => void)} values REQUIRED: array
+ *   of objects to match or a function that returns data
+ * @property {RegExp} [keepAsEnd] Custom regex for end matching behavior
+ * @property {(item: TributeSearchResults<I>) => string} [menuItemTemplate] Template for displaying
+ *   item in menu
+ * @property {boolean} [replaceEnd] Whether to replace text at the end
+ * @property {boolean} [requireLeadingSpace] Specify whether a space is required before the trigger
+ *   string
+ * @property {(item: TributeSearchResults<I> | undefined, event: KeyboardEvent | MouseEvent) =>
+ * string | InsertData} [selectTemplate] Function called on select that returns the content to
+ *   insert
+ */
+
+/**
+ * Properties unique to the global config.
+ *
+ * @typedef {object} TributeConfigSpecific
+ * @property {TributeCollection[] | null} [collection=null] Array of collection objects
+ * @property {'ltr' | 'rtl'} [direction='ltr'] Text direction for the menu
+ * @property {boolean} [allowSpaces=false] Specify whether a space is allowed in the middle of
+ *   mentions
+ * @property {HTMLElement | null} [menuContainer=null] Alternative parent container for the menu
+ * @property {string | ((value: string) => string | null) | null} [noMatchTemplate=null] Template
+ *   for when no match is found
+ * @property {boolean} [positionMenu=true] Specify whether the menu should be positioned
+ * @property {string | null} [replaceTextSuffix=null] Custom suffix for the replace text
+ */
+
+/**
+ * A collection object.
+ *
+ * @template {any} [I=any]
+ * @typedef {TributeSharedOptions<I> & TributeCollectionSpecific<I>} TributeCollection
+ */
+
+/**
+ * A config object supplied to the constructor. It has some properties intended to be defaults for
+ * all collections.
+ *
+ * @template {any} [I=any]
+ * @typedef {TributeSharedOptions<I> & TributeConfigSpecific} TributeConfig
  */
 
 /**
  * The strings used to wrap matched strings within the results list.
  *
  * @typedef {object} SearchOptions
- * @property {string} [pre]
- * @property {string} [post]
- * @property {boolean} [skip]
+ * @property {string} [pre] Opening tag for matched strings
+ * @property {string} [post] Closing tag for matched strings
+ * @property {boolean} [skip] Skip local search, useful if doing server-side search
  */
 
 /**
@@ -96,10 +118,10 @@ import TributeSearch from "./TributeSearch";
  *
  * @template {any} I
  * @typedef {object} TributeSearchResults
- * @property {string} string
- * @property {number} score
- * @property {number} index
- * @property {I} original
+ * @property {string} string Matched string value
+ * @property {number} score Match score
+ * @property {number} index Index of the matched item
+ * @property {I} original Original data object
  */
 
 /**
@@ -117,6 +139,10 @@ import TributeSearch from "./TributeSearch";
  *   empty (this is done automatically when Shift is held)
  * @property {() => void} [cmdModify] Function that modifies this data if the Command key is held
  * @property {() => void} [shiftModify] Function that modifies this data if the Shift key is held
+ */
+
+/**
+ * @typedef {Element | NodeList | HTMLCollection | Element[]} TributeElement
  */
 
 class Tribute {
@@ -145,7 +171,7 @@ class Tribute {
       element: HTMLElement | null,
       triggerPos: number | null
       mentionText: string | null,
-      filteredItems: TributeSearchResults[] | null,
+      filteredItems: TributeSearchResults<any>[] | null,
     }} */ ({});
     this.inputEvent = false;
     this.isActive = false;
@@ -246,6 +272,10 @@ class Tribute {
     });
   }
 
+  /**
+   *
+   * @param {TributeElement} el
+   */
   attach(el) {
     if (!el) {
       throw new Error("[Tribute] Must pass in a DOM node or NodeList.");
@@ -561,6 +591,10 @@ class Tribute {
     }
   }
 
+  /**
+   *
+   * @param {TributeElement} el
+   */
   detach(el) {
     if (!el) {
       throw new Error("[Tribute] Must pass in a DOM node or NodeList.");

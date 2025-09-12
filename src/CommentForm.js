@@ -3787,7 +3787,8 @@ class CommentForm extends EventEmitter {
 
   /**
    * Insert the contents of `cd.config.mentionCharacter` (usually `@`) into the comment input,
-   * activating the mention autocomplete menu.
+   * activating the mention autocomplete menu. If user autocomplete is disabled, insert a link with
+   * the user namespace prefix.
    *
    * @param {boolean} mentionAddressee Don't show the autocomplete menu, just insert a mention of
    *   the addressee to the beginning of the comment input.
@@ -3817,12 +3818,10 @@ class CommentForm extends EventEmitter {
     const selection = this.commentInput.getValue().substring(range.from, range.to);
     if (
       selection &&
-      mw.Title.newFromText(selection) &&
-      !selection.includes('/') &&
-      selection.length <= 85
-    ) {
-      // Valid username
 
+      // Valid username
+      (mw.Title.newFromText(selection) && !selection.includes('/') && selection.length <= 85)
+    ) {
       const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
         Autocomplete.configs
       ).mentions.transform.call({ item: selection });
@@ -3834,7 +3833,14 @@ class CommentForm extends EventEmitter {
       return;
     }
 
-    this.insertContentAfter(cd.config.mentionCharacter);
+    let content = '';
+    if (settings.get('autocompleteTypes').includes('mentions')) {
+      content = cd.config.mentionCharacter;
+    } else {
+      
+    }
+
+    this.insertContentAfter(content);
   }
 
   /**

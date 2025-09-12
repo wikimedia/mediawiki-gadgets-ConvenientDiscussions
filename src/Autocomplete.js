@@ -44,7 +44,7 @@ import { handleApiReject } from './utils-api';
  */
 
 /**
- * @typedef {object} AutocompleteConfig
+ * @typedef {object} AutocompleteConfigShared
  * @property {StringArraysByKey} [cache] Results by query
  * @property {string[]} [lastResults] Results of last query
  * @property {string} [lastQuery] Last query
@@ -57,7 +57,7 @@ import { handleApiReject } from './utils-api';
  */
 
 /**
- * @typedef {{ [key in AutocompleteType]: AutocompleteConfig }} AutocompleteConfigs
+ * @typedef {{ [key in AutocompleteType]: AutocompleteConfigShared }} AutocompleteConfigs
  */
 
 /**
@@ -65,27 +65,27 @@ import { handleApiReject } from './utils-api';
  */
 class Autocomplete {
   /**
-   * @type {AutocompleteConfig & AutocompleteStaticConfig['mentions']}
+   * @type {AutocompleteConfigShared & AutocompleteStaticConfig['mentions']}
    */
   mentions;
 
   /**
-   * @type {AutocompleteConfig & AutocompleteStaticConfig['commentLinks']}
+   * @type {AutocompleteConfigShared & AutocompleteStaticConfig['commentLinks']}
    */
   commentLinks;
 
   /**
-   * @type {AutocompleteConfig & AutocompleteStaticConfig['wikilinks']}
+   * @type {AutocompleteConfigShared & AutocompleteStaticConfig['wikilinks']}
    */
   wikilinks;
 
   /**
-   * @type {AutocompleteConfig & AutocompleteStaticConfig['templates']}
+   * @type {AutocompleteConfigShared & AutocompleteStaticConfig['templates']}
    */
   templates;
 
   /**
-   * @type {AutocompleteConfig & AutocompleteStaticConfig['tags']}
+   * @type {AutocompleteConfigShared & AutocompleteStaticConfig['tags']}
    */
   tags;
 
@@ -110,9 +110,7 @@ class Autocomplete {
     this.types = settings.get('autocompleteTypes');
     this.useTemplateData = settings.get('useTemplateData');
 
-    // The `mentions` type is needed in any case as it can be triggered from the toolbar. When it is
-    // not, we will suppress it specifically.
-    types = types.filter((type) => this.types.includes(type) || type === 'mentions');
+    types = types.filter((type) => this.types.includes(type));
 
     /**
      * {@link https://github.com/zurb/tribute Tribute} object.
@@ -197,11 +195,12 @@ class Autocomplete {
     /** @type {import('./tribute/Tribute').TributeCollection['selectTemplate']} */
     const defaultSelectTemplate = (
       /** @type {import('./tribute/Tribute').TributeSearchResults<Value> | undefined} */ item
-    ) => (item && item.original.transform?.()) || '';
+    ) => (item?.original.transform?.()) || '';
+
     /**
      * @template {Item} T
      * @param {T[]} arr
-     * @param {AutocompleteConfig} config
+     * @param {AutocompleteConfigShared} config
      * @returns {Value<T>[]}
      */
     const getValuesForItems = (arr, config) =>
@@ -241,7 +240,7 @@ class Autocomplete {
         requireLeadingSpace: cd.config.mentionRequiresLeadingSpace,
         selectTemplate: defaultSelectTemplate,
         values: async (text, callback) => {
-          if (!this.types.includes('mentions') && !this.tribute.current.externalTrigger) return;
+          if (!this.tribute.current.externalTrigger) return;
 
           text = removeDoubleSpaces(text);
 
@@ -423,7 +422,7 @@ class Autocomplete {
               const input = /** @type {import('./TextInputWidget').default} */ (
                 /** @type {HTMLElement} */ (this.tribute.current.element).cdInput
               );
-              setTimeout(() => this.autocompleteTemplateData(item, input));
+              setTimeout(() => this.insertTemplateData(item, input));
             }
 
             return item.original.transform();
@@ -549,7 +548,7 @@ class Autocomplete {
   static activeMenu;
 
   static {
-    /** @type {[string, string, string?][]} */
+    /** @type {TagsItem[]} */
     const tagAdditions = [
       // An element can be an array of a string to display and strings to insert before and after
       // the caret.
@@ -720,7 +719,7 @@ class Autocomplete {
 
       tags: {
         defaultLazy: () =>
-          /** @type {Array<string | [string, string, string?]>} */(cd.g.allowedTags)
+          /** @type {Array<TagsItem>} */(cd.g.allowedTags)
             .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
             .concat(tagAdditions)
             .sort((item1, item2) =>
@@ -736,7 +735,7 @@ class Autocomplete {
         default: undefined,
 
         /**
-         * @this {Value<string | [string, string, string?]>}
+         * @this {Value<TagsItem>}
          * @returns {import('./tribute/Tribute').InsertData}
          */
         transform() {
@@ -759,7 +758,7 @@ class Autocomplete {
    * @param {import('./TextInputWidget').default} input
    * @returns {Promise<void>}
    */
-  async autocompleteTemplateData(item, input) {
+  async insertTemplateData(item, input) {
     input
       .setDisabled(true)
       .pushPending();
