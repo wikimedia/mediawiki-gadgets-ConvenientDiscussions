@@ -8,13 +8,26 @@ import userRegistry from './userRegistry';
 import { handleApiReject } from './utils-api';
 
 /**
- * @typedef {'mentions'|'commentLinks'|'wikilinks'|'templates'|'tags'} AutocompleteType
+ * @typedef {'mentions' | 'commentLinks' | 'wikilinks' | 'templates' | 'tags'} AutocompleteType
  */
 
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
 /**
  * @typedef {NonNullable<typeof Autocomplete.configs>} AutocompleteStaticConfig
+ */
+
+/**
+ * @typedef {ItemByCollection[keyof ItemByCollection]} Item
+ */
+
+/**
+ * @typedef {object} ItemByCollection
+ * @property {string} mentions
+ * @property {CommentLinksItem} commentLinks
+ * @property {string} wikilinks
+ * @property {string} templates
+ * @property {TagsItem} tags
  */
 
 /**
@@ -27,7 +40,7 @@ import { handleApiReject } from './utils-api';
  */
 
 /**
- * @typedef {string | string[] | CommentLinksItem} Item
+ * @typedef {string | [string, string, string?]} TagsItem
  */
 
 /**
@@ -45,10 +58,6 @@ import { handleApiReject } from './utils-api';
 
 /**
  * @typedef {{ [key in AutocompleteType]: AutocompleteConfig }} AutocompleteConfigs
- */
-
-/**
- * @typedef {(string | string[])[]} DefaultTags
  */
 
 /**
@@ -187,7 +196,7 @@ class Autocomplete {
   getCollections(types, comments = [], defaultUserNames = []) {
     /** @type {import('./tribute/Tribute').TributeCollection['selectTemplate']} */
     const defaultSelectTemplate = (
-      /** @type {import('./tribute/Tribute').TributeItem<Value> | undefined} */ item
+      /** @type {import('./tribute/Tribute').TributeSearchResults<Value> | undefined} */ item
     ) => (item && item.original.transform?.()) || '';
     /**
      * @template {Item} T
@@ -318,7 +327,7 @@ class Autocomplete {
           callback(
             getValuesForItems(
               // Matches
-              /** @type {import('./tribute/Tribute').TributeItem<CommentLinksItem>[]} */ (
+              /** @type {import('./tribute/Tribute').TributeSearchResults<CommentLinksItem>[]} */ (
                 // @ts-expect-error: Ignore Tribute stuff
                 this.tribute.search.filter(text, this.commentLinks.default, {
                   extract: (/** @type {CommentLinksItem} */ el) => el.key,
@@ -492,7 +501,7 @@ class Autocomplete {
         searchOpts: { skip: true },
         selectTemplate: defaultSelectTemplate,
         values: (text, callback) => {
-          this.tags.default ||= /** @type {DefaultTags} */ (this.tags.defaultLazy());
+          this.tags.default ||= /** @type {TagsItem[]} */ (this.tags.defaultLazy());
 
           const regexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
           if (!text || !/^[a-z]+$/i.test(text)) {
@@ -504,7 +513,7 @@ class Autocomplete {
           callback(
             getValuesForItems(
               // Matches
-              /** @type {DefaultTags} */ (this.tags.default).filter((tag) =>
+              /** @type {TagsItem[]} */ (this.tags.default).filter((tag) =>
                 regexp.test(Array.isArray(tag) ? tag[0] : tag)
               ),
 
@@ -540,6 +549,7 @@ class Autocomplete {
   static activeMenu;
 
   static {
+    /** @type {[string, string, string?][]} */
     const tagAdditions = [
       // An element can be an array of a string to display and strings to insert before and after
       // the caret.
@@ -710,7 +720,7 @@ class Autocomplete {
 
       tags: {
         defaultLazy: () =>
-          /** @type {Array<string|string[]>} */(cd.g.allowedTags)
+          /** @type {Array<string | [string, string, string?]>} */(cd.g.allowedTags)
             .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
             .concat(tagAdditions)
             .sort((item1, item2) =>
@@ -722,7 +732,7 @@ class Autocomplete {
                 : -1
             ),
 
-        /** @type {DefaultTags | undefined} */
+        /** @type {TagsItem[] | undefined} */
         default: undefined,
 
         /**
@@ -745,7 +755,7 @@ class Autocomplete {
   /**
    * Get autocomplete data for a template.
    *
-   * @param {import('./tribute/Tribute').TributeItem<Value<string>>} item
+   * @param {import('./tribute/Tribute').TributeSearchResults<Value<string>>} item
    * @param {import('./TextInputWidget').default} input
    * @returns {Promise<void>}
    */

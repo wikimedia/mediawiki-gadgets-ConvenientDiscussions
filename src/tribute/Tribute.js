@@ -36,6 +36,55 @@ import TributeRange from "./TributeRange";
 import TributeSearch from "./TributeSearch";
 
 /**
+ * A collection object.
+ *
+ * @template {any} [I=any]
+ * @typedef {object} TributeCollection
+ * @property {string} label
+ * @property {I[] | (text: string, callback: (arr: I[]) => void) => void} values
+ * @property {string} [trigger]
+ * @property {SearchOptions} [searchOpts]
+ * @property {boolean} [requireLeadingSpace]
+ * @property {(item: TributeSearchResults<I> | undefined, event: KeyboardEvent | MouseEvent) => string | InsertData} [selectTemplate]
+ * @property {RegExp} [keepAsEnd]
+ * @property {boolean} [replaceEnd]
+ * @property {string} [selectClass]
+ * @property {string} [containerClass]
+ * @property {string} [itemClass]
+ * @property {(item: TributeSearchResults<I>) => string} [menuItemTemplate]
+ * @property {string | ((item: I, mentionText: string) => string)} [lookup]
+ * @property {string} [fillAttr]
+ * @property {number|null} [menuItemLimit]
+ * @property {number} [menuShowMinLength]
+ */
+
+/**
+ * A config object supplied to the constructor. It has some props intended to be defaults for all
+ * collections.
+ *
+ * @template {any} [I=any]
+ * @typedef {object} TributeConfig
+ * @property {string} [selectClass='highlight']
+ * @property {string} [containerClass='tribute-container']
+ * @property {string} [itemClass='']
+ * @property {string} [trigger='@']
+ * @property {string | ((item: I, mentionText: string) => string)} [lookup='key']
+ * @property {string} [fillAttr='value']
+ * @property {TributeCollection[] | null} [collection=null]
+ * @property {HTMLElement | null} [menuContainer=null]
+ * @property {string | ((value: string) => string  |  null) | null} [noMatchTemplate=null]
+ * @property {boolean} [allowSpaces=false]
+ * @property {string | null} [replaceTextSuffix=null]
+ * @property {boolean} [positionMenu=true]
+ * @property {object} [searchOpts={}]
+ * @property {number | null} [menuItemLimit=null]
+ * @property {number} [menuShowMinLength=0]
+ * @property {'ltr' | 'rtl'} [direction='ltr']
+ */
+
+/**
+ * The strings used to wrap matched strings within the results list.
+ *
  * @typedef {object} SearchOptions
  * @property {string} [pre]
  * @property {string} [post]
@@ -43,6 +92,20 @@ import TributeSearch from "./TributeSearch";
  */
 
 /**
+ * Array items in the return value of {@link TributeSearch#filter}.
+ *
+ * @template {any} I
+ * @typedef {object} TributeSearchResults
+ * @property {string} string
+ * @property {number} score
+ * @property {number} index
+ * @property {I} original
+ */
+
+/**
+ * Data to insert into the input along with some modification logic that can be supplied to
+ * {@link TributeDange#replaceTriggerText} in addition to strings.
+ *
  * @typedef {object} InsertData
  * @property {string} start Start text
  * @property {string} [end] End text
@@ -54,56 +117,6 @@ import TributeSearch from "./TributeSearch";
  *   empty (this is done automatically when Shift is held)
  * @property {() => void} [cmdModify] Function that modifies this data if the Command key is held
  * @property {() => void} [shiftModify] Function that modifies this data if the Shift key is held
- */
-
-/**
- * @template {any} T
- * @typedef {object} TributeItem
- * @property {string} string
- * @property {number} score
- * @property {number} index
- * @property {T} original
- */
-
-/**
- * @template {any} [T=any]
- * @typedef {object} TributeCollection
- * @property {string} label
- * @property {T[] | ( text: string, callback: (arr: T[]) => void) => void} values
- * @property {string} [trigger]
- * @property {SearchOptions} [searchOpts]
- * @property {boolean} [requireLeadingSpace]
- * @property {(item: TributeItem<T> | undefined, event: KeyboardEvent | MouseEvent) => string | InsertData} [selectTemplate]
- * @property {RegExp} [keepAsEnd]
- * @property {boolean} [replaceEnd]
- * @property {string} [selectClass]
- * @property {string} [containerClass]
- * @property {string} [itemClass]
- * @property {(item: TributeItem<T>) => string} [menuItemTemplate]
- * @property {string | ((item: T, mentionText: string) => string)} [lookup]
- * @property {string} [fillAttr]
- * @property {number|null} [menuItemLimit]
- * @property {number} [menuShowMinLength]
- */
-
-/**
- * @typedef {object} TributeConfig
- * @property {string} [selectClass='highlight']
- * @property {string} [containerClass='tribute-container']
- * @property {string} [itemClass='']
- * @property {string} [trigger='@']
- * @property {string | ((item: T, mentionText: string) => string)} [lookup='key']
- * @property {string} [fillAttr='value']
- * @property {TributeCollection[]|null} [collection=null]
- * @property {HTMLElement|null} [menuContainer=null]
- * @property {string|((value: string) => string | null)|null} [noMatchTemplate=null]
- * @property {boolean} [allowSpaces=false]
- * @property {string|null} [replaceTextSuffix=null]
- * @property {boolean} [positionMenu=true]
- * @property {object} [searchOpts={}]
- * @property {number|null} [menuItemLimit=null]
- * @property {number} [menuShowMinLength=0]
- * @property {'ltr'|'rtl'} [direction='ltr']
  */
 
 class Tribute {
@@ -132,7 +145,7 @@ class Tribute {
       element: HTMLElement | null,
       triggerPos: number | null
       mentionText: string | null,
-      filteredItems: TributeItem[] | null,
+      filteredItems: TributeSearchResults[] | null,
     }} */ ({});
     this.inputEvent = false;
     this.isActive = false;
