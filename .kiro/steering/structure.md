@@ -1,0 +1,78 @@
+# Project Structure
+
+## Root Directory
+
+- **src/**: Main source code directory
+- **config/**: Wiki-specific configuration files
+- **i18n/**: Internationalization files (JSON format)
+- **data/**: Static data files (date formats, timezones, language fallbacks)
+- **tests/**: Test files
+- **dist/**: Build output directory
+- **misc/**: Utility scripts and tools
+
+## Source Code Organization (`src/`)
+
+### Core Application Files
+- **app.js**: Main application entry point
+- **cd.js**: Core Convenient Discussions object
+- **convenientDiscussions.js**: Main initialization script
+- **bootController.js**: Application bootstrap logic
+- **BootProcess.js**: Boot process management
+
+### UI Components
+- **Comment.js**: Comment handling and rendering
+- **CommentForm.js**: Comment editing forms
+- **Section.js**: Section management
+- **Thread.js**: Thread handling
+- **Button.js**: Custom button components
+- **Various Widget files**: OOUI widget extensions
+
+### Core Systems
+- **Page.js**: Page object management
+- **User.js**: User-related functionality
+- **Subscriptions.js**: Topic subscription system
+- **notifications.js**: Notification handling
+- **updateChecker.js**: Background update checking
+
+### Utilities
+- **utils-*.js**: Utility functions (API, OOJS, window operations)
+- **Storage*.js**: Local storage management
+- **registry files**: Object registries for comments, sections, users, pages
+
+### Specialized Features
+- **navPanel.js**: Navigation panel
+- **pageNav.js**: Page navigation
+- **toc.js**: Table of contents enhancement
+- **Autocomplete.js**: Mention/link autocomplete
+- **CodeMirror*.js**: Rich text editor integration
+
+### Styling
+- ***.less files**: Component-specific styles
+- **global.less**: Global styles
+- **variables.less**: Style variables
+
+## Configuration System
+
+### Multi-Wiki Support
+- **config.json5**: Main deployment configuration
+- **config/*.js**: Wiki-specific configuration files
+- **buildConfigs.js**: Configuration build script
+
+### Internationalization
+- **i18n/*.json**: Translation files by language code
+- **buildI18n.js**: i18n build script
+- **data/i18nList.json**: Supported languages list
+
+## Build System Files
+
+- **webpack.config.js**: Webpack configuration
+- **babel.config.js**: Babel transpilation setup
+- **eslint.config.js**: ESLint rules and configuration
+- **jest.config.js**: Test configuration
+- **jsconfig.json**: TypeScript/JSDoc configuration
+
+## Development Tools
+
+- **jsdoc/**: JSDoc documentation configuration
+- **patches/**: npm package patches
+- **misc/**: Development utilities and scripts
