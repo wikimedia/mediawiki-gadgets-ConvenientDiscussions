@@ -13,33 +13,38 @@
 ## Source Code Organization (`src/`)
 
 ### Core Application Files
+
 - **app.js**: Main application entry point
 - **cd.js**: Core Convenient Discussions object
 - **convenientDiscussions.js**: Main initialization script
 - **bootController.js**: Application bootstrap logic
 - **BootProcess.js**: Boot process management
+- **talkPageController.js**: Main controller
 
 ### UI Components
+
 - **Comment.js**: Comment handling and rendering
 - **CommentForm.js**: Comment editing forms
-- **Section.js**: Section management
-- **Thread.js**: Thread handling
+- **Section.js**: Section handling and rendering
+- **Thread.js**: Thread handling and rendering
 - **Button.js**: Custom button components
 - **Various Widget files**: OOUI widget extensions
 
 ### Core Systems
+
 - **Page.js**: Page object management
 - **User.js**: User-related functionality
-- **Subscriptions.js**: Topic subscription system
-- **notifications.js**: Notification handling
+- **DtSubscriptions.js**: Topic subscription system
 - **updateChecker.js**: Background update checking
 
 ### Utilities
+
 - **utils-*.js**: Utility functions (API, OOJS, window operations)
 - **Storage*.js**: Local storage management
 - **registry files**: Object registries for comments, sections, users, pages
 
 ### Specialized Features
+
 - **navPanel.js**: Navigation panel
 - **pageNav.js**: Page navigation
 - **toc.js**: Table of contents enhancement
@@ -47,18 +52,27 @@
 - **CodeMirror*.js**: Rich text editor integration
 
 ### Styling
+
 - ***.less files**: Component-specific styles
 - **global.less**: Global styles
 - **variables.less**: Style variables
 
+### Subdirectories
+
+- **worker/**: Page parsing module that runs in a web worker and is accessed from updateChecker.js
+- **shared/**: Classes and modules shared between the web worker context and window context
+- **tribute/**: Tribute mentions library heavily modified for the apps's need
+
 ## Configuration System
 
 ### Multi-Wiki Support
+
 - **config.json5**: Main deployment configuration
 - **config/*.js**: Wiki-specific configuration files
 - **buildConfigs.js**: Configuration build script
 
 ### Internationalization
+
 - **i18n/*.json**: Translation files by language code
 - **buildI18n.js**: i18n build script
 - **data/i18nList.json**: Supported languages list

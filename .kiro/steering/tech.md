@@ -11,11 +11,13 @@
 ## Key Dependencies
 
 ### Runtime Dependencies
+
 - **date-fns/date-fns-tz**: Date/time manipulation and timezone handling
-- **htmlparser2**: HTML parsing for comment processing
+- **htmlparser2**: HTML parsing for comment/section processing
 - **lz-string**: String compression for storage optimization
 
 ### Development Dependencies
+
 - **ESLint**: Code linting with TypeScript, JSDoc, and Unicorn plugins
 - **Jest**: Testing framework
 - **CodeMirror 6**: Rich text editing capabilities
@@ -24,6 +26,7 @@
 ## Build System
 
 ### Common Commands
+
 ```bash
 # Development server with hot reload
 npm run start
@@ -54,6 +57,7 @@ npm run i18n
 ```
 
 ### Build Modes
+
 - **Development**: Source maps, no minification, served at localhost:9000
 - **Production**: Minified, optimized, with license extraction
 - **Test**: Production build with .test filename postfix

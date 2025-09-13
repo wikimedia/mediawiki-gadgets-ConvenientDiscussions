@@ -4,7 +4,7 @@
 
 ## Core Features
 
-- **Enhanced Comment System**: Post and edit comments without page switches, with autocomplete for @mentions, wikilinks, templates, and tags
+- **Enhanced Comment System**: Post and edit comments without page switches, with autocomplete for mentions, wikilinks, templates, and tags
 - **Real-time Updates**: Background checking for new comments with automatic rendering of simple edits
 - **Improved Navigation**: Comment timestamps in local time, highlighting new/own comments, collapsible threads
 - **Subscription System**: Topic subscriptions with notifications (based on DiscussionTools)
