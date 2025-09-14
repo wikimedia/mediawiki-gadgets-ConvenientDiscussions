@@ -13,8 +13,8 @@ import { escapePipesOutsideLinks, generateTagsRegexp } from './shared/utils-wiki
 class CommentFormInputTransformer extends TextMasker {
   /**
    * @typedef {object} CommentFormTargetWithSourceSet
-   * @property {import('./CommentForm').Source} source When
-   *   {@link CommentFormInputTransformer} is instantiated, `source` is never `null`.
+   * @property {import('./CommentForm').Source} source When {@link CommentFormInputTransformer} is
+   *   instantiated, `source` is never `null`.
    */
 
   /**
@@ -305,9 +305,9 @@ class CommentFormInputTransformer extends TextMasker {
     // We we only check for `:` here, not other markup, because we only add `:` in those places.
     code = code.replace(/^(.*)\n\n+(?!:)/gm, (_, m1) =>
       cd.config.paragraphTemplates.length
-        ? `$1{{${cd.config.paragraphTemplates[0]}}}\n`
+        ? `${m1}{{${cd.config.paragraphTemplates[0]}}}\n`
         : this.areThereTagsAroundMultipleLines
-        ? `$1<br> \n`
+        ? `${m1}<br> \n`
         : m1 +
           '\n' +
           CommentFormInputTransformer.prependIndentationToLine(this.restLinesIndentation, '')
