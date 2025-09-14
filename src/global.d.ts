@@ -338,7 +338,7 @@ declare global {
         | number
         | JQuery.Promise<void>
         | Promise<void>
-        | ((this: C) => boolean | number | JQuery.Promise<void> | Promise<void> | Error | [Error] | void);
+        | ((this: C) => boolean | number | JQuery.Promise<void> | Promise<void> | Error | [Error] | undefined);
 
       interface Constructor {
         /**

@@ -152,6 +152,9 @@ const config = tseslint.config(
       // We use it for Tribute
       "@typescript-eslint/ban-ts-comment": "off",
 
+      // {} is neat in conditional types with conditional object props, e.g. `AD extends false ? { date: Date } : {}`
+      "@typescript-eslint/no-empty-object-type": "off",
+
       // Wait until enough browsers support it
       'unicorn/prefer-string-replace-all': 'off',
       'unicorn/prefer-at': 'off',
@@ -323,9 +326,10 @@ const config = tseslint.config(
 
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
+      '@typescript-eslint/no-unnecessary-condition': 'off',
     },
   },
-
 );
 
 export default config;
