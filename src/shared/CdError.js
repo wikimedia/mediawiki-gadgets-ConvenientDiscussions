@@ -67,9 +67,13 @@ class CdError extends Error {
   /**
    * Create a custom error.
    *
-   * @param {ErrorDataParameter<Type>} [data={}]
+   * @param {ErrorDataParameter<Type> | string} [data={}]
    */
   constructor(data = {}) {
+    if (typeof data === 'string') {
+      data = { message: data };
+    }
+
     data.type ??= 'internal';
     data.details ??= {};
     super(

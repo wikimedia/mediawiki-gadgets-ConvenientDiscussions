@@ -49,7 +49,7 @@ This is a JavaScript project with type checking supplied by TypeScript through t
   * Get the archive prefix for the page.
   *
   * @param {boolean} [onlyExplicit=false]
-  * @returns {string|undefined}
+  * @returns {string | undefined}
   */
   ```
 

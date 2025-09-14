@@ -42,6 +42,7 @@
 - **utils-*.js**: Utility functions (API, OOJS, window operations)
 - **Storage*.js**: Local storage management
 - **registry files**: Object registries for comments, sections, users, pages
+- **CdError.js**: Custom error class
 
 ### Specialized Features
 
@@ -60,7 +61,7 @@
 ### Types
 
 - **global.d.ts** (at most one per directory): Global type definitions
-- Per-module **.d.ts** files: Type definitions for some of the individual modules
+- **Per-module .d.ts files**: Type definitions for some of the individual modules
 - **jsdocTypes.js**: Global type definitions written in the JSDoc format
 - JSDoc type definitions inside individual module files
 

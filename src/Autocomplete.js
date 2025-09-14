@@ -195,7 +195,7 @@ class Autocomplete {
     /** @type {import('./tribute/Tribute').TributeCollection['selectTemplate']} */
     const defaultSelectTemplate = (
       /** @type {import('./tribute/Tribute').TributeSearchResults<Value> | undefined} */ item
-    ) => (item?.original.transform?.()) || '';
+    ) => item?.original.transform?.() || '';
 
     /**
      * @template {Item} T
@@ -240,8 +240,6 @@ class Autocomplete {
         requireLeadingSpace: cd.config.mentionRequiresLeadingSpace,
         selectTemplate: defaultSelectTemplate,
         values: async (text, callback) => {
-          if (!this.tribute.current.externalTrigger) return;
-
           text = removeDoubleSpaces(text);
 
           if (this.mentions.lastQuery && !text.startsWith(this.mentions.lastQuery)) {
@@ -836,6 +834,19 @@ class Autocomplete {
   }
 
   /**
+   * Check if the specified promise is not the current promise in order to detect (pretty frequent)
+   * occasions when a new request was already made and we should abort this one.
+   *
+   * @param {Promise<any>} promise
+   * @throws {CdError}
+   */
+  static promiseIsNotSuperseded(promise) {
+    if (promise !== this.currentPromise) {
+      throw new CdError();
+    }
+  }
+
+  /**
    * Get a list of 10 user names matching the specified search text. User names are sorted as
    * {@link https://www.mediawiki.org/wiki/API:Opensearch OpenSearch} sorts them. Only users with a
    * talk page existent are included. Redirects are resolved.
@@ -851,12 +862,9 @@ class Autocomplete {
     // eslint-disable-next-line no-async-promise-executor
     const promise = new Promise(async (resolve, reject) => {
       await sleep(this.delay);
+      Autocomplete.promiseIsNotSuperseded(promise);
 
       try {
-        if (promise !== this.currentPromise) {
-          throw new CdError();
-        }
-
         /**
          * @typedef {[string, string[], string[], string[]]} OpenSearchResults
          */
@@ -875,6 +883,7 @@ class Autocomplete {
             })
             .catch(handleApiReject)
         );
+        Autocomplete.promiseIsNotSuperseded(promise);
 
         const users = response[1]
           ?.map((name) => (name.match(cd.g.userNamespacesRegexp) || [])[1])
@@ -896,7 +905,10 @@ class Autocomplete {
                 })
                 .catch(handleApiReject)
             );
-          if (!allUsersResponse.query) return;
+          Autocomplete.promiseIsNotSuperseded(promise);
+          if (!allUsersResponse.query) {
+            throw new CdError();
+          }
 
           resolve(allUsersResponse.query.allusers.map((user) => user.name));
         }
@@ -960,18 +972,16 @@ class Autocomplete {
     // eslint-disable-next-line no-async-promise-executor
     const promise = new Promise(async (resolve, reject) => {
       await sleep(this.delay);
+      Autocomplete.promiseIsNotSuperseded(promise);
 
       try {
-        if (promise !== this.currentPromise) {
-          throw new CdError();
-        }
-
         const response = /** @type {OpenSearchResults} */ (await cd.getApi().get({
           action: 'opensearch',
           search: text,
           redirects: 'return',
           limit: 10,
         }).catch(handleApiReject));
+        Autocomplete.promiseIsNotSuperseded(promise);
 
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const results = response[1]?.map((/** @type {string} */ name) => {
@@ -1015,18 +1025,16 @@ class Autocomplete {
     // eslint-disable-next-line no-async-promise-executor
     const promise = new Promise(async (resolve, reject) => {
       await sleep(this.delay);
+      Autocomplete.promiseIsNotSuperseded(promise);
 
       try {
-        if (promise !== this.currentPromise) {
-          throw new CdError();
-        }
-
         const response = /** @type {OpenSearchResults} */ (await cd.getApi().get({
           action: 'opensearch',
           search: text.startsWith(':') ? text.slice(1) : 'Template:' + text,
           redirects: 'return',
           limit: 10,
         }).catch(handleApiReject));
+        Autocomplete.promiseIsNotSuperseded(promise);
 
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const results = response[1]

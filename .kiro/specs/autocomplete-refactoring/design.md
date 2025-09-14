@@ -6,6 +6,9 @@ This design document outlines the refactoring of the Autocomplete class into a c
 
 ## Architecture
 
+> [!WARNING]
+> The code snippets below are written in TypeScript. The actual code should use JavaScript with types and keywords expressed using TypeScript-flavored JSDoc (e.g. index signatures instead of `Object` types, generic parameters via `@template {ExtendedType} [Type=DefaultType]`, function overloads using `@overload`, etc.).
+
 ### Class Hierarchy
 
 ```text
@@ -28,7 +31,7 @@ BaseAutocomplete (abstract base class)
 
 ### BaseAutocomplete Abstract Class
 
-```javascript
+```typescript
 abstract class BaseAutocomplete {
   // Shared properties
   cache = {};
@@ -85,7 +88,7 @@ abstract class BaseAutocomplete {
 
 ### AutocompleteManager (Refactored Main Class)
 
-```javascript
+```typescript
 class AutocompleteManager {
   private autocompleteInstances: Map<AutocompleteType, BaseAutocomplete>;
   private tribute: Tribute;
@@ -101,7 +104,7 @@ class AutocompleteManager {
 
 ### AutocompleteFactory
 
-```javascript
+```typescript
 class AutocompleteFactory {
   static create(type: AutocompleteType, options: any): BaseAutocomplete {
     switch (type) {
@@ -110,7 +113,7 @@ class AutocompleteFactory {
       case 'templates': return new TemplatesAutocomplete(options);
       case 'tags': return new TagsAutocomplete(options);
       case 'commentLinks': return new CommentLinksAutocomplete(options);
-      default: throw new Error(`Unknown autocomplete type: ${type}`);
+      default: throw new CdError(`Unknown autocomplete type: ${type}`);
     }
   }
 }
@@ -120,7 +123,7 @@ class AutocompleteFactory {
 
 ### AutocompleteOptions Interface
 
-```javascript
+```typescript
 interface AutocompleteOptions {
   types: AutocompleteType[];
   inputs: TextInputWidget[];
@@ -131,7 +134,7 @@ interface AutocompleteOptions {
 
 ### Value Interface (Enhanced)
 
-```javascript
+```typescript
 interface Value<T = any> {
   key: string;
   item: T;
@@ -141,7 +144,7 @@ interface Value<T = any> {
 
 ### AutocompleteConfig Interface
 
-```javascript
+```typescript
 interface AutocompleteConfig {
   cache: StringArraysByKey;
   lastResults: string[];
@@ -163,15 +166,8 @@ interface AutocompleteConfig {
 
 ### API Request Errors
 
-- Network failures will be caught and handled without disrupting user experience
+- API/network failures will be caught and handled without disrupting user experience
 - Fallback to cached results when API requests fail
-- Timeout handling for slow API responses
-
-### Integration Errors
-
-- Tribute integration errors will be caught and logged
-- Graceful degradation when autocomplete features fail
-- Maintain basic text input functionality even if autocomplete fails
 
 ## Testing Strategy
 
@@ -194,7 +190,7 @@ interface AutocompleteConfig {
 - Measure autocomplete response times
 - Test with large datasets (many users, pages, templates)
 - Verify memory usage doesn't increase significantly
-- Test concurrent autocomplete requests
+- Test concurrent autocomplete requests (new requests should override old ones)
 
 ## Migration Strategy
 
