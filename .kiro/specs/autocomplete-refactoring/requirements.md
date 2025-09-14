@@ -14,7 +14,7 @@ This specification outlines the refactoring of the Autocomplete class in the Con
 
 1. WHEN implementing autocomplete types THEN the system SHALL create separate classes for each type: MentionsAutocomplete, WikilinksAutocomplete, TemplatesAutocomplete, TagsAutocomplete, and CommentLinksAutocomplete
 2. WHEN creating these classes THEN each class SHALL consolidate all logic, configuration, and state related to its specific autocomplete type
-3. WHEN organizing the code THEN each class SHALL contain its own transform methods, validation logic, and API request handling
+3. WHEN organizing the code THEN each class SHALL contain its own item transformation methods, validation logic, and API request handling
 4. WHEN implementing the classes THEN they SHALL follow consistent naming conventions and structure
 
 ### Requirement 2: Establish Base Class or Interface
@@ -25,7 +25,7 @@ This specification outlines the refactoring of the Autocomplete class in the Con
 
 1. WHEN creating the type classes THEN the system SHALL provide a base class or interface that defines the common contract
 2. WHEN implementing shared functionality THEN the base class SHALL contain common methods for caching, query handling, and result processing
-3. WHEN defining the interface THEN it SHALL specify required methods like getCollection(), transform(), and validateInput()
+3. WHEN defining the interface THEN it SHALL specify required methods like getCollection(), transformItemToInsertData(), and validateInput()
 4. WHEN using polymorphism THEN the system SHALL eliminate type-based branching in favor of method overrides
 
 ### Requirement 3: Consolidate Configuration and State Management

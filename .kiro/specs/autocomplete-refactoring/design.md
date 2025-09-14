@@ -38,7 +38,7 @@ abstract class BaseAutocomplete {
   // Abstract methods (must be implemented by subclasses)
   abstract getLabel(): string;
   abstract getTrigger(): string;
-  abstract transform(item: any): InsertData;
+  abstract transformItemToInsertData(item: any): InsertData;
   abstract validateInput(text: string): boolean;
   abstract makeApiRequest(text: string): Promise<string[]>;
 
@@ -135,7 +135,7 @@ interface AutocompleteOptions {
 interface Value<T = any> {
   key: string;
   item: T;
-  transform?: () => InsertData;
+  transformItemToInsertData?: () => InsertData;
 }
 ```
 
@@ -148,7 +148,7 @@ interface AutocompleteConfig {
   lastQuery: string;
   default?: any[];
   defaultLazy?: () => any[];
-  transform?: (this: Value) => InsertData;
+  transformItemToInsertData?: (this: Value) => InsertData;
   data?: AnyByKey;
 }
 ```
