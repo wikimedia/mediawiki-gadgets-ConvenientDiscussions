@@ -63,6 +63,7 @@ function testWithData({ label, code, expected, commentForm, action = 'submit', c
         ? 'comment'
         : 'page',
       source: commentForm.target.source,
+      isOpeningSection: () => commentForm.target.openingSection,
     });
 
     if (config) {
@@ -111,7 +112,7 @@ const firstCommentReplyForm = {
       headingLevel: 2,
     },
   },
-  isOpeningSection: true,
+  openingSection: true,
 };
 
 const existingSignature = ' [[User:Example|Example]] 00:00, 1 October 2021 (UTC)';
@@ -159,7 +160,7 @@ const firstCommentEditForm = {
       signatureCode: existingSignature,
       headingLevel: 2,
     },
-    isOpeningSection: true,
+    openingSection: true,
   },
 };
 
@@ -296,7 +297,7 @@ describe('Basic cases', () => {
   testWithData({
     label: 'Add subsection',
     code: 'Text.',
-    expected: '=== Headline ===\nText. ~~~~\n',
+    expected: '=== Headline ===\nText. ~~~~\n\n',
     commentForm: addSubsectionForm,
   });
 });

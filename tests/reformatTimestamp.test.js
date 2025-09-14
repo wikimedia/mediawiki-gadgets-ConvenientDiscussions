@@ -24,6 +24,8 @@ window.mw = {
 };
 const mw = window.mw;
 
+window.OO = require('oojs');
+
 const getTimezoneOffset = require('date-fns-tz').getTimezoneOffset;
 
 self.$ = {};
@@ -141,6 +143,7 @@ function testWithSettings({
     const adaptedReformatTimestamp = (/** @type {Timestamp} */ d) => {
       comment.date = new Date(d);
       comment.formatTimestamp = Comment.prototype.formatTimestamp;
+      comment.isReformatted = Comment.prototype.isReformatted;
       Comment.prototype.reformatTimestamp.call(comment);
 
       return {

@@ -2288,11 +2288,11 @@ class Section extends SectionSkeleton {
   }
 
   /**
-   * Clean up data related to the live content of the section.
+   * Update data related to the live content of the section.
    *
    * @param {number} lastCheckedRevisionId
    */
-  cleanUpLiveData(lastCheckedRevisionId) {
+  updateLiveData(lastCheckedRevisionId) {
     this.liveSectionNumber = this.match?.sectionNumber ?? null;
     this.liveSectionNumberRevisionId = lastCheckedRevisionId;
     delete this.presumedCode;
