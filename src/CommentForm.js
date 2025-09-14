@@ -122,14 +122,14 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
 
 /**
  * @template {CommentFormMode} Mode
- * @typedef {CommentFormTargetMap[Mode] & CommentFormTargetMapExtension<Mode>} Target
+ * @typedef {CommentFormTargetMap[Mode] & CommentFormTargetMapExtension<Mode>} TypedTarget
  */
 
 /**
  * @template {CommentFormMode} Mode
  * @typedef {object} CommentFormConfig
  * @property {Mode} config.mode
- * @property {Target<Mode>} config.target Comment, section, or page that the form is associated
+ * @property {TypedTarget<Mode>} config.target Comment, section, or page that the form is associated
  *   in the UI.
  * @property {CommentFormInitialState} [config.initialState = {}] Initial state of the form (data
  *   saved in the previous session, quoted text, data transferred from DT's new topic form, etc.).
@@ -148,7 +148,7 @@ class CommentForm extends EventEmitter {
   /**
    * Comment, section, or page with which the form is associated in the UI.
    *
-   * @type {Target<Mode>}
+   * @type {TypedTarget<Mode>}
    * @private
    */
   target;
@@ -738,7 +738,7 @@ class CommentForm extends EventEmitter {
   /**
    * Set the `target`, `targetSection`, `parentComment`, and `targetPage` properties.
    *
-   * @param {Target<Mode>} target
+   * @param {TypedTarget<Mode>} target
    */
   setTargets(target) {
     this.target = target;
@@ -3836,9 +3836,7 @@ class CommentForm extends EventEmitter {
     let content = '';
     if (settings.get('autocompleteTypes').includes('mentions')) {
       content = cd.config.mentionCharacter;
-    } else {
-
-    }
+    } else {}
 
     this.insertContentAfter(content);
   }
@@ -4091,7 +4089,7 @@ class CommentForm extends EventEmitter {
   /**
    * Get the {@link CommentForm#target target} object of the form.
    *
-   * @returns {Target<Mode>}
+   * @returns {TypedTarget<Mode>}
    */
   getTarget() {
     return this.target;

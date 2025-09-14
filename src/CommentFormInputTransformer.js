@@ -18,8 +18,7 @@ class CommentFormInputTransformer extends TextMasker {
    */
 
   /**
-   * @template {import('./CommentForm').CommentFormMode} [M=Mode]
-   * @typedef {import('./CommentForm').Target<M> & CommentFormTargetWithSourceSet} CommentFormTarget
+   * @typedef {import('./CommentForm').TypedTarget<Mode> & CommentFormTargetWithSourceSet} CommentFormTarget
    */
 
   /** @type {CommentFormTarget} */
@@ -31,12 +30,15 @@ class CommentFormInputTransformer extends TextMasker {
   /** @type {string|undefined} */
   restLinesIndentation;
 
+  /** @type {string} */
+  signature;
+
   /**
    * Create a comment form input processor.
    *
    * @param {string} text
    * @param {import('./CommentForm').default<Mode>} commentForm
-   * @param {string} action
+   * @param {import('./CommentForm').CommentFormAction} action
    */
   constructor(text, commentForm, action) {
     super(text.trim());
@@ -173,6 +175,7 @@ class CommentFormInputTransformer extends TextMasker {
         if (/<\/small>/i.test(content)) {
           return s;
         }
+
         this.wrapInSmall = true;
 
         return content;
@@ -192,7 +195,7 @@ class CommentFormInputTransformer extends TextMasker {
     if (this.commentForm.omitSignatureCheckbox?.isSelected()) {
       this.signature = '';
     } else {
-      this.signature = this.isCommentTarget() ?
+      this.signature = this.isMode('edit') ?
         this.target.source.signatureCode :
         cd.g.userSignature;
     }

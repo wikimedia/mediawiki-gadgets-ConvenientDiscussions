@@ -298,7 +298,7 @@ class UpdateChecker extends EventEmitter {
     });
 
     sectionRegistry.getAll().forEach((section) => {
-      section.cleanUpLiveData(lastCheckedRevisionId);
+      section.updateLiveData(lastCheckedRevisionId);
     });
 
     return workerSections;

@@ -32,8 +32,10 @@
     "date-fns-tz": "^3.2.0",
     "dayjs": "^1.10.5",
     "htmlparser2": "^6.1.0",
+    "jest-environment-jsdom": "^30.1.2",
     "locutus": "^2.0.15",
-    "lz-string": "^1.4.4"
+    "lz-string": "^1.4.4",
+    "oojs": "^7.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
@@ -72,7 +74,7 @@
     "eslint-plugin-no-one-time-vars": "^2.7.0",
     "eslint-plugin-unicorn": "^60.0.0",
     "http-proxy-to-socks": "^1.1.2",
-    "jest": "^27.0.3",
+    "jest": "^30.1.3",
     "jsdoc": "^3.6.6",
     "jsdom": "^16.5.2",
     "json5": "^2.2.2",

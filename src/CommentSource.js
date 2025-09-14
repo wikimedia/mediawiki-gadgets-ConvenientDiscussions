@@ -23,6 +23,9 @@ class CommentSource {
   /** @type {string} */
   replyIndentation;
 
+  /** @type {string} */
+  signatureCode;
+
   /**
    * Create a comment's source object.
    *
@@ -318,6 +321,7 @@ class CommentSource {
         this.inSmallFont = true;
         this.code = this.code.replace(wrapper.start, '');
         this.signatureCode = this.signatureCode.replace(wrapper.end, '');
+
         return true;
       }
     });
