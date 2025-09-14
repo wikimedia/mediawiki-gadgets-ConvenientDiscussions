@@ -51,8 +51,8 @@ import { handleApiReject } from './utils-api';
  * @property {Item[]} [default] Default set of items to search across (may be more narrow than the
  *   list of all potential values, as in the case of user names)
  * @property {(() => Item[])} [defaultLazy] Function for lazy loading of the defaults
- * @property {() => import('./tribute/Tribute').InsertData} [transform] Function that transforms
- *   the item into the data that is actually inserted
+ * @property {() => import('./tribute/Tribute').InsertData} [transformItemToInsertData] Function
+ *   that transforms the item into the data that is actually inserted
  * @property {AnyByKey} [data] Any additional data to be used by methods
  */
 
@@ -162,9 +162,9 @@ class Autocomplete {
   }
 
   /**
-   * Clean up event handlers.
+   * Remove event handlers.
    */
-  cleanUp() {
+  terminate() {
     this.inputs.forEach((input) => {
       this.tribute.detach(input.$input[0]);
     });
@@ -223,7 +223,7 @@ class Autocomplete {
 
           /** @type {Value<T>} */
           const value = { key, item };
-          value.transform = config.transform?.bind(value);
+          value.transform = config.transformItemToInsertData?.bind(value);
 
           return value;
         });
@@ -542,6 +542,8 @@ class Autocomplete {
 
   static delay = 100;
 
+  static apiConfig = { ajax: { timeout: 1000 * 5 } };
+
   /** @type {HTMLElement|undefined} */
   static activeMenu;
 
@@ -581,7 +583,7 @@ class Autocomplete {
          * @this {Value<string>}
          * @returns {import('./tribute/Tribute').InsertData}
          */
-        transform() {
+        transformItemToInsertData() {
           const name = this.item.trim();
           const user = userRegistry.get(name);
           const userNamespace = user.getNamespaceAlias();
@@ -660,7 +662,7 @@ class Autocomplete {
          * @this {Value<CommentLinksItem>}
          * @returns {import('./tribute/Tribute').InsertData}
          */
-        transform() {
+        transformItemToInsertData() {
           const object = this.item;
 
           return {
@@ -683,7 +685,7 @@ class Autocomplete {
          * @this {Value<string>}
          * @returns {import('./tribute/Tribute').InsertData}
          */
-        transform() {
+        transformItemToInsertData() {
           return {
             start: '[[' + this.item.trim(),
             end: ']]',
@@ -704,7 +706,7 @@ class Autocomplete {
          * @this {Value<string>}
          * @returns {import('./tribute/Tribute').InsertData}
          */
-        transform() {
+        transformItemToInsertData() {
           return {
             start: '{{' + this.item.trim(),
             end: '}}',
@@ -736,7 +738,7 @@ class Autocomplete {
          * @this {Value<TagsItem>}
          * @returns {import('./tribute/Tribute').InsertData}
          */
-        transform() {
+        transformItemToInsertData() {
           const item = this.item;
 
           return {
@@ -764,7 +766,7 @@ class Autocomplete {
     /** @type {APIResponseTemplateData} */
     let response;
     try {
-      response = await cd.getApi().get({
+      response = await cd.getApi(Autocomplete.apiConfig).get({
         action: 'templatedata',
         titles: `Template:${item.original.key}`,
         redirects: true,
@@ -861,10 +863,10 @@ class Autocomplete {
     text = ucFirst(text);
     // eslint-disable-next-line no-async-promise-executor
     const promise = new Promise(async (resolve, reject) => {
-      await sleep(this.delay);
-      Autocomplete.promiseIsNotSuperseded(promise);
-
       try {
+        await sleep(this.delay);
+        Autocomplete.promiseIsNotSuperseded(promise);
+
         /**
          * @typedef {[string, string[], string[], string[]]} OpenSearchResults
          */
@@ -873,7 +875,7 @@ class Autocomplete {
         // users do, while spammers don't.
         const response = /** @type {OpenSearchResults} */ (
           await cd
-            .getApi()
+            .getApi(Autocomplete.apiConfig)
             .get({
               action: 'opensearch',
               search: text,
@@ -897,7 +899,7 @@ class Autocomplete {
           const allUsersResponse =
             /** @type {ApiResponseQuery<ApiResponseQueryContentAllUsers>} */ (
               await cd
-                .getApi()
+                .getApi(Autocomplete.apiConfig)
                 .get({
                   action: 'query',
                   list: 'allusers',
@@ -971,16 +973,21 @@ class Autocomplete {
 
     // eslint-disable-next-line no-async-promise-executor
     const promise = new Promise(async (resolve, reject) => {
-      await sleep(this.delay);
-      Autocomplete.promiseIsNotSuperseded(promise);
-
       try {
-        const response = /** @type {OpenSearchResults} */ (await cd.getApi().get({
-          action: 'opensearch',
-          search: text,
-          redirects: 'return',
-          limit: 10,
-        }).catch(handleApiReject));
+        await sleep(this.delay);
+        Autocomplete.promiseIsNotSuperseded(promise);
+
+        const response = /** @type {OpenSearchResults} */ (
+          await cd
+            .getApi(Autocomplete.apiConfig)
+            .get({
+              action: 'opensearch',
+              search: text,
+              redirects: 'return',
+              limit: 10,
+            })
+            .catch(handleApiReject)
+        );
         Autocomplete.promiseIsNotSuperseded(promise);
 
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -1024,16 +1031,21 @@ class Autocomplete {
   static getRelevantTemplateNames(text) {
     // eslint-disable-next-line no-async-promise-executor
     const promise = new Promise(async (resolve, reject) => {
-      await sleep(this.delay);
-      Autocomplete.promiseIsNotSuperseded(promise);
-
       try {
-        const response = /** @type {OpenSearchResults} */ (await cd.getApi().get({
-          action: 'opensearch',
-          search: text.startsWith(':') ? text.slice(1) : 'Template:' + text,
-          redirects: 'return',
-          limit: 10,
-        }).catch(handleApiReject));
+        await sleep(this.delay);
+        Autocomplete.promiseIsNotSuperseded(promise);
+
+        const response = /** @type {OpenSearchResults} */ (
+          await cd
+            .getApi(Autocomplete.apiConfig)
+            .get({
+              action: 'opensearch',
+              search: text.startsWith(':') ? text.slice(1) : 'Template:' + text,
+              redirects: 'return',
+              limit: 10,
+            })
+            .catch(handleApiReject)
+        );
         Autocomplete.promiseIsNotSuperseded(promise);
 
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -1041,9 +1053,9 @@ class Autocomplete {
           ?.filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
           .map((name) => text.startsWith(':') ? name : name.slice(name.indexOf(':') + 1))
           .map((name) => (
-            mw.config.get('wgCaseSensitiveNamespaces').includes(10) ?
-              name :
-              this.useOriginalFirstCharCase(name, text)
+            mw.config.get('wgCaseSensitiveNamespaces').includes(10)
+              ? name
+              : this.useOriginalFirstCharCase(name, text)
           ));
 
         resolve(results);

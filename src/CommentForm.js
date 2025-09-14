@@ -3558,9 +3558,9 @@ class CommentForm extends EventEmitter {
     // is unregistered (even if the form itself is not torn down).
     this.teardownInputPopups();
 
-    this.autocomplete.cleanUp();
-    this.headlineAutocomplete?.cleanUp();
-    this.summaryAutocomplete.cleanUp();
+    this.autocomplete.terminate();
+    this.headlineAutocomplete?.terminate();
+    this.summaryAutocomplete.terminate();
 
     this.registered = false;
     this.emit('unregister');
@@ -3837,7 +3837,7 @@ class CommentForm extends EventEmitter {
     if (settings.get('autocompleteTypes').includes('mentions')) {
       content = cd.config.mentionCharacter;
     } else {
-      
+
     }
 
     this.insertContentAfter(content);

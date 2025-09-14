@@ -96,7 +96,7 @@ class AutocompleteManager {
 
   constructor(options: AutocompleteOptions);
   init(): void;
-  cleanUp(): void;
+  terminate(): void;
   private createAutocompleteInstances(types: AutocompleteType[]): void;
   private getCollections(): TributeCollection[];
 }
@@ -190,7 +190,7 @@ interface AutocompleteConfig {
 - Measure autocomplete response times
 - Test with large datasets (many users, pages, templates)
 - Verify memory usage doesn't increase significantly
-- Test concurrent autocomplete requests (new requests should override old ones)
+- Test concurrent autocomplete requests
 
 ## Migration Strategy
 
@@ -221,7 +221,7 @@ interface AutocompleteConfig {
 ### Phase 5: Testing and Validation
 
 - Run comprehensive test suite
-- Validate all autocomplete functionality works as before
+- Validate all autocomplete functionality works correctly
 - Performance testing and optimization
 - Documentation updates
 
@@ -230,7 +230,7 @@ interface AutocompleteConfig {
 ### Public API Preservation
 
 - Main constructor signature will remain the same
-- Public methods (init, cleanUp, getActiveMenu) will be preserved
+- Public methods (init, terminate, getActiveMenu) will be preserved
 - Static methods will be maintained or provided as aliases
 
 ### Configuration Compatibility

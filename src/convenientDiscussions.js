@@ -191,9 +191,14 @@ const convenientDiscussionsWindow = {
    * Get a
    * {@link https://doc.wikimedia.org/mediawiki-core/master/js/#!/api/mw.Api mw.Api} instance.
    *
+   * @param {mw.Api.Options} [config]
    * @returns {mw.Api}
    */
-  getApi() {
+  getApi(config) {
+    if (config) {
+      return new mw.Api({ ...cd.getApiConfig(), ...config });
+    }
+
     this.mwApi ||= new mw.Api(cd.getApiConfig());
 
     return this.mwApi;
