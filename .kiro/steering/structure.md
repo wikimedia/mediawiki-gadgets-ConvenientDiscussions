@@ -62,7 +62,7 @@
 
 - **global.d.ts** (at most one per directory): Global type definitions
 - **Per-module .d.ts files**: Type definitions for some of the individual modules
-- **jsdocTypes.js**: Global type definitions written in the JSDoc format
+- **jsdocTypes.js**: Additional global type definitions written in the JSDoc format
 - JSDoc type definitions inside individual module files
 
 ### Subdirectories
