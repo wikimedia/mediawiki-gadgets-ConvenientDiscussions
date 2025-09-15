@@ -293,7 +293,7 @@ if (Object.keys(i18n).length) {
       jsonText = jsonText.replace(/<\/nowiki>/g, '</" + String("") + "nowiki>');
     }
 
-    let text = `window.convenientDiscussions = window.convenientDiscussions || {};
+    let text = `window.convenientDiscussions = /** @type {import('../../src/cd').ConvenientDiscussions} */ (window.convenientDiscussions || {});
 convenientDiscussions.i18n = convenientDiscussions.i18n || {};
 convenientDiscussions.i18n['${lang}'] = ${jsonText};
 `;

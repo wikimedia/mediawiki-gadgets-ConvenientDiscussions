@@ -2,7 +2,6 @@
  * This file has types for the code shared between the main and worker parts of the script.
  */
 
-
 import BrowserComment from '../Comment';
 import Section from '../Section';
 import { ConvenientDiscussionsBase } from './cd';
@@ -183,3 +182,5 @@ declare global {
     getElementByClassName: (element: ElementFor<N>, className: string) => ElementFor<N> | null;
   }
 }
+
+export {};

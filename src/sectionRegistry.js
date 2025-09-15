@@ -295,7 +295,7 @@ class SectionRegistry {
     if (scrollY <= cd.g.bodyScrollPaddingTop) return;
 
     return this.items.reduce((result, section) => {
-      if (result !== null) {
+      if (result !== undefined) {
         return result;
       }
 

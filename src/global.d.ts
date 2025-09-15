@@ -1,8 +1,8 @@
 /// <reference types="types-mediawiki" />
 
+import { ConvenientDiscussions } from './cd';
 import CheckboxInputWidget from './CheckboxInputWidget';
 import TextInputWidget from './TextInputWidget';
-import ConvenientDiscussions from './cd';
 
 declare global {
   const IS_TEST: boolean;
@@ -380,3 +380,5 @@ declare global {
     wikiEditor: any;
   }
 }
+
+export {};

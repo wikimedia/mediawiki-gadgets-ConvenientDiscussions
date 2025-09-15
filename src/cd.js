@@ -36,6 +36,7 @@ import cd from './shared/cd';
  * )} ConvenientDiscussions
  */
 
-// We change the type here, which is impossible with export...from
+// We don't use export...from here because we change the type here, which is impossible with
+// export...from
 // eslint-disable-next-line unicorn/prefer-export-from
 export default /** @type {ConvenientDiscussions} */ (cd);

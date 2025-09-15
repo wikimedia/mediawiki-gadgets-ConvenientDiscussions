@@ -28,7 +28,7 @@ window.OO = require('oojs');
 
 const getTimezoneOffset = require('date-fns-tz').getTimezoneOffset;
 
-self.$ = {};
+window.$ = {};
 require('../src/jqueryExtensions');
 
 // eslint-disable-next-line no-one-time-vars/no-one-time-vars

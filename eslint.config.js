@@ -25,7 +25,7 @@ const config = tseslint.config(
   // Main configuration
   {
     //ignores: ['**/*.ts'],
-    files: ['**/*.js', '**/*.ts'],
+    files: ['**/*.js'],
     languageOptions: {
       sourceType: 'module',
       ecmaVersion: 2018,
