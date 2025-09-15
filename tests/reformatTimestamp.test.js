@@ -131,9 +131,9 @@ function testWithSettings({
     ' ' +
     (reformattedTimestamp ? `"${reformattedTimestamp}"` : reformattedTimestamp)
   ), () => {
-    /** @type {Partial<import('../src/Comment').default>} */
+    /** @type {{ [x: string]: any }} */
     const comment = {
-      timestampElement: {},
+      timestampElement: document.createElement('span'),
       extraSignatures: [],
       timestampFormat,
       useUiTime,

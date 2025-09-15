@@ -775,7 +775,7 @@ export default class Page {
       if (entry instanceof RegExp) {
         pagesMaps.source.set(new RegExp(entry.source + '.*'), '');
       } else {
-        pagesMaps.archive.set(pathToRegexp(entry.source, entry.replacements), entry.archive);
+        pagesMaps.archive.set(pathToRegexp(entry.source, entry.replacements, false), entry.archive);
         pagesMaps.source.set(pathToRegexp(entry.archive, entry.replacements, true), entry.source);
       }
     });

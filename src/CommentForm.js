@@ -3512,7 +3512,8 @@ class CommentForm extends EventEmitter {
    * @param {boolean} [confirmClose=true] Whether to confirm form close.
    */
   async cancel(confirmClose = true) {
-    if (bootController.isPageOverlayOn() || this.isBeingSubmitted()) return;
+    // Why check for this.torndown: CodeMirror may emit an event of an Esc button press late
+    if (bootController.isPageOverlayOn() || this.isBeingSubmitted() || this.torndown) return;
 
     if (confirmClose && !this.confirmClose()) {
       this.commentInput.focus();
@@ -3799,7 +3800,7 @@ class CommentForm extends EventEmitter {
     if (mentionAddressee && this.parentComment) {
       const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
         Autocomplete.configs
-      ).mentions.transform.call({ item: this.parentComment.author.getName() });
+      ).mentions.transformItemToInsertData.call({ item: this.parentComment.author.getName() });
       if (/** @type {NonNullable<typeof data.omitContentCheck>} */ (data.omitContentCheck)()) {
         data.content = '';
       }
@@ -3824,7 +3825,7 @@ class CommentForm extends EventEmitter {
     ) {
       const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
         Autocomplete.configs
-      ).mentions.transform.call({ item: selection });
+      ).mentions.transformItemToInsertData.call({ item: selection });
       if (/** @type {NonNullable<typeof data.omitContentCheck>} */ (data.omitContentCheck)()) {
         data.content = '';
       }

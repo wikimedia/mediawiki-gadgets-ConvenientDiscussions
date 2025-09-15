@@ -1836,12 +1836,10 @@ class Section extends SectionSkeleton {
         source = this.locateInCode();
       }
     } catch (error) {
-      throw error instanceof CdError
-        ? new CdError({
-            message: cd.sParse('cf-error-getpagecode'),
-            ...error.data,
-          })
-        : error;
+      if (error instanceof CdError) {
+        error.setMessage(cd.sParse('cf-error-getpagecode'));
+      }
+      throw error;
     }
     commentForm?.setSectionSubmitted(isSectionSubmitted);
 

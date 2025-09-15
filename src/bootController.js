@@ -14,23 +14,21 @@ import { getUserInfo, splitIntoBatches } from './utils-api';
 import { createSvg, skin$, transparentize } from './utils-window';
 
 /**
- * Singleton for managing the booting, rebooting, and unbooting (unloading) of the page.
+ * Singleton for managing booting, rebooting, and unbooting (unloading) of the page. It is imported
+ * when modules such as OOUI may not be yet available.
  *
  * It
- * * initializes the script, both on talk pages and on log pages such as the watchlist (TODO:
+ * - initializes the script, both on talk pages and on log pages such as the watchlist (TODO:
  *   investigate whether these cases two should better be split between different classes). Methods
  *   of the class set constants as properties of the {@link convenientDiscussions.g} object, add
  *   CSS, load site data, such as MediaWiki messages and configuration, and set date formats based
  *   on it;
- * * controls the reload (boot) process of *talk* pages;
- * * controls the behavior when the user tries to close the tab;
- * * holds some state common for talk pages and pages with comment links (e.g. `$content`, `$root`)
+ * - controls the reload (boot) process of *talk* pages;
+ * - controls the behavior when the user tries to close the tab;
+ * - holds some state common for talk pages and pages with comment links (e.g. `$content`, `$root`)
  *   that needs to be actualized on DOM updates. Global config (i.e. global data that doesn't change
  *   unlike state) goes in the {@link convenientDiscussions.g} object, and global methods go in
  *   {@link convenientDiscussions} itself.
- *
- * An important thing about this module is that it is imported when modules such as OOUI are not yet
- * available.
  */
 class BootController {
   /**

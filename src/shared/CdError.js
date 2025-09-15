@@ -78,9 +78,10 @@ class CdError extends Error {
     data.details ??= {};
     super(
       data.type +
-      (data.code ? `/${data.code}` : '') +
-      (data.message ? `: ${data.message}` : '')
+      (data.code ? '/' + data.code : '') +
+      (data.message ? ': ' + data.message : '')
     );
+
     this.name = 'CdError';
     this.data = /** @type {ErrorData<ErrorType>} */ (data);
   }

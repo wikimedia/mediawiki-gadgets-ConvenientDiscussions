@@ -403,18 +403,17 @@ class MoveSectionDialog extends ProcessDialog {
       await this.section.getSourcePage().loadCode(undefined, false);
     } catch (error) {
       if (error instanceof CdError) {
-        const { type, code } = error.data;
-        if (type === 'api') {
-          throw code === 'missing'
+        if (error.getType() === 'api') {
+          throw error.getCode() === 'missing'
             ? new CdError({
                 message: cd.sParse('msd-error-sourcepagedeleted'),
                 details: { recoverable: true },
               })
             : new CdError({
-                message: cd.sParse('error-api', code),
+                message: cd.sParse('error-api', error.getCode()),
                 details: { recoverable: true },
               });
-        } else if (type === 'network') {
+        } else if (error.getType() === 'network') {
           throw new CdError({
             message: cd.sParse('error-network'),
             details: { recoverable: true },
@@ -480,14 +479,13 @@ class MoveSectionDialog extends ProcessDialog {
       await targetPage.loadCode();
     } catch (error) {
       if (error instanceof CdError) {
-        const { type, code } = error.data;
-        if (type === 'api') {
-          throw code === 'invalid'
+        if (error.getType() === 'api') {
+          throw error.getCode() === 'invalid'
             // Should be filtered before submit anyway.
             ? new CdError({ details: [cd.sParse('msd-error-invalidpagename'), false] })
 
-            : new CdError({ details: [cd.sParse('error-api', code), true] });
-        } else if (type === 'network') {
+            : new CdError({ details: [cd.sParse('error-api', error.getCode()), true] });
+        } else if (error.getType() === 'network') {
           throw new CdError({ details: [cd.sParse('error-network'), true] });
         }
       } else {
@@ -567,11 +565,10 @@ class MoveSectionDialog extends ProcessDialog {
     } catch (error) {
       const genericMessage = cd.sParse('msd-error-editingtargetpage');
       if (error instanceof CdError) {
-        const { type, details } = error.data;
-        if (type === 'network') {
+        if (error.getType() === 'network') {
           throw new CdError({ details: [genericMessage + ' ' + cd.sParse('error-network'), true] });
         } else {
-          let { code, message, logMessage } = /** @type {NonNullable<typeof details>} */ (details);
+          let { code, message, logMessage } = error.getDetails();
           if (code === 'editconflict') {
             message += ' ' + cd.sParse('msd-error-editconflict-retry');
           }

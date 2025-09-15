@@ -3218,7 +3218,12 @@ class Comment extends CommentSkeleton {
    * @private
    */
   thankFail(error) {
-    const { type, code } = error instanceof CdError ? error.data : {};
+    let type;
+    let code;
+    if (error instanceof CdError) {
+      type = error.getType();
+      code = error.getCode();
+    }
     let /** @type {string} */ text;
     const historyUrl = this.getSourcePage().getArchivedPage().getUrl({ action: 'history' });
     switch (type) {
@@ -3248,6 +3253,7 @@ class Comment extends CommentSkeleton {
         break;
       }
     }
+
     mw.notify(wrapHtml(text, { targetBlank: true }), { type: 'error' });
     /** @type {import('./CommentButton').default} */ (this.thankButton).setPending(false);
   }
@@ -3378,7 +3384,7 @@ class Comment extends CommentSkeleton {
       if (!response.result.success) {
         throw new CdError({
           type: 'response',
-          details: response.result.error,
+          details: { error: response.result.error },
         });
       }
     }
@@ -3534,8 +3540,7 @@ class Comment extends CommentSkeleton {
           if (
             !(
               error instanceof CdError &&
-              error.data.code &&
-              ['noSuchSection', 'locateSection', 'locateComment'].includes(error.data.code)
+              ['noSuchSection', 'locateSection', 'locateComment'].includes(error.getCode() || '')
             )
           ) {
             throw error;
@@ -3547,12 +3552,10 @@ class Comment extends CommentSkeleton {
         source = this.locateInCode();
       }
     } catch (error) {
-      throw error instanceof CdError
-        ? new CdError({
-            message: cd.sParse('cf-error-getpagecode'),
-            ...error.data,
-          })
-        : error;
+      if (error instanceof CdError) {
+        error.setMessage(cd.sParse('cf-error-getpagecode'));
+      }
+      throw error;
     }
     commentForm?.setSectionSubmitted(isSectionSubmitted);
 
