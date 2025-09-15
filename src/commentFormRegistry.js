@@ -482,6 +482,7 @@ class CommentFormRegistry extends EventEmitter {
       if (this.getLastActiveAltered()) {
         this.saveSession(true);
       }
+
       return (
         mw.user.options.get('useeditwarning') &&
         (

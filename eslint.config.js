@@ -24,11 +24,10 @@ const config = tseslint.config(
 
   // Main configuration
   {
-    //ignores: ['**/*.ts'],
     files: ['**/*.js'],
     languageOptions: {
       sourceType: 'module',
-      ecmaVersion: 2018,
+      ecmaVersion: 2020,
       // parser: '@typescript-eslint/parser',
       // parserOptions: {
       //   requireConfigFile: false,
@@ -80,8 +79,10 @@ const config = tseslint.config(
       // Modified rules from eslint:recommended
       'no-control-regex': 'off', // We use them for text masking
       'no-constant-condition': ['error', { checkLoops: false }],
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-unsafe-optional-chaining': 'off',  // Enabled in TypeScript with strictNullChecks
+
+      // Handled by @typescript-eslint
+      'no-unused-vars': 'off',
 
       // Impractical strict rules
       '@typescript-eslint/no-explicit-any': 'off',
@@ -97,7 +98,10 @@ const config = tseslint.config(
       '@typescript-eslint/no-require-imports': 'off',
       'unicorn/prefer-module': 'off',
 
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        args: 'all',
+      }],
       '@typescript-eslint/no-misused-promises': ['error', {
         checksConditionals: false,
         checksVoidReturn: false,

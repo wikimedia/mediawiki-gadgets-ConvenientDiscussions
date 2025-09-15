@@ -1,7 +1,7 @@
 {
   "extends": "./jsconfig-base.json",
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es2020",
 
     // We mix `import`s and `require()` calls
     "module": "preserve",

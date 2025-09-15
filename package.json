@@ -104,7 +104,6 @@
     "./src/worker/worker.js"
   ],
   "browserslist": [
-    "> 1%",
-    "not IE 11"
+    "> 1%"
   ]
 }

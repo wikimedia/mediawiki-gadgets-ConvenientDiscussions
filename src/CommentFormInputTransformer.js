@@ -89,9 +89,9 @@ class CommentFormInputTransformer extends TextMasker {
       this.indentation = (
         lastCommentIndentation &&
         (lastCommentIndentation[0] === '#' || cd.config.indentationCharMode === 'mimic')
-      ) ?
-        lastCommentIndentation[0] :
-        cd.config.defaultIndentationChar;
+      )
+        ? lastCommentIndentation[0]
+        : cd.config.defaultIndentationChar;
     } else {
       this.indentation = '';
     }
@@ -99,9 +99,9 @@ class CommentFormInputTransformer extends TextMasker {
     if (this.isIndented()) {
       // In the preview mode, imitate a list so that the user will see where it would break on a
       // real page. This pseudolist's margin is made invisible by CSS.
-      this.restLinesIndentation = this.action === 'preview' ?
-        ':' :
-        this.indentation.replace(/\*/g, ':');
+      this.restLinesIndentation = this.action === 'preview'
+        ? ':'
+        : this.indentation.replace(/\*/g, ':');
     }
   }
 
@@ -232,7 +232,7 @@ class CommentFormInputTransformer extends TextMasker {
     // Remove spaces at the beginning of lines.
     code = code.replace(/^ +/gm, '');
 
-    // Replace list markup (`:*#;`) with respective tags if otherwise layout will be broken.
+    // Replace list markup (`:*#;`) with respective tags if otherwise the layout will be broken.
     if (/^[:*#;]/m.test(code) && (isWrapped || this.restLinesIndentation === '#')) {
       if (isInTemplate) {
         // Handle cases with no newline before a parameter's content that has a list. This can give
@@ -246,7 +246,7 @@ class CommentFormInputTransformer extends TextMasker {
     }
 
     code = code.replace(
-      // Lines with the list and table markup as well as lines wholly occupied by the file markup
+      // Lines with list and table markup as well as lines wholly occupied by file markup
       new RegExp(
         `(\\n+)([:*#;\\x03]|${CommentFormInputTransformer.filePatternEnd})`,
         'gmi'
@@ -255,7 +255,7 @@ class CommentFormInputTransformer extends TextMasker {
       // Add indentation characters. File markup is tricky because, depending on the alignment and
       // line breaks, the result can be very different. The safest way to fight that is to use
       // indentation.
-      (s, newlines, nextLine) => (
+      (_s, newlines, nextLine) => (
         // Newline sequences will be replaced with a paragraph template below. It could help
         // visual formatting. If there is no paragraph template, there won't be multiple newlines,
         // as they will have been removed above.
@@ -267,7 +267,7 @@ class CommentFormInputTransformer extends TextMasker {
 
     // Add newlines before and after gallery (yes, even if the comment starts with it).
     code = code
-      .replace(/(^|[^\n])(\u0001\d+_gallery\u0002)/g, (s, before, m) => before + '\n' + m)
+      .replace(/(^|[^\n])(\u0001\d+_gallery\u0002)/g, (_s, before, m) => before + '\n' + m)
       .replace(/\u0001\d+_gallery\u0002(?=(?:$|[^\n]))/g, (s) => s + '\n');
 
     // Table markup is OK only with colons as indentation characters.
@@ -286,11 +286,11 @@ class CommentFormInputTransformer extends TextMasker {
     }
 
     code = code.replace(
-      // Lines following lines with the list, table, and gallery markup
+      // Lines following lines with list, table, and gallery markup
       /^((?:[:*#;\u0003].+|\u0001\d+_gallery\u0002))(\n+)(?![:#])/mg,
 
       // Add indentation characters
-      (s, previousLine, newlines) => (
+      (_s, previousLine, newlines) => (
         previousLine +
         '\n' +
         CommentFormInputTransformer.prependIndentationToLine(
@@ -356,49 +356,37 @@ class CommentFormInputTransformer extends TextMasker {
         ? /^(.+)\n(?![:#])(?=(.*))/gm
         : /^((?![:*#; ]).+)\n(?![\n:*#; \u0003])(?=(.*))/gm,
 
-      (s, currentLine, nextLine) => {
-        // Remove if it is confirmed that this isn't happening (November 2024)
-        if (this.isIndented() && !cd.config.paragraphTemplates.length) {
-          console.error(`Convenient Discussions: Processing a newline in "${s}" which should be unreachable. You shouldn't be seeing this. If you do, please report to https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/Convenient_Discussions.`)
-        }
+      (_s, currentLine, nextLine) =>
+        currentLine +
 
-        return (
-          currentLine +
-
-          // Line break if needed
+        // Line break if needed
+        (
+          entireLineRegexp.test(currentLine) ||
+          entireLineRegexp.test(nextLine) ||
           (
-            entireLineRegexp.test(currentLine) ||
-            entireLineRegexp.test(nextLine) ||
+            !this.isIndented() &&
             (
-              !this.isIndented() &&
-              (
-                entireLineFromStartRegexp.test(currentLine) ||
-                entireLineFromStartRegexp.test(nextLine)
-              )
-            ) ||
-            fileRegexp.test(currentLine) ||
-            fileRegexp.test(nextLine) ||
-            CommentFormInputTransformer.galleryRegexp.test(currentLine) ||
-            CommentFormInputTransformer.galleryRegexp.test(nextLine) ||
+              entireLineFromStartRegexp.test(currentLine) ||
+              entireLineFromStartRegexp.test(nextLine)
+            )
+          ) ||
+          fileRegexp.test(currentLine) ||
+          fileRegexp.test(nextLine) ||
+          CommentFormInputTransformer.galleryRegexp.test(currentLine) ||
+          CommentFormInputTransformer.galleryRegexp.test(nextLine) ||
 
-            // Removing <br>s after block elements is not a perfect solution as there would be no
-            // newlines when editing such a comment, but this way we would avoid empty lines in
-            // cases like `</div><br>`.
-            currentLineEndingRegexp.test(currentLine) ||
-            nextLineBeginningRegexp.test(nextLine)
-              ? ''
-              : '<br>' + (this.isIndented() ? ' ' : '')
-          ) +
+          // Removing <br>s after block elements is not a perfect solution as there would be no
+          // newlines when editing such a comment, but this way we would avoid empty lines in
+          // cases like `</div><br>`.
+          currentLineEndingRegexp.test(currentLine) ||
+          nextLineBeginningRegexp.test(nextLine)
+            ? ''
+            : '<br>' + (this.isIndented() ? ' ' : '')
+        ) +
 
-          // Newline if needed. Current line can match galleryRegexp only if the comment will not be
-          // indented.
-          (
-            this.isIndented() && !CommentFormInputTransformer.galleryRegexp.test(nextLine)
-              ? ''
-              : '\n'
-          )
-        );
-      }
+        // Newline if needed. Current line can match galleryRegexp only if the comment will not be
+        // indented.
+        (this.isIndented() && !CommentFormInputTransformer.galleryRegexp.test(nextLine) ? '' : '\n')
     );
 
     return code;
@@ -509,9 +497,9 @@ class CommentFormInputTransformer extends TextMasker {
 
     // Process the small font wrappers, add the signature.
     if (this.wrapInSmall) {
-      const before = /^[:*#; ]/.test(this.text) ?
-        '\n' + (this.isIndented() ? this.restLinesIndentation : '') :
-        '';
+      const before = /^[:*#; ]/.test(this.text)
+        ? '\n' + (this.isIndented() ? this.restLinesIndentation : '')
+        : '';
       if (cd.config.smallDivTemplates.length && !/^[:*#;]/m.test(this.text)) {
         const escapedCodeWithSignature = (
           escapePipesOutsideLinks(this.text.trim(), this.maskedTexts) +
@@ -763,9 +751,9 @@ class CommentFormInputTransformer extends TextMasker {
       if (this.isList(lineOrList)) {
         const itemsText = lineOrList.items
           .map((item) => {
-            const itemText = this.isList(item) ?
-              this.listsToTags(item.items, true) :
-              item.text.trim();
+            const itemText = this.isList(item)
+              ? this.listsToTags(item.items, true)
+              : item.text.trim();
             return item.type ? `<${item.type}>${itemText}</${item.type}>` : itemText;
           })
           .join('');

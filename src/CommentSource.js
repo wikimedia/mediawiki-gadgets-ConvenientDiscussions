@@ -493,7 +493,7 @@ class CommentSource {
           const entireLineFromStartRegexp = /^(=+).*\1[ \t]*$|^----/;
           code = code.replace(
             /^((?![:*#; ]).+)\n(?![\n:*#; \u0003])(?=(.*))/gm,
-            (s, currentLine, nextLine) => {
+            (_s, currentLine, nextLine) => {
               return (
                 currentLine +
 
@@ -519,7 +519,7 @@ class CommentSource {
 
         code = brsToNewlines(code, '\u0001\n')
           // Templates occupying a whole line with <br> at the end get a special treatment.
-          .replace(/^((?:\u0001\d+_template.*\u0002) *)\u0001$/gm, (s, m1) => m1 + '<br>')
+          .replace(/^((?:\u0001\d+_template.*\u0002) *)\u0001$/gm, (_s, m1) => m1 + '<br>')
 
           // Two templates in a row is likely a paragraph template + other template. This is a
           // workaround; may need to look specifically for paragraph templates and mark them as
@@ -533,7 +533,7 @@ class CommentSource {
           .replace(/\u0001\n/g, '\n')
 
           // Remove indentation characters
-          .replace(/\n([:*#]*)([ \t]*)/g, (s, chars, spacing) => {
+          .replace(/\n([:*#]*)([ \t]*)/g, (_s, chars, spacing) => {
             let newChars;
             if (chars.length >= originalIndentationLength) {
               newChars = chars.slice(originalIndentationLength);
@@ -955,7 +955,7 @@ class CommentSource {
             .withText((code) =>
               code.replace(
                 /\u0001\d+_template_(\d+)\u0002/, // No global flag - we only need the first occurrence
-                (m, n) =>
+                (_m, n) =>
                   makeIndentationMarkers(
                     /** @type {RegExpMatchArray} */ (match)[1].length,
                     n.length

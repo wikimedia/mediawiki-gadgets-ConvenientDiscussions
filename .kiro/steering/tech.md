@@ -2,7 +2,7 @@
 
 ## Core Technologies
 
-- **JavaScript (ES2017+)**: Main development language with modern syntax support
+- **JavaScript (ES2020+)**: Main development language with modern syntax support
 - **TypeScript**: Type checking via JSDoc comments and .d.ts files (no compilation)
 - **Webpack 4**: Module bundling and build system
 - **Babel**: JavaScript transpilation with modern feature support

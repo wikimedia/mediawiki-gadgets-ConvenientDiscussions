@@ -49,7 +49,7 @@ function hideText(text, regexp, hidden) {
 
 function unhideText(text, hidden) {
   while (text.match(/\u0001\d+\u0002/)) {
-    text = text.replace(/\u0001(\d+)\u0002/g, (s, num) => hidden[num - 1]);
+    text = text.replace(/\u0001(\d+)\u0002/g, (_s, num) => hidden[num - 1]);
   }
 
   return text;
@@ -196,7 +196,7 @@ DOMPurify.addHook('uponSanitizeElement', (currentNode, data, config) => {
   }
 });
 
-DOMPurify.addHook('uponSanitizeAttribute', (currentNode, hookEvent, config) => {
+DOMPurify.addHook('uponSanitizeAttribute', (_currentNode, hookEvent, config) => {
   if (!Object.keys(hookEvent.allowedAttributes).includes(hookEvent.attrName)) {
     warning(`Disallowed attribute found and sanitized in the string "${keyword(config.stringName)}" in ${keyword(config.filename)}: ${code(hookEvent.attrName)} with value "${hookEvent.attrValue}". See\nhttps://translatewiki.net/wiki/Wikimedia:Convenient-discussions-${config.stringName}/${config.lang}.`);
   }
