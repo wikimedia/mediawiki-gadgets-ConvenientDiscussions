@@ -3837,7 +3837,9 @@ class CommentForm extends EventEmitter {
     let content = '';
     if (settings.get('autocompleteTypes').includes('mentions')) {
       content = cd.config.mentionCharacter;
-    } else {}
+    } else {
+      // TODO
+    }
 
     this.insertContentAfter(content);
   }
