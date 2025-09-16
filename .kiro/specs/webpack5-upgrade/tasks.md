@@ -60,7 +60,8 @@
   - Update all require() calls to import statements
   - _Requirements: 2.2_
 
-- [-] 8. Convert misc folder scripts to ES modules
+- [x] 8. Convert misc folder scripts to ES modules
+
 
   - Convert misc/utils.js to use import/export syntax
   - Convert misc/fetchTimezoneAbbrs.js to use import/export syntax

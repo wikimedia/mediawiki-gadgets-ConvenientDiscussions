@@ -1,6 +1,7 @@
-require('json5/lib/register.js');
+import JSON5 from 'json5';
+import { readFileSync } from 'node:fs';
 
-const config = require('./../config.json5');
+const config = JSON5.parse(readFileSync('./config.json5', 'utf8'));
 
 function wikiUrlencode(string) {
   return encodeURIComponent(string)
@@ -40,4 +41,4 @@ function replaceEntitiesInI18n(string) {
     .replace(/&lrm;/g, '\u200e');
 }
 
-module.exports = { getUrl, unique, replaceEntitiesInI18n };
+export { getUrl, replaceEntitiesInI18n, unique };

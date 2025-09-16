@@ -7,7 +7,7 @@ import TerserPlugin from 'terser-webpack-plugin';
 import webpack from 'webpack';
 import WebpackBuildNotifierPlugin from 'webpack-build-notifier';
 
-import { getUrl } from './misc/utils.js';
+import { getUrl } from './misc/utils.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

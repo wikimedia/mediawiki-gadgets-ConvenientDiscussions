@@ -4,7 +4,7 @@
  */
 
 /** @type {import('jest').Config} */
-module.exports = {
+export default {
   testEnvironment: 'jsdom',
   testMatch: ['**/tests/*.test.js'],
 };
