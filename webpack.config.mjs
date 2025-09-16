@@ -71,7 +71,7 @@ const webpack_ = (env) => {
     devtool = false;
   }
 
-  return {
+  return /** @type {import('webpack').Configuration} */ ({
     mode: dev || single ? 'development' : 'production',
     entry: './src/app.js',
     output: {
@@ -230,12 +230,12 @@ const webpack_ = (env) => {
       liveReload: false,
 
       // Fixes "GET https://localhost:9000/sockjs-node/info?t=... net::ERR_SSL_PROTOCOL_ERROR".
-      allowedHosts: ['127.0.0.1'],
+      allowedHosts: 'all',
 
       // For easier copypaste to use in a DevTools snippet (if can't load from 127.0.0.1:9000 for
       // some reason).
       // writeToDisk: single,
     },
-  };
+  });
 };
 export default webpack_;
