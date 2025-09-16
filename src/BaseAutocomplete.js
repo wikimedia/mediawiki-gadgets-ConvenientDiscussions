@@ -1,3 +1,4 @@
+import cd from './cd';
 import CdError from './shared/CdError';
 import { defined, removeDoubleSpaces, sleep, unique } from './shared/utils-general';
 import { handleApiReject } from './utils-api';
@@ -249,6 +250,7 @@ class BaseAutocomplete {
   processResults(items, config) {
     return items
       .filter(defined)
+      .filter((item) => item !== null)
       .filter(unique)
       .map((item) => {
         /** @type {string} */
@@ -256,7 +258,7 @@ class BaseAutocomplete {
         if (Array.isArray(item)) {
           // Tags
           key = item[0];
-        } else if (typeof item === 'object' && 'key' in item) {
+        } else if (typeof item === 'object' && item !== null && 'key' in item) {
           // Comment links
           key = item.key;
         } else {
