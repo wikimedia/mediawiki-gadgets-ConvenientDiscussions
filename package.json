@@ -11,9 +11,8 @@
     "deploy": "node --unhandled-rejections=strict deploy",
     "docs": "rimraf dist/docs && jsdoc --configure jsdoc/config.js --readme jsdoc/home.md",
     "i18n": "cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n",
-    "mirror": "git push --mirror https://gerrit.wikimedia.org/r/mediawiki/gadgets/ConvenientDiscussions",
     "webpack": "cross-env NODE_OPTIONS=--openssl-legacy-provider webpack",
-    "single": "node buildConfigs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n && cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack serve --env single",
+    "single": "node buildConfigs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n && cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack --env single",
     "test": "jest"
   },
   "browser": "src/app.js",
