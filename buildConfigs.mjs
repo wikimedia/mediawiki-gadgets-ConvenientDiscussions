@@ -1,7 +1,9 @@
-const fs = require('node:fs');
+import fs from 'node:fs';
 
-// eslint-disable-next-line no-one-time-vars/no-one-time-vars
-const argv = require('yargs').argv;
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+
+const argv = yargs(hideBin(process.argv)).argv;
 
 // node buildConfigs --test
 // npm run <command running this script> --test

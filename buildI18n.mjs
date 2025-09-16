@@ -1,15 +1,14 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { execSync } = require('node:child_process');
+import { execSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const chalk = require('chalk');
-// eslint-disable-next-line no-one-time-vars/no-one-time-vars
-const createDOMPurify = require('dompurify');
-const { JSDOM } = require('jsdom');
-const rimraf = require('rimraf');
+import chalk from 'chalk';
+import createDOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
+import { rimraf } from 'rimraf';
 
-// eslint-disable-next-line no-one-time-vars/no-one-time-vars
-const replaceEntities = require('./misc/utils').replaceEntitiesInI18n;
+import { replaceEntitiesInI18n } from './misc/utils.mjs';
+
 
 const DOMPurify = createDOMPurify(new JSDOM('').window);
 
@@ -55,12 +54,13 @@ function unhideText(text, hidden) {
   return text;
 }
 
-function buildDayjsLocales() {
+function buildDayjsLocales(i18nWithFallbacks) {
   // Create a temporary folder.
   fs.mkdirSync(DAYJS_LOCALES_TEMP_DIR_NAME, { recursive: true });
 
   // Add temporary language files to that folder that import respective locales if they exist.
-  const locales = new Set(require('dayjs/locale').map((locale) => locale.key));
+  const dayjsLocales = JSON.parse(fs.readFileSync('./node_modules/dayjs/locale.json', 'utf8'));
+  const locales = new Set(dayjsLocales.map((locale) => locale.key));
   const langsHavingLocale = [];
   Object.keys(i18nWithFallbacks).forEach((lang) => {
     const localLangName = lang
@@ -111,7 +111,7 @@ module.exports = {
   return langsHavingLocale;
 }
 
-function buildDateFnsLocales() {
+function buildDateFnsLocales(i18nWithFallbacks) {
   // Create a temporary folder.
   fs.mkdirSync(DATE_FNS_LOCALES_TEMP_DIR_NAME, { recursive: true });
 
@@ -202,12 +202,13 @@ DOMPurify.addHook('uponSanitizeAttribute', (_currentNode, hookEvent, config) => 
   }
 });
 
+(async () => {
 const i18n = {};
 fs.readdirSync('./i18n/')
   .filter(filename => path.extname(filename) === '.json' && filename !== 'qqq.json')
   .forEach((filename) => {
     const [, lang] = path.basename(filename).match(/^(.+)\.json$/) || [];
-    const strings = require(`./i18n/${filename}`);
+    const strings = JSON.parse(fs.readFileSync(`./i18n/${filename}`, 'utf8'));
     Object.keys(strings)
       .filter((name) => typeof strings[name] === 'string')
       .forEach((stringName) => {
@@ -271,7 +272,7 @@ if (Object.keys(i18n).length) {
   // Use language fallbacks data to fill missing messages. When the fallbacks need to be updated,
   // they can be collected using
   // https://phabricator.wikimedia.org/source/mediawiki/browse/master/languages/messages/?grep=fallback%20%3D.
-  const fallbackData = require('./data/languageFallbacks.json');
+  const fallbackData = JSON.parse(fs.readFileSync('./data/languageFallbacks.json', 'utf8'));
   Object.keys(i18n).forEach((lang) => {
     const fallbacks = fallbackData[lang];
     i18nWithFallbacks[lang] = fallbacks
@@ -280,13 +281,13 @@ if (Object.keys(i18n).length) {
   });
 
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-  const langsHavingDayjsLocale = buildDayjsLocales();
+  const langsHavingDayjsLocale = buildDayjsLocales(i18nWithFallbacks);
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-  const langsHavingDateFnsLocale = buildDateFnsLocales();
+  const langsHavingDateFnsLocale = buildDateFnsLocales(i18nWithFallbacks);
 
   // Create i18n files that combine translations with dayjs locales.
   for (const [lang, json] of Object.entries(i18nWithFallbacks)) {
-    let jsonText = replaceEntities(JSON.stringify(json, null, '\t'));
+    let jsonText = replaceEntitiesInI18n(JSON.stringify(json, null, '\t'));
 
     if (lang === 'en') {
       // Prevent creating "</nowiki>" character sequences when building the main script file.
@@ -323,11 +324,12 @@ ${dateFnsLocaleText}
     fs.writeFileSync(`dist/convenientDiscussions-i18n/${lang}.js`, text);
   }
 
-  rimraf.sync(DAYJS_LOCALES_TEMP_DIR_NAME);
-  rimraf.sync(DATE_FNS_LOCALES_TEMP_DIR_NAME);
+  rimraf(DAYJS_LOCALES_TEMP_DIR_NAME);
+  rimraf(DATE_FNS_LOCALES_TEMP_DIR_NAME);
 }
 
 fs.mkdirSync('data', { recursive: true });
 fs.writeFileSync('data/i18nList.json', JSON.stringify(Object.keys(i18n), null, '\t') + '\n');
 
 console.log('Internationalization files have been built successfully.');
+})();

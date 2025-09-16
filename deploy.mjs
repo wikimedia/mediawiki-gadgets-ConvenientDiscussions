@@ -1,15 +1,18 @@
-const fs = require('fs');
-const { exec } = require('child_process');
+import { exec } from 'child_process';
+import fs from 'fs';
 
-const argv = require('yargs').argv;
-const Mw = require('nodemw');
-const chalk = require('chalk');
-const prompts = require('prompts');
-require('json5/lib/register.js');
+import chalk from 'chalk';
+import JSON5 from 'json5';
+import { readFileSync } from 'node:fs';
+import Mw from 'nodemw';
+import prompts from 'prompts';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 
-const config = require('./config.json5');
-const { unique } = require('./misc/utils.js');
-const getUrl = require('./misc/utils.js').getUrl;
+import { getUrl, unique } from './misc/utils.mjs';
+
+const argv = yargs(hideBin(process.argv)).argv;
+const config = JSON5.parse(readFileSync('./config.json5', 'utf8'));
 
 /*
   node deploy --test

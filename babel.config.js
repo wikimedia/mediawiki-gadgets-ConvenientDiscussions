@@ -1,12 +1,12 @@
 // babel.config.js
-export default {
+module.exports = {
   presets: [
     ['@babel/preset-env', {
       bugfixes: true
     }]
   ],
   plugins: [
-    '@babel/plugin-proposal-numeric-separator',
+    '@babel/plugin-transform-numeric-separator',
     '@babel/plugin-transform-class-properties',
     '@babel/plugin-transform-class-static-block',
     '@babel/plugin-transform-logical-assignment-operators',
