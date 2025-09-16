@@ -1,13 +1,18 @@
-const path = require('node:path');
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const webpack = require('webpack');
-const TerserPlugin = require('terser-webpack-plugin');
-const WebpackBuildNotifierPlugin = require('webpack-build-notifier');
-const BannerWebpackPlugin = require('banner-webpack-plugin');
-require('json5/lib/register.js');
+import JSON5 from 'json5';
+import { readFileSync } from 'node:fs';
+import TerserPlugin from 'terser-webpack-plugin';
+import webpack from 'webpack';
+import WebpackBuildNotifierPlugin from 'webpack-build-notifier';
 
-const config = require('./config.json5');
-const getUrl = require('./misc/utils.js').getUrl;
+import { getUrl } from './misc/utils.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const config = JSON5.parse(readFileSync('./config.json5', 'utf8'));
 
 const webpack_ = (env) => {
   /*
@@ -122,7 +127,7 @@ const webpack_ = (env) => {
               conditionals: false,
             },
 
-            output: {
+            format: {
               // Otherwise messes with \x01 \x02 \x03 \x04.
               ascii_only: true,
 
@@ -137,7 +142,7 @@ const webpack_ = (env) => {
             // Removed "\**!|" at the beginning to not extract the <nowiki> comment.
             condition: /@preserve|@license|@cc_on/i,
 
-            filename: (name) => `${name}.LICENSE.js`,
+            filename: (pathData) => `${pathData.filename}.LICENSE.js`,
 
             banner: (licenseFile) => (
               licenseFile.includes('worker') ?
@@ -155,7 +160,6 @@ const webpack_ = (env) => {
 `
             ),
           },
-          sourceMap: true,
         }),
       ],
     },
@@ -183,17 +187,30 @@ const webpack_ = (env) => {
             test: filename,
           }),
 
-          // We can't use BannerWebpackPlugin for both the code to prepend and append, because if we
-          // add the code to prepend with BannerWebpackPlugin, the source maps would break.
-          // webpack.BannerPlugin, on the other hand, handles this, but doesn't have an option for
-          // the code to append to the build (this code doesn't break the source maps).
-          new BannerWebpackPlugin({
-            chunks: {
-              main: {
-                afterContent: '\n/*! </nowiki> */',
-              },
+          // Use a custom plugin to append the closing nowiki tag
+          {
+            apply(compiler) {
+              compiler.hooks.compilation.tap('AppendBannerPlugin', (compilation) => {
+                compilation.hooks.processAssets.tap(
+                  {
+                    name: 'AppendBannerPlugin',
+                    stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
+                  },
+                  (assets) => {
+                    Object.keys(assets).forEach(filename => {
+                      if (filename === filename.replace('.map.json', '') && filename.endsWith('.js')) {
+                        const asset = assets[filename];
+                        const source = asset.source();
+                        assets[filename] = new compiler.webpack.sources.RawSource(
+                          source + '\n/*! </nowiki> */'
+                        );
+                      }
+                    });
+                  }
+                );
+              });
             },
-          }),
+          },
         ],
       dev ?
         [] :
@@ -206,15 +223,14 @@ const webpack_ = (env) => {
         new webpack.ProgressPlugin()
     ),
     devServer: {
-      contentBase: path.join(__dirname, 'dist'),
+      static: {
+        directory: path.join(__dirname, 'dist'),
+      },
       port: 9000,
       liveReload: false,
 
       // Fixes "GET https://localhost:9000/sockjs-node/info?t=... net::ERR_SSL_PROTOCOL_ERROR".
-      public: '127.0.0.1:9000',
-
-      // Fixes "Invalid Host/Origin header".
-      disableHostCheck: true,
+      allowedHosts: ['127.0.0.1'],
 
       // For easier copypaste to use in a DevTools snippet (if can't load from 127.0.0.1:9000 for
       // some reason).
@@ -222,4 +238,4 @@ const webpack_ = (env) => {
     },
   };
 };
-module.exports = webpack_;
+export default webpack_;
