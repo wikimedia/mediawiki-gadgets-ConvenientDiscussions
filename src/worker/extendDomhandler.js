@@ -518,5 +518,3 @@ Document.prototype.createTextNode = function (content = '') {
 
 Document.prototype.getElementsByClassName = Element.prototype.getElementsByClassName;
 Document.prototype.querySelectorAll = Element.prototype.querySelectorAll;
-
-export { DataNode, Document, Element, Node, NodeWithChildren, Text } from 'domhandler';
