@@ -33,7 +33,7 @@ import { handleApiReject } from './utils-api';
 /**
  * @typedef {object} CommentLinksItem
  * @property {string} key
- * @property {string} [id]
+ * @property {string} urlFragment
  * @property {string} [authorName]
  * @property {string} [timestamp]
  * @property {string} [headline]
@@ -612,6 +612,11 @@ class Autocomplete {
         defaultLazy: function () {
           return /** @type {{ comments: import('./Comment').default[] }} */ (this.data).comments
             .reduce((acc, comment) => {
+              const urlFragment = comment.getUrlFragment();
+              if (!urlFragment) {
+                return acc;
+              }
+
               const authorName = comment.author.getName();
               const timestamp = comment.timestamp;
               /** @type {string} */
@@ -638,7 +643,7 @@ class Autocomplete {
               }
               acc.push({
                 key: authorTimestamp + cd.mws('colon-separator', { language: 'content' }) + snippet,
-                id: comment.getUrlFragment(),
+                urlFragment,
                 authorName,
                 timestamp,
               });
@@ -649,7 +654,7 @@ class Autocomplete {
               sectionRegistry.getAll().reduce((acc, section) => {
                 acc.push({
                   key: underlinesToSpaces(section.id),
-                  id: underlinesToSpaces(section.id),
+                  urlFragment: underlinesToSpaces(section.id),
                   headline: section.headline,
                 });
 
@@ -666,7 +671,7 @@ class Autocomplete {
           const object = this.item;
 
           return {
-            start: `[[#${object.id}|`,
+            start: `[[#${object.urlFragment}|`,
             end: ']]',
             content:
               'timestamp' in object

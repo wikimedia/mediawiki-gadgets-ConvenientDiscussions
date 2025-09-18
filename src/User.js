@@ -47,6 +47,15 @@ export default class User {
   }
 
   /**
+   * Is the user a temporary user.
+   *
+   * @returns {boolean}
+   */
+  isTemporary() {
+    return mw.util.isTemporaryUser?.(this.name) || false;
+  }
+
+  /**
    * Get the user name.
    *
    * @returns {string}

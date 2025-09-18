@@ -12,21 +12,21 @@ Node.TEXT_NODE = 3;
 Node.COMMENT_NODE = 8;
 
 /**
- * @param {Node} referenceNode
+ * @param {import('domhandler').ChildNode} referenceNode
  */
 Node.prototype.after = function (referenceNode) {
-  DomUtils.append(referenceNode, this);
+  DomUtils.append(referenceNode, /** @type {import('domhandler').ChildNode} */ (this));
 };
 
 /**
- * @param {Node} referenceNode
+ * @param {import('domhandler').ChildNode} referenceNode
  */
 Node.prototype.before = function (referenceNode) {
-  DomUtils.prepend(referenceNode, this);
+  DomUtils.prepend(referenceNode, /** @type {import('domhandler').ChildNode} */ (this));
 };
 
 Node.prototype.remove = function () {
-  DomUtils.removeElement(this);
+  DomUtils.removeElement(/** @type {import('domhandler').ChildNode} */ (this));
 };
 
 /**
@@ -34,7 +34,12 @@ Node.prototype.remove = function () {
  * @returns {boolean}
  */
 Node.prototype.follows = function (node) {
-  return Boolean(DomUtils.compareDocumentPosition(this, node) & 4 /* FOLLOWING */);
+  return Boolean(
+    DomUtils.compareDocumentPosition(
+      /** @type {import('domhandler').AnyNode} */ (this),
+      /** @type {import('domhandler').AnyNode} */ (node)
+    ) & 4 /* FOLLOWING */
+  );
 };
 
 /**
@@ -137,15 +142,15 @@ NodeWithChildren.prototype.filterRecursively = function (callback, limit) {
 };
 
 /**
- * @param {Node} node
+ * @param {import('domhandler').ChildNode} node
  */
 Element.prototype.appendChild = function (node) {
   DomUtils.appendChild(this, node);
 };
 
 /**
- * @param {Node} node
- * @param {Node|undefined} referenceNode
+ * @param {import('domhandler').ChildNode} node
+ * @param {import('domhandler').ChildNode|undefined} referenceNode
  * @returns {Node}
  */
 Element.prototype.insertBefore = function (node, referenceNode) {

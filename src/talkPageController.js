@@ -1105,11 +1105,20 @@ class TalkPageController extends EventEmitter {
     await sleep();
 
     this.mutationObserver = new MutationObserver((records) => {
-      const layerClassRegexp = /^cd-comment(-underlay|-overlay|Layers)/;
       if (
         records.every(
           (record) =>
-            record.target instanceof HTMLElement && layerClassRegexp.test(record.target.className)
+            record.target instanceof HTMLElement &&
+            (
+              /^cd-comment(-underlay|-overlay|Layers)/.test(record.target.className) ||
+
+              // Fight infinite loop caused by `el.style.overflow = 'hidden';` in
+              // Comment#getAdjustedRects()
+              (
+                record.target.className.startsWith('cd-comment-part') &&
+                record.attributeName === 'style'
+              )
+            )
         )
       )
         return;

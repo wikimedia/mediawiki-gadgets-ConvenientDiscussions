@@ -97,12 +97,9 @@
     min-height: calc(@line-height * (@num-rows-comment + 1) + @codemirror-editor-additional-padding) !important;
   }
 
-  .cd-commentForm .cm-content.cm-content {
-    min-height: calc(1.4285714em * (3 + 1) + 7px) !important;
-  }
-
   &-addSection,
-  &-addSubsection {
+  &-addSubsection,
+  &-sectionOpeningComment {
     .cm-gutters,
     .cm-content {
       min-height: calc(@line-height * (@num-rows-section + 1) + @codemirror-editor-additional-padding) !important;

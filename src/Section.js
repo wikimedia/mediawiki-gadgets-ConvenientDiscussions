@@ -1016,7 +1016,7 @@ class Section extends SectionSkeleton {
    * @private
    */
   addMoreMenuSelect() {
-    const moreMenuSelect = this.createMoreMenuSelect();
+    const moreMenuSelect = this.createMoreMenuSelectStub();
     moreMenuSelect
       .getMenu()
       .addItems(
@@ -1047,6 +1047,11 @@ class Section extends SectionSkeleton {
             : undefined,
         ].filter(defined)
       )
+      .on('toggle', (visible) => {
+        /** @type {OO.ui.ButtonMenuSelectWidget} */ (this.actions.moreMenuSelect).setFlags({
+          progressive: visible,
+        });
+      })
       .on('choose', (option) => {
         switch (option.getData()) {
           case 'editOpeningComment':
@@ -1085,11 +1090,11 @@ class Section extends SectionSkeleton {
   }
 
   /**
-   * Create a "More" menu select button.
+   * Create a "More" menu select button with no menu.
    *
    * @returns {OO.ui.ButtonMenuSelectWidget}
    */
-  createMoreMenuSelect() {
+  createMoreMenuSelectStub() {
     return new OO.ui.ButtonMenuSelectWidget({
       framed: false,
       icon: 'ellipsis',
@@ -1122,7 +1127,7 @@ class Section extends SectionSkeleton {
   createActionsElement() {
     let moreMenuSelectDummy;
     if (this.canFirstCommentBeEdited() || this.canBeMoved() || this.canBeSubsectioned()) {
-      const element = this.createMoreMenuSelect().$element[0];
+      const element = this.createMoreMenuSelectStub().$element[0];
       moreMenuSelectDummy = new Button({
         element,
         buttonElement: /** @type {HTMLElement} */ (element.firstChild),

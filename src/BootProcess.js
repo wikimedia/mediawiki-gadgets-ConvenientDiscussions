@@ -338,10 +338,11 @@ class BootProcess {
       // (e.g. RevisionSlider replaces it).
       talkPageController.setupMutationObserver();
 
-      if (settings.get('reformatComments') && commentRegistry.getCount()) {
+      if (settings.get('reformatComments') && commentRegistry.getCount() && this.isFirstRun()) {
         // Using the wikipage.content hook could theoretically disrupt code that needs to process
-        // the whole page content, if it runs later than CD. But typically CD runs relatively late.
-        mw.hook(cd.config.hookToFireWithAuthorWrappers).fire($('.cd-comment-author-wrapper'));
+        // the whole page content (#mw-content-text), if it runs later than CD which would override
+        // the hook's argument below. But typically CD runs relatively late.
+        mw.hook('wikipage.content').fire($('.cd-comment-author-wrapper'));
       }
     }
 
@@ -968,10 +969,10 @@ class BootProcess {
       ),
       {
         callbacks: {
-          'cd-notification-disabledt': (e, button) => {
+          'cd-notification-disabledt': (_e, button) => {
             this.disableDt(false, button, notification);
           },
-          'cd-notification-disableDtGlobally': (e, button) => {
+          'cd-notification-disableDtGlobally': (_e, button) => {
             this.disableDt(true, button, notification);
           },
         },

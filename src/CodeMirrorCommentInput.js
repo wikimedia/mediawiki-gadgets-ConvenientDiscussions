@@ -15,10 +15,16 @@ export default class CodeMirrorCommentInput
 
     /** @type {{
      *   Compartment: typeof import('@codemirror/state').Compartment
+     *   EditorView: typeof import('@codemirror/view').EditorView
      *   placeholder: import('@codemirror/view').placeholder
      * }} */
     this.lib = mw.loader.require('ext.CodeMirror.v6.lib');
-    this.placeholderCompartment = new this.lib.Compartment();
+    this.cdPlaceholderCompartment = new this.lib.Compartment();
+    this.cdChangeExtension = this.lib.EditorView.updateListener.of((update) => {
+      if (update.docChanged) {
+        this.textarea.dispatchEvent(new KeyboardEvent('input'));
+      }
+    });
 
     mw.hook('ext.CodeMirror.preferences.apply').add((prefName, enabled) => {
       if (enabled !== this.preferences.getPreference(prefName)) {
@@ -29,6 +35,8 @@ export default class CodeMirrorCommentInput
         this.preferences.preferences[prefName] = enabled;
       }
     });
+
+
   }
 
   /**
@@ -38,7 +46,10 @@ export default class CodeMirrorCommentInput
    */
   initialize(extensions = [], placeholderText = '') {
     this.mode = 'mediawiki';
-    extensions.push(this.placeholderCompartment.of(this.lib.placeholder(placeholderText)));
+    extensions.push(
+      this.cdPlaceholderCompartment.of(this.lib.placeholder(placeholderText)),
+      this.cdChangeExtension
+    );
     super.initialize([this.defaultExtensions, ...extensions]);
   }
 
@@ -47,7 +58,7 @@ export default class CodeMirrorCommentInput
    */
   updatePlaceholder(text) {
     this.view.dispatch({
-      effects: this.placeholderCompartment.reconfigure(this.lib.placeholder(text)),
+      effects: this.cdPlaceholderCompartment.reconfigure(this.lib.placeholder(text)),
     });
   }
 }

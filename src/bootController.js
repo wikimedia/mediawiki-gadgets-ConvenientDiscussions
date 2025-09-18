@@ -242,6 +242,7 @@ class BootController {
               'discussiontools-newtopicssubscription-notify-unsubscribed-title',
               'discussiontools-newtopicssubscription-notify-unsubscribed-body',
               'thanks-confirmation2',
+              'checkuser-userinfocard-toggle-button-aria-label',
             ]
           : []
       )
@@ -1015,6 +1016,8 @@ class BootController {
     }
 
     const modules = [
+      'ext.checkUser.styles',
+      'ext.checkUser.userInfoCard',
       'jquery.client',
       'jquery.ui',
       'mediawiki.Title',

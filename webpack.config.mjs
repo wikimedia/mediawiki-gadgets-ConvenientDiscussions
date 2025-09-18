@@ -9,8 +9,7 @@ import WebpackBuildNotifierPlugin from 'webpack-build-notifier';
 
 import { getUrl } from './misc/utils.mjs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const config = JSON5.parse(readFileSync('./config.json5', 'utf8'));
 
@@ -55,7 +54,7 @@ const webpack_ = (env) => {
   } else if (test) {
     filenamePostfix = '.test';
   }
-  const filename = `convenientDiscussions${filenamePostfix}.js`;
+  const bundleFilename = `convenientDiscussions${filenamePostfix}.js`;
 
   if (!config.protocol || !config.main?.rootPath || !config.articlePath) {
     throw new Error('No protocol/server/root path/article path found in config.json5.');
@@ -76,7 +75,7 @@ const webpack_ = (env) => {
     entry: './src/app.js',
     output: {
       path: path.resolve(__dirname, 'dist'),
-      filename,
+      filename: bundleFilename,
     },
     resolve: {
       extensions: ['.js', '.json'],
@@ -184,7 +183,7 @@ const webpack_ = (env) => {
 
             // Don't add the banner to the inline worker, otherwise the source maps for it won't
             // work (I think).
-            test: filename,
+            test: bundleFilename,
           }),
 
           // Use a custom plugin to append the closing nowiki tag
@@ -199,10 +198,8 @@ const webpack_ = (env) => {
                   (assets) => {
                     Object.keys(assets).forEach(filename => {
                       if (filename === filename.replace('.map.json', '') && filename.endsWith('.js')) {
-                        const asset = assets[filename];
-                        const source = asset.source();
                         assets[filename] = new compiler.webpack.sources.RawSource(
-                          source + '\n/*! </nowiki> */'
+                          assets[filename].source().toString() + '\n/*! </nowiki> */'
                         );
                       }
                     });
@@ -230,6 +227,7 @@ const webpack_ = (env) => {
       client: {
         webSocketURL: 'ws://localhost:9000/ws',
       },
+      hot: 'only',
       liveReload: false,
 
       headers: {

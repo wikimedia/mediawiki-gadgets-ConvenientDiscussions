@@ -664,29 +664,31 @@ class CommentForm extends EventEmitter {
   setup(initialState = {}) {
     this.adjustLabels();
 
-    if (!cd.user.isRegistered() && !mw.user.isTemp?.()) {
+    if (!cd.user.isRegistered() && !cd.user.isTemporary()) {
       this.showMessage(cd.sParse('error-anoneditwatning'), {
         type: 'warning',
         name: 'anonEditWarning',
       });
     }
 
-    if (this.isMode('edit')) {
-      this.loadComment(initialState);
-    } else if (initialState.originalComment === undefined) {
-      if (this.preloadConfig.commentTemplate) {
-        this.preloadTemplate();
+    if (initialState.originalComment === undefined) {
+      if (this.isMode('edit')) {
+        this.loadComment(initialState);
       } else {
-        this.originalComment = '';
-      }
-
-      if (this.headlineInput) {
-        if (this.preloadConfig.headline) {
-          this.headlineInput.setValue(this.preloadConfig.headline);
+        if (this.preloadConfig.commentTemplate) {
+          this.preloadTemplate();
+        } else {
+          this.originalComment = '';
         }
 
-        // The headline may be set from initialState.headline at this point
-        this.originalHeadline = this.headlineInput.getValue();
+        if (this.headlineInput) {
+          if (this.preloadConfig.headline) {
+            this.headlineInput.setValue(this.preloadConfig.headline);
+          }
+
+          // The headline may be set from initialState.headline at this point
+          this.originalHeadline = this.headlineInput.getValue();
+        }
       }
     } else {
       this.originalComment = initialState.originalComment || '';
@@ -1217,7 +1219,7 @@ class CommentForm extends EventEmitter {
           },
         },
         commentLink: {
-          label: `${cd.s('cf-commentlink-tooltip')}`,
+          label: cd.s('cf-commentlink-tooltip'),
           type: 'button',
           icon:
             cd.g.userDirection === 'ltr'
@@ -1533,7 +1535,11 @@ class CommentForm extends EventEmitter {
 
       operation.close();
 
-      ((initialState.focusHeadline && this.headlineInput) || this.commentInput).focus();
+      if (initialState.focusHeadline && this.headlineInput) {
+        this.headlineInput.selectRange(this.originalHeadline.length);
+      } else {
+        this.commentInput.selectRange(this.originalComment.length);
+      }
       this.preview();
     } catch (error) {
       this.handleError({
@@ -3585,12 +3591,16 @@ class CommentForm extends EventEmitter {
     // In case of the comment being edited some properties would be undefined if its code was not
     // located in the source.
     return Boolean(
-      (this.originalComment !== undefined &&
-        this.originalComment !== this.commentInput.getValue()) ||
+      (
+        this.originalComment !== undefined &&
+        this.originalComment !== this.commentInput.getValue()
+      ) ||
         this.autoSummary !== this.summaryInput.getValue() ||
-        (this.headlineInput &&
+        (
+          this.headlineInput &&
           this.originalHeadline !== undefined &&
-          this.originalHeadline !== this.headlineInput.getValue())
+          this.originalHeadline !== this.headlineInput.getValue()
+        )
     );
   }
 

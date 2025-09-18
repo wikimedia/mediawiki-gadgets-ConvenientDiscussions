@@ -1,5 +1,5 @@
-import { exec } from 'child_process';
-import fs from 'fs';
+import { exec } from 'node:child_process';
+import fs from 'node:fs';
 
 import chalk from 'chalk';
 import JSON5 from 'json5';
@@ -21,10 +21,12 @@ const config = JSON5.parse(readFileSync('./config.json5', 'utf8'));
 const test = Boolean(argv.test || process.env.npm_config_test);
 
 const noI18n = Boolean(argv.noi18n || process.env.npm_config_noi18n);
+// eslint-disable-next-line no-one-time-vars/no-one-time-vars
 const noConfigs = Boolean(argv.noconfigs || process.env.npm_config_noconfigs);
 const i18nOnly = Boolean(argv.i18nonly || process.env.npm_config_i18nonly);
 const configsOnly = Boolean(argv.configsonly || process.env.npm_config_configsonly);
 const debug = Boolean(argv.debug || process.env.npm_config_debug);
+// eslint-disable-next-line no-one-time-vars/no-one-time-vars
 const dryRun = Boolean(argv['dry-run'] || process.env.npm_config_dry_run);
 
 const warning = (text) => {
@@ -38,6 +40,7 @@ const success = (text) => {
 };
 const code = chalk.inverse;
 const keyword = chalk.cyan;
+// eslint-disable-next-line no-one-time-vars/no-one-time-vars
 const important = chalk.greenBright;
 
 if (!config) {
@@ -231,7 +234,7 @@ function getMainEdits() {
         let content;
         try {
           content = fs.readFileSync(`./dist/${file}`, 'utf8');
-        } catch (e) {
+        } catch {
           error(`Asset is not found: ${keyword(file)}`);
         }
 
@@ -395,13 +398,13 @@ async function logIn(server) {
             type: 'text',
             name: 'username',
             message: 'Wikimedia user name',
-            validate: (value) => Boolean(value),
+            validate: Boolean,
           },
           {
             type: 'invisible',
             name: 'password',
             message: 'Password',
-            validate: (value) => Boolean(value),
+            validate: Boolean,
           },
         ]);
       }

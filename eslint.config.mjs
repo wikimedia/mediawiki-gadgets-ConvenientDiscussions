@@ -24,7 +24,7 @@ const config = tseslint.config(
 
   // Main configuration
   {
-    files: ['**/*.js'],
+    files: ['**/*.js', '**/*.mjs'],
     languageOptions: {
       sourceType: 'module',
       ecmaVersion: 2020,
@@ -33,8 +33,12 @@ const config = tseslint.config(
       //   requireConfigFile: false,
       // },
       parserOptions: {
-        projectService: true,
+        projectService: {
+          defaultProject: 'jsconfig.json',
+          allowDefaultProject: ['*.js', '*.mjs'],
+        },
         tsconfigRootDir: import.meta.dirname,
+        jsDocParsingMode: 'all',
       },
       globals: {
         CONFIG_FILE_NAME: 'readonly',
@@ -240,10 +244,10 @@ const config = tseslint.config(
       ],
 
       // JSDoc plugin rules
-      'jsdoc/check-alignment': 'warn',
+      // 'jsdoc/check-alignment': 'warn',
       'jsdoc/check-param-names': 'warn',
-      'jsdoc/check-tag-names': 'warn',
-      'jsdoc/check-types': 'warn',
+      // 'jsdoc/check-tag-names': 'warn',
+      // 'jsdoc/check-types': 'warn',
       'jsdoc/implements-on-classes': 'warn',
       'jsdoc/require-jsdoc': [
         'warn',
@@ -277,6 +281,12 @@ const config = tseslint.config(
         ignoreObjectDestructuring: true,
         ignoreTemplateLiterals: true,
       }],
+
+      // Slow rules (run `cross-env TIMING=1 eslint --config eslint.config.mjs --fix-dry-run src/`)
+      'unicorn/no-unnecessary-polyfills': 'off',
+      'jsdoc/check-tag-names': 'off',
+      'jsdoc/check-alignment': 'off',
+      'jsdoc/check-types': 'off',
     },
   },
 
@@ -300,7 +310,6 @@ const config = tseslint.config(
   // Environment configs
   {
     files: ['**/*.js'],
-    extends: [tseslint.configs.disableTypeChecked],
     languageOptions: {
       globals: {
         // Browser globals

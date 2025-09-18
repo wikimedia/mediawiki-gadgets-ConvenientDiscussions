@@ -43,6 +43,7 @@ mw.loader.using([
     'discussiontools-newtopicssubscription-notify-unsubscribed-body',
     'thanks-confirmation2',
     'visualeditor-educationpopup-dismiss',
+    'checkuser-userinfocard-toggle-button-aria-label',
   ];
 
   for (let i = 0; i < messageNames.length; i += 50) {

@@ -684,7 +684,8 @@ class Comment extends CommentSkeleton {
     this.headerElement = /** @type {HTMLElementIfReformatted} */ (headerWrapper.firstChild);
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const authorWrapper = /** @type {HTMLElement} */ (this.headerElement.firstChild);
-    const authorLink = /** @type {HTMLAnchorElement} */ (authorWrapper.firstChild);
+    const userInfoCardButton = /** @type {HTMLAnchorElement} */ (authorWrapper.firstChild);
+    const authorLink = /** @type {HTMLAnchorElement} */ (userInfoCardButton.nextElementSibling);
     const authorLinksWrapper = /** @type {HTMLElement} */ (authorLink.nextElementSibling);
     const bdiElement = /** @type {HTMLElement} */ (authorLink.firstChild);
     const authorTalkLink = /** @type {HTMLAnchorElement} */ (authorLinksWrapper.firstElementChild);
@@ -695,6 +696,17 @@ class Comment extends CommentSkeleton {
         /** @type {HTMLElement} */ (contribsLink.previousSibling).remove();
         contribsLink.remove();
       }
+    }
+
+    if (mw.user.options.get('checkuser-userinfocard-enable') && this.author.isRegistered()) {
+      userInfoCardButton.dataset.username = this.author.getName();
+      if (this.author.isTemporary()) {
+        const span = /** @type {HTMLElement} */ (userInfoCardButton.firstChild);
+        span.classList.remove('ext-checkuser-userinfocard-button__icon--userAvatar');
+        span.classList.add('ext-checkuser-userinfocard-button__icon--userTemporary');
+      }
+    } else {
+      userInfoCardButton.remove();
     }
 
     if (this.authorLink) {
@@ -1062,10 +1074,6 @@ class Comment extends CommentSkeleton {
         action,
         widgetConstructor: this.createGoToChildButton.bind(this),
       });
-      // this.overlayMenu.insertBefore(
-      //   element,
-      //   this.toggleChildThreadsButton?.element.nextSibling || null
-      // );
       this.overlayMenu.prepend(element);
     }
   }
@@ -1110,8 +1118,12 @@ class Comment extends CommentSkeleton {
         action,
         widgetConstructor: this.createToggleChildThreadsButton.bind(this),
       });
-      // this.overlayMenu.prepend(element);
-      this.overlayMenu.insertBefore(element, this.copyLinkButton?.element || null);
+      const targetButton = this.goToParentButton || this.goToChildButton;
+      if (targetButton) {
+        this.overlayMenu.insertBefore(element, targetButton?.element.nextSibling || null);
+      } else {
+        this.overlayMenu.prepend(element);
+      }
     }
     this.toggleChildThreadsButton?.element.addEventListener('mouseenter', () => {
       this.maybeOnboardOntoToggleChildThreads();
@@ -4657,6 +4669,8 @@ class Comment extends CommentSkeleton {
       authorWrapper.className = 'cd-comment-author-wrapper';
       headerElement.append(authorWrapper);
 
+      authorWrapper.append(this.createUserInfoCardButton());
+
       const authorLink = document.createElement('a');
       authorLink.className = 'cd-comment-author mw-userlink';
       authorWrapper.append(authorLink);
@@ -4742,6 +4756,29 @@ class Comment extends CommentSkeleton {
 
     this.prototypes.add('underlay', commentUnderlay);
     this.prototypes.add('overlay', commentOverlay);
+  }
+
+  /**
+   * Create the user info card button element.
+   *
+   * @returns {HTMLAnchorElement} The created button element
+   */
+  static createUserInfoCardButton() {
+    const button = document.createElement('a');
+
+    // Set attributes
+    button.role = 'button';
+    button.setAttribute('tabindex', '0');
+    button.setAttribute('aria-label', cd.mws('checkuser-userinfocard-toggle-button-aria-label'));
+    button.setAttribute('aria-haspover', 'dialog');
+    button.className = 'ext-checkuser-userinfocard-button cdx-button cdx-button--action-default cdx-button--weight-quiet cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--icon-only cd-comment-author-userInfoCard-button';
+
+    // Create and append the icon span
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'cdx-button__icon ext-checkuser-userinfocard-button__icon ext-checkuser-userinfocard-button__icon--userAvatar';
+    button.append(iconSpan);
+
+    return button;
   }
 
   /**
