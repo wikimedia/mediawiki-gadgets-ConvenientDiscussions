@@ -782,7 +782,7 @@ class Comment extends CommentSkeleton {
       this.copyLinkButton = new CommentButton({
         label: this.reformattedTimestamp || this.timestamp,
         tooltip: this.timestampTitle,
-        classes: ['cd-comment-button-label', 'cd-comment-timestamp', 'mw-selflink-fragment'],
+        classes: ['cd-comment-button-labelled', 'cd-comment-timestamp', 'mw-selflink-fragment'],
         action: this.copyLink.bind(this),
         href: this.dtId && '#' + this.dtId,
       });
@@ -859,7 +859,8 @@ class Comment extends CommentSkeleton {
        */
       this.replyButton = new CommentButton({
         label: cd.s('cm-reply'),
-        classes: ['cd-comment-button-label'],
+        classes: ['cd-comment-button-labelled'],
+        // flags: ['progressive'],
         action,
       });
 
@@ -911,7 +912,7 @@ class Comment extends CommentSkeleton {
        */
       this.editButton = new CommentButton({
         label: cd.s('cm-edit'),
-        classes: ['cd-comment-button-label'],
+        classes: ['cd-comment-button-labelled'],
         action,
       });
 
@@ -952,7 +953,7 @@ class Comment extends CommentSkeleton {
       this.thankButton = new CommentButton({
         label: cd.s(isThanked ? 'cm-thanked' : 'cm-thank'),
         tooltip: cd.s(isThanked ? 'cm-thanked-tooltip' : 'cm-thank-tooltip'),
-        classes: ['cd-comment-button-label'],
+        classes: ['cd-comment-button-labelled'],
         action,
       });
 
@@ -4387,11 +4388,15 @@ class Comment extends CommentSkeleton {
       if (this.isActionable) {
         this.isSelected = true;
         this.configureLayers();
-        this.replyButton?.setLabel(cd.s('cm-quote'));
+        this.replyButton
+          ?.setFlags(['progressive'])
+          .setLabel(cd.s('cm-quote'));
       }
     } else {
       this.isSelected = false;
-      this.replyButton?.setLabel(cd.s('cm-reply'));
+      this.replyButton
+        ?.setFlags([])
+        .setLabel(cd.s('cm-reply'));
     }
   }
 

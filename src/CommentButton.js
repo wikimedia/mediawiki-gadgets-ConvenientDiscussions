@@ -30,9 +30,6 @@ class CommentButton extends Button {
       config.buttonElement = /** @type {HTMLElement} */ (config.element.firstChild);
     }
 
-    // Make accidental double clicks not select text around
-    config.href ||= '';
-
     super(config);
 
     // Don't hide the menu on right button click.
@@ -94,7 +91,7 @@ class CommentButton extends Button {
    * Set the button disabled or not.
    *
    * @param {boolean} disabled
-   * @returns {CommentButton} This button.
+   * @returns {this} This button.
    * @override
    */
   setDisabled(disabled) {
@@ -120,7 +117,7 @@ class CommentButton extends Button {
    * Set the button pending or not.
    *
    * @param {boolean} pending
-   * @returns {CommentButton} This button.
+   * @returns {this} This button.
    * @override
    */
   setPending(pending) {
@@ -133,7 +130,7 @@ class CommentButton extends Button {
    * Set the label of the button.
    *
    * @param {string} label
-   * @returns {CommentButton} This button.
+   * @returns {this} This button.
    * @override
    */
   setLabel(label) {
@@ -150,7 +147,7 @@ class CommentButton extends Button {
    * Set the tooltip of the button.
    *
    * @param {string} tooltip
-   * @returns {CommentButton} This button.
+   * @returns {this} This button.
    * @override
    */
   setTooltip(tooltip) {
@@ -167,7 +164,7 @@ class CommentButton extends Button {
    * Set the action of the button. It will be executed on click or Enter press.
    *
    * @param {?import('./Button').Action} action
-   * @returns {Button} This button.
+   * @returns {this} This button.
    * @override
    */
   setAction(action) {

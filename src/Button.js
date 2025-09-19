@@ -21,7 +21,7 @@ import { isCmdModifierPressed } from './utils-window';
  * @property {string} [href] Value of the `href` parameter to add to the button element.
  * @property {string} [label] Label of the button.
  * @property {string} [tooltip] Tooltip for the button.
- * @property {string[]} [flags] Flags to apply to an OOUI button.
+ * @property {('progressive')[]} [flags] Flags to apply to an OOUI button.
  * @property {Action} [action] Function to execute on click or Enter press.
  */
 
@@ -114,19 +114,38 @@ class Button {
     if (tooltip !== undefined) {
       this.setTooltip(tooltip);
     }
-    if (flags?.includes('progressive')) {
-      this.setIconProgressive();
-    }
+    this.setFlags(flags);
     if (action !== undefined) {
       this.setAction(action);
     }
   }
 
   /**
+   * Set the button's flags.
+   *
+   * @param {('progressive')[] | undefined} flags
+   * @returns {this} This button.
+   */
+  setFlags(flags) {
+    if (flags?.includes('progressive')) {
+      this.buttonElement.classList.add('cd-button-progressive');
+
+      // Set the class to an OOUI icon to make it look like icons with the "progressive" flag do.
+      // Somehow OOUI doesn't set it at the building stage.
+      this.iconElement?.classList.add('oo-ui-image-progressive');
+    } else {
+      this.buttonElement.classList.remove('cd-button-progressive');
+      this.iconElement?.classList.remove('oo-ui-image-progressive');
+    }
+
+    return this;
+  }
+
+  /**
    * Set the button disabled or not.
    *
    * @param {boolean} disabled
-   * @returns {Button} This button.
+   * @returns {this} This button.
    */
   setDisabled(disabled) {
     this.element.classList.toggle('cd-button-disabled', disabled);
@@ -140,7 +159,7 @@ class Button {
    * Set the button pending or not.
    *
    * @param {boolean} pending
-   * @returns {Button} This button.
+   * @returns {this} This button.
    */
   setPending(pending) {
     this.setDisabled(pending);
@@ -153,7 +172,7 @@ class Button {
    * Set the `href` attribute of the button.
    *
    * @param {string} href
-   * @returns {Button} This button.
+   * @returns {this} This button.
    */
   setHref(href) {
     if ('href' in this.buttonElement) {
@@ -167,7 +186,7 @@ class Button {
    * Set the label of the button.
    *
    * @param {string} label
-   * @returns {Button} This button.
+   * @returns {this} This button.
    */
   setLabel(label) {
     this.labelElement ||= this.buttonElement;
@@ -180,7 +199,7 @@ class Button {
    * Set the tooltip of the button.
    *
    * @param {string} tooltip
-   * @returns {Button} This button.
+   * @returns {this} This button.
    */
   setTooltip(tooltip) {
     this.buttonElement.title = tooltip;
@@ -213,7 +232,7 @@ class Button {
    * Set the action of the button. It will be executed on click or Enter press.
    *
    * @param {?Action} action
-   * @returns {Button} This button.
+   * @returns {this} This button.
    */
   setAction(action) {
     if (this.callback) {
@@ -261,7 +280,7 @@ class Button {
   /**
    * Hide the button.
    *
-   * @returns {Button} This button.
+   * @returns {this} This button.
    */
   hide() {
     this.element.style.display = 'none';
@@ -272,7 +291,7 @@ class Button {
   /**
    * Show the button.
    *
-   * @returns {Button} This button.
+   * @returns {this} This button.
    */
   show() {
     this.element.style.display = '';
@@ -284,7 +303,7 @@ class Button {
    * Show or hide the button, depending on the parameter.
    *
    * @param {boolean} show Whether to show the button.
-   * @returns {Button} This button.
+   * @returns {this} This button.
    */
   toggle(show) {
     if (show) {
@@ -320,16 +339,6 @@ class Button {
         iconElement.classList.remove(className);
       });
     iconElement.classList.add(`oo-ui-icon-${icon}`);
-  }
-
-  /**
-   * Set the class to an OOUI icon to make it look like icons with the "progressive" flag do.
-   * Somehow OOUI doesn't set it at the building stage.
-   */
-  setIconProgressive() {
-    if (!this.iconElement) return;
-
-    this.iconElement.classList.add('oo-ui-image-progressive');
   }
 
   /**

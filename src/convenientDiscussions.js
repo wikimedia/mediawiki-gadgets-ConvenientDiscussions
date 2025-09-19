@@ -432,7 +432,7 @@ const globalProperties = {
    * @type {string[]}
    * @memberof convenientDiscussions.g
    */
-  popularNotInlineElements: ['BLOCKQUOTE', 'CAPTION', 'CENTER', 'DD', 'DIV', 'DL', 'DT', 'FIGURE', 'FIGCAPTION', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'INPUT', 'LI', 'LINK', 'META', 'OL', 'P', 'PRE', 'SECTION', 'STYLE', 'TABLE', 'TBODY', 'TD', 'TFOOT', 'TH', 'THEAD', 'TR', 'UL'],
+  popularNotInlineElements: ['BLOCKQUOTE', 'CAPTION', 'CENTER', 'DD', 'DIV', 'DL', 'DT', 'FIGURE', 'FIGCAPTION', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'INPUT', 'LI', 'LINK', 'META', 'OL', 'P', 'PRE', 'SECTION', 'STYLE', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TR', 'UL'],
 
   /**
    * Popular elements that can be met in page content and do have the `display: inline` property in

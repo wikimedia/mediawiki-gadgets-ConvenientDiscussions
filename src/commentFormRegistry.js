@@ -510,8 +510,6 @@ class CommentFormRegistry extends EventEmitter {
     });
   }
 
-
-
   /**
    * Go to the next comment form out of sight, or just the next comment form, if `inSight` is set to
    * `true`.

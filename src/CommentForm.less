@@ -490,10 +490,22 @@
   display: flex;
 }
 
-.cd-highlight > .tool-button:not(:hover) {
-  // blue100 by
-  // https://github.com/wikimedia/design-codex/blob/main/packages/codex-design-tokens/src/themes/wikimedia-ui.json
-  background-color: #dce3f9;
+.tool-button[rel="quote"] {
+  background-color: var(--color-base-fixed, #202122);
+
+  // `mask-image` was added to Chrome only in 2023-12-05
+  -webkit-mask-image: url('/w/load.php?modules=oojs-ui.styles.icons-editing-advanced&image=quotes&lang=en&skin=vector');
+  mask-image: url('/w/load.php?modules=oojs-ui.styles.icons-editing-advanced&image=quotes&lang=en&skin=vector');
+  -webkit-mask-size: 20px;
+  mask-size: 20px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  .cd-highlight > & {
+    background-color: var(--color-progressive, #36c);
+  }
 }
 
 .darkTheme-commentForm() {

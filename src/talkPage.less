@@ -181,7 +181,7 @@ ol > .cd-thread-button-container > .cd-thread-button {
 .cd-button-disabled.cd-button-disabled {
   cursor: default;
 
-  // Override .cd-comment-button-label.cd-comment-button-label.cd-comment-button-label:hover
+  // Override .cd-comment-button-labelled.cd-comment-button-labelled.cd-comment-button-labelled:hover
   &.cd-button-disabled.cd-button-disabled.cd-button-disabled {
     color: var(--color-disabled, #72777d);
   }
@@ -190,6 +190,15 @@ ol > .cd-thread-button-container > .cd-thread-button {
 .cd-button-pending.cd-button-pending,
 .cd-button-pending.cd-button-pending.cd-button-pending .oo-ui-buttonElement-button {
   cursor: wait;
+}
+
+// Override .cd-comment-button-labelled.cd-comment-button-labelled.cd-comment-button-labelled
+.cd-button-progressive.cd-button-progressive.cd-button-progressive.cd-button-progressive {
+  color: var(--color-progressive, #36c);
+
+  &:active {
+    color: var(--color-progressive--active, #233566);
+  }
 }
 
 .cd-dialog-copyLink {

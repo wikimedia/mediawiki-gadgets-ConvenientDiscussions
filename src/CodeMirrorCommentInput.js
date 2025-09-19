@@ -25,6 +25,9 @@ export default class CodeMirrorCommentInput
         this.textarea.dispatchEvent(new KeyboardEvent('input'));
       }
     });
+    this.cdContentClassExtension = this.lib.EditorView.contentAttributes.of({
+      class: 'ime-position-inside',
+    });
 
     mw.hook('ext.CodeMirror.preferences.apply').add((prefName, enabled) => {
       if (enabled !== this.preferences.getPreference(prefName)) {
@@ -48,7 +51,8 @@ export default class CodeMirrorCommentInput
     this.mode = 'mediawiki';
     extensions.push(
       this.cdPlaceholderCompartment.of(this.lib.placeholder(placeholderText)),
-      this.cdChangeExtension
+      this.cdChangeExtension,
+      this.cdContentClassExtension,
     );
     super.initialize([this.defaultExtensions, ...extensions]);
   }

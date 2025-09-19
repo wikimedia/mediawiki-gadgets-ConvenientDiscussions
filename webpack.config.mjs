@@ -94,7 +94,19 @@ const webpack_ = (env) => {
         },
         {
           test: /\.less$/,
-          use: ['style-loader', 'css-loader', 'less-loader'],
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: {
+                url: {
+                  // Don't process URLs starting with /w/
+                  filter: (url) => !url.startsWith('/w/'),
+                },
+              },
+            },
+            'less-loader',
+          ],
         },
         {
           test: /\bworker-gate\.js$/,
@@ -143,21 +155,19 @@ const webpack_ = (env) => {
 
             filename: (pathData) => `${pathData.filename}.LICENSE.js`,
 
-            banner: (licenseFile) => (
-              licenseFile.includes('worker') ?
-                // A really messed up hack to include source maps for a web worker (works with
-                // .map.json extension for webpack.SourceMapDevToolPlugin's `filename` property,
-                // doesn't work with .map for some reason).
-                `//# sourceMappingURL=${config.sourceMapsBaseUrl}convenientDiscussions.worker.js.map.json` :
-
-                `
+            banner: (licenseFile) =>
+              licenseFile.includes('worker')
+                ? // A really messed up hack to include source maps for a web worker (works with
+                  // .map.json extension for webpack.SourceMapDevToolPlugin's `filename` property,
+                  // doesn't work with .map for some reason).
+                  `//# sourceMappingURL=${config.sourceMapsBaseUrl}convenientDiscussions.worker.js.map.json`
+                : `
 * For documentation and feedback, see the script's homepage:
 * https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/Convenient_Discussions
 *
 * For license information, see
 * ${getUrl(config.main.server, config.main.rootPath + '/' + licenseFile)}
-`
-            ),
+`,
           },
         }),
       ],
@@ -175,49 +185,50 @@ const webpack_ = (env) => {
         suppressWarning: true,
       }),
     ].concat(
-      single ?
-        [] :
-        [
-          new webpack.BannerPlugin({
-            banner: '<nowiki>',
+      single
+        ? []
+        : [
+            new webpack.BannerPlugin({
+              banner: '<nowiki>',
 
-            // Don't add the banner to the inline worker, otherwise the source maps for it won't
-            // work (I think).
-            test: bundleFilename,
-          }),
+              // Don't add the banner to the inline worker, otherwise the source maps for it won't
+              // work (I think).
+              test: bundleFilename,
+            }),
 
-          // Use a custom plugin to append the closing nowiki tag
-          {
-            apply(compiler) {
-              compiler.hooks.compilation.tap('AppendBannerPlugin', (compilation) => {
-                compilation.hooks.processAssets.tap(
-                  {
-                    name: 'AppendBannerPlugin',
-                    stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
-                  },
-                  (assets) => {
-                    Object.keys(assets).forEach(filename => {
-                      if (filename === filename.replace('.map.json', '') && filename.endsWith('.js')) {
-                        assets[filename] = new compiler.webpack.sources.RawSource(
-                          assets[filename].source().toString() + '\n/*! </nowiki> */'
-                        );
-                      }
-                    });
-                  }
-                );
-              });
+            // Use a custom plugin to append the closing nowiki tag
+            {
+              apply(compiler) {
+                compiler.hooks.compilation.tap('AppendBannerPlugin', (compilation) => {
+                  compilation.hooks.processAssets.tap(
+                    {
+                      name: 'AppendBannerPlugin',
+                      stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
+                    },
+                    (assets) => {
+                      Object.keys(assets).forEach((filename) => {
+                        if (
+                          filename === filename.replace('.map.json', '') &&
+                          filename.endsWith('.js')
+                        ) {
+                          assets[filename] = new compiler.webpack.sources.RawSource(
+                            assets[filename].source().toString() + '\n/*! </nowiki> */'
+                          );
+                        }
+                      });
+                    }
+                  );
+                });
+              },
             },
-          },
-        ],
-      dev ?
-        [] :
-        new webpack.SourceMapDevToolPlugin({
-          filename: '[file].map.json',
-          append: `\n//# sourceMappingURL=${config.sourceMapsBaseUrl}[url]`,
-        }),
-      process.env.CI ?
-        [] :
-        new webpack.ProgressPlugin()
+          ],
+      dev
+        ? []
+        : new webpack.SourceMapDevToolPlugin({
+            filename: '[file].map.json',
+            append: `\n//# sourceMappingURL=${config.sourceMapsBaseUrl}[url]`,
+          }),
+      process.env.CI ? [] : new webpack.ProgressPlugin()
     ),
     devServer: {
       static: {
@@ -233,7 +244,7 @@ const webpack_ = (env) => {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-        'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization'
+        'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
       },
 
       // Fixes "GET https://localhost:9000/sockjs-node/info?t=... net::ERR_SSL_PROTOCOL_ERROR".
