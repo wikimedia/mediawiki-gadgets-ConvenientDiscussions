@@ -11,7 +11,15 @@ import tseslint from 'typescript-eslint';
 const config = defineConfig(
   // Base configuration for all files
   {
-    ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js'],
+    ignores: [
+      'dist/**',
+      'misc/**',
+      '*.json5',
+      'w-he.js',
+      '**/node_modules/**',
+      '**/AppData/**',
+      '**/@types/**',
+    ],
   },
 
   stylistic.configs.customize({
@@ -37,6 +45,7 @@ const config = defineConfig(
         projectService: {
           defaultProject: 'jsconfig.json',
           // allowDefaultProject: ['*.js', '*.mjs'],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 200,
         },
         tsconfigRootDir: import.meta.dirname,
         jsDocParsingMode: 'all',
