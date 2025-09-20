@@ -1,4 +1,4 @@
-{
+export default {
   protocol: 'https',
 
   // No ending slash, as in mw.config.get('wgScriptPath')
@@ -34,8 +34,7 @@
       server: 'ru.wikipedia.org',
       default: {
         source: 'w-ru.js',
-        target: 'MediaWiki:Gadget-convenientDiscussions.js',
-        target2: 'User:Jack who built the house/convenientDiscussions.js',
+        targets: ['MediaWiki:Gadget-convenientDiscussions.js', 'User:Jack who built the house/convenientDiscussions.js'],
         editGadgetsDefinition: true,
         modules: [
           'ext.confirmEdit.CaptchaInputWidget',
@@ -68,45 +67,45 @@
       },
       test: {
         source: 'w-ru.test.js',
-        target: 'User:Jack who built the house/convenientDiscussions.test.js',
+        targets: ['User:Jack who built the house/convenientDiscussions.test.js'],
       },
     },
     {
       server: 'en.wikipedia.org',
       default: {
         source: 'w-en.js',
-        target: 'User:Jack who built the house/convenientDiscussions.js',
+        targets: ['User:Jack who built the house/convenientDiscussions.js'],
       },
     },
     {
       server: 'fr.wikipedia.org',
       default: {
         source: 'w-fr.js',
-        target: 'User:Jack who built the house/convenientDiscussions.js',
+        targets: ['User:Jack who built the house/convenientDiscussions.js'],
       },
     },
     {
       server: 'commons.wikimedia.org',
       default: {
         source: 'commons.js',
-        target: 'User:Jack who built the house/convenientDiscussions-commonsConfig.js',
+        targets: ['User:Jack who built the house/convenientDiscussions-commonsConfig.js'],
       },
     },
     {
       server: 'meta.wikimedia.org',
       default: {
         source: 'meta.js',
-        target: 'User:Jack who built the house/convenientDiscussions.js',
+        targets: ['User:Jack who built the house/convenientDiscussions.js'],
       },
     },
     {
       server: 'www.mediawiki.org',
       default: {
         source: 'mw.js',
-        target: 'User:Jack who built the house/convenientDiscussions-mwConfig.js',
+        targets: ['User:Jack who built the house/convenientDiscussions-mwConfig.js'],
       },
     },
   ],
 
   sourceMapsBaseUrl: 'https://tools-static.wmflabs.org/convenient-discussions/source-maps/',
-}
+};

@@ -1,7 +1,4 @@
-import JSON5 from 'json5';
-import { readFileSync } from 'node:fs';
-
-const config = JSON5.parse(readFileSync('./config.json5', 'utf8'));
+import config from '../config';
 
 function wikiUrlencode(string) {
   return encodeURIComponent(string)

@@ -1,17 +1,14 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import JSON5 from 'json5';
-import { readFileSync } from 'node:fs';
 import TerserPlugin from 'terser-webpack-plugin';
 import webpack from 'webpack';
 import WebpackBuildNotifierPlugin from 'webpack-build-notifier';
+import config from './config';
 
 import { getUrl } from './misc/utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const config = JSON5.parse(readFileSync('./config.json5', 'utf8'));
 
 const webpack_ = (env) => {
   /*

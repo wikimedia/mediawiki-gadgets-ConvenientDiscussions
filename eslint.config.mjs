@@ -13,14 +13,14 @@ const config = tseslint.config(
     ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js'],
   },
 
-  // stylistic.configs.customize({
-  //   semi: true,
-  //   arrowParens: true,
-  // }),
+  stylistic.configs.customize({
+    semi: true,
+    arrowParens: true,
+  }),
 
   tseslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
-  // ...tseslint.configs.stylisticTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
 
   // Main configuration
   {

@@ -2,17 +2,15 @@ import { exec } from 'node:child_process';
 import fs from 'node:fs';
 
 import chalk from 'chalk';
-import JSON5 from 'json5';
-import { readFileSync } from 'node:fs';
 import Mw from 'nodemw';
 import prompts from 'prompts';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import config from './config';
 
 import { getUrl, unique } from './misc/utils.mjs';
 
 const argv = yargs(hideBin(process.argv)).argv;
-const config = JSON5.parse(readFileSync('./config.json5', 'utf8'));
 
 /*
   node deploy --test
@@ -33,7 +31,7 @@ const warning = (text) => {
   console.log(chalk.yellowBright(text));
 };
 const error = (text) => {
-  throw chalk.red(text);
+  throw new Error(chalk.red(text));
 };
 const success = (text) => {
   console.log(chalk.green(text));
@@ -43,23 +41,19 @@ const keyword = chalk.cyan;
 // eslint-disable-next-line no-one-time-vars/no-one-time-vars
 const important = chalk.greenBright;
 
-if (!config) {
-  error(`Config is missing in ${keyword(config.json5)}`);
+if (!('main' in config)) {
+  error(`Data related to the main build (in the "main" property) is missing in ${keyword('config.js')}`);
 }
 
-if (!config.main) {
-  error(`Data related to the main build (in the "main" property) is missing in ${keyword(config.json5)}`);
-}
-
-if (!config.main.rootPath) {
-  error(`${keyword('rootPath')} is missing in ${keyword(config.json5)}`);
+if (!('rootPath' in config.main)) {
+  error(`${keyword('rootPath')} is missing in ${keyword('config.js')}`);
 }
 
 const pathPrefix = config.main.rootPath + '/';
 
-const assets = config.main.assets?.[test ? 'test' : 'default'];
+const assets = 'assets' in config.main ? config.main.assets[test ? 'test' : 'default'] : undefined;
 if (!assets || !Array.isArray(assets) || !assets.length) {
-  error(`File list is not found in ${keyword('config.json5')}`);
+  error(`File list is not found in ${keyword('config.js')}`);
 }
 
 const configAssets = config.configs.flatMap((configForConfig) => {
@@ -67,18 +61,12 @@ const configAssets = config.configs.flatMap((configForConfig) => {
   if (!configForMode) {
     return [];
   }
-  return [{
+
+  return configForMode.targets.map((target) => ({
     server: configForConfig.server,
     source: `convenientDiscussions-config/${configForMode.source}`,
-    target: configForMode.target,
-  }].concat(
-    configForMode.target2 ?
-      {
-        server: configForConfig.server,
-        source: `convenientDiscussions-config/${configForMode.source}`,
-        target: configForMode.target2,
-      } :
-      [],
+    target,
+  })).concat(
     configForMode.editGadgetsDefinition ?
       {
         server: configForConfig.server,
@@ -95,6 +83,7 @@ if (process.env.CI) {
   // `ssh -D [port]` command as part of the SSH tunnel to Toolforge.
   config.proxy = 'http://localhost:8080';
 
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const eventJson = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
 
   // Will be undefined if the event is workflow_dispatch.
@@ -139,7 +128,10 @@ if (configsOnly) {
   );
 }
 
-function parseCmdOutput(err, stdout, stderr) {
+/**
+ * @type {(error: import('node:child_process').ExecException | null, stdout: string, stderr: string) => void}
+ */
+function parseCmdOutput(_err, stdout, stderr) {
   if (stdout === '') {
     error('parseCmdOutput(): This does not look like a git repo');
   }
@@ -154,7 +146,8 @@ function parseCmdOutput(err, stdout, stderr) {
     .split('\n\n')
     .map((line) => {
       const [, hash, subject, refs] = line.match(/^(.+)\n(.+)\n(.+)/);
-      const [, tag] = refs.match(/tag: ([^,]+)/) || [null, null];
+      const [, tag] = refs.match(/tag: ([^,]+)/) || [];
+
       return { hash, subject, tag };
     });
 
@@ -191,6 +184,7 @@ function getLastDeployedCommit(revisions) {
   revisions.some((revision) => {
     [, lastDeployedCommit] = revision.comment.match(/[uU]pdate to ([0-9a-f]{8})(?= @ )/) || [];
     [, lastDeployedVersion] = revision.comment.match(/[uU]pdate to (v\d+\.\d+\.\d+\b)/) || [];
+
     return lastDeployedCommit || lastDeployedVersion;
   });
   if (lastDeployedCommit || lastDeployedVersion) {
@@ -213,8 +207,15 @@ function getLastDeployedCommit(revisions) {
   prepareEdits();
 }
 
-function cutContent(content) {
-  return content.slice(0, 300) + (content.length > 300 ? '...' : '');
+/**
+ * Keep only the first 300 characters of content.
+ *
+ * @param {string} content
+ * @param {number} [n=300]
+ * @returns {string}
+ */
+function cutContent(content, n = 300) {
+  return content.slice(0, n) + (content.length > n ? '...' : '');
 }
 
 function getMainEdits() {
@@ -286,8 +287,9 @@ async function getConfigsEdits() {
   if (noConfigs || i18nOnly) {
     return [];
   }
-  const assetsWithGadgetsDefinition = configAssets
-    .filter((asset) => asset.target === 'MediaWiki:Gadgets-definition');
+  const assetsWithGadgetsDefinition = configAssets.filter(
+    (asset) => asset.target === 'MediaWiki:Gadgets-definition'
+  );
   (await Promise.all(
     assetsWithGadgetsDefinition.map((asset) => (
       new Promise((resolve, reject) => {
@@ -313,11 +315,13 @@ async function getConfigsEdits() {
 
     asset.content = content.replace(
       /^(\* *convenientDiscussions *\[.*dependencies *= *)[^|\]]*?( *[|\]])/m,
-      (s, before, after) => before + modulesString + after
+      (_s, before, after) => before + modulesString + after
     );
   });
+
   return configAssets.map((asset) => {
     const content = asset.content || fs.readFileSync(`./dist/${asset.source}`, 'utf8');
+
     return {
       server: asset.server,
       title: asset.target,
@@ -350,7 +354,7 @@ async function prepareEdits() {
   if (process.env.CI) {
     logInToServers();
   } else {
-    const { confirm } = await prompts({
+    const { confirm } = prompts({
       type: 'confirm',
       name: 'confirm',
       message: 'Proceed?',
@@ -362,7 +366,7 @@ async function prepareEdits() {
   }
 }
 
-async function logInToServers() {
+function logInToServers() {
   servers = edits.map((edit) => edit.server).filter(unique);
   loginToNextServer();
 }
@@ -436,7 +440,8 @@ function editNext(serverEdits) {
         }
         editNext(serverEdits);
       } else {
-        throw [chalk.red('Unknown error'), info];
+        console.error(info);
+        throw new Error(chalk.red('Unknown error'));
       }
     });
   } else {
