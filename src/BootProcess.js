@@ -16,7 +16,7 @@ import processFragment from './processFragment';
 import sectionRegistry from './sectionRegistry';
 import settings from './settings';
 import Parser from './shared/Parser';
-import { defined, definedAndNotNull, generatePageNamePattern, isElement, sleep } from './shared/utils-general';
+import { defined, definedAndNotNull, generatePageNamePattern, isElement, sleep, unique } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import toc from './toc';
 import updateChecker from './updateChecker';
@@ -99,9 +99,9 @@ function processAndRemoveDtElements(elements) {
   });
   if (!moveNotRemove) {
     [
-      .../** @type {NodeListOf<HTMLSpanElement>} */ (
+      ...(/** @type {NodeListOf<HTMLSpanElement>} */ (
         bootController.rootElement.querySelectorAll('span[data-mw-comment]')
-      ),
+      )),
     ].forEach((el) => {
       delete el.dataset.mwComment;
     });
@@ -240,6 +240,7 @@ class BootProcess {
       !commentRegistry.getCount()
     ) {
       this.retractTalkPageType();
+
       return;
     }
 
@@ -480,12 +481,12 @@ class BootProcess {
    */
   initPatterns() {
     const signatureEndingRegexp = cd.config.signatureEndingRegexp;
-    cd.g.signatureEndingRegexp = signatureEndingRegexp ?
-      new RegExp(
-        signatureEndingRegexp.source + (signatureEndingRegexp.source.slice(-1) === '$' ? '' : '$'),
+    cd.g.signatureEndingRegexp = signatureEndingRegexp
+      ? new RegExp(
+        signatureEndingRegexp.source + (signatureEndingRegexp.source.endsWith('$') ? '' : '$'),
         signatureEndingRegexp.flags
-      ) :
-      null;
+      )
+      : null;
 
     const nss = mw.config.get('wgFormattedNamespaces');
     const nsIds = mw.config.get('wgNamespaceIds');
@@ -517,7 +518,10 @@ class BootProcess {
     cd.g.userTalkLinkRegexp = new RegExp(`^:?(?:${userTalkNsAliasesPattern}):([^/]+)$`, 'i');
     cd.g.userTalkSubpageLinkRegexp = new RegExp(`^:?(?:${userTalkNsAliasesPattern}):.+?/`, 'i');
 
-    cd.g.contribsPages = cd.g.specialPageAliases.Contributions.map((alias) => `${nss[-1]}:${alias}`);
+    cd.g.contribsPages = cd.g.specialPageAliases.Contributions
+      .concat('Contributions')
+      .filter(unique)
+      .map((alias) => `${nss[-1]}:${alias}`);
 
     const contribsPagesLinkPattern = cd.g.contribsPages.join('|');
     cd.g.contribsPageLinkRegexp = new RegExp(`^(?:${contribsPagesLinkPattern})/`);
@@ -525,7 +529,7 @@ class BootProcess {
     const contribsPagesPattern = anySpace(contribsPagesLinkPattern);
     cd.g.captureUserNamePattern = (
       `\\[\\[[ _]*:?(?:\\w*:){0,2}(?:(?:${userNssAliasesPattern})[ _]*:[ _]*|` +
-      `(?:Special[ _]*:[ _]*Contributions|${contribsPagesPattern})\\/[ _]*)([^|\\]/]+)(/)?`
+      `(?:${contribsPagesPattern})\\/[ _]*)([^|\\]/]+)(/)?`
     );
 
     cd.g.isThumbRegexp = new RegExp(
@@ -538,8 +542,8 @@ class BootProcess {
     const unsignedTemplatesPattern = cd.config.unsignedTemplates
       .map(generatePageNamePattern)
       .join('|');
-    cd.g.unsignedTemplatesPattern = unsignedTemplatesPattern ?
-      `(\\{\\{ *(?:${unsignedTemplatesPattern}) *\\| *([^}|]+?) *(?:\\| *([^}]+?) *)?\\}\\})`
+    cd.g.unsignedTemplatesPattern = unsignedTemplatesPattern
+      ? `(\\{\\{ *(?:${unsignedTemplatesPattern}) *\\| *([^}|]+?) *(?:\\| *([^}]+?) *)?\\}\\})`
       : null;
 
     const clearTemplatesPattern = cd.config.clearTemplates.map(generatePageNamePattern).join('|');
@@ -574,17 +578,17 @@ class BootProcess {
         using `cd.config.signaturePrefixRegexp`.
       * If it is other than `' '`, it is unpredictable, so it is safer to include it in the pattern.
     */
-    cd.g.userSignaturePrefixRegexp = authorInSignatureMatch ?
-      new RegExp(
+    cd.g.userSignaturePrefixRegexp = authorInSignatureMatch
+      ? new RegExp(
         (
-          settings.get('signaturePrefix') === ' ' ?
-            '' :
-            mw.util.escapeRegExp(settings.get('signaturePrefix'))
+          settings.get('signaturePrefix') === ' '
+            ? ''
+            : mw.util.escapeRegExp(settings.get('signaturePrefix'))
         ) +
         mw.util.escapeRegExp(signatureContent.slice(0, authorInSignatureMatch.index)) +
         '$'
-      ) :
-      null;
+      )
+      : null;
 
     const pieJoined = cd.g.popularInlineElements.join('|');
     cd.g.piePattern = `(?:${pieJoined})`;
@@ -613,10 +617,10 @@ class BootProcess {
     const quoteTemplateToPattern = (/** @type {string} */ tpl) =>
       String.raw`\{\{ *` + anySpace(mw.util.escapeRegExp(tpl));
     const quoteBeginningsPattern = ['<blockquote', '<q']
-      .concat(cd.config.pairQuoteTemplates?.[0].map(quoteTemplateToPattern) || [])
+      .concat(cd.config.pairQuoteTemplates[0].map(quoteTemplateToPattern))
       .join('|');
     const quoteEndingsPattern = ['</blockquote>', '</q>']
-      .concat(cd.config.pairQuoteTemplates?.[1].map(quoteTemplateToPattern) || [])
+      .concat(cd.config.pairQuoteTemplates[1].map(quoteTemplateToPattern))
       .join('|');
     cd.g.quoteRegexp = new RegExp(
       `(${quoteBeginningsPattern})([^]*?)(${quoteEndingsPattern})`,
@@ -636,23 +640,37 @@ class BootProcess {
       ...cd.g.badCommentBeginnings,
       new RegExp(`^\\[\\[${cd.g.filePrefixPattern}.+\\n+(?=[*:#])`, 'i'),
       ...cd.config.badCommentBeginnings,
-      clearTemplatesPattern ?
-        new RegExp(`^\\{\\{ *(?:${clearTemplatesPattern}) *\\}\\} *\\n+`, 'i') :
-        undefined,
+      clearTemplatesPattern
+        ? new RegExp(`^\\{\\{ *(?:${clearTemplatesPattern}) *\\}\\} *\\n+`, 'i')
+        : undefined,
     ].filter(defined);
 
     cd.g.pipeTrickRegexp = /(\[\[:?(?:[^|[\]<>\n:]+:)?([^|[\]<>\n]+)\|)(\]\])/g;
 
-    cd.g.isProbablyWmfSulWiki = (
+    cd.g.isProbablyWmfSulWiki =
       // Isn't true on diff, editing, history, and special pages, see
       // https://github.com/wikimedia/mediawiki-extensions-CentralNotice/blob/6100a9e9ef290fffe1edd0ccdb6f044440d41511/includes/CentralNoticeHooks.php#L398
       $('link[rel="dns-prefetch"]').attr('href') === '//meta.wikimedia.org' ||
-
       // Sites like wikitech.wikimedia.org, which is not a SUL wiki, will be included as well
-      ['mediawiki.org', 'wikibooks.org', 'wikidata.org', 'wikifunctions.org', 'wikimedia.org', 'wikinews.org', 'wikipedia.org', 'wikiquote.org', 'wikisource.org', 'wikiversity.org', 'wikivoyage.org', 'wiktionary.org'].includes(
-        mw.config.get('wgServerName').split('.').slice(-2).join('.')
-      )
-    );
+      [
+        'mediawiki.org',
+        'wikibooks.org',
+        'wikidata.org',
+        'wikifunctions.org',
+        'wikimedia.org',
+        'wikinews.org',
+        'wikipedia.org',
+        'wikiquote.org',
+        'wikisource.org',
+        'wikiversity.org',
+        'wikivoyage.org',
+        'wiktionary.org',
+      ].includes(
+        mw.config.get('wgServerName')
+          .split('.')
+          .slice(-2)
+          .join('.')
+      );
   }
 
   /**
@@ -800,8 +818,9 @@ class BootProcess {
    */
   deactivateDtHighlight() {
     const deactivate = () => {
-      const highlighter = mw.loader.moduleRegistry['ext.discussionTools.init']
-        ?.packageExports['highlighter.js'];
+      const highlighter = mw.loader.getState('ext.discussionTools.init') === 'ready'
+        ? mw.loader.moduleRegistry['ext.discussionTools.init'].packageExports['highlighter.js']
+        : undefined;
       if (highlighter) {
         // Fake return value
         highlighter.highlightTargetComment = () => ({
@@ -1015,6 +1034,7 @@ class BootProcess {
       await request;
     } catch {
       mw.notify(wrapHtml(cd.sParse('error-settings-save')));
+
       return;
     } finally {
       button.setPending(false);

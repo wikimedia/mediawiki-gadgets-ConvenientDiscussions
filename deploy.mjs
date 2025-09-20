@@ -6,17 +6,19 @@ import Mw from 'nodemw';
 import prompts from 'prompts';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import config from './config';
+import config from './config.mjs';
 
 import { getUrl, unique } from './misc/utils.mjs';
 
-const argv = yargs(hideBin(process.argv)).argv;
+const argv = /** @type {Exclude<ReturnType<typeof yargs>['argv'], Promise<any>>} */ (
+  yargs(hideBin(process.argv)).argv
+);
 
 /*
   node deploy --test
   npm run deploy --test
  */
-const test = Boolean(argv.test || process.env.npm_config_test);
+export const test = Boolean(argv.test || process.env.npm_config_test);
 
 const noI18n = Boolean(argv.noi18n || process.env.npm_config_noi18n);
 // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -27,12 +29,22 @@ const debug = Boolean(argv.debug || process.env.npm_config_debug);
 // eslint-disable-next-line no-one-time-vars/no-one-time-vars
 const dryRun = Boolean(argv['dry-run'] || process.env.npm_config_dry_run);
 
+/**
+ * @param {string} text
+ */
 const warning = (text) => {
   console.log(chalk.yellowBright(text));
 };
+/**
+ * @param {string} text
+ * @throws {Error}
+ */
 const error = (text) => {
   throw new Error(chalk.red(text));
 };
+/**
+ * @param {string} text
+ */
 const success = (text) => {
   console.log(chalk.green(text));
 };
@@ -56,27 +68,37 @@ if (!assets || !Array.isArray(assets) || !assets.length) {
   error(`File list is not found in ${keyword('config.js')}`);
 }
 
-const configAssets = config.configs.flatMap((configForConfig) => {
-  const configForMode = configForConfig[test ? 'test' : 'default'];
-  if (!configForMode) {
+/**
+ * @typedef {object} Asset
+ * @property {string} server
+ * @property {string} [source]
+ * @property {string} target
+ * @property {string[]} [modules]
+ * @property {string} [content]
+ */
+
+const configAssets = config.configs.flatMap((wikiConfig) => {
+  const wikiConfigForMode = wikiConfig[test ? 'test' : 'default'];
+  if (!wikiConfigForMode) {
     return [];
   }
 
-  return configForMode.targets.map((target) => ({
-    server: configForConfig.server,
-    source: `convenientDiscussions-config/${configForMode.source}`,
+  return /** @type {Asset[]} */ (wikiConfigForMode.targets.map((target) => ({
+    server: wikiConfig.server,
+    source: `convenientDiscussions-config/${wikiConfigForMode.source}`,
     target,
-  })).concat(
-    configForMode.editGadgetsDefinition
-      ? {
-          server: configForConfig.server,
+  }))).concat(
+    wikiConfigForMode.editGadgetsDefinition
+      ? [{
+          server: wikiConfig.server,
+          modules: wikiConfigForMode.modules,
           target: 'MediaWiki:Gadgets-definition',
-          modules: configForMode.modules,
-        }
+        }]
       : [],
   );
 });
 
+/** @type {string} */
 let version;
 if (process.env.CI) {
   // HTTP proxy to use with the http-proxy-to-socks module, while the SOCKS proxy is created by the
@@ -84,7 +106,9 @@ if (process.env.CI) {
   config.proxy = 'http://localhost:8080';
 
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-  const eventJson = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+  const eventJson = JSON.parse(
+    fs.readFileSync(/** @type {string} */ (process.env.GITHUB_EVENT_PATH), 'utf8')
+  );
 
   // Will be undefined if the event is workflow_dispatch.
   version = eventJson.release?.tag_name;
@@ -98,16 +122,17 @@ const clients = {
     proxy: config.proxy,
     debug,
   }),
-  ...config.configs.reduce((obj, configForConfig) => {
-    obj[configForConfig.server] = new Mw({
-      protocol: configForConfig.protocol || config.protocol,
-      server: configForConfig.server,
-      path: configForConfig.scriptPath || config.scriptPath,
+  ...config.configs.reduce((obj, wikiConfig) => {
+    obj[wikiConfig.server] = new Mw({
+      protocol: 'protocol' in wikiConfig ? wikiConfig.protocol : config.protocol,
+      server: wikiConfig.server,
+      path: 'scriptPath' in wikiConfig ? wikiConfig.scriptPath : config.scriptPath,
       proxy: config.proxy,
       debug,
     });
+
     return obj;
-  }, {}),
+  }, /** @type {{ [x: string]: Mw }} */ ({})),
 };
 
 let branch;
@@ -146,9 +171,12 @@ function parseCmdOutput(_err, stdout, stderr) {
     .split('\n\n')
     .map((line) => {
       const [, hash, subject, refs] = /^(.+)\n(.+)\n(.+)/.exec(line);
-      const [, tag] = refs.match(/tag: ([^,]+)/) || [];
 
-      return { hash, subject, tag };
+      return {
+        hash,
+        subject,
+        tag: (/tag: ([^,]+)/.exec(refs)) || [],
+      };
     });
 
   requestComments();
@@ -164,9 +192,9 @@ function requestComments() {
       rvlimit: 50,
       formatversion: 2,
     },
-    (e, info) => {
-      if (e) {
-        error(e);
+    (error, info) => {
+      if (error) {
+        error(error);
       }
       const revisions = info?.pages?.[0]?.revisions || [];
       if (revisions.length || info?.pages?.[0]?.missing) {
@@ -179,14 +207,12 @@ function requestComments() {
 }
 
 function getLastDeployedCommit(revisions) {
-  const [lastDeployedCommitOrVersion] = revisions.reduce((acc, revision) => {
-    if (acc[0] || acc[1]) return acc;
-
-    const [, commit] = revision.comment.match(/[uU]pdate to ([0-9a-f]{8})(?= @ )/) || [];
-    const [, version] = revision.comment.match(/[uU]pdate to (v\d+\.\d+\.\d+\b)/) || [];
-
-    return [commit || acc[0], version || acc[1]];
-  }, [undefined, undefined]);
+  const lastDeployedCommitOrVersion = revisions
+    .map(
+      (revision) =>
+        (revision.comment.match(/[uU]pdate to (?:([0-9a-f]{8})(?= @ )|v\d+\.\d+\.\d+\b)/) || [])[1]
+    )
+    .find(Boolean);
   if (lastDeployedCommitOrVersion) {
     newCommitsCount = commits.findIndex((commit) =>
       commit.hash === lastDeployedCommitOrVersion ||
@@ -289,10 +315,12 @@ async function getConfigsEdits() {
   if (noConfigs || i18nOnly) {
     return [];
   }
+
   const assetsWithGadgetsDefinition = configAssets.filter(
     (asset) => asset.target === 'MediaWiki:Gadgets-definition',
   );
-  (await Promise.all(
+  /** @type {string[]} */
+  const contentStrings = await Promise.all(
     assetsWithGadgetsDefinition.map((asset) => (
       new Promise((resolve, reject) => {
         clients[asset.server].getArticle(asset.target, (err, data) => {
@@ -305,7 +333,8 @@ async function getConfigsEdits() {
         });
       })
     )),
-  )).forEach((content, i) => {
+  );
+  contentStrings.forEach((content, i) => {
     const asset = assetsWithGadgetsDefinition[i];
     const modulesString = asset.modules.join(', ');
 
@@ -318,7 +347,9 @@ async function getConfigsEdits() {
 
     asset.content = content.replace(
       /^(\* *convenientDiscussions *\[.*dependencies *= *)[^|\]]*?( *[|\]])/m,
-      (_s, before, after) => before + modulesString + after,
+      /** @type {ReplaceCallback<3>} */
+      (_s, before, after) =>
+        before + modulesString + after
     );
   });
 
@@ -340,6 +371,7 @@ async function getConfigsEdits() {
 
 function createEditOverview(edit) {
   const byteLength = (text) => (new TextEncoder().encode(text)).length;
+
   return (
     `${keyword('URL:')} ${edit.url}\n` +
     `${keyword('Edit summary:')} ${edit.summary}\n` +
@@ -357,7 +389,7 @@ async function prepareEdits() {
   if (process.env.CI) {
     logInToServers();
   } else {
-    const { confirm } = prompts({
+    const { confirm } = await prompts({
       type: 'confirm',
       name: 'confirm',
       message: 'Proceed?',
@@ -383,7 +415,10 @@ function loginToNextServer() {
   }
 }
 
-async function logIn(server) {
+/**
+ * @param {string} server
+ */
+function logIn(server) {
   const callback = (err) => {
     if (err) {
       error(err);
@@ -400,7 +435,7 @@ async function logIn(server) {
     } else {
       if (!credentialsResponse) {
         console.log(`User name and/or password were not found in ${keyword('credentials.json5')}`);
-        credentialsResponse = await prompts([
+        credentialsResponse = prompts([
           {
             type: 'text',
             name: 'username',

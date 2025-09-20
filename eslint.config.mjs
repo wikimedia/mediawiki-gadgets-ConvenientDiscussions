@@ -5,9 +5,10 @@ import importPlugin from 'eslint-plugin-import';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
 import noOneTimeVarsPlugin from 'eslint-plugin-no-one-time-vars';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-const config = tseslint.config(
+const config = defineConfig(
   // Base configuration for all files
   {
     ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js'],
@@ -35,7 +36,7 @@ const config = tseslint.config(
       parserOptions: {
         projectService: {
           defaultProject: 'jsconfig.json',
-          allowDefaultProject: ['*.js', '*.mjs'],
+          // allowDefaultProject: ['*.js', '*.mjs'],
         },
         tsconfigRootDir: import.meta.dirname,
         jsDocParsingMode: 'all',
@@ -287,7 +288,11 @@ const config = tseslint.config(
       '@stylistic/arrow-parens': 'error',
       '@stylistic/lines-between-class-members': ['error', {
         enforce: [
-          { blankLine: 'always', prev: 'method', next: 'method' },
+          {
+            blankLine: 'always',
+            prev: 'method',
+            next: 'method',
+          },
         ],
       }],
       '@stylistic/array-bracket-newline': ['error', 'consistent'],
@@ -317,8 +322,17 @@ const config = tseslint.config(
       '@stylistic/newline-per-chained-call': ['error', {
         ignoreChainWithDepth: 3,
       }],
+      '@stylistic/padding-line-between-statements': [
+        'error',
+        // Always require a blank line before any return
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: 'return',
+        },
+      ],
 
-      // Removed on save
+      // Trimmed on save by IDE
       '@stylistic/no-trailing-spaces': 'off',
 
       // No one-time vars plugin rules
@@ -375,8 +389,6 @@ const config = tseslint.config(
       '@typescript-eslint': tseslint.plugin,
     },
     rules: {
-      ...tseslint.configs.recommended.rules,
-
       // Disable some rules that are not applicable to declaration files
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',

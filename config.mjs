@@ -1,5 +1,26 @@
+/**
+ * @typedef {object} Config
+ * @property {string} server
+ * @property {WikiConfig} [default]
+ * @property {WikiConfig} [test]
+ * @property {string} [protocol]
+ * @property {string} [scriptPath]
+ * @property {string} [articlePath]
+ */
+
+/**
+ * @typedef {object} WikiConfig
+ * @property {string} source
+ * @property {string[]} targets
+ * @property {boolean} [editGadgetsDefinition]
+ * @property {string[]} [modules]
+ * @property {string} [protocol]
+ * @property {string} [scriptPath]
+ */
+
 export default {
   protocol: 'https',
+  proxy: /** @type {string | undefined} */ (undefined),
 
   // No ending slash, as in mw.config.get('wgScriptPath')
   scriptPath: '/w',
@@ -29,7 +50,7 @@ export default {
     },
   },
 
-  configs: [
+  configs: /** @type {Config[]} */ ([
     {
       server: 'ru.wikipedia.org',
       default: {
@@ -105,7 +126,7 @@ export default {
         targets: ['User:Jack who built the house/convenientDiscussions-mwConfig.js'],
       },
     },
-  ],
+  ]),
 
   sourceMapsBaseUrl: 'https://tools-static.wmflabs.org/convenient-discussions/source-maps/',
 };

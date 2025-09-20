@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import TerserPlugin from 'terser-webpack-plugin';
 import webpack from 'webpack';
 import WebpackBuildNotifierPlugin from 'webpack-build-notifier';
-import config from './config';
+import config from './config.mjs';
 
 import { getUrl } from './misc/utils.mjs';
 
@@ -42,9 +42,9 @@ const webpack_ = (env) => {
   if (single) {
     const project = env.project || 'w';
     lang = env.lang || 'en';
-    wiki = ['w', 'b', 'n', 'q', 's', 'v', 'voy', 'wikt'].includes(project) ?
-      `${project}-${lang}` :
-      project;
+    wiki = ['w', 'b', 'n', 'q', 's', 'v', 'voy', 'wikt'].includes(project)
+      ? `${project}-${lang}`
+      : project;
     filenamePostfix = `.single.${wiki}`;
   } else if (dev) {
     filenamePostfix = '.dev';
@@ -65,9 +65,7 @@ const webpack_ = (env) => {
   } else {
     // SourceMapDevToolPlugin is used.
     devtool = false;
-  }
-
-  return /** @type {import('webpack').Configuration} */ ({
+  } return /** @type {import('webpack').Configuration} */ ({
     mode: dev || single ? 'development' : 'production',
     entry: './src/app.js',
     output: {
@@ -155,9 +153,9 @@ const webpack_ = (env) => {
             banner: (licenseFile) =>
               licenseFile.includes('worker')
                 ? // A really messed up hack to include source maps for a web worker (works with
-                  // .map.json extension for webpack.SourceMapDevToolPlugin's `filename` property,
-                  // doesn't work with .map for some reason).
-                  `//# sourceMappingURL=${config.sourceMapsBaseUrl}convenientDiscussions.worker.js.map.json`
+              // .map.json extension for webpack.SourceMapDevToolPlugin's `filename` property,
+              // doesn't work with .map for some reason).
+                `//# sourceMappingURL=${config.sourceMapsBaseUrl}convenientDiscussions.worker.js.map.json`
                 : `
 * For documentation and feedback, see the script's homepage:
 * https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/Convenient_Discussions
@@ -222,9 +220,9 @@ const webpack_ = (env) => {
       dev
         ? []
         : new webpack.SourceMapDevToolPlugin({
-            filename: '[file].map.json',
-            append: `\n//# sourceMappingURL=${config.sourceMapsBaseUrl}[url]`,
-          }),
+          filename: '[file].map.json',
+          append: `\n//# sourceMappingURL=${config.sourceMapsBaseUrl}[url]`,
+        }),
       process.env.CI ? [] : new webpack.ProgressPlugin()
     ),
     devServer: {

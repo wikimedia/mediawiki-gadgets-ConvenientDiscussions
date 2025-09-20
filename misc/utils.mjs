@@ -1,4 +1,4 @@
-import config from '../config';
+import config from '../config.mjs';
 
 function wikiUrlencode(string) {
   return encodeURIComponent(string)
