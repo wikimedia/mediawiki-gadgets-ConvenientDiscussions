@@ -7,21 +7,7 @@
     "module": "preserve",
 
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "types": ["oojs", "oojs-ui", "jquery", "jqueryui", "prompts", "node"]
+    "types": ["oojs", "oojs-ui", "jquery", "jqueryui"]
   },
-  "include": [
-    "./*.js",
-    "./*.mjs",
-    "./*.d.ts",
-    "src/**/*",
-    "tests/**/*",
-    "config/**/*",
-    "node_modules/types-mediawiki"
-  ],
-  "exclude": [
-    "node_modules/**/*",
-    "!node_modules/types-mediawiki",
-    "dist/**/*",
-    "misc/**/*"
-  ]
+  "include": ["./*", "src/**/*", "node_modules/types-mediawiki"]
 }
