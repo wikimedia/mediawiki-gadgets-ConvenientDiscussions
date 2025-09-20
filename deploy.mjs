@@ -67,13 +67,13 @@ const configAssets = config.configs.flatMap((configForConfig) => {
     source: `convenientDiscussions-config/${configForMode.source}`,
     target,
   })).concat(
-    configForMode.editGadgetsDefinition ?
-      {
-        server: configForConfig.server,
-        target: 'MediaWiki:Gadgets-definition',
-        modules: configForMode.modules,
-      } :
-      []
+    configForMode.editGadgetsDefinition
+      ? {
+          server: configForConfig.server,
+          target: 'MediaWiki:Gadgets-definition',
+          modules: configForMode.modules,
+        }
+      : [],
   );
 });
 
@@ -124,7 +124,7 @@ if (configsOnly) {
 } else {
   exec(
     'git rev-parse --abbrev-ref HEAD && git log -n 1000 --pretty=format:"%h%n%s%nrefs: %D%n" --abbrev=8',
-    parseCmdOutput
+    parseCmdOutput,
   );
 }
 
@@ -145,7 +145,7 @@ function parseCmdOutput(_err, stdout, stderr) {
   commits = stdout
     .split('\n\n')
     .map((line) => {
-      const [, hash, subject, refs] = line.match(/^(.+)\n(.+)\n(.+)/);
+      const [, hash, subject, refs] = /^(.+)\n(.+)\n(.+)/.exec(line);
       const [, tag] = refs.match(/tag: ([^,]+)/) || [];
 
       return { hash, subject, tag };
@@ -174,24 +174,24 @@ function requestComments() {
       } else {
         console.log('Couldn\'t load the revisions data');
       }
-    }
+    },
   );
 }
 
 function getLastDeployedCommit(revisions) {
-  let lastDeployedCommit;
-  let lastDeployedVersion;
-  revisions.some((revision) => {
-    [, lastDeployedCommit] = revision.comment.match(/[uU]pdate to ([0-9a-f]{8})(?= @ )/) || [];
-    [, lastDeployedVersion] = revision.comment.match(/[uU]pdate to (v\d+\.\d+\.\d+\b)/) || [];
+  const [lastDeployedCommitOrVersion] = revisions.reduce((acc, revision) => {
+    if (acc[0] || acc[1]) return acc;
 
-    return lastDeployedCommit || lastDeployedVersion;
-  });
-  if (lastDeployedCommit || lastDeployedVersion) {
-    newCommitsCount = commits.findIndex((commit) => (
-      commit.hash === lastDeployedCommit ||
-      commit.tag === lastDeployedVersion
-    ));
+    const [, commit] = revision.comment.match(/[uU]pdate to ([0-9a-f]{8})(?= @ )/) || [];
+    const [, version] = revision.comment.match(/[uU]pdate to (v\d+\.\d+\.\d+\b)/) || [];
+
+    return [commit || acc[0], version || acc[1]];
+  }, [undefined, undefined]);
+  if (lastDeployedCommitOrVersion) {
+    newCommitsCount = commits.findIndex((commit) =>
+      commit.hash === lastDeployedCommitOrVersion ||
+      commit.tag === lastDeployedCommitOrVersion
+    );
     if (newCommitsCount === -1) {
       newCommitsCount = 0;
     }
@@ -219,68 +219,70 @@ function cutContent(content, n = 300) {
 }
 
 function getMainEdits() {
-  return configsOnly ?
-    [] :
-    assets
-      .flatMap((file) => {
-        if (noI18n && file.endsWith('i18n/') || i18nOnly && !file.endsWith('i18n/')) {
-          return [];
-        }
-        if (file.endsWith('/')) {
-          return fs.readdirSync(`./dist/${file}`).map((fileInDir) => file + fileInDir);
-        }
-        return file;
-      })
-      .map((file, i) => {
-        let content;
-        try {
-          content = fs.readFileSync(`./dist/${file}`, 'utf8');
-        } catch {
-          error(`Asset is not found: ${keyword(file)}`);
-        }
+  return configsOnly
+    ? []
+    : assets
+        .flatMap((file) => {
+          if ((noI18n && file.endsWith('i18n/')) || (i18nOnly && !file.endsWith('i18n/'))) {
+            return [];
+          }
 
-        if (!file.includes('i18n/')) {
-          const [tildesMatch] = content.match(/~~~~.{0,100}/) || [];
-          const [substMatch] = content.match(/\{\{(safe)?subst:.{0,100}/) || [];
-          const [nowikiMatch] = (
-            content
+          if (file.endsWith('/')) {
+            return fs.readdirSync(`./dist/${file}`).map((fileInDir) => file + fileInDir);
+          }
+
+          return file;
+        })
+        .map((file, i) => {
+          /** @type {string} */
+          let content;
+          try {
+            content = fs.readFileSync(`./dist/${file}`, 'utf8');
+          } catch {
+            error(`Asset is not found: ${keyword(file)}`);
+          }
+
+          if (!file.includes('i18n/')) {
+            const [tildesMatch] = (/~~~~.{0,100}/.exec(content)) || [];
+            const [substMatch] = (/\{\{(safe)?subst:.{0,100}/.exec(content)) || [];
+            const [nowikiMatch] = (
+              (/<\/nowiki>.{0,100}/.exec(content
               // Ignore the "// </nowiki>" piece, added from the both sides of the build.
-              .replace(/\/(?:\*!?|\/) <\/nowiki>/g, '')
-              .match(/<\/nowiki>.{0,100}/) ||
-            []
-          );
-          if (tildesMatch || substMatch) {
-            const snippet = code(tildesMatch || substMatch);
+                .replace(/\/(?:\*!?|\/) <\/nowiki>/g, ''))) ||
+                []
+            );
+            if (tildesMatch || substMatch) {
+              const snippet = code(tildesMatch || substMatch);
+              if (nowikiMatch) {
+                error(`${keyword(file)} contains illegal strings (tilde sequences or template substitutions) that may break the code when saving to the wiki:\n${snippet}\nWe also can't use "${code('// <nowiki>')}" in the beginning of the file, because there are "${code('</nowiki')}" strings in the code that would limit the scope of the nowiki tag.\n`);
+              } else {
+                warning(`Note that ${keyword(file)} contains illegal strings (tilde sequences or template substitutions) that may break the code when saving to the wiki:\n${snippet}\n\nThese strings will be neutralized by using "${code('// <nowiki>')}" in the beginning of the file this time though.\n`);
+              }
+            }
             if (nowikiMatch) {
-              error(`${keyword(file)} contains illegal strings (tilde sequences or template substitutions) that may break the code when saving to the wiki:\n${snippet}\nWe also can't use "${code('// <nowiki>')}" in the beginning of the file, because there are "${code('</nowiki')}" strings in the code that would limit the scope of the nowiki tag.\n`);
-            } else {
-              warning(`Note that ${keyword(file)} contains illegal strings (tilde sequences or template substitutions) that may break the code when saving to the wiki:\n${snippet}\n\nThese strings will be neutralized by using "${code('// <nowiki>')}" in the beginning of the file this time though.\n`);
+              warning(`Note that ${keyword(file)} contains the "${code('</nowiki')}" string that will limit the scope of the nowiki tag that we put in the beginning of the file:\n${code(nowikiMatch)}\n`);
             }
           }
-          if (nowikiMatch) {
-            warning(`Note that ${keyword(file)} contains the "${code('</nowiki')}" string that will limit the scope of the nowiki tag that we put in the beginning of the file:\n${code(nowikiMatch)}\n`);
+
+          const pluralize = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
+
+          const commitString = `${commits[0].hash} @ ${branch}`;
+          let summary = process.env.CI
+            ? `Automatically update to ${version || commitString}`
+            : `Update to ${commitString}`;
+          if (i === 0 && newCommitsCount) {
+            summary += `. ${pluralize(newCommitsCount, 'commit')}: ${newCommitsSubjects.join('. ')}`;
           }
-        }
 
-        const pluralize = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
-
-        const commitString = `${commits[0].hash} @ ${branch}`;
-        let summary = process.env.CI ?
-          `Automatically update to ${version || commitString}` :
-          `Update to ${commitString}`;
-        if (i === 0 && newCommitsCount) {
-          summary += `. ${pluralize(newCommitsCount, 'commit')}: ${newCommitsSubjects.join('. ')}`;
-        }
-
-        return {
-          server: config.main.server,
-          title: pathPrefix + file,
-          url: getUrl(config.main.server, pathPrefix + file),
-          content,
-          contentSnippet: cutContent(content),
-          summary,
-        };
-      });
+          return {
+            server: config.main.server,
+            title: pathPrefix + file,
+            url: getUrl(config.main.server, pathPrefix + file),
+            content,
+            contentSnippet: cutContent(content),
+            summary,
+          };
+        });
 }
 
 async function getConfigsEdits() {
@@ -288,7 +290,7 @@ async function getConfigsEdits() {
     return [];
   }
   const assetsWithGadgetsDefinition = configAssets.filter(
-    (asset) => asset.target === 'MediaWiki:Gadgets-definition'
+    (asset) => asset.target === 'MediaWiki:Gadgets-definition',
   );
   (await Promise.all(
     assetsWithGadgetsDefinition.map((asset) => (
@@ -296,12 +298,13 @@ async function getConfigsEdits() {
         clients[asset.server].getArticle(asset.target, (err, data) => {
           if (err) {
             reject(err);
+
             return;
           }
           resolve(data);
         });
       })
-    ))
+    )),
   )).forEach((content, i) => {
     const asset = assetsWithGadgetsDefinition[i];
     const modulesString = asset.modules.join(', ');
@@ -315,7 +318,7 @@ async function getConfigsEdits() {
 
     asset.content = content.replace(
       /^(\* *convenientDiscussions *\[.*dependencies *= *)[^|\]]*?( *[|\]])/m,
-      (_s, before, after) => before + modulesString + after
+      (_s, before, after) => before + modulesString + after,
     );
   });
 
@@ -328,9 +331,9 @@ async function getConfigsEdits() {
       url: getUrl(asset.server, asset.target),
       content,
       contentSnippet: cutContent(content),
-      summary: asset.target === 'MediaWiki:Gadgets-definition' ?
-        'Automatically update Convenient Discussions dependencies' :
-        'Automatically update',
+      summary: asset.target === 'MediaWiki:Gadgets-definition'
+        ? 'Automatically update Convenient Discussions dependencies'
+        : 'Automatically update',
     };
   });
 }
@@ -386,7 +389,7 @@ async function logIn(server) {
       error(err);
     }
     deploy(server);
-  }
+  };
 
   if (process.env.CI) {
     clients[server].logIn(process.env.USERNAME, process.env.PASSWORD, callback);

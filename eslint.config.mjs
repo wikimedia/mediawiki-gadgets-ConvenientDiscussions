@@ -158,10 +158,10 @@ const config = tseslint.config(
       }],
 
       // We use it for Tribute
-      "@typescript-eslint/ban-ts-comment": "off",
+      '@typescript-eslint/ban-ts-comment': 'off',
 
       // {} is neat in conditional types with conditional object props, e.g. `AD extends false ? { date: Date } : {}`
-      "@typescript-eslint/no-empty-object-type": "off",
+      '@typescript-eslint/no-empty-object-type': 'off',
 
       // Wait until enough browsers support it
       'unicorn/prefer-string-replace-all': 'off',
@@ -273,7 +273,53 @@ const config = tseslint.config(
           startLines: 1,
         },
       ],
-      'jsdoc/check-line-alignment': ['warn', 'any', { 'wrapIndent': '  ' }],
+      'jsdoc/check-line-alignment': ['warn', 'any', { wrapIndent: '  ' }],
+
+      '@stylistic/no-multi-spaces': ['error', {
+        ignoreEOLComments: true,
+      }],
+      '@stylistic/comma-dangle': ['error', {
+        arrays: 'always-multiline',
+        objects: 'always-multiline',
+        functions: 'only-multiline',
+      }],
+      '@stylistic/brace-style': ['error', '1tbs'],
+      '@stylistic/arrow-parens': 'error',
+      '@stylistic/lines-between-class-members': ['error', {
+        enforce: [
+          { blankLine: 'always', prev: 'method', next: 'method' },
+        ],
+      }],
+      '@stylistic/array-bracket-newline': ['error', 'consistent'],
+      '@stylistic/array-element-newline': ['error', 'consistent'],
+      '@stylistic/object-property-newline': ['error', {
+        allowAllPropertiesOnSameLine: true,
+      }],
+      '@stylistic/object-curly-newline': ['error', {
+        consistent: true,
+        multiline: true,
+      }],
+      '@stylistic/max-len': ['error', {
+        code: 110,  // Non-rigid 100; it doesn't autofix anyway
+        tabWidth: 2,
+        ignoreComments: true,
+        ignoreUrls: true,
+        ignoreStrings: true,
+        ignoreTemplateLiterals: true,
+        ignoreRegExpLiterals: true,
+      }],
+      '@stylistic/operator-linebreak': ['error', 'after', {
+        overrides: {
+          '?': 'before',
+          ':': 'before',
+        },
+      }],
+      '@stylistic/newline-per-chained-call': ['error', {
+        ignoreChainWithDepth: 3,
+      }],
+
+      // Removed on save
+      '@stylistic/no-trailing-spaces': 'off',
 
       // No one-time vars plugin rules
       'no-one-time-vars/no-one-time-vars': ['warn', {
