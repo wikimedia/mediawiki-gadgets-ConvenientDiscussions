@@ -37,11 +37,9 @@ const warning = (text) => {
 };
 /**
  * @param {string} text
- * @throws {Error}
+ * @returns {Error}
  */
-const error = (text) => {
-  throw new Error(chalk.red(text));
-};
+const error = (text) => new Error(chalk.red(text));
 /**
  * @param {string} text
  */
@@ -54,18 +52,18 @@ const keyword = chalk.cyan;
 const important = chalk.greenBright;
 
 if (!('main' in config)) {
-  error(`Data related to the main build (in the "main" property) is missing in ${keyword('config.js')}`);
+  throw error(`Data related to the main build (in the "main" property) is missing in ${keyword('config.js')}`);
 }
 
 if (!('rootPath' in config.main)) {
-  error(`${keyword('rootPath')} is missing in ${keyword('config.js')}`);
+  throw error(`${keyword('rootPath')} is missing in ${keyword('config.js')}`);
 }
 
 const pathPrefix = config.main.rootPath + '/';
 
 const assets = 'assets' in config.main ? config.main.assets[test ? 'test' : 'default'] : undefined;
 if (!assets || !Array.isArray(assets) || !assets.length) {
-  error(`File list is not found in ${keyword('config.js')}`);
+  throw error(`File list is not found in ${keyword('config.js')}`);
 }
 
 /**
@@ -135,13 +133,46 @@ const clients = {
   }, /** @type {{ [x: string]: Mw }} */ ({})),
 };
 
+/**
+ * @typedef {{
+ *   hash: string;
+ *   subject: string;
+ *   tag?: string;
+ * }} Commit
+ */
+
+/**
+ * @typedef {{
+ *   server: string;
+ *   title: string;
+ *   url: string;
+ *   content: string;
+ *   contentSnippet: string;
+ *   summary: string;
+ * }} Edit
+ */
+
+/**
+ * @typedef {object} Credentials
+ * @property {string} username
+ * @property {string} password
+ */
+
+/** @type {string} */
 let branch;
+/** @type {Commit[]} */
 let commits;
+/** @type {number} */
 let newCommitsCount;
+/** @type {string[]} */
 let newCommitsSubjects;
+/** @type {Edit[]} */
 let edits;
+/** @type {Credentials | undefined} */
 let credentials;
+/** @type {Credentials | undefined} */
 let credentialsResponse;
+/** @type {string[]} */
 let servers;
 
 if (configsOnly) {
@@ -158,11 +189,11 @@ if (configsOnly) {
  */
 function parseCmdOutput(_err, stdout, stderr) {
   if (stdout === '') {
-    error('parseCmdOutput(): This does not look like a git repo');
+    throw error('parseCmdOutput(): This does not look like a git repo');
   }
 
   if (stderr) {
-    error(stderr);
+    throw error(stderr);
   }
 
   branch = stdout.slice(0, stdout.indexOf('\n'));
@@ -170,12 +201,16 @@ function parseCmdOutput(_err, stdout, stderr) {
   commits = stdout
     .split('\n\n')
     .map((line) => {
-      const [, hash, subject, refs] = /^(.+)\n(.+)\n(.+)/.exec(line);
+      const match = /^(.+)\n(.+)\n(.+)/.exec(line);
+      if (!match) {
+        throw error(`Can't parse the output of a command`);
+      }
+      const [, hash, subject, refs] = match;
 
       return {
         hash,
         subject,
-        tag: (/tag: ([^,]+)/.exec(refs)) || [],
+        tag: ((/tag: ([^,]+)/.exec(refs)) || [])[1],
       };
     });
 
@@ -194,7 +229,7 @@ function requestComments() {
     },
     (error, info) => {
       if (error) {
-        error(error);
+        throw error(error);
       }
       const revisions = info?.pages?.[0]?.revisions || [];
       if (revisions.length || info?.pages?.[0]?.missing) {
@@ -206,11 +241,15 @@ function requestComments() {
   );
 }
 
+/**
+ *
+ * @param {Revision<['comment']>[]} revisions
+ */
 function getLastDeployedCommit(revisions) {
   const lastDeployedCommitOrVersion = revisions
     .map(
       (revision) =>
-        (revision.comment.match(/[uU]pdate to (?:([0-9a-f]{8})(?= @ )|v\d+\.\d+\.\d+\b)/) || [])[1]
+        ((/[uU]pdate to (?:([0-9a-f]{8})(?= @ )|v\d+\.\d+\.\d+\b)/.exec(revision.comment)) || [])[1]
     )
     .find(Boolean);
   if (lastDeployedCommitOrVersion) {
@@ -265,22 +304,24 @@ function getMainEdits() {
           try {
             content = fs.readFileSync(`./dist/${file}`, 'utf8');
           } catch {
-            error(`Asset is not found: ${keyword(file)}`);
+            throw error(`Asset is not found: ${keyword(file)}`);
           }
 
           if (!file.includes('i18n/')) {
             const [tildesMatch] = (/~~~~.{0,100}/.exec(content)) || [];
             const [substMatch] = (/\{\{(safe)?subst:.{0,100}/.exec(content)) || [];
-            const [nowikiMatch] = (
-              (/<\/nowiki>.{0,100}/.exec(content
-              // Ignore the "// </nowiki>" piece, added from the both sides of the build.
-                .replace(/\/(?:\*!?|\/) <\/nowiki>/g, ''))) ||
-                []
-            );
+            const [nowikiMatch] =
+              (
+                /<\/nowiki>.{0,100}/.exec(
+                  // Ignore the "// </nowiki>" piece, added from the both sides of the build.
+                  content.replace(/\/(?:\*!?|\/) <\/nowiki>/g, '')
+                )
+              ) ||
+              [];
             if (tildesMatch || substMatch) {
               const snippet = code(tildesMatch || substMatch);
               if (nowikiMatch) {
-                error(`${keyword(file)} contains illegal strings (tilde sequences or template substitutions) that may break the code when saving to the wiki:\n${snippet}\nWe also can't use "${code('// <nowiki>')}" in the beginning of the file, because there are "${code('</nowiki')}" strings in the code that would limit the scope of the nowiki tag.\n`);
+                throw error(`${keyword(file)} contains illegal strings (tilde sequences or template substitutions) that may break the code when saving to the wiki:\n${snippet}\nWe also can't use "${code('// <nowiki>')}" in the beginning of the file, because there are "${code('</nowiki')}" strings in the code that would limit the scope of the nowiki tag.\n`);
               } else {
                 warning(`Note that ${keyword(file)} contains illegal strings (tilde sequences or template substitutions) that may break the code when saving to the wiki:\n${snippet}\n\nThese strings will be neutralized by using "${code('// <nowiki>')}" in the beginning of the file this time though.\n`);
               }
@@ -290,6 +331,11 @@ function getMainEdits() {
             }
           }
 
+          /**
+           * @param {number} count
+           * @param {string} word
+           * @returns {string}
+           */
           const pluralize = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
           const commitString = `${commits[0].hash} @ ${branch}`;
@@ -336,13 +382,13 @@ async function getConfigsEdits() {
   );
   contentStrings.forEach((content, i) => {
     const asset = assetsWithGadgetsDefinition[i];
-    const modulesString = asset.modules.join(', ');
+    const modulesString = /** @type {string[]} */ (asset.modules).join(', ');
 
     // Make sure we don't break anything in MediaWiki:Gadgets-definition.
     const illegalMatch = modulesString.match(/[^a-z., -]/ig);
     if (illegalMatch) {
       const matchesString = illegalMatch.map((char) => code(char)).join(' ');
-      error(`Modules string for ${keyword(asset.target)} contains illegal characters: ${matchesString}`);
+      throw error(`Modules string for ${keyword(asset.target)} contains illegal characters: ${matchesString}`);
     }
 
     asset.content = content.replace(
@@ -369,16 +415,6 @@ async function getConfigsEdits() {
   });
 }
 
-function createEditOverview(edit) {
-  const byteLength = (text) => (new TextEncoder().encode(text)).length;
-
-  return (
-    `${keyword('URL:')} ${edit.url}\n` +
-    `${keyword('Edit summary:')} ${edit.summary}\n` +
-    `${keyword(`Content (${important(byteLength(edit.content).toLocaleString() + ' bytes')}):`)} ${code(edit.contentSnippet)}\n`
-  );
-}
-
 async function prepareEdits() {
   edits = getMainEdits().concat(await getConfigsEdits());
   const overview = edits.map(createEditOverview).join('\n');
@@ -401,6 +437,20 @@ async function prepareEdits() {
   }
 }
 
+/**
+ * @param {Edit} edit
+ * @returns {string}
+ */
+function createEditOverview(edit) {
+  const byteLength = (text) => (new TextEncoder().encode(text)).length;
+
+  return (
+    `${keyword('URL:')} ${edit.url}\n` +
+    `${keyword('Edit summary:')} ${edit.summary}\n` +
+    `${keyword(`Content (${important(byteLength(edit.content).toLocaleString() + ' bytes')}):`)} ${code(edit.contentSnippet)}\n`
+  );
+}
+
 function logInToServers() {
   servers = edits.map((edit) => edit.server).filter(unique);
   loginToNextServer();
@@ -418,24 +468,31 @@ function loginToNextServer() {
 /**
  * @param {string} server
  */
-function logIn(server) {
+async function logIn(server) {
   const callback = (err) => {
     if (err) {
-      error(err);
+      throw error(err);
     }
     deploy(server);
   };
 
   if (process.env.CI) {
-    clients[server].logIn(process.env.USERNAME, process.env.PASSWORD, callback);
+    clients[server].logIn(
+      /** @type {string} */ (process.env.USERNAME),
+      /** @type {string} */ (process.env.PASSWORD),
+      callback
+    );
   } else {
-    credentials ||= fs.existsSync('./credentials.json5') ? require('./credentials.json5') : {};
-    if (credentials.username && credentials.password) {
+    credentials ||= fs.existsSync('./credentials.json')
+      // @ts-ignore
+      ? require('./credentials.json')
+      : undefined;
+    if (credentials?.username && credentials.password) {
       clients[server].logIn(credentials.username, credentials.password, callback);
     } else {
       if (!credentialsResponse) {
-        console.log(`User name and/or password were not found in ${keyword('credentials.json5')}`);
-        credentialsResponse = prompts([
+        console.log(`User name and/or password were not found in ${keyword('credentials.json')}`);
+        credentialsResponse = await prompts([
           {
             type: 'text',
             name: 'username',
@@ -459,27 +516,34 @@ function logIn(server) {
   }
 }
 
+/**
+ * @param {string} server
+ */
 function deploy(server) {
   editNext(edits.filter((edit) => edit.server === server));
 }
 
+/**
+ * @param {Edit[]} serverEdits
+ */
 function editNext(serverEdits) {
   const edit = serverEdits.shift();
   if (edit) {
-    clients[edit.server].edit(edit.title, edit.content, edit.summary, (e, info) => {
-      if (e) {
-        error(e);
+    clients[edit.server].edit(edit.title, edit.content, edit.summary, (err, info) => {
+      if (err) {
+        throw error(err.message);
       }
+
       if (info && info.result === 'Success') {
-        if (info.nochange === undefined) {
-          success(`Successfully edited ${edit.url} (edit timestamp: ${new Date(info.newtimestamp).toUTCString()})`);
-        } else {
+        if ('nochange' in info) {
           success(`No changes in ${edit.url}`);
+        } else {
+          success(`Successfully edited ${edit.url} (edit timestamp: ${new Date(info.newtimestamp).toUTCString()})`);
         }
         editNext(serverEdits);
       } else {
         console.error(info);
-        throw new Error(chalk.red('Unknown error'));
+        throw error('Unknown error');
       }
     });
   } else {

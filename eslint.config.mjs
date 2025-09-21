@@ -19,9 +19,11 @@ const config = defineConfig(
     arrowParens: true,
   }),
 
+  eslint.configs.recommended,
   tseslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
+  eslintPluginUnicorn.configs.recommended,
 
   // Main configuration
   {
@@ -66,7 +68,7 @@ const config = defineConfig(
       'jsdoc': jsdocPlugin,
       'import': importPlugin,
       'no-one-time-vars': noOneTimeVarsPlugin,
-      'unicorn': eslintPluginUnicorn,
+      // 'unicorn': eslintPluginUnicorn,
       '@stylistic': stylistic,
       // '@typescript-eslint': tseslint.plugin,
     },
@@ -75,16 +77,61 @@ const config = defineConfig(
       noInlineConfig: false,
     },
     rules: {
-      ...eslint.configs.recommended.rules,
-      ...eslintPluginUnicorn.configs.recommended.rules,
+      // ...eslint.configs.recommended.rules,
+      // ...eslintPluginUnicorn.configs.recommended.rules,
+
+      'prefer-const': ['warn', {
+        destructuring: 'all',
+      }],
+      'arrow-body-style': ['error', 'as-needed'],
+      'prefer-arrow-callback': 'error',
+      'one-var': ['error', 'never'],
+      'no-promise-executor-return': 'error',
+      'no-constructor-return': 'error',
+      'default-param-last': 'error',
+      'object-shorthand': 'error',
+      'no-lonely-if': 'warn',
+      'func-style': ['error', 'declaration', {
+        allowArrowFunctions: true,
+      }],
+      'no-new': 'error',
+      'func-names': 'error',
+      'no-unused-expressions': 'warn',
+      'max-params': ['warn', 4],
+      'max-lines-per-function': ['warn', {
+        max: 100,
+        skipBlankLines: true,
+        skipComments: true,
+      }],
+      'max-statements': ['warn', 40],
+      'max-classes-per-file': ['error', {
+        ignoreExpressions: true,
+      }],
+      'max-nested-callbacks': ['warn', 5],
+      'max-depth': ['warn', 5],
+      'no-else-return': 'error',
+      'prefer-regex-literals': 'error',
+      'eqeqeq': 'error',
+      'no-lone-blocks': 'error',
+      'prefer-object-spread': 'error',
+
+      // We use these for text masking
+      'no-control-regex': 'off',
+      'no-constant-condition': ['error', {
+        checkLoops: false,
+      }],
+
+      // Those are useful in array destructuring
+      'no-sparse-arrays': 'off',
+
+      // Overriden by @typescript-eslint/class-methods-use-this
+      'class-methods-use-this': 'off',
 
       // Handled by TypeScript
       'no-undef': 'off',
 
-      // Modified rules from eslint:recommended
-      'no-control-regex': 'off', // We use them for text masking
-      'no-constant-condition': ['error', { checkLoops: false }],
-      'no-unsafe-optional-chaining': 'off',  // Enabled in TypeScript with strictNullChecks
+      // Enabled in TypeScript with strictNullChecks
+      'no-unsafe-optional-chaining': 'off',
 
       // Handled by @typescript-eslint
       'no-unused-vars': 'off',

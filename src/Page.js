@@ -186,7 +186,7 @@ export default class Page {
       }
     }
 
-    return Boolean(result);
+    return result;
   }
 
   /**
@@ -201,7 +201,7 @@ export default class Page {
       return false;
     }
 
-    return Boolean(!mergeRegexps(cd.config.pagesWithoutArchives)?.test(this.realName || this.name));
+    return !mergeRegexps(cd.config.pagesWithoutArchives)?.test(this.realName || this.name);
   }
 
   /**
@@ -226,7 +226,7 @@ export default class Page {
       }
     }
 
-    return result ? String(result) : onlyExplicit ? null : name + '/';
+    return result ?? (onlyExplicit ? null : name + '/');
   }
 
   /**
@@ -246,7 +246,7 @@ export default class Page {
       }
     }
 
-    return (result && pageRegistry.get(String(result))) || this;
+    return (result && pageRegistry.get(result)) || this;
   }
 
   /**
@@ -302,7 +302,7 @@ export default class Page {
 
     const page = query?.pages?.[0];
     const revision = page?.revisions?.[0];
-    const content = revision?.slots?.main?.content;
+    const content = revision?.slots?.main.content;
 
     if (!query || !page) {
       throw new CdError({
@@ -320,12 +320,12 @@ export default class Page {
 
       if (tolerateMissing) {
         return null;
-      } else {
-        throw new CdError({
-          type: 'response',
-          code: 'missing',
-        });
       }
+
+      throw new CdError({
+        type: 'response',
+        code: 'missing',
+      });
     }
     if (page.invalid) {
       throw new CdError({
@@ -392,12 +392,6 @@ export default class Page {
       ? requestInBackground(options).catch(handleApiReject)
       : cd.getApi().post(options).catch(handleApiReject);
     const { parse } = /** @type {import('./utils-api').ApiResponseParse} */ (await request);
-    if (parse?.text === undefined) {
-      throw new CdError({
-        type: 'response',
-        code: 'noData',
-      });
-    }
 
     if (markAsRead) {
       this.markAsRead(parse.revid);
@@ -445,15 +439,8 @@ export default class Page {
           .post(/** @type {import('types-mediawiki/api_params').UnknownApiParams} */ (options))
           .catch(handleApiReject);
     const response = /** @type {ApiResponseQuery<ApiResponseQueryContentPages>} */ (await request);
-    const revisions = /** @type {Revision<T>[]} */ (response.query?.pages?.[0]?.revisions);
-    if (!revisions) {
-      throw new CdError({
-        type: 'response',
-        code: 'noData',
-      });
-    }
 
-    return revisions;
+    return /** @type {Revision<T>[]} */ (response.query?.pages?.[0]?.revisions);
   }
 
   /**
@@ -613,44 +600,52 @@ export default class Page {
         ['missingtitle', 'notwikitext'].includes(error.getCode() || '')
       ) {
         return new Map();
-      } else {
-        throw error;
       }
+      throw error;
     }
 
     const $templates = $($.parseXML(data.parse.parsetree)).find('template');
 
     return new Map(
       pages
-        .map((page) => {
-          const parameters = $templates
-            // Find the first <template> with a <title> child equal to the name
-            .filter(
-              (_, template) =>
-                pageRegistry.get($(template).children('title').text().trim()) === page
-            )
-            .first()
-            .find('comment')
-            .remove()
-            .end()
+        .map((page) =>
+          /** @type {[Page, StringsByKey]} */ ([
+            page,
+            Object.fromEntries(
+              $templates
+                // Find the first <template> with a <title> child equal to the name
+                .filter(
+                  (_, template) =>
+                    pageRegistry.get(
+                      $(template)
+                        .children('title')
+                        .text()
+                        .trim()
+                    ) === page
+                )
+                .first()
+                .find('comment')
+                .remove()
+                .end()
 
-            // Process all <part> children to extract <name> and <value>
-            .children('part')
-            .get()
-            ?.map((part) => {
-              const $name = $(part).children('name');
+                // Process all <part> children to extract <name> and <value>
+                .children('part')
+                .get()
+                .map((part) => {
+                  const $name = $(part).children('name');
 
-              // Key, value
-              return [
-                $name.text().trim() || $name.attr('index'),
-                $(part).children('value').text().trim(),
-              ];
-            });
-
-          return parameters
-            ? /** @type {[Page, StringsByKey]} */ ([page, Object.fromEntries(parameters)])
-            : undefined;
-        })
+                  // Key, value
+                  return [
+                    $name.text().trim() || $name.attr('index'),
+                    $(part)
+                      .children('value')
+                      .text()
+                      .trim(),
+                  ];
+                })
+            ),
+          ])
+        )
         .filter(defined)
     );
   }
@@ -676,7 +671,7 @@ export default class Page {
         .catch(handleApiReject)
     );
 
-    return response?.compare?.body;
+    return response.compare.body;
   }
 
   /**

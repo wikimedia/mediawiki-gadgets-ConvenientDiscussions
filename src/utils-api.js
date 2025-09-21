@@ -461,9 +461,9 @@ export async function loadUserGenders(users, doRequestInBackground = false) {
       usprop: 'gender',
     };
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const request = doRequestInBackground ?
-      requestInBackground(options).catch(handleApiReject) :
-      cd.getApi().post(options).catch(handleApiReject);
+    const request = doRequestInBackground
+      ? requestInBackground(options).catch(handleApiReject)
+      : cd.getApi().post(options).catch(handleApiReject);
     const response = /** @type {ApiResponseUsers} */ (await request);
     response.query.users
       .filter((user) => user.gender)
@@ -551,7 +551,7 @@ export async function convertHtmlToWikitext(html, syntaxHighlightLanguages) {
   try {
     try {
       if (!cd.g.isProbablyWmfSulWiki) {
-        throw undefined;
+        throw new CdError();
       }
       wikitext = await callTransformApi('/api/rest_v1/transform/html/to/wikitext', html);
     } catch {
@@ -563,14 +563,15 @@ export async function convertHtmlToWikitext(html, syntaxHighlightLanguages) {
         (s, inlineCode) => {
           const lang = syntaxHighlightLanguages.shift() || 'wikitext';
           const code = (
-            inlineCode === undefined ?
-              '\n' +
+            inlineCode === undefined
+              ? '\n' +
               s
                 .replace(/^ /gm, '')
-                .replace(/[^\n]$/, '$0\n') :
-              inlineCode
+                .replace(/[^\n]$/, '$0\n')
+              : inlineCode
           ).replace(/<nowiki>([^]*?)<\/nowiki>/g, '$1');
           const inlineOrNot = inlineCode === undefined ? '' : ' inline';
+
           return `<syntaxhighlight lang="${lang}"${inlineOrNot}>${code}</syntaxhighlight>`;
         }
       )
