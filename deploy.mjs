@@ -201,7 +201,7 @@ function parseCmdOutput(_err, stdout, stderr) {
   commits = stdout
     .split('\n\n')
     .map((line) => {
-      const match = /^(.+)\n(.+)\n(.+)/.exec(line);
+      const match = line.match(/^(.+)\n(.+)\n(.+)/);
       if (!match) {
         throw error(`Can't parse the output of a command`);
       }
@@ -308,16 +308,15 @@ function getMainEdits() {
           }
 
           if (!file.includes('i18n/')) {
-            const [tildesMatch] = (/~~~~.{0,100}/.exec(content)) || [];
-            const [substMatch] = (/\{\{(safe)?subst:.{0,100}/.exec(content)) || [];
+            const [tildesMatch] = content.match(/~~~~.{0,100}/) || [];
+            const [substMatch] = content.match(/\{\{(safe)?subst:.{0,100}/) || [];
             const [nowikiMatch] =
-              (
-                /<\/nowiki>.{0,100}/.exec(
-                  // Ignore the "// </nowiki>" piece, added from the both sides of the build.
-                  content.replace(/\/(?:\*!?|\/) <\/nowiki>/g, '')
-                )
-              ) ||
-              [];
+
+              content
+              // Ignore the "// </nowiki>" piece, added from the both sides of the build.
+                .replace(/\/(?:\*!?|\/) <\/nowiki>/g, '')
+                .match(/<\/nowiki>.{0,100}/) ||
+                [];
             if (tildesMatch || substMatch) {
               const snippet = code(tildesMatch || substMatch);
               if (nowikiMatch) {

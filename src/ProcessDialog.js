@@ -37,6 +37,7 @@ class ProcessDialog extends OO.ui.ProcessDialog {
    */
   isUnsaved() {
     const saveButton = this.actions.get({ actions: 'save' })[0];
+
     return saveButton?.isVisible() && !saveButton.isDisabled();
   }
 

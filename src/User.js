@@ -12,7 +12,7 @@ import cd from './cd';
 export default class User {
   options = new mw.Map();
 
-  /** @type {boolean} */
+  /** @type {boolean | undefined} */
   registered;
 
   /**
@@ -52,7 +52,7 @@ export default class User {
    * @returns {boolean}
    */
   isTemporary() {
-    return mw.util.isTemporaryUser?.(this.name) || false;
+    return 'isTemporaryUser' in mw.util ? mw.util.isTemporaryUser(this.name) : false;
   }
 
   /**
@@ -76,7 +76,7 @@ export default class User {
   /**
    * User's gender (must be obtained using {@link module:utilsApi.loadUserGenders}).
    *
-   * @returns {'male'|'female'|'unknown'}
+   * @returns {'male'|'female'|'unknown'|undefined}
    */
   getGender() {
     return this.options.get('gender');

@@ -72,7 +72,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
    */
   getBodyHeight() {
     return (
-      (this.$errorItems ? this.$errors.prop('scrollHeight') : this.$body.prop('scrollHeight')) +
+      (this.$errorItems ? this.$errors[0].scrollHeight : this.$body[0].scrollHeight) +
 
       // Fixes double scrollbar with some system font settings.
       1
@@ -212,10 +212,11 @@ class EditSubscriptionsDialog extends ProcessDialog {
     if (action === 'save') {
       return new OO.ui.Process(this.save.bind(this));
     } else if (action === 'close') {
-      return new OO.ui.Process(async () => {
-        await this.confirmClose();
+      return new OO.ui.Process(() => {
+        this.confirmClose();
       });
     }
+
     return super.getActionProcess(action);
   }
 
@@ -251,9 +252,10 @@ class EditSubscriptionsDialog extends ProcessDialog {
     let redirects;
     let pages;
     try {
-      ({ normalized, redirects, pages } = await getPageIds(pageTitles) || {});
+      ({ normalized, redirects, pages } = await getPageIds(pageTitles));
     } catch (error) {
       this.handleError(/** @type {Error | CdError} */ (error), 'ewsd-error-processing', true);
+
       return;
     }
 

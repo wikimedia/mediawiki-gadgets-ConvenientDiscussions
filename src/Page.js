@@ -727,7 +727,7 @@ export default class Page {
    */
 
   /**
-   * @type {PagesMap}
+   * @type {PagesMap | undefined}
    */
   static pagesMaps;
 

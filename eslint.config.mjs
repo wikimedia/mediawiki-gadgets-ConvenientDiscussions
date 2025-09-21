@@ -208,8 +208,14 @@ const config = defineConfig(
       // We use it for Tribute
       '@typescript-eslint/ban-ts-comment': 'off',
 
-      // {} is neat in conditional types with conditional object props, e.g. `AD extends false ? { date: Date } : {}`
+      // {} is neat in conditional types with conditional object props, e.g.
+      // `AD extends false ? { date: Date } : {}`
       '@typescript-eslint/no-empty-object-type': 'off',
+
+      // I (jwbth) consider .match() to be more readable simply because chaining with
+      // c.h.a.i.n.match() is more readable than backwards reading with .exec(c.h.a.i.n), especially
+      // if the chain is multiline.
+      '@typescript-eslint/prefer-regexp-exec': 'off',
 
       // Wait until enough browsers support it
       'unicorn/prefer-string-replace-all': 'off',
@@ -254,7 +260,7 @@ const config = defineConfig(
 
       'unicorn/prefer-ternary': 'warn',
 
-      // I never do that, and it gives false positives with any methods named .filter()
+      // I (jwbth) never do that, and the rule gives false positives with any methods named .filter()
       'unicorn/no-array-method-this-argument': 'off',
 
       'unicorn/no-lonely-if': 'warn',
@@ -381,6 +387,14 @@ const config = defineConfig(
 
       // Trimmed on save by IDE
       '@stylistic/no-trailing-spaces': 'off',
+
+      '@stylistic/indent': ['warn', 2, {
+        SwitchCase: 1,
+        offsetTernaryExpressions: true,
+      }],
+
+      // Attacks JSDoc comments like `.../** @type {string} */ (smth)`
+      '@stylistic/rest-spread-spacing': 'off',
 
       // No one-time vars plugin rules
       'no-one-time-vars/no-one-time-vars': ['warn', {

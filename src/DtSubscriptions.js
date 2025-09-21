@@ -193,14 +193,14 @@ class DtSubscriptions extends Subscriptions {
   updatePageSubscribeButton() {
     this.pageSubscribeButton
       .setLabel(
-        this.getState(this.pageSubscribeId) ?
-          cd.mws('discussiontools-newtopicssubscription-button-unsubscribe-label') :
-          cd.mws('discussiontools-newtopicssubscription-button-subscribe-label')
+        this.getState(this.pageSubscribeId)
+          ? cd.mws('discussiontools-newtopicssubscription-button-unsubscribe-label')
+          : cd.mws('discussiontools-newtopicssubscription-button-subscribe-label')
       )
       .setTooltip(
-        this.getState(this.pageSubscribeId) ?
-          cd.mws('discussiontools-newtopicssubscription-button-unsubscribe-tooltip') :
-          cd.mws('discussiontools-newtopicssubscription-button-subscribe-tooltip')
+        this.getState(this.pageSubscribeId)
+          ? cd.mws('discussiontools-newtopicssubscription-button-unsubscribe-tooltip')
+          : cd.mws('discussiontools-newtopicssubscription-button-subscribe-tooltip')
       );
   }
 }

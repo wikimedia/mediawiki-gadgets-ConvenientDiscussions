@@ -317,7 +317,7 @@ declare global {
 
       interface Props {
         $errors: JQuery;
-        $errorItems: JQuery;
+        $errorItems?: JQuery | null;
       }
     }
 

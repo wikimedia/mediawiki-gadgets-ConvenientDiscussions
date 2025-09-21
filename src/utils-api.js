@@ -67,7 +67,7 @@ import userRegistry from './userRegistry';
  * @typedef {object} ApiResponseUser
  * @property {number} userid
  * @property {string} name
- * @property {'male' | 'female' | 'unknown'} gender
+ * @property {'male' | 'female' | 'unknown'} [gender]
  */
 
 /**
@@ -114,7 +114,7 @@ export function handleApiReject(codeOrArr, response) {
       throw new CdError({ type: 'internal', code });
     default: {
       const apiResponse = /** @type {import('types-mediawiki/mw/Api').ApiResponse} */ (response);
-      const error = apiResponse?.error || apiResponse?.errors?.[0];
+      const error = apiResponse.error || apiResponse.errors?.[0];
       throw new CdError({
         type: 'api',
         // `error` or `errors` is chosen by the API depending on `errorformat` being 'html' in
@@ -229,9 +229,6 @@ export async function parseCode(code, customOptions) {
       .post({ ...defaultOptions, ...customOptions })
       .catch(handleApiReject)
   );
-  if (!response.parse) {
-    throw new CdError({ message: 'No parse data returned.' });
-  }
 
   mw.loader.load(response.parse.modules);
   mw.loader.load(response.parse.modulestyles);
@@ -374,7 +371,7 @@ export async function saveOptions(options, isGlobal = false) {
     });
   }
 
-  const resp = await requestInBackground(
+  const response = await requestInBackground(
     cd.getApi().assertCurrentUser({
       action,
       change: (
@@ -387,7 +384,7 @@ export async function saveOptions(options, isGlobal = false) {
     'postWithEditToken'
   ).catch(handleApiReject);
 
-  if (resp?.[action] !== 'success') {
+  if (response[action] !== 'success') {
     throw new CdError({
       type: 'response',
       code: 'fail',
@@ -465,11 +462,11 @@ export async function loadUserGenders(users, doRequestInBackground = false) {
       ? requestInBackground(options).catch(handleApiReject)
       : cd.getApi().post(options).catch(handleApiReject);
     const response = /** @type {ApiResponseUsers} */ (await request);
-    response.query.users
-      .filter((user) => user.gender)
-      .forEach((user) => {
+    response.query.users.forEach((user) => {
+      if (user.gender) {
         userRegistry.get(user.name).setGender(user.gender);
-      });
+      }
+    });
   }
 }
 

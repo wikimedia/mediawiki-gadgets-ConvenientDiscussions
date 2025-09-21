@@ -771,8 +771,10 @@ class CommentForm extends EventEmitter {
    */
   createTextInputs(initialState) {
     if (
-      ((this.isMode('addSection') || this.isMode('addSubsection')) &&
-        !this.preloadConfig.noHeadline) ||
+      (
+        (this.isMode('addSection') || this.isMode('addSubsection')) &&
+        !this.preloadConfig.noHeadline
+      ) ||
       this.isSectionOpeningCommentEdited()
     ) {
       this.headlineInputPlaceholder = this.target.getCommentFormHeadlineInputPlaceholder(this.mode);
@@ -870,13 +872,15 @@ class CommentForm extends EventEmitter {
           value: 'subscribe',
           selected: Boolean(
             initialState.subscribe ??
-              ((this.subscribeOnReply && !this.isMode('edit')) ||
-                subscribableSection?.subscriptionState)
+            (
+              (this.subscribeOnReply && !this.isMode('edit')) ||
+              subscribableSection?.subscriptionState
+            )
           ),
           label: cd.s(
             this.useTopicSubscription ||
-              this.isMode('addSection') ||
-              (!this.isMode('addSubsection') && this.targetSection && this.targetSection.level <= 2)
+            this.isMode('addSection') ||
+            (!this.isMode('addSubsection') && this.targetSection && this.targetSection.level <= 2)
               ? 'cf-watchsection-topic'
               : 'cf-watchsection-subsection'
           ),
@@ -1099,7 +1103,10 @@ class CommentForm extends EventEmitter {
       // Dummy element for forms inside a numbered list so that the number is placed in front of
       // that area, not in some silly place. Note that in Chrome, the number is placed in front of
       // the textarea, so we don't need this in that browser.
-      $('<div>').html('&nbsp;').addClass('cd-commentForm-dummyElement').prependTo(this.$element);
+      $('<div>')
+        .html('&nbsp;')
+        .addClass('cd-commentForm-dummyElement')
+        .prependTo(this.$element);
     }
   }
 
@@ -1123,8 +1130,8 @@ class CommentForm extends EventEmitter {
       'ext.wikiEditor',
       ...(
         cd.g.isCodeMirror6Installed
-        ? ['ext.CodeMirror.v6.WikiEditor', 'ext.CodeMirror.v6.mode.mediawiki']
-        : []
+          ? ['ext.CodeMirror.v6.WikiEditor', 'ext.CodeMirror.v6.mode.mediawiki']
+          : []
       ),
       ...requestedModulesNames,
     ]);
@@ -1214,6 +1221,7 @@ class CommentForm extends EventEmitter {
             type: 'callback',
             execute: () => {
               // @ts-expect-error: Use deprecated window.event to avoid removing and adding a listener
+              // eslint-disable-next-line @typescript-eslint/no-deprecated
               this.mention(isCmdModifierPressed(window.event));
             },
           },
@@ -1817,6 +1825,7 @@ class CommentForm extends EventEmitter {
     } catch {
       mw.notify(cd.s('cf-error-uploadimage'), { type: 'error' });
       this.popPending();
+
       return;
     }
 
@@ -1943,9 +1952,9 @@ class CommentForm extends EventEmitter {
           // Ctrl+B
           if (keyCombination(event, 66, ['cmd'])) {
             this.encapsulateSelection({
-              pre: "'''",
+              pre: `'''`,
               peri: mw.msg('wikieditor-toolbar-tool-bold-example'),
-              post: "'''",
+              post: `'''`,
             });
             event.preventDefault();
           }
@@ -1953,9 +1962,9 @@ class CommentForm extends EventEmitter {
           // Ctrl+I
           if (keyCombination(event, 73, ['cmd'])) {
             this.encapsulateSelection({
-              pre: "''",
+              pre: `''`,
               peri: mw.msg('wikieditor-toolbar-tool-italic-example'),
-              post: "''",
+              post: `''`,
             });
             event.preventDefault();
           }
@@ -2184,7 +2193,7 @@ class CommentForm extends EventEmitter {
     this.lastKeyPresses.splice(0, this.lastKeyPresses.length - keypressCount);
     if (
       this.lastKeyPresses[keypressCount - 1] - this.lastKeyPresses[0] <
-      keypressCount * rateLimit
+        keypressCount * rateLimit
     ) {
       mw.notify(
         wrapHtml(cd.sParse('warning-performance'), {
@@ -2510,11 +2519,11 @@ class CommentForm extends EventEmitter {
         isRaw
           ? htmlOrJquery
           : new OO.ui.MessageWidget({
-              type,
-              inline: true,
-              label: typeof htmlOrJquery === 'string' ? wrapHtml(htmlOrJquery) : htmlOrJquery,
-              classes: ['cd-message', name ? `cd-message-${name}` : undefined].filter(defined),
-            }).$element
+            type,
+            inline: true,
+            label: typeof htmlOrJquery === 'string' ? wrapHtml(htmlOrJquery) : htmlOrJquery,
+            classes: ['cd-message', name ? `cd-message-${name}` : undefined].filter(defined),
+          }).$element
       )
       .cdAddCloseButton()
       .cdScrollIntoView('top');
@@ -2826,9 +2835,9 @@ class CommentForm extends EventEmitter {
     this.setNewSectionApi(
       Boolean(
         this.isMode('addSection') &&
-          !this.newTopicOnTop &&
-          this.headlineInput?.getValue().trim() &&
-          !commentIds.length
+        !this.newTopicOnTop &&
+        this.headlineInput?.getValue().trim() &&
+        !commentIds.length
       )
     );
 
@@ -3001,12 +3010,14 @@ class CommentForm extends EventEmitter {
 
     if (html) {
       if (
-        (isAuto &&
+        (
+          isAuto &&
           // In case of an empty comment input, we in fact make this request for the sake of parsing
           // the summary if there is a need. Alternatively, the user could click the "Preview"
           // button.
           !commentInputValue.trim() &&
-          !this.headlineInput?.getValue().trim()) ||
+          !this.headlineInput?.getValue().trim()
+        ) ||
         this.deleteCheckbox?.isSelected()
       ) {
         this.$previewArea.empty();
@@ -3110,7 +3121,7 @@ class CommentForm extends EventEmitter {
 
     if (operation.maybeClose()) return;
 
-    let html = response.compare?.body;
+    const html = response.compare?.body;
     if (html) {
       this.$previewArea
         .html(wrapDiffBody(html))
@@ -3174,6 +3185,7 @@ class CommentForm extends EventEmitter {
       });
 
       bootController.hideLoadingOverlay();
+
       return;
     }
   }
@@ -3448,6 +3460,7 @@ class CommentForm extends EventEmitter {
           message: cd.sParse('cf-error-othersubmitted'),
         }),
       });
+
       return;
     }
 
@@ -3593,12 +3606,12 @@ class CommentForm extends EventEmitter {
         this.originalComment !== undefined &&
         this.originalComment !== this.commentInput.getValue()
       ) ||
-        this.autoSummary !== this.summaryInput.getValue() ||
-        (
-          this.headlineInput &&
-          this.originalHeadline !== undefined &&
-          this.originalHeadline !== this.headlineInput.getValue()
-        )
+      this.autoSummary !== this.summaryInput.getValue() ||
+      (
+        this.headlineInput &&
+        this.originalHeadline !== undefined &&
+        this.originalHeadline !== this.headlineInput.getValue()
+      )
     );
   }
 
@@ -3685,13 +3698,12 @@ class CommentForm extends EventEmitter {
       const target = substituteTarget || /** @type {Comment} */ (this.target);
       if (target.isOpeningSection()) {
         return cd.s('es-reply');
-      } else {
-        target.maybeRequestAuthorGender(this.updateAutoSummary);
-
-        return target.isOwn
-          ? cd.s('es-addition')
-          : removeDoubleSpaces(cd.s('es-reply-to', target.author.getName(), target.author));
       }
+      target.maybeRequestAuthorGender(this.updateAutoSummary);
+
+      return target.isOwn
+        ? cd.s('es-addition')
+        : removeDoubleSpaces(cd.s('es-reply-to', target.author.getName(), target.author));
     } else if (this.isMode('edit')) {
       // The codes for generating "edit" and "delete" descriptions are equivalent, so we provide
       // an umbrella function.
@@ -3708,20 +3720,16 @@ class CommentForm extends EventEmitter {
               subject = targetParent.isOwn ? 'addition' : 'reply-to';
               realTarget = targetParent;
             }
-          } else {
-            if (this.isTargetOpeningSection()) {
-              subject = this.targetSection.getParent() ? 'subsection' : 'topic';
-            } else {
-              subject = 'comment';
-            }
-          }
-        } else {
-          if (this.isTargetOpeningSection()) {
+          } else if (this.isTargetOpeningSection()) {
             subject = this.targetSection.getParent() ? 'subsection' : 'topic';
           } else {
-            this.target.maybeRequestAuthorGender(this.updateAutoSummary);
-            subject = 'comment-by';
+            subject = 'comment';
           }
+        } else if (this.isTargetOpeningSection()) {
+          subject = this.targetSection.getParent() ? 'subsection' : 'topic';
+        } else {
+          this.target.maybeRequestAuthorGender(this.updateAutoSummary);
+          subject = 'comment-by';
         }
         const authorName = realTarget.author.getName();
 
@@ -3741,10 +3749,10 @@ class CommentForm extends EventEmitter {
       return cd.s('es-reply');
     } else if (this.isMode('addSection')) {
       return this.preloadConfig?.summary || cd.s('es-new-topic');
-    } else {
-      // if (this.isMode('addSubsection'))
-      return cd.s('es-new-subsection');
     }
+
+    // if (this.isMode('addSubsection'))
+    return cd.s('es-new-subsection');
   }
 
   /**
@@ -3992,12 +4000,12 @@ class CommentForm extends EventEmitter {
     const selectionEndIndex = Math.max(range.from, range.to);
     const value = this.commentInput.getValue();
     const leadingNewline =
-      ownline && !/(^|\n)$/.test(value.slice(0, selectionStartIndex)) && !/^\n/.test(peri)
+      ownline && !/(^|\n)$/.test(value.slice(0, selectionStartIndex)) && !peri.startsWith('\n')
         ? '\n'
         : '';
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const trailingNewline =
-      ownline && !/^\n/.test(value.slice(selectionEndIndex)) && !/\n$/.test(post) ? '\n' : '';
+      ownline && !value.slice(selectionEndIndex).startsWith('\n') && !post.endsWith('\n') ? '\n' : '';
     let periStartIndex;
     if (!selection && !replace) {
       periStartIndex = selectionStartIndex + leadingNewline.length + pre.length;
@@ -4013,12 +4021,12 @@ class CommentForm extends EventEmitter {
 
     this.commentInput.insertContent(
       leadingNewline +
-        leadingSpace +
-        pre +
-        middleText.slice(leadingSpace.length, middleText.length - trailingSpace.length) +
-        post +
-        trailingSpace +
-        trailingNewline
+      leadingSpace +
+      pre +
+      middleText.slice(leadingSpace.length, middleText.length - trailingSpace.length) +
+      post +
+      trailingSpace +
+      trailingNewline
     );
     if (periStartIndex !== undefined) {
       this.commentInput.selectRange(periStartIndex, periStartIndex + peri.length);
@@ -4212,6 +4220,7 @@ class CommentForm extends EventEmitter {
         )(undefined, this);
       } catch (error) {
         console.warn(error);
+
         return this.rescue();
       }
     } else {
