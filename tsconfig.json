@@ -1,1 +1,10 @@
-// This allows to lint *.d.ts files.
+{
+  "extends": "./jsconfig-base.json",
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "preserve",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["oojs", "oojs-ui", "jquery", "jqueryui"]
+  },
+  "include": ["**/*.d.ts", "src/**/*.d.ts", "node_modules/types-mediawiki"]
+}

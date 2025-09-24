@@ -15,9 +15,18 @@ const config = defineConfig(
   },
 
   js.configs.recommended,
-  tseslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
+  {
+    ...tseslint.configs.recommended,
+    files: ['**/*.js', '**/*.mjs'],
+  },
+  ...tseslint.configs.strictTypeChecked.map(config => ({
+    ...config,
+    files: ['**/*.js', '**/*.mjs'],
+  })),
+  ...tseslint.configs.stylisticTypeChecked.map(config => ({
+    ...config,
+    files: ['**/*.js', '**/*.mjs'],
+  })),
   unicorn.configs.recommended,
   jsdoc({
     config: 'flat/recommended-typescript-flavor',
@@ -440,28 +449,18 @@ const config = defineConfig(
     files: ['**/*.d.ts'],
     languageOptions: {
       parser: tseslint.parser,
-      parserOptions: {
-        projectService: {
-          defaultProject: 'tsconfig.json',
-        },
-        tsconfigRootDir: import.meta.dirname,
-      },
     },
     plugins: {
       '@typescript-eslint': tseslint.plugin,
     },
     rules: {
-      // Disable some rules that are not applicable to declaration files
+      // Only basic TypeScript rules for declaration files
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'jsdoc/require-jsdoc': 'off',
       'import/order': 'off',
-
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-      '@typescript-eslint/no-unnecessary-condition': 'off',
-      '@typescript-eslint/await-thenable': 'off',
     },
   },
 );
