@@ -3,7 +3,8 @@ import fs from 'node:fs';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-const argv = yargs(hideBin(process.argv)).argv;
+// eslint-disable-next-line no-one-time-vars/no-one-time-vars
+const argv = /** @type {YargsNonAwaited} */ (yargs(hideBin(process.argv)).argv);
 
 // node buildConfigs --test
 // npm run <command running this script> --test
@@ -14,7 +15,7 @@ fs.readdirSync('./config/').forEach((filename) => {
   if (!name || name === 'default') return;
   let content = fs.readFileSync(`config/${filename}`, 'utf8')
     .trim()
-    .replace(/[^]*?export default /, '');
+    .replace(/[^]*?export default .*(?=\{\n {2})/, '');
 
   // When updating this code, update the code in misc/convenientDiscussions-generateBasicConfig.js
   // as well.

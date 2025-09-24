@@ -15,7 +15,8 @@
  * @property {'notice'|'error'|'warning'|'success'} [type='notice'] One of
  *   {@link https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.MessageWidget.html#MessageWidget OO.ui.MessageWidget}'s
  *   types.
- * @property {Function} [checkFunc] If this function returns `false`, no message is displayed.
+ * @property {(commentForm: import('../src/CommentForm').default) => boolean} [checkFunc] If this
+ *   function returns `false`, no message is displayed.
  */
 
 /**
@@ -25,21 +26,23 @@
  * @typedef {object} ArchivingTemplateEntry
  * @property {string} name Template name.
  * @property {string} [configSubpage] If the configuration
- * @property {string|string[]} [pathParam] Names of the parameter(s) that store(s) absolute paths
- *   to the archive. Either `pathParam` or `relativePathParam` needs to be set.
- * @property {string|string[]} [relativePathParam] Names of the parameter(s) that store(s)
- *   relative paths, i.e. subpath or subpage names. The full name of the archive is supposed to be
- *   "<page name>/<relativePathParam>". Either `pathParam` or `relativePathParam` needs to be set.
- * @property {string} counterParam Name of the parameter that stores the current counter value
+ * @property {string|string[]} [pathParam] Names of the parameter(s) that store(s) absolute paths to
+ *   the archive. Either `pathParam` or `relativePathParam` needs to be set.
+ * @property {string|string[]} [relativePathParam] Names of the parameter(s) that store(s) relative
+ *   paths, i.e. subpath or subpage names. The full name of the archive is supposed to be "<page
+ *   name>/<relativePathParam>". Either `pathParam` or `relativePathParam` needs to be set.
+ * @property {string} [counterParam] Name of the parameter that stores the current counter value
  *   (when archiving using it).
- * @property {[string, RegExp]} absolutePathPair A tuple with the first element: the name of the
- *   parameter that turns `relativePathParam` into a parameter that works like `pathParam` (when
- *   archiving using it), and the second element: a regexp that, if matches the value, enables
- *   that parameter (e.g. `['absolute_path', /^yes$/]`).
- * @property {Map<RegExp, (data: { counter: string | null, date: Date | null }, match: string[]) => string>} [replacements]
- *   {@https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map Map}
- *   of replacements where keys are RegExps and values are functions that take a data object and
- *   return a replacement string.
+ * @property {[string, RegExp]} [absolutePathPair] An ordered pair with
+ *   - the name of the parameter that turns `relativePathParam` into a parameter that works like
+ *   `pathParam` (when archiving using it);
+ *   - a regexp that, if matches the value, enables that parameter (e.g. `['absolute_path',
+ *   /^yes$/]`).
+ * @property {Map<RegExp, (data: { counter: string | null, date: Date | null }, match: string[]) =>
+ *   string>} [replacements]
+ *   {@https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map Map} of
+ *   replacements where keys are RegExps and values are functions that take a data object and return
+ *   a replacement string.
  * @property {boolean} [areArchivesSorted=false] Set to `true` if the archived topic should be
  *   placed so that topics are sorted by date (e.g. in between other topics).
  */
@@ -63,7 +66,7 @@ export default {
    *
    * Each special page can have either an array of alias strings or an alias string.
    *
-   * @type {{ [name: string]: string[] }}
+   * @type {{ [name: string]: string | string[] }}
    * @default {}
    */
   specialPageAliases: {},
@@ -156,9 +159,9 @@ export default {
 
   /**
    * @typedef {object} UserNamespacesByGender
-   * @property {string} male
-   * @property {string} female
-   * @property {string} unknown
+   * @property {string} [male]
+   * @property {string} [female]
+   * @property {string} [unknown]
    */
 
   /**
@@ -542,12 +545,12 @@ export default {
   /**
    * Function to use in the {@link module:defaultConfig.quoteFormatting} config value.
    *
-   * @typedef {Function} QuoteFormattingFunction
-   * @property {string} mentionSource Whether it's appropriate to mention the source of the quote
-   *   (e.g. when quoting a different comment than the user is replying to).
-   * @property {string} [author] Quote author.
-   * @property {string} [timestamp] Quote timestamp.
-   * @property {string} [dtId] Comment's DiscussionTools ID.
+   * @callback QuoteFormattingFunction
+   * @param {string} mentionSource Whether it's appropriate to mention the source of the quote (e.g.
+   *   when quoting a different comment than the user is replying to).
+   * @param {string} [author] Quote author.
+   * @param {string} [timestamp] Quote timestamp.
+   * @param {string} [dtId] Comment's DiscussionTools ID.
    * @returns {string[]}
    */
 
@@ -566,7 +569,7 @@ export default {
    * {@link https://github.com/jwbth/convenient-discussions/blob/31a1c1bdf3d92f60cbd1b5bf8b6d8fcddca1e046/config/w-en.js#L251 the example of English Wikipedia configuration}.
    *
    * @type {string[]|QuoteFormattingFunction}
-   * @default ["> ''", "''\n"]
+   * @default ["> ''", "''"]
    */
   quoteFormatting: ["> ''", "''"],
 
@@ -804,10 +807,7 @@ export default {
   /**
    * Function that transforms the automatically generated summary text.
    *
-   * @type {?Function}
-   * @kind function
-   * @param {string} summary
-   * @returns {string}
+   * @type {((summary: string) => string) | null}
    * @default null
    */
   transformSummary: null,
@@ -816,11 +816,7 @@ export default {
    * Function that makes custom alterations to the comment's source code before it is processed and
    * submitted. See also {@link module:defaultConfig.postTransformCode}.
    *
-   * @type {?Function}
-   * @kind function
-   * @param {string} code
-   * @param {import('./CommentForm').default} commentForm
-   * @returns {string}
+   * @type {((code: string, commentForm: import('../src/CommentForm').default) => string) | null}
    * @default null
    */
   preTransformCode: null,
@@ -831,11 +827,7 @@ export default {
    * user with the closer flag which is a requirement in Russian Wikipedia.) See also
    * {@link module:defaultConfig.preTransformCode}.
    *
-   * @type {?Function}
-   * @kind function
-   * @param {string} code
-   * @param {import('./CommentForm').default} commentForm
-   * @returns {string}
+   * @type {((code: string, commentForm: import('../src/CommentForm').default) => string) | null}
    * @default null
    */
   postTransformCode: null,
@@ -855,11 +847,7 @@ export default {
    * https://github.com/jwbth/convenient-discussions/blob/6281b9ede22149beb47ba0da37549d13600cb1c9/src/js/BootProcess.js#L745
    * this}.
    *
-   * @type {?((node: NodeLike, context: ParsingContext) => boolean)}
-   * @kind function
-   * @param {NodeLike} node
-   * @param {import('./../src/shared/Parser').Context} context
-   * @returns {boolean}
+   * @type {((node: NodeLike, context: ParsingContext) => boolean) | null}
    * @default null
    */
   rejectNode: null,
@@ -878,11 +866,7 @@ export default {
    * example at
    * {@link https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/convenientDiscussions-commonsConfig.js}.
    *
-   * @type {?((authorLink: Element, authorLinkPrototype: Element) => void)}
-   * @kind function
-   * @param {Element} authorLink
-   * @param {Element} authorLinkPrototype
-   * @returns {void}
+   * @type {((authorLink: Element, authorLinkPrototype: Element) => void) | null}
    * @default null
    */
   beforeAuthorLinkParse: null,
@@ -898,11 +882,7 @@ export default {
    * example at
    * {@link https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/convenientDiscussions-commonsConfig.js}.
    *
-   * @type {?Function}
-   * @kind function
-   * @param {Element} authorLink
-   * @param {any} data
-   * @returns {Element}
+   * @type {((authorLink: Element, data: any) => Element) | null}
    * @default null
    */
   afterAuthorLinkParse: null,
@@ -911,11 +891,7 @@ export default {
    * Function that returns `true` if new topics are placed on top of the page specified in the
    * parameter.
    *
-   * @type {?Function}
-   * @kind function
-   * @param {string} title
-   * @param {string} code
-   * @returns {?boolean}
+   * @type {((title: string, code: string) => boolean | null) | null}
    * @default null
    */
   areNewTopicsOnTop: null,
@@ -924,12 +900,7 @@ export default {
    * Function that returns the code to insert in the place of a section moved to another page. The
    * string normally ends with `\n`. If `null`, the section is just removed from the page.
    *
-   * @type {?Function}
-   * @kind function
-   * @param {string} targetPageWikilink
-   * @param {string} signature
-   * @param {string} [timestamp]
-   * @returns {string}
+   * @type {(targetPageWikilink: string, signature: string, timestamp?: string) => string}
    * @default function (targetPageWikilink, signature, timestamp) {
    *   return (
    *     convenientDiscussions.s('move-sourcepagecode', targetPageWikilink, signature, timestamp) +
@@ -937,7 +908,7 @@ export default {
    *   );
    * }
    */
-  getMoveSourcePageCode: function (targetPageWikilink, signature, timestamp) {
+  getMoveSourcePageCode(targetPageWikilink, signature, timestamp) {
     return (
       '<div class="cd-moveMark">' +
       convenientDiscussions.s('move-sourcepagecode', targetPageWikilink, signature, timestamp) +
@@ -950,16 +921,12 @@ export default {
    * page _or_ an array of two strings to insert in the beginning and ending of the section
    * respectively. The strings normally end with `\n`. If `null`, no code will be added.
    *
-   * @type {?Function}
-   * @kind function
-   * @param {string} targetPageWikilink
-   * @param {string} signature
-   * @returns {string|Array.<string>}
+   * @type {(targetPageWikilink: string, signature: string) => string | string[]}
    * @default function (targetPageWikilink, signature) {
    *   return convenientDiscussions.s('move-targetpagecode', targetPageWikilink, signature) + '\n';
    * }
    */
-  getMoveTargetPageCode: function (targetPageWikilink, signature) {
+  getMoveTargetPageCode(targetPageWikilink, signature) {
     return (
       '<div class="cd-moveMark">' +
       convenientDiscussions.s('move-targetpagecode', targetPageWikilink, signature) +
@@ -970,15 +937,12 @@ export default {
   /**
    * Code that creates an anchor on the page.
    *
-   * @type {Function}
-   * @kind function
-   * @param {string} id
-   * @returns {string}
+   * @type {(id: string) => string}
    * @default function (id) {
    *   return '&lt;span id="' + id + '"&gt;&lt;/span&gt;';
    * }
    */
-  getAnchorCode: function (id) {
+  getAnchorCode(id) {
     return '<span id="' + id + '"></span>';
   },
 };

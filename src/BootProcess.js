@@ -37,7 +37,7 @@ function removeDtButtonHtmlComments() {
     NodeFilter.SHOW_COMMENT
   );
   let node;
-  while ((node = /** @type {globalThis.Comment} */ (treeWalker.nextNode()))) {
+  while ((node = /** @type {globalThis.Comment | null} */ (treeWalker.nextNode()))) {
     if (node.textContent.startsWith('__DTREPLYBUTTONS__')) {
       node.remove();
     }
@@ -248,10 +248,8 @@ class BootProcess {
       debug.startTimer('process sections');
       this.processSections();
       debug.stopTimer('process sections');
-    } else {
-      if (talkPageController.isDtSubscriptions(this.subscriptions)) {
-        this.subscriptions.loadToTalkPage(this);
-      }
+    } else if (talkPageController.isDtSubscriptions(this.subscriptions)) {
+      this.subscriptions.loadToTalkPage(this);
     }
 
     if (this.passedData.parseData?.text) {

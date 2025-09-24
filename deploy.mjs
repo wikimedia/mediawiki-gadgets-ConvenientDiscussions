@@ -10,9 +10,7 @@ import config from './config.mjs';
 
 import { getUrl, unique } from './misc/utils.mjs';
 
-const argv = /** @type {Exclude<ReturnType<typeof yargs>['argv'], Promise<any>>} */ (
-  yargs(hideBin(process.argv)).argv
-);
+const argv = /** @type {YargsNonAwaited} */ (yargs(hideBin(process.argv)).argv);
 
 /*
   node deploy --test
@@ -368,9 +366,9 @@ async function getConfigsEdits() {
   const contentStrings = await Promise.all(
     assetsWithGadgetsDefinition.map((asset) => (
       new Promise((resolve, reject) => {
-        clients[asset.server].getArticle(asset.target, (err, data) => {
-          if (err) {
-            reject(err);
+        clients[asset.server].getArticle(asset.target, (error, data) => {
+          if (error) {
+            reject(error);
 
             return;
           }

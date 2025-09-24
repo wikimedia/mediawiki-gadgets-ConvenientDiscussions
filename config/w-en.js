@@ -1,4 +1,4 @@
-export default {
+export default /** @type {Partial<typeof import('./default').default>} */ ({
   messages: {
     'sun': 'Sun',
     'mon': 'Mon',
@@ -79,9 +79,9 @@ export default {
   },
 
   specialPageAliases: {
-    'Contributions': 'Contributions',
-    'Diff': 'Diff',
-    'PermanentLink': 'PermanentLink',
+    Contributions: 'Contributions',
+    Diff: 'Diff',
+    PermanentLink: 'PermanentLink',
   },
 
   timezone: 'UTC',
@@ -112,7 +112,8 @@ export default {
               return match[0];
             }
             const padding = match[1] ? match[1].slice(1) : '';
-            return padding ? String(counter).padStart(Number(padding), '0') : String(counter);
+
+            return padding ? counter.padStart(Number(padding), '0') : counter;
           }],
 
           [/%\(year\)(0\d)?d/, ({ date }, match) => {
@@ -121,6 +122,7 @@ export default {
             }
             const padding = match[1] ? match[1].slice(1) : '';
             const year = date.getFullYear();
+
             return padding ? String(year).padStart(Number(padding), '0') : String(year);
           }],
 
@@ -130,6 +132,7 @@ export default {
             }
             const padding = match[1] ? match[1].slice(1) : '';
             const month = date.getMonth() + 1;
+
             return padding ? String(month).padStart(Number(padding), '0') : String(month);
           }],
 
@@ -138,9 +141,20 @@ export default {
               return match[0];
             }
             const monthNames = [
-              'January', 'February', 'March', 'April', 'May', 'June',
-              'July', 'August', 'September', 'October', 'November', 'December'
+              'January',
+              'February',
+              'March',
+              'April',
+              'May',
+              'June',
+              'July',
+              'August',
+              'September',
+              'October',
+              'November',
+              'December',
             ];
+
             return monthNames[date.getMonth()];
           }],
 
@@ -149,21 +163,32 @@ export default {
               return match[0];
             }
             const monthNamesShort = [
-              'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+              'Jan',
+              'Feb',
+              'Mar',
+              'Apr',
+              'May',
+              'Jun',
+              'Jul',
+              'Aug',
+              'Sep',
+              'Oct',
+              'Nov',
+              'Dec',
             ];
+
             return monthNamesShort[date.getMonth()];
-          }]
+          }],
         ]),
       },
     ],
   },
 
-  /*pageWhitelist: [
+  /* pageWhitelist: [
     /^Wikipedia:/,
     /^Help:/,
     /^Template:Did you know nominations\//,
-  ],*/
+  ], */
 
   spaceAfterIndentationChars: false,
 
@@ -183,43 +208,43 @@ export default {
   ],
 
   unsignedTemplates: [
-		'Unsigned',
-		'Unsigned3',
-		'Unsig',
-		'Unsinged',
-		'Signed',
-		'Unsign',
-		'UNSIGNED',
-		'Uns',
-		'Tidle',
-		'Nosign',
-		'Forgot to sign',
-		'Without signature',
-		'USU',
-		'Unsigned comment',
-		'Preceding unsigned comment',
-		'Unisgned',
-		'Unsigned2',
-		'Unsigned2Tz',
-		'Unsigned 2',
-		'Unsigned IP',
-		'Unsignedip',
-		'Ipunsigned',
-		'IPsign',
-		'UnsignedIP',
-		'USIP',
-		'Unsigned ip',
-		'Unsigned-ip',
-		'Unsigned-Ip',
-		'Unsigned-IP',
-		'Uip',
-		'IP unsigned',
-		'UnsignedIP2',
-		'Unsignedip2',
-		'Unsigned2ip',
-		'Unsigned2IP',
-		'Unsigned IP2',
-		'Unsigned ip2'
+    'Unsigned',
+    'Unsigned3',
+    'Unsig',
+    'Unsinged',
+    'Signed',
+    'Unsign',
+    'UNSIGNED',
+    'Uns',
+    'Tidle',
+    'Nosign',
+    'Forgot to sign',
+    'Without signature',
+    'USU',
+    'Unsigned comment',
+    'Preceding unsigned comment',
+    'Unisgned',
+    'Unsigned2',
+    'Unsigned2Tz',
+    'Unsigned 2',
+    'Unsigned IP',
+    'Unsignedip',
+    'Ipunsigned',
+    'IPsign',
+    'UnsignedIP',
+    'USIP',
+    'Unsigned ip',
+    'Unsigned-ip',
+    'Unsigned-Ip',
+    'Unsigned-IP',
+    'Uip',
+    'IP unsigned',
+    'UnsignedIP2',
+    'Unsignedip2',
+    'Unsigned2ip',
+    'Unsigned2IP',
+    'Unsigned IP2',
+    'Unsigned ip2',
   ],
 
   paragraphTemplates: [
@@ -315,7 +340,7 @@ export default {
 
   reflistTalkClasses: ['reflist-talk'],
 
-  quoteFormatting: function (useBlockFormatting, author, timestamp, dtId) {
+  quoteFormatting(useBlockFormatting, author, timestamp, dtId) {
     var pre = '';
     var post = '';
     if (useBlockFormatting) {
@@ -331,9 +356,10 @@ export default {
       }
       post += '}}';
     } else {
-      pre = '{{tq|1='
+      pre = '{{tq|1=';
       post += '}}<br>';
     }
+
     return [pre, post];
   },
 
@@ -523,20 +549,20 @@ export default {
     'Reverted edits',
   ],
 
-  rejectNode: function (node) {
+  rejectNode(node) {
     return ['boilerplate-header', 'side-box-right'].some((name) => node.classList.contains(name));
   },
 
-  getMoveSourcePageCode: function (targetPageWikilink, signature) {
+  getMoveSourcePageCode(targetPageWikilink, signature) {
     return '{{Moved discussion to|' + targetPageWikilink + '|' + signature + '}}\n';
   },
 
-  getMoveTargetPageCode: function (targetPageWikilink, signature) {
+  getMoveTargetPageCode(targetPageWikilink, signature) {
     return '{{Moved discussion from|' + targetPageWikilink + '|' + signature + '}}\n';
   },
-};
+});
 
-mw.hook('convenientDiscussions.pageReadyFirstTime').add(function () {
+mw.hook('convenientDiscussions.pageReadyFirstTime').add(() => {
   if ($('.localcomments[style="font-size: 95%; white-space: nowrap;"]').length) {
     mw.notify(
       convenientDiscussions.api.wrapHtml('User script <a href="//en.wikipedia.org/wiki/User:Gary/comments_in_local_time.js">comments_in_local_time.js</a> is executed earlier than Convenient Discussions, which prevents the latter from working correctly. Follow the instructions <a href="' + mw.util.getUrl(convenientDiscussions.config.scriptPageWikilink) + '#Compatibility">here</a> to make them compatible.'),
@@ -548,7 +574,7 @@ mw.hook('convenientDiscussions.pageReadyFirstTime').add(function () {
   }
 });
 
-mw.loader.using('mediawiki.util').then(function () {
+mw.loader.using('mediawiki.util').then(() => {
   mw.util.addCSS('\
     .cd-comment-timestamp .localcomments {\
       font-size: unset !important;\

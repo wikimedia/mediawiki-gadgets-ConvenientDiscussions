@@ -203,6 +203,7 @@ class BootController {
    * @returns {JQuery.Promise<any>[]} There should be at least one promise in the array.
    * @private
    */
+  // eslint-disable-next-line max-lines-per-function
   loadSiteData() {
     this.initFormats();
 
@@ -219,8 +220,15 @@ class BootController {
     );
 
     const userLanguageMessageNames = [
-      'parentheses', 'parentheses-start', 'parentheses-end', 'word-separator', 'comma-separator',
-      'colon-separator', 'nextdiff', 'timezone-utc', 'pagetitle',
+      'parentheses',
+      'parentheses-start',
+      'parentheses-end',
+      'word-separator',
+      'comma-separator',
+      'colon-separator',
+      'nextdiff',
+      'timezone-utc',
+      'pagetitle',
     ]
       .concat(
         cd.g.isDtInstalled
@@ -329,15 +337,13 @@ class BootController {
       requests.push(cd.getApi().loadMessagesIfMissing(userLanguageMessageNames));
     }
 
-    cd.g.specialPageAliases = /** @type {import('../config/default').default['specialPageAliases']} */ ({
+    cd.g.specialPageAliases = Object.entries({
       ...cd.config.specialPageAliases,
-    });
+    }).reduce((acc, [key, value]) => {
+      acc[key] = typeof value === 'string' ? [value] : value;
 
-    Object.entries(cd.g.specialPageAliases).forEach(([key, value]) => {
-      if (typeof value === 'string') {
-        cd.g.specialPageAliases[key] = [value];
-      }
-    });
+      return acc;
+    }, /** @type {import('../config/default').default['specialPageAliases']} */ ({}));
 
     cd.g.contentTimezone = cd.config.timezone;
 
@@ -416,7 +422,7 @@ class BootController {
         case '"':
           // Quoted literal
           if (p < format.length - 1) {
-            const endQuote = format.indexOf('"', p + 1)
+            const endQuote = format.indexOf('"', p + 1);
             if (endQuote !== -1) {
               p = endQuote;
             }
@@ -505,7 +511,7 @@ class BootController {
         case '"':
           // Quoted literal
           if (p < format.length - 1) {
-            const endQuote = format.indexOf('"', p + 1)
+            const endQuote = format.indexOf('"', p + 1);
             if (endQuote === -1) {
               // No terminating quote, assume literal "
               string += '"';
@@ -626,9 +632,9 @@ class BootController {
   addTalkPageCss() {
     const contentBackgroundColor = $('#content').css('background-color') || 'rgba(0, 0, 0, 0)';
     const sidebarColor = skin$({
-      timeless: '#mw-content-container',
+      'timeless': '#mw-content-container',
       'vector-2022': '.mw-page-container',
-      default: 'body',
+      'default': 'body',
     }).css('background-color');
     const metadataFontSize = Number.parseFloat((cd.g.contentFontSize / cd.g.defaultFontSize).toFixed(7));
     const contentStartMargin = this.getContentColumnOffsets().startMargin;
@@ -803,7 +809,6 @@ class BootController {
     cd.tests.showSettingsDialog = settings.showDialog.bind(settings);
     cd.tests.editSubscriptions = talkPageController.showEditSubscriptionsDialog.bind(talkPageController);
     cd.tests.visits = require('./visits').default;
-
 
     /* Some static methods for external use */
 
@@ -1086,7 +1091,7 @@ class BootController {
       default: '#content',
     });
 
-      /*
+    /*
         Additions of CSS set a stage for a future reflow which delays operations dependent on
         rendering, so we run them now, not after the requests are fulfilled, to save time. The overall
         order is like this:
@@ -1097,8 +1102,8 @@ class BootController {
         3. Run operations that create prerequisites for a reflow, such as adding CSS (below). Thanks
           to the fact that the network requests, if any, are already pending, we don't waste time.
       */
-      this.memorizeCssValues();
-      this.addTalkPageCss();
+    this.memorizeCssValues();
+    this.addTalkPageCss();
   }
 
   /**
@@ -1260,6 +1265,7 @@ class BootController {
       } else {
         mw.notify(cd.s('error-reloadpage'), { type: 'error' });
         console.warn(error);
+
         return;
       }
     }

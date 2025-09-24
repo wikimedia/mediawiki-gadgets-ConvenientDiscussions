@@ -4,8 +4,7 @@
 export default class CodeMirrorCommentInput
   extends /** @type {typeof import('./CodeMirrorWikiEditor').default} */ (
     mw.loader.require('ext.CodeMirror.v6.WikiEditor')
-  )
-{
+  ) {
   /**
    *
    * @param {import('./MultilineTextInputWidget').default} commentInput
@@ -29,17 +28,18 @@ export default class CodeMirrorCommentInput
       class: 'ime-position-inside',
     });
 
-    mw.hook('ext.CodeMirror.preferences.apply').add((prefName, enabled) => {
-      if (enabled !== this.preferences.getPreference(prefName)) {
-        this.extensionRegistry.toggle(prefName, this.view, enabled);
-        // Only update the preferences property directly to avoid
-        // making API calls already made by the primary instance.
-        // @ts-expect-error: the source library uses "@type {Object}"
-        this.preferences.preferences[prefName] = enabled;
+    this.addMwHook(
+      'ext.CodeMirror.preferences.apply',
+      (/** @type {string} */ prefName, /** @type {boolean} */ enabled) => {
+        if (enabled !== this.preferences.getPreference(prefName)) {
+          this.extensionRegistry.toggle(prefName, this.view, enabled);
+          // Only update the preferences property directly to avoid
+          // making API calls already made by the primary instance.
+          // @ts-expect-error: the source library uses "@type {Object}"
+          this.preferences.preferences[prefName] = enabled;
+        }
       }
-    });
-
-
+    );
   }
 
   /**

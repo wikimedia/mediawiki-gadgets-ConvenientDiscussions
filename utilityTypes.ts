@@ -13,3 +13,5 @@ type StringTuple<N extends number, T extends readonly string[] = []> =
  * type Callback5 = ReplaceCallback<5>; // (arg0: string, arg1: string, arg2: string, arg3: string, arg4: string) => string
  */
 type ReplaceCallback<N extends number> = (...args: StringTuple<N>) => string;
+
+type YargsNonAwaited = Exclude<ReturnType<typeof import('yargs')>['argv'], Promise<any>>;

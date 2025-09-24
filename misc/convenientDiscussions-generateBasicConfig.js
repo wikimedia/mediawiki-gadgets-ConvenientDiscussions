@@ -54,13 +54,13 @@ mw.loader.using([
     Object.assign(config.messages, messages);
   }
 
-  const siteInfoResp = await api.get({
+  const siteInfoResponse = await api.get({
     action: 'query',
     meta: 'siteinfo',
     siprop: ['specialpagealiases', 'general', 'extensions', 'magicwords'],
   });
 
-  const specialPageAliases = siteInfoResp.query.specialpagealiases
+  const specialPageAliases = siteInfoResponse.query.specialpagealiases
     .filter((obj) => ['Contributions', 'Diff', 'PermanentLink'].includes(obj.realname));
   if (specialPageAliases.length) {
     config.specialPageAliases = {
@@ -70,7 +70,7 @@ mw.loader.using([
     };
   }
 
-  const substAliases = siteInfoResp.query.magicwords
+  const substAliases = siteInfoResponse.query.magicwords
     .find((obj) => obj.name === 'subst')
     ?.aliases
     .map((alias) => alias.toLowerCase())
@@ -79,7 +79,7 @@ mw.loader.using([
     config.substAliases = substAliases;
   }
 
-  const thumbAliases = siteInfoResp.query.magicwords
+  const thumbAliases = siteInfoResponse.query.magicwords
     .find((obj) => obj.name === 'img_thumbnail')
     ?.aliases
     .map((alias) => alias.toLowerCase())
@@ -88,9 +88,9 @@ mw.loader.using([
     config.thumbAliases = thumbAliases;
   }
 
-  config.timezone = siteInfoResp.query.general.timezone;
+  config.timezone = siteInfoResponse.query.general.timezone;
 
-  config.useGlobalPreferences = siteInfoResp.query.extensions
+  config.useGlobalPreferences = siteInfoResponse.query.extensions
     .some((ext) => ext.name === 'GlobalPreferences');
   if (config.useGlobalPreferences) {
     // Global preferences are used by default. On WMF wikis this would just distract.

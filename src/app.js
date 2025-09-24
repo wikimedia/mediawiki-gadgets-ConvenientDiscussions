@@ -159,7 +159,7 @@ function maybeTweakAddTopicButton() {
  * @fires preprocessed
  * @private
  */
-async function go() {
+function go() {
   debug.startTimer('start');
 
   require('./convenientDiscussions');
@@ -240,7 +240,11 @@ function getConfig() {
       /** @type {StringsByKey} */ (configUrls)[mw.config.get('wgServerName')];
     if (configUrl) {
       const rejectWithMsg = (/** @type {any} */ error) => {
-        reject(['Convenient Discussions can\'t run: couldn\'t load the configuration.', error]);
+        reject(
+          new Error(`Convenient Discussions can't run: couldn't load the configuration.`, {
+            cause: error,
+          })
+        );
       };
 
       const [, gadgetName] = configUrl.match(/modules=ext.gadget.([^?&]+)/) || [];
@@ -250,6 +254,7 @@ function getConfig() {
         mw.loader.using(`ext.gadget.${gadgetName}`).then(() => {
           resolve();
         });
+
         return;
       }
       mw.loader.getScript(configUrl).then(() => {
@@ -273,7 +278,7 @@ function getStrings() {
   return Promise.all(
     [cd.g.userLanguage, cd.g.contentLanguage]
       .filter(unique)
-      .filter((lang) => lang !== 'en' && !cd.i18n?.[lang])
+      .filter((lang) => lang !== 'en' && !(lang in cd.i18n))
       .map((lang) =>
         mw.loader.getScript(
           `https://commons.wikimedia.org/w/index.php?title=User:Jack_who_built_the_house/convenientDiscussions-i18n/${lang}.js&action=raw&ctype=text/javascript`
@@ -291,6 +296,7 @@ function getStrings() {
 async function app() {
   if (cd.isRunning) {
     console.warn('One instance of Convenient Discussions is already running.');
+
     return;
   }
 
@@ -308,7 +314,8 @@ async function app() {
     /[?&]cdenable=(0|false|no|n)(?=&|$)/.test(location.search) ||
     mw.config.get('wgPageContentModel') !== 'wikitext' ||
 
-    // Liquid Threads, for example https://en.wiktionary.org/wiki/User_talk:Yair_rand/newentrywiz.js
+    // Liquid Threads; for example,
+    // https://en.wiktionary.org/wiki/MediaWiki_talk:Gadget-NewEntryWizard.js/LQT_Archive
     $('.lqt-talkpage').length ||
 
     mw.config.get('wgIsMainPage')
@@ -338,9 +345,13 @@ async function app() {
   setLanguages();
 
   try {
-    await Promise.all([!cd.config && getConfig(), getStringsPromise()]);
+    await Promise.all([
+      (/** @type {any} */ (cd).config) ? Promise.resolve() : getConfig(),
+      getStringsPromise(),
+    ]);
   } catch (error) {
     console.error(error);
+
     return;
   }
 

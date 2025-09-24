@@ -396,6 +396,11 @@ const config = defineConfig(
       // Attacks JSDoc comments like `.../** @type {string} */ (smth)`
       '@stylistic/rest-spread-spacing': 'off',
 
+      '@stylistic/quotes': ['error', 'single', {
+        avoidEscape: true,
+        allowTemplateLiterals: 'always',
+      }],
+
       // No one-time vars plugin rules
       'no-one-time-vars/no-one-time-vars': ['warn', {
         allowedVariableLength: 9_999_999,  // Allow any length
@@ -463,5 +468,28 @@ const config = defineConfig(
     },
   },
 );
+
+/**
+ * Bulk-change the severity of many rules.
+ *
+ * @param {import('eslint').Linter.Config[]} conf
+ * @param {string} prefix
+ * @param {import('eslint').Linter.RuleSeverity} severity
+ */
+function setRuleSeverityByPrefix(conf, prefix, severity) {
+  conf.forEach((confPart) => {
+    // Loop through each rule in the config
+    for (const rule in confPart.rules) {
+      if (rule.startsWith(prefix)) {
+        confPart.rules[rule] = Array.isArray(confPart.rules[rule])
+          ? [severity, ...confPart.rules[rule].slice(1)]  // Preserve additional options if present
+          : severity;
+      }
+    }
+  });
+}
+
+// Use the function to modify the rules in the baseConfig object
+setRuleSeverityByPrefix(config, '@stylistic/', 'warn');
 
 export default config;

@@ -185,7 +185,7 @@ class MoveSectionDialog extends ProcessDialog {
       try {
         archiveConfig = (await Promise.all(this.initRequests))[2];
       } catch {
-        this.abort({ message: cd.sParse('cf-error-getpagecode'), recoverable: false});
+        this.abort({ message: cd.sParse('cf-error-getpagecode'), recoverable: false });
 
         return;
       }
@@ -315,7 +315,7 @@ class MoveSectionDialog extends ProcessDialog {
         this.pushPending();
         this.controls.title.input.$input.blur();
 
-        let targetPage = /** @type {import('./Page').default} */ (
+        const targetPage = /** @type {import('./Page').default} */ (
           pageRegistry.get(/** @type {mw.Title} */ (this.controls.title.input.getMWTitle()))
         );
 
@@ -325,6 +325,7 @@ class MoveSectionDialog extends ProcessDialog {
             message: cd.sParse('msd-error-wrongpage'),
             recoverable: false,
           });
+
           return;
         }
 
@@ -368,6 +369,7 @@ class MoveSectionDialog extends ProcessDialog {
         this.close();
       });
     }
+
     return super.getActionProcess(action);
   }
 
@@ -406,13 +408,13 @@ class MoveSectionDialog extends ProcessDialog {
         if (error.getType() === 'api') {
           throw error.getCode() === 'missing'
             ? new CdError({
-                message: cd.sParse('msd-error-sourcepagedeleted'),
-                details: { recoverable: true },
-              })
+              message: cd.sParse('msd-error-sourcepagedeleted'),
+              details: { recoverable: true },
+            })
             : new CdError({
-                message: cd.sParse('error-api', error.getCode()),
-                details: { recoverable: true },
-              });
+              message: cd.sParse('error-api', error.getCode()),
+              details: { recoverable: true },
+            });
         } else if (error.getType() === 'network') {
           throw new CdError({
             message: cd.sParse('error-network'),
@@ -453,9 +455,9 @@ class MoveSectionDialog extends ProcessDialog {
     return {
       page: this.section.getSourcePage(),
       sectionSource,
-      sectionWikilink: this.controls.keepLink.input.isSelected() ?
-        `${pageName}#${headlineEncoded}` :
-        pageName,
+      sectionWikilink: this.controls.keepLink.input.isSelected()
+        ? `${pageName}#${headlineEncoded}`
+        : pageName,
     };
   }
 
@@ -601,17 +603,17 @@ class MoveSectionDialog extends ProcessDialog {
         text: (
           code.slice(0, source.sectionSource.startIndex) +
           (
-            cd.config.getMoveSourcePageCode && this.controls.keepLink.input.isSelected() ?
-              (
-                sectionCode.slice(0, source.sectionSource.relativeContentStartIndex) +
-                cd.config.getMoveSourcePageCode(
-                  target.sectionWikilink,
-                  cd.g.userSignature,
-                  findFirstTimestamp(sectionCode) || cd.g.signCode + '~'
-                ) +
-                '\n'
-              ) :
-              ''
+            cd.config.getMoveSourcePageCode && this.controls.keepLink.input.isSelected()
+              ? (
+                  sectionCode.slice(0, source.sectionSource.relativeContentStartIndex) +
+                  cd.config.getMoveSourcePageCode(
+                    target.sectionWikilink,
+                    cd.g.userSignature,
+                    findFirstTimestamp(sectionCode) || cd.g.signCode + '~'
+                  ) +
+                  '\n'
+                )
+              : ''
           ) +
           code.slice(source.sectionSource.endIndex)
         ),

@@ -65,7 +65,9 @@ const webpack_ = (env) => {
   } else {
     // SourceMapDevToolPlugin is used.
     devtool = false;
-  } return /** @type {import('webpack').Configuration} */ ({
+  }
+
+  return /** @type {import('webpack').Configuration} */ ({
     mode: dev || single ? 'development' : 'production',
     entry: './src/app.js',
     output: {

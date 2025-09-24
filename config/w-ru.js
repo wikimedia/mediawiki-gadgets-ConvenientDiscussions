@@ -1,4 +1,4 @@
-export default {
+export default /** @type {Partial<typeof import('./default').default>} */ ({
   messages: {
     'sun': 'Вс',
     'mon': 'Пн',
@@ -79,9 +79,9 @@ export default {
   },
 
   specialPageAliases: {
-    'Contributions': 'Вклад',
-    'Diff': 'Изменения',
-    'PermanentLink': 'Постоянная ссылка',
+    Contributions: 'Вклад',
+    Diff: 'Изменения',
+    PermanentLink: 'Постоянная ссылка',
   },
 
   substAliases: [
@@ -199,21 +199,21 @@ export default {
           [
             /%\(год\)/,
             ({ date }, match) =>
-              date === null ? match[0] : String(date.getFullYear()).padStart(Number(2), '0')
+              date === null ? match[0] : String(date.getFullYear()).padStart(2, '0'),
           ],
           [
             /%\(месяц\)/,
             ({ date }, match) =>
-              date === null ? match[0] : String(date.getMonth() + 1).padStart(Number(2), '0')
+              date === null ? match[0] : String(date.getMonth() + 1).padStart(2, '0'),
           ],
           [
             /%\(полугодие\)/,
             ({ date }, match) =>
-              date === null ? match[0] : String(date.getMonth() < 6 ? 1 : 2)
+              date === null ? match[0] : String(date.getMonth() < 6 ? 1 : 2),
           ],
         ]),
       },
-    ]
+    ],
   },
 
   idleFragments: [/^Преамбула$/],
@@ -274,13 +274,13 @@ export default {
     [
       'Начало цитаты',
       'НачалоЦитаты',
-      'Нц'
+      'Нц',
     ],
     [
       'Конец цитаты',
       'КонецЦитаты',
-      'Кц'
-    ]
+      'Кц',
+    ],
   ],
 
   smallDivTemplates: [
@@ -306,7 +306,7 @@ export default {
     '-',
   ],
 
-  quoteFormatting: function (useBlockFormatting, author, timestamp, dtId) {
+  quoteFormatting(useBlockFormatting, author, timestamp, dtId) {
     var pre = '{{цс|1=';
     var post = '';
     if (useBlockFormatting) {
@@ -323,6 +323,7 @@ export default {
     } else {
       post = '|inline=1}}<br>';
     }
+
     return [pre, post];
   },
 
@@ -422,8 +423,12 @@ export default {
       message: 'Шаблон указания на статус подводящего итоги добавлять не нужно — он будет добавлен автоматически.',
       name: 'closerTemplateNotNeeded',
       type: 'notice',
-      checkFunc: function (commentForm) {
-        return commentForm.couldBeCloserClosing && commentForm.headlineInput.getValue().trim() === 'Итог';
+      checkFunc(commentForm) {
+        return (
+          'couldBeCloserClosing' in commentForm &&
+          commentForm.headlineInput &&
+          commentForm.headlineInput.getValue().trim() === 'Итог'
+        );
       },
     },
   ],
@@ -434,38 +439,40 @@ export default {
     },
     {
       name: 'ext.gadget.urldecoder',
-      checkFunc: function () {
+      checkFunc() {
         return mw.user.options.get('gadget-urldecoder');
       },
     },
   ],
 
-  transformSummary: function (summary) {
+  transformSummary(summary) {
     return summary
       .replace(cd.s('es-new-subsection') + ': /* Итог */', 'итог')
       .replace(cd.s('es-new-subsection') + ': /* Предварительный итог */', 'предварительный итог')
       .replace(cd.s('es-new-subsection') + ': /* Предытог */', 'предытог');
   },
 
-  postTransformCode: function (code, commentForm) {
+  postTransformCode(code, commentForm) {
     // Add a closer template
     if (
-      commentForm.couldBeCloserClosing &&
+      'couldBeCloserClosing' in commentForm &&
+      commentForm.headlineInput &&
       commentForm.headlineInput.getValue().trim() === 'Итог' &&
       !/\{\{(?:(?:subst|подст):)?ПИ2?\}\}|правах подводящего итоги/.test(code)
     ) {
       code = code.replace(
         /(\n?\n)$/,
-        function (newlines) {
-          return '\n' + (cd.settings.get('closerTemplate') || '{{'.concat('subst:ПИ}}')) + newlines;
-        }
+        (newlines) =>
+          '\n' +
+          (/** @type {string} */ (cd.settings.get('closerTemplate')) || '{{'.concat('subst:ПИ}}')) +
+          newlines
       );
     }
 
     return code;
   },
 
-  rejectNode: function (node) {
+  rejectNode(node) {
     return (
       node.classList.contains('ts-Закрыто-header') ||
 
@@ -478,15 +485,15 @@ export default {
     );
   },
 
-  beforeAuthorLinkParse: function (authorLink, authorLinkPrototype) {
+  beforeAuthorLinkParse(authorLink, authorLinkPrototype) {
     // https://ru.wikipedia.org/wiki/MediaWiki:Gadget-markadmins.js
     const nextElement = authorLink.nextElementSibling;
-    if (nextElement && nextElement.classList.contains('userflags-wrapper')) {
+    if (nextElement?.classList.contains('userflags-wrapper')) {
       authorLinkPrototype.parentNode.insertBefore(nextElement, authorLinkPrototype.nextSibling);
     }
   },
 
-  areNewTopicsOnTop: function (title, code) {
+  areNewTopicsOnTop(title, code) {
     if (/\{\{[нН]овые сверху/.test(code)) {
       return true;
     } else if (/^Википедия:(?:.+ запросы|Запросы|Оспаривание |Форум[/ ])/.test(title)) {
@@ -498,23 +505,23 @@ export default {
     return null;
   },
 
-  getMoveSourcePageCode: function (targetPageWikilink, signature, timestamp) {
+  getMoveSourcePageCode(targetPageWikilink, signature, timestamp) {
     return '{{перенесено на|' + targetPageWikilink + '|' + signature + '}}\n<small>Для бота: ' + timestamp + '</small>\n';
   },
 
-  getMoveTargetPageCode: function (targetPageWikilink, signature) {
+  getMoveTargetPageCode(targetPageWikilink, signature) {
     return '{{перенесено с|' + targetPageWikilink + '|' + signature + '}}\n';
   },
-};
+});
 
 const cd = convenientDiscussions;
 
-mw.hook('convenientDiscussions.beforeParse').add(function () {
+mw.hook('convenientDiscussions.beforeParse').add(() => {
   // Handle {{-vote}} by actually putting pseudo-minus-1-level comments on the upper level. We split
   // the parent list tag into two parts putting the comment in between.
 
   // Commented for now, as it can confuse votes for the criteria check script on voting pages.
-  /*$('.ruwiki-commentIndentation-minus1level').each(function (i, el) {
+  /* $('.ruwiki-commentIndentation-minus1level').each(function (i, el) {
     const $current = $(el).css('margin', 0);
     const $list = $current.parent('dd, li').parent('dl, ul, ol');
     while ($list[0].contains($current[0])) {
@@ -531,14 +538,14 @@ mw.hook('convenientDiscussions.beforeParse').add(function () {
         $parent.remove();
       }
     }
-  });*/
+  }); */
 
-  mw.loader.using('mediawiki.util').then(function () {
+  mw.loader.using('mediawiki.util').then(() => {
     mw.util.addCSS('.ruwiki-msgIndentation-minus1level { margin-left: 0 !important; }');
   });
 });
 
-mw.hook('convenientDiscussions.pageReadyFirstTime').add(function () {
+mw.hook('convenientDiscussions.pageReadyFirstTime').add(() => {
   const generateEditCommonJsLink = function () {
     return mw.util.getUrl('User:' + cd.user.getName() + '/common.js', { action: 'edit' });
   };
@@ -558,7 +565,7 @@ mw.hook('convenientDiscussions.pageReadyFirstTime').add(function () {
           '.cd-comment-part[style="background-color: ' + dummyElement.style.color + ';"],' +
           '.cd-comment-part[style="background-color: ' + window.messagesHighlightColor + '"]'
         );
-        hlmStyledElements.forEach(function (el) {
+        hlmStyledElements.forEach((el) => {
           el.style.backgroundColor = null;
         });
       }
@@ -596,7 +603,7 @@ mw.hook('convenientDiscussions.pageReadyFirstTime').add(function () {
   }
 });
 
-mw.hook('convenientDiscussions.commentFormCreated').add(function (commentForm) {
+mw.hook('convenientDiscussions.commentFormCreated').add((commentForm) => {
   commentForm.couldBeCloserClosing = (
     cd.page.name.startsWith('Википедия:К удалению') &&
     commentForm.getMode() === 'addSubsection' &&
@@ -604,8 +611,8 @@ mw.hook('convenientDiscussions.commentFormCreated').add(function (commentForm) {
   );
 });
 
-mw.hook('convenientDiscussions.commentFormCustomModulesReady').add(function (commentForm) {
-  commentForm.$element.on('keydown', function (e) {
+mw.hook('convenientDiscussions.commentFormCustomModulesReady').add((commentForm) => {
+  commentForm.$element.on('keydown', (e) => {
     // Ctrl+Alt+W
     const isCmdModifierPressed = $.client.profile().platform === 'mac' ? e.metaKey : e.ctrlKey;
     if (isCmdModifierPressed && !e.shiftKey && e.altKey && e.keyCode === 87) {
@@ -614,7 +621,7 @@ mw.hook('convenientDiscussions.commentFormCustomModulesReady').add(function (com
   });
 });
 
-mw.hook('convenientDiscussions.commentFormToolbarReady').add(function (commentForm) {
+mw.hook('convenientDiscussions.commentFormToolbarReady').add((commentForm) => {
   commentForm.commentInput.$input.wikiEditor('addToToolbar', {
     section: 'main',
     groups: {
@@ -626,13 +633,13 @@ mw.hook('convenientDiscussions.commentFormToolbarReady').add(function (commentFo
             icon: 'https://upload.wikimedia.org/wikipedia/commons/4/41/Wikificator_VE_icon.svg',
             action: {
               type: 'callback',
-              execute: function () {
+              execute() {
                 window.Wikify(commentForm.commentInput.$input[0]);
               },
             },
           },
         },
-      }
+      },
     },
   });
   commentForm.$element
@@ -650,7 +657,7 @@ mw.hook('convenientDiscussions.commentFormToolbarReady').add(function (commentFo
           icon: 'https://upload.wikimedia.org/wikipedia/commons/3/3d/URL_decoder_VE_icon.svg',
           action: {
             type: 'callback',
-            execute: function () {
+            execute() {
               window.urlDecoderRun(commentForm.commentInput.$input[0]);
             },
           },

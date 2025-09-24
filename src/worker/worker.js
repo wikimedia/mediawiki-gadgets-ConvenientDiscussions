@@ -55,7 +55,7 @@ function setAlarm(interval) {
  * @private
  */
 function getAllTextNodes() {
-  let nodes = /** @type {import('domhandler').Text[]} */ ([]);
+  const nodes = /** @type {import('domhandler').Text[]} */ ([]);
   /** @type {import('domhandler').Element} */ (rootElement).traverseSubtree(
     (/** @type {import('domhandler').Node} */ node) => {
       if (isText(node)) {
@@ -187,13 +187,18 @@ function parse() {
     /** @type {(el1: import('domhandler').Node, el2: import('domhandler').Node) => boolean} */
     follows: (el1, el2) => el1.follows(el2),
     getAllTextNodes,
-    getElementByClassName: (el, className) => (/** @type {import('domhandler').Element} */ (el).getElementsByClassName(className, 1))[0] || null,
+    getElementByClassName: (el, className) =>
+      /** @type {import('domhandler').Element} */ (el).getElementsByClassName(className, 1)[0] ||
+      null,
     rootElement: /** @type {NonNullable<typeof rootElement>} */ (rootElement),
     document,
     areThereOutdents: () => {
       if (areThereOutdents === undefined) {
         areThereOutdents = Boolean(
-          /** @type {NonNullable<typeof rootElement>} */ (rootElement).getElementsByClassName(cd.config.outdentClass, 1).length
+          /** @type {NonNullable<typeof rootElement>} */ (rootElement).getElementsByClassName(
+            cd.config.outdentClass,
+            1
+          ).length
         );
       }
 

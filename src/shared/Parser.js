@@ -164,17 +164,20 @@ class Parser {
             (el) =>
               el.hasAttribute('data-mw-comment-start') ||
               el.hasAttribute('data-mw-comment-end') ||
+
               // This, in fact, targets the one span at the top of the page, out of sections which makes
               // comments taller (example:
               // https://commons.wikimedia.org/w/index.php?title=User_talk:Jack_who_built_the_house/CD_test_page&oldid=876639400).
               // Check for classes and content because in older DT versions, `data-mw-thread-id` was on
               // the .mw-headline element.
-              (el.tagName === 'SPAN' &&
+              (
+                el.tagName === 'SPAN' &&
                 el.hasAttribute('data-mw-thread-id') &&
                 !el.classList.length &&
-                !el.textContent)
+                !el.textContent
+              )
           )
-          .concat([ ...this.getElementsByClassName('ext-discussiontools-init-replylink-buttons') ])
+          .concat([...this.getElementsByClassName('ext-discussiontools-init-replylink-buttons')])
           .filter(unique)
       )
     );
@@ -198,8 +201,7 @@ class Parser {
         node.parentElement.classList.contains(cd.config.outdentClass)
       ) ||
       (
-        node.parentElement &&
-        node.parentElement.parentElement &&
+        node.parentElement?.parentElement &&
         Parser.contains(node.parentElement.parentElement, node) &&
         node.parentElement.parentElement.classList.contains(cd.config.outdentClass)
       )
@@ -465,12 +467,12 @@ class Parser {
 
     /** @type {Partial<SignatureTarget<N>>[]} */
     const unsigneds = [];
-    /** @type {HTMLElementFor<N>[]} */ ([...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass)])
+    /** @type {HTMLElementFor<N>[]} */ ([
+      ...this.context.rootElement.getElementsByClassName(cd.config.unsignedClass),
+    ])
       .filter((element) => {
         // Only templates with no timestamp interest us.
-        if (
-          this.context.getElementByClassName(element, 'cd-timestamp')
-        ) {
+        if (this.context.getElementByClassName(element, 'cd-timestamp')) {
           return false;
         }
 
@@ -634,7 +636,7 @@ class Parser {
         for (
           let /** @type {HTMLElementFor<N> | null} */ el = element;
           el && el !== this.context.rootElement;
-          el = /** @type {HTMLElementFor<N>} */ (el.parentElement)
+          el = /** @type {HTMLElementFor<N> | null} */ (el.parentElement)
         ) {
           if (el.classList.contains('mw-heading')) {
             return el;
@@ -759,11 +761,9 @@ class Parser {
           if (authorData.link || authorData.talkLink) {
             return false;
           }
-        } else {
+        } else if (authorData.link || authorData.talkLink) {
           // Cases like https://ru.wikipedia.org/?diff=115909247
-          if (authorData.link || authorData.talkLink) {
-            return false;
-          }
+          return false;
         }
         authorData.isLastLinkAuthorLink = true;
       } else {
@@ -891,18 +891,16 @@ class Parser {
       }
 
       userName = ucFirst(underlinesToSpaces(userName.replace(/\/.*/, ''))).trim();
+    } else if (
+      element.classList.contains('mw-selflink') &&
+      cd.g.namespaceNumber === 3 &&
+      !cd.g.pageName.includes('/')
+    ) {
+      // Comments of users that have only the user talk page link in their signature on their talk
+      // page.
+      userName = cd.g.pageTitle;
     } else {
-      if (
-        element.classList.contains('mw-selflink') &&
-        cd.g.namespaceNumber === 3 &&
-        !cd.g.pageName.includes('/')
-      ) {
-        // Comments of users that have only the user talk page link in their signature on their talk
-        // page.
-        userName = cd.g.pageTitle;
-      } else {
-        return null;
-      }
+      return null;
     }
 
     return { userName, linkType };

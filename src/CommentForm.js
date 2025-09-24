@@ -1138,35 +1138,38 @@ class CommentForm extends EventEmitter {
 
     $toolbarPlaceholder.remove();
 
+    this.tweakToolbar();
+
+    // A hack to make the WikiEditor cookies related to active sections and pages saved correctly.
+    this.commentInput.$input.data('wikiEditor-context').instance = 5;
+    $.wikiEditor.instances = Array.from({ length: 5 });
+
+    /**
+     * The comment form toolbar is ready; all the requested custom comment form modules have been
+     * loaded and executed.
+     *
+     * @event commentFormToolbarReady
+     * @param {CommentForm} commentForm
+     * @param {object} cd {@link convenientDiscussions} object.
+     */
+    mw.hook('convenientDiscussions.commentFormToolbarReady').fire(this, cd);
+  }
+
+  /**
+   * @private
+   */
+  tweakToolbar() {
+    this.setupToolbar();
+    this.removeToolbarElements();
+    this.addToolbarButtons();
+    this.addCodeMirror();
+  }
+
+  /**
+   * @private
+   */
+  addToolbarButtons() {
     const $input = this.commentInput.$input;
-
-    const wikiEditorModule = mw.loader.moduleRegistry['ext.wikiEditor'];
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const toolbarConfig = wikiEditorModule.packageExports['jquery.wikiEditor.toolbar.config.js'];
-    $input.wikiEditor('addModule', toolbarConfig);
-    const dialogsConfig = wikiEditorModule.packageExports['jquery.wikiEditor.dialogs.config.js'];
-    dialogsConfig.replaceIcons($input);
-    const dialogsDefaultConfig = dialogsConfig.getDefaultConfig();
-    if (this.uploadToCommons) {
-      const commentForm = this;
-      dialogsDefaultConfig.dialogs['insert-file'].dialog.buttons[
-        'wikieditor-toolbar-tool-file-upload'
-      ] = /** @this {HTMLElement} */ function () {
-        $(this).dialog('close');
-        commentForm.uploadImage(undefined, true);
-      };
-    }
-    $input.wikiEditor('addModule', dialogsDefaultConfig);
-
-    this.commentInput.$element
-      .find(
-        '.tool[rel="redirect"], .tool[rel="signature"], .tool[rel="newline"], .tool[rel="reference"], .option[rel="heading-2"]'
-      )
-      .remove();
-    if (!this.isMode('addSection') && !this.isMode('addSubsection')) {
-      this.commentInput.$element.find('.group-heading').remove();
-    }
-
     const scriptPath = mw.config.get('wgScriptPath');
     const lang = cd.g.userLanguage;
     $input.wikiEditor('addToToolbar', {
@@ -1229,10 +1232,9 @@ class CommentForm extends EventEmitter {
         commentLink: {
           label: cd.s('cf-commentlink-tooltip'),
           type: 'button',
-          icon:
-            cd.g.userDirection === 'ltr'
-              ? `'data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M3 2C2.46957 2 1.96086 2.21071 1.58579 2.58579C1.21071 2.96086 1 3.46957 1 4V20L5 16H17C17.5304 16 18.0391 15.7893 18.4142 15.4142C18.7893 15.0391 19 14.5304 19 14V4C19 3.46957 18.7893 2.96086 18.4142 2.58579C18.0391 2.21071 17.5304 2 17 2H3Z" /%3E%3C/svg%3E'`
-              : `'data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M17 2C17.5304 2 18.0391 2.21071 18.4142 2.58579C18.7893 2.96086 19 3.46957 19 4V20L15 16H3C2.46957 16 1.96086 15.7893 1.58579 15.4142C1.21071 15.0391 1 14.5304 1 14V4C1 3.46957 1.21071 2.96086 1.58579 2.58579C1.96086 2.21071 2.46957 2 3 2H17Z" /%3E%3C/svg%3E'`,
+          icon: cd.g.userDirection === 'ltr'
+            ? `'data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M3 2C2.46957 2 1.96086 2.21071 1.58579 2.58579C1.21071 2.96086 1 3.46957 1 4V20L5 16H17C17.5304 16 18.0391 15.7893 18.4142 15.4142C18.7893 15.0391 19 14.5304 19 14V4C19 3.46957 18.7893 2.96086 18.4142 2.58579C18.0391 2.21071 17.5304 2 17 2H3Z" /%3E%3C/svg%3E'`
+            : `'data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M17 2C17.5304 2 18.0391 2.21071 18.4142 2.58579C18.7893 2.96086 19 3.46957 19 4V20L15 16H3C2.46957 16 1.96086 15.7893 1.58579 15.4142C1.21071 15.0391 1 14.5304 1 14V4C1 3.46957 1.21071 2.96086 1.58579 2.58579C1.96086 2.21071 2.46957 2 3 2H17Z" /%3E%3C/svg%3E'`,
           action: {
             type: 'callback',
             execute: () => {
@@ -1358,26 +1360,49 @@ class CommentForm extends EventEmitter {
     });
 
     this.$element.find('.tool[rel="quote"]').wrap($('<span>').addClass('cd-tool-button-wrapper'));
-
-    this.addCodeMirror();
-
-    // A hack to make the WikiEditor cookies related to active sections and pages saved correctly.
-    $input.data('wikiEditor-context').instance = 5;
-    $.wikiEditor.instances = Array.from({ length: 5 });
-
-    /**
-     * The comment form toolbar is ready; all the requested custom comment form modules have been
-     * loaded and executed.
-     *
-     * @event commentFormToolbarReady
-     * @param {CommentForm} commentForm
-     * @param {object} cd {@link convenientDiscussions} object.
-     */
-    mw.hook('convenientDiscussions.commentFormToolbarReady').fire(this, cd);
   }
 
   /**
-   *
+   * @private
+   */
+  setupToolbar() {
+    const $input = this.commentInput.$input;
+
+    const wikiEditorModule = mw.loader.moduleRegistry['ext.wikiEditor'];
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const toolbarConfig = wikiEditorModule.packageExports['jquery.wikiEditor.toolbar.config.js'];
+    $input.wikiEditor('addModule', toolbarConfig);
+    const dialogsConfig = wikiEditorModule.packageExports['jquery.wikiEditor.dialogs.config.js'];
+    dialogsConfig.replaceIcons($input);
+    const dialogsDefaultConfig = dialogsConfig.getDefaultConfig();
+    if (this.uploadToCommons) {
+      const commentForm = this;
+      dialogsDefaultConfig.dialogs['insert-file'].dialog.buttons[
+        'wikieditor-toolbar-tool-file-upload'
+      ] = /** @this {HTMLElement} */ function openUploadDialog() {
+        $(this).dialog('close');
+        commentForm.uploadImage(undefined, true);
+      };
+    }
+    $input.wikiEditor('addModule', dialogsDefaultConfig);
+  }
+
+  /**
+   * @private
+   */
+  removeToolbarElements() {
+    this.commentInput.$element
+      .find(
+        '.tool[rel="redirect"], .tool[rel="signature"], .tool[rel="newline"], .tool[rel="reference"], .option[rel="heading-2"]'
+      )
+      .remove();
+    if (!this.isMode('addSection') && !this.isMode('addSubsection')) {
+      this.commentInput.$element.find('.group-heading').remove();
+    }
+  }
+
+  /**
+   * @private
    */
   addCodeMirror() {
     if (!cd.g.isCodeMirror6Installed) return;
@@ -1565,7 +1590,7 @@ class CommentForm extends EventEmitter {
    */
   checkCode() {
     if (!this.checkCodeRequest) {
-      this.checkCodeRequest = this.target.loadCode(this).catch((error) => {
+      this.checkCodeRequest = this.target.loadCode(this).catch((/** @type {unknown} */ error) => {
         this.$messageArea.empty();
         delete this.checkCodeRequest;
         this.handleError({ error });
@@ -2553,7 +2578,7 @@ class CommentForm extends EventEmitter {
    *   `'error'`.
    * @param {boolean} [options.isRawMessage=false] Show the message as it is, without icons and
    *   framing.
-   * @param {string} [options.logMessage] Message for the browser console.
+   * @param {Error | undefined} [options.errorToLog] Error to log in the browser console.
    * @param {boolean} [options.cancel=false] Cancel the form and show the message as a notification.
    * @param {import('./CommentFormOperation').default} [options.operation]
    *   Operation the form is undergoing.
@@ -2563,7 +2588,7 @@ class CommentForm extends EventEmitter {
     $message,
     messageType = 'error',
     isRawMessage = false,
-    logMessage,
+    errorToLog,
     cancel = false,
     operation,
   }) {
@@ -2571,8 +2596,8 @@ class CommentForm extends EventEmitter {
 
     if (this.torndown) return;
 
-    if (logMessage) {
-      console.warn(logMessage);
+    if (errorToLog) {
+      console.warn(errorToLog);
     }
 
     if (cancel) {
@@ -2603,9 +2628,9 @@ class CommentForm extends EventEmitter {
   //  *   server. (Either `code`, `apiResponse`, or `message` should be specified.)
   /**
    * @typedef {object} HandleErrorOptions
-   * @property {CdError | Error | any} options.error
-   * @property {string | JQuery} [options.message] Text of the error. (Either `code`, `apiResponse`,
-   *   or `message` should be specified.)
+   * @property {unknown} options.error
+   * @property {string | JQuery} [options.message] Text of the error or a JQuery element with it.
+   *   (Either `code`, `apiResponse`, or `message` should be specified.)
    * @property {'error' | 'notice' | 'warning'} [options.messageType='error'] Message type if not
    *   `'error'`.
    * @property {boolean} [options.cancel=false] Cancel the form and show the message as a
@@ -2623,19 +2648,17 @@ class CommentForm extends EventEmitter {
    * @param {HandleErrorOptions} options
    */
   handleError({ error, message, messageType = 'error', cancel = false, operation }) {
-    if (!(error instanceof CdError)) {
-      error = CdError.generateCdErrorFromJsError(error);
-    }
+    const cdError = error instanceof CdError
+      ? error
+      : CdError.generateCdErrorFromJsErrorOrMessage(error || message);
 
-    message = (error ? error.getMessage() : message) || '';
-    /** @type {JQuery | undefined} */
-    let $message;
-    /** @type {string | undefined} */
-    let logMessage;
-    switch (error.getType()) {
+    message = cdError.getMessage() || '';
+    /** @type {CdError | undefined} */
+    let errorToLog;
+    switch (cdError.getType()) {
       case 'parse': {
         const editUrl = cd.g.server + cd.page.getUrl({ action: 'edit' });
-        switch (error.getCode()) {
+        switch (cdError.getCode()) {
           case 'locateComment':
             message = cd.sParse('error-locatecomment', editUrl, cd.page.name);
             break;
@@ -2664,7 +2687,7 @@ class CommentForm extends EventEmitter {
           case 'commentLinks-commentNotFound':
             message = cd.sParse(
               'cf-error-commentlinks-commentnotfound',
-              /** @type {{ id: string }} */ (error.getDetails()).id
+              /** @type {{ id: string }} */ (cdError.getDetails()).id
             );
             break;
         }
@@ -2673,49 +2696,51 @@ class CommentForm extends EventEmitter {
 
       case 'api': {
         // Error messages from the API should override our generic messages, except for `missing` and `missingtitle` (the last comes from CommentForm#editPage).
-        switch (error.getCode()) {
+        switch (cdError.getCode()) {
           case 'missing':
             message = cd.sParse('cf-error-pagedoesntexist');
             break;
 
           case 'missingtitle':
-            message ||= error.getHtml();
+            message ||= cdError.getHtml();
             break;
 
           default:
-            message = error.getHtml();
+            message = cdError.getHtml();
         }
 
-        logMessage ||= error;
+        errorToLog ||= cdError;
         break;
       }
 
       case 'response': {
-        switch (error.getCode()) {
+        switch (cdError.getCode()) {
           case 'missingtitle':
             message = cd.sParse('cf-error-pagedoesntexist');
             break;
         }
 
-        logMessage ||= error;
+        errorToLog ||= cdError;
         break;
       }
 
       case 'network':
       case 'javascript': {
-        const type = error.getType();
-        message = message + ' ' + cd.sParse(`error-${type}`);
-        logMessage ||= error;
+        const type = cdError.getType();
+        message = typeof message === 'string'
+          ? message + ' ' + cd.sParse(`error-${type}`)
+          : message;
+        errorToLog ||= cdError;
         break;
       }
     }
     if (!message) return;
 
-    $message =
+    const $message =
       typeof message === 'string'
         ? wrapHtml(message, {
             callbacks: {
-              'cd-message-reloadPage': async () => {
+              'cd-message-reloadPage': () => {
                 if (this.confirmClose()) {
                   this.reloadPage();
                 }
@@ -2728,8 +2753,8 @@ class CommentForm extends EventEmitter {
     this.abort({
       $message,
       messageType,
-      isRawMessage: /** @type {{ isRawMessage: boolean }} */ (error.getDetails()).isRawMessage,
-      logMessage,
+      isRawMessage: /** @type {{ isRawMessage: boolean }} */ (cdError.getDetails()).isRawMessage,
+      errorToLog,
       cancel,
       operation,
     });
@@ -3821,7 +3846,7 @@ class CommentForm extends EventEmitter {
         data.content = '';
       }
       /** @type {NonNullable<typeof data.cmdModify>} */ (data.cmdModify)();
-      const text = data.start + data.content + data.end;
+      const text = data.start + (data.content || '') + (data.end || '');
       this.commentInput
         .selectRange(0)
         .insertContent(text)

@@ -33,7 +33,7 @@
  * @property {ErrorType} [type='internal']
  * @property {string} [code]
  * @property {AnyByKey} [details={}]
- * @property {string} [message]
+ * @property {string | JQuery} [message]
  * @property {import('types-mediawiki/mw/Api').ApiResponse} [apiResponse]
  * @property {string} [html]
  */
@@ -79,7 +79,7 @@ class CdError extends Error {
     super(
       data.type +
       (data.code ? '/' + data.code : '') +
-      (data.message ? ': ' + data.message : '')
+      (typeof data.message === 'string' ? ': ' + data.message : '')
     );
 
     this.name = 'CdError';
@@ -105,7 +105,7 @@ class CdError extends Error {
   /**
    * Get the error message.
    *
-   * @returns {string | undefined}
+   * @returns {string | JQuery | undefined}
    */
   getMessage() {
     return this.data.message;
@@ -182,10 +182,10 @@ class CdError extends Error {
   /**
    * Generate an instance of this class given a JavaScript error.
    *
-   * @param {any} error
+   * @param {any} error JS error or message (including a jQuery one).
    * @returns {CdError}
    */
-  static generateCdErrorFromJsError(error) {
+  static generateCdErrorFromJsErrorOrMessage(error) {
     return new CdError({
       type: 'javascript',
       message: error instanceof Error ? error.stack : error,

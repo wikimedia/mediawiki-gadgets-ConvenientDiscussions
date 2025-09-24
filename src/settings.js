@@ -667,19 +667,19 @@ class Settings {
       }
 
       if (!areObjectsEqual(this.values, remoteSettings)) {
-        this.save().catch((error) => {
+        this.save().catch((/** @type {unknown} */ error) => {
           console.warn('Couldn\'t save the settings to the server.', error);
         });
       }
 
       // Undocumented settings and settings in variables `cd...` and `cdLocal...` override all other
       // and are not saved to the server.
-      this.set(Object.assign(
-        {},
-        this.scheme.undocumented,
-        this.getSettingPropertiesOfObject(window, 'cd', this.scheme.undocumented),
-        this.getLocalOverrides(),
-      ));
+      this.set({
+
+        ...this.scheme.undocumented,
+        ...this.getSettingPropertiesOfObject(window, 'cd', this.scheme.undocumented),
+        ...this.getLocalOverrides(),
+      });
     })();
 
     return this.initPromise;
@@ -793,7 +793,8 @@ class Settings {
    *
    * @overload
    * @param {string} name The name of the setting.
-   * @returns {undefined} If the setting is not found.
+   * @returns {unknown} If the setting is not found. (It may be set by a wiki though, e.g.
+   *   `closerTemplate` in Ruwiki.)
    *
    * @overload
    * @returns {SettingsValues} An object containing all settings.
@@ -803,7 +804,7 @@ class Settings {
    * Get the value of a setting without loading from the server.
    *
    * @param {string} [name]
-   * @returns {SettingsValues[SettingName] | undefined | SettingsValues}
+   * @returns {SettingsValues[SettingName] | unknown | SettingsValues}
    */
   get(name) {
     return name
@@ -877,6 +878,7 @@ class Settings {
       [loadedSettings] = await this.dialogPromise;
     } catch {
       mw.notify(cd.s('error-settings-load'), { type: 'error' });
+
       return;
     } finally {
       delete this.dialogPromise;
@@ -967,6 +969,7 @@ class Settings {
       mw.notify(cd.s('error-settings-save'), { type: 'error' });
       console.warn(error);
     }
+
     return accepted;
   }
 
@@ -1020,7 +1023,7 @@ class Settings {
           try {
             await promise;
           } catch (error) {
-            mw.notify(cd.s('error-settings-save'), { type: 'error' })
+            mw.notify(cd.s('error-settings-save'), { type: 'error' });
             console.warn(error);
           }
         }
