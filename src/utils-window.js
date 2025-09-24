@@ -32,9 +32,9 @@ import { maskDistractingCode } from './shared/utils-wikitext';
  * {@link mergeJquery}.
  *
  * @param {string} html
- * @param {object} [options={}]
+ * @param {object} [options]
  * @param {WrapCallbacks} [options.callbacks]
- * @param {string} [options.tagName='span']
+ * @param {string} [options.tagName]
  * @param {boolean} [options.targetBlank]
  * @returns {JQuery}
  */
@@ -79,6 +79,7 @@ export function wrapDiffBody(body) {
     mw.user.options.get('editfont') === 'monospace' ? 'diff-editfont-monospace' : undefined,
     'diff-contentalign-' + (cd.g.contentDirection === 'ltr' ? 'left' : 'right'),
   ].filter(defined).join(' ');
+
   return (
     `<table class="${className}">` +
     '<col class="diff-marker"><col class="diff-content">' +
@@ -98,11 +99,12 @@ export function transparentize(color) {
   const dummyElement = document.createElement('span');
   dummyElement.style.color = color;
   color = dummyElement.style.color;
-  return color.includes('rgba') ?
-    color.replace(/\d+(?=\))/, '0') :
-    color
-      .replace('rgb', 'rgba')
-      .replace(')', ', 0)');
+
+  return color.includes('rgba')
+    ? color.replace(/\d+(?=\))/, '0')
+    : color
+        .replace('rgb', 'rgba')
+        .replace(')', ', 0)');
 }
 
 /**
@@ -118,6 +120,7 @@ export function isInputFocused() {
   }
 
   const $active = $(document.activeElement);
+
   return $active.is(':input') || $active.prop('isContentEditable');
 }
 
@@ -304,6 +307,7 @@ export function copyText(text, messages) {
     .val(text)
     .appendTo(document.body)
     .trigger('select');
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   const successful = document.execCommand('copy');
   $textarea.remove();
 
@@ -390,7 +394,9 @@ export function cleanUpPasteDom(element, containerElement) {
       el.removeAttribute('style');
     });
 
-  const removeElement = (/** @type {Element} */ el) => el.remove();
+  const removeElement = (/** @type {Element} */ el) => {
+    el.remove();
+  };
   const replaceWithChildren = (/** @type {Element} */ el) => {
     if (
       ['DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'DD'].includes(el.tagName) &&
@@ -444,7 +450,7 @@ export function cleanUpPasteDom(element, containerElement) {
     (
       (el.tagName === 'PRE' ? /** @type {HTMLElement} */ (el.parentElement) : el).className
         .match('mw-highlight-lang-([0-9a-z_-]+)') ||
-      []
+        []
     )[1]
   ));
 
@@ -475,6 +481,7 @@ export function cleanUpPasteDom(element, containerElement) {
     .forEach((el) => {
       if (!allowedTags.has(el.tagName.toLowerCase())) {
         replaceWithChildren(el);
+
         return;
       }
 
@@ -520,6 +527,7 @@ export function getElementFromPasteHtml(html) {
   div.innerHTML = html
     .replace(/^[^]*<!-- *StartFragment *-->/, '')
     .replace(/<!-- *EndFragment *-->[^]*$/, '');
+
   return div;
 }
 
@@ -623,8 +631,8 @@ export function getRangeContents(start, end, rootElement) {
  *
  * @param {number} width
  * @param {number} height
- * @param {number} [viewBoxWidth=width]
- * @param {number} [viewBoxHeight=height]
+ * @param {number} [viewBoxWidth]
+ * @param {number} [viewBoxHeight]
  * @returns {JQuery<SVGElement>}
  */
 export function createSvg(width, height, viewBoxWidth = width, viewBoxHeight = height) {
@@ -661,7 +669,7 @@ export function getAllTextNodes(rootNode) {
  * Check if an anchor is existent on the page (in an element ID or the `name` of an `<a>` element).
  *
  * @param {string} anchor
- * @param {boolean} [isWikilink=false] The anchor is part of a wikilink string (e.g. [[#test
+ * @param {boolean} [isWikilink] The anchor is part of a wikilink string (e.g. [[#test
  *   test]]). If so, we will replace spaces with underlines.
  * @returns {?boolean}
  */
@@ -745,7 +753,7 @@ export function extractSignatures(code) {
   // But keep in mind that this code may still be part of comments.
   const noSignatureClassesPattern = cd.g.noSignatureClasses.join(String.raw`\b|\b`);
   const commentAntipatternsPatternParts = [
-    `class=(['"])[^'"\\n]*(?:\\b${noSignatureClassesPattern}\\b)[^'"\\n]*\\1`
+    `class=(['"])[^'"\\n]*(?:\\b${noSignatureClassesPattern}\\b)[^'"\\n]*\\1`,
   ];
   if (cd.config.noSignatureTemplates.length) {
     const pattern = cd.config.noSignatureTemplates.map(generatePageNamePattern).join('|');
@@ -855,7 +863,7 @@ function extractRegularSignatures(adjustedCode, code) {
   const lastAuthorLinkRegexp = new RegExp(`^.*${cd.g.captureUserNamePattern}`, 'i');
   const authorLinkRegexp = new RegExp(cd.g.captureUserNamePattern, 'ig');
 
-  let signatures = [];
+  const signatures = [];
   let timestampMatch;
   while ((timestampMatch = timestampRegexp.exec(adjustedCode))) {
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -1052,9 +1060,9 @@ export function getCommonGender(users) {
  * _For internal use._ Prepare `dayjs` object for further use (add plugins and a locale).
  */
 export function initDayjs() {
-  if (/** @type {typeof dayjs.utc | undefined} */ (dayjs.utc)) return;
+  if (/** @type {any} */ (dayjs).utc) return;
 
-  const locale = cd.i18n[cd.g.userLanguage]?.dayjsLocale;
+  const locale = cd.g.userLanguage in cd.i18n ? cd.i18n[cd.g.userLanguage].dayjsLocale : undefined;
   if (locale) {
     dayjs.locale(locale);
   }
@@ -1067,7 +1075,7 @@ export function initDayjs() {
  * Convert a date to a string in the format set in the settings.
  *
  * @param {Date} date
- * @param {boolean} [addTimezone=false]
+ * @param {boolean} [addTimezone]
  * @returns {string}
  */
 export function formatDate(date, addTimezone = false) {
@@ -1088,7 +1096,7 @@ export function formatDate(date, addTimezone = false) {
  * Convert a date to a string in the default timestamp format.
  *
  * @param {Date} date
- * @param {boolean} [addTimezone=false] Add the timezone postfix (for example, "(UTC+2)").
+ * @param {boolean} [addTimezone] Add the timezone postfix (for example, "(UTC+2)").
  * @param {string} [timezone] Use the specified time zone no matter user settings.
  * @returns {string}
  */
@@ -1104,11 +1112,11 @@ export function formatDateNative(date, addTimezone = false, timezone) {
     if (cd.g.areUiAndLocalTimezoneSame) {
       timezoneOffset = -date.getTimezoneOffset();
     } else {
-      timezoneOffset = typeof cd.g.uiTimezone === 'number' ?
-        cd.g.uiTimezone :
+      timezoneOffset = typeof cd.g.uiTimezone === 'number'
+        ? cd.g.uiTimezone
 
         // Using date-fns-tz's getTimezoneOffset is way faster than using day.js's methods.
-        getTimezoneOffset(/** @type {string} */(cd.g.uiTimezone), date.getTime()) / cd.g.msInMin;
+        : getTimezoneOffset(/** @type {string} */(cd.g.uiTimezone), date.getTime()) / cd.g.msInMin;
     }
     date = new Date(date.getTime() + timezoneOffset * cd.g.msInMin);
   } else if (!timezone || timezone === 'UTC') {
@@ -1156,19 +1164,19 @@ export function formatDateNative(date, addTimezone = false, timezone) {
         break;
       }
       case 'j':
-        string += day;
+        string += String(day);
         break;
       case 'n':
-        string += monthIdx + 1;
+        string += String(monthIdx + 1);
         break;
       case 'Y':
-        string += year;
+        string += String(year);
         break;
       case 'xkY':
-        string += year + 543;
+        string += String(year + 543);
         break;
       case 'G':
-        string += hours;
+        string += String(hours);
         break;
       case 'H':
         string += String(hours).padStart(2, '0');
@@ -1183,7 +1191,7 @@ export function formatDateNative(date, addTimezone = false, timezone) {
       case '"':
         // Quoted literal
         if (p < format.length - 1) {
-          const endQuote = format.indexOf('"', p + 1)
+          const endQuote = format.indexOf('"', p + 1);
           if (endQuote === -1) {
             // No terminating quote, assume literal "
             string += '"';
@@ -1223,11 +1231,11 @@ export function formatDateImproved(date, addTimezone = false) {
     if (cd.g.areUiAndLocalTimezoneSame) {
       timezoneOffset = -date.getTimezoneOffset();
     } else {
-      timezoneOffset = typeof cd.g.uiTimezone === 'number' ?
-        cd.g.uiTimezone :
+      timezoneOffset = typeof cd.g.uiTimezone === 'number'
+        ? cd.g.uiTimezone
 
         // Using date-fns-tz's getTimezoneOffset is way faster than using day.js's methods.
-        getTimezoneOffset(/** @type {string} */(cd.g.uiTimezone), now.getTime()) / cd.g.msInMin;
+        : getTimezoneOffset(/** @type {string} */(cd.g.uiTimezone), now.getTime()) / cd.g.msInMin;
 
       dayjsDate = dayjsDate.utcOffset(timezoneOffset);
     }

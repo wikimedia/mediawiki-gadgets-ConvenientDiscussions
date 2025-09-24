@@ -72,14 +72,13 @@ function setStrings() {
     require('../dist/convenientDiscussions-i18n/en.js');
   }
   const strings = Object.keys(cd.i18n.en).reduce((acc, name) => {
-    acc[name] = cd.i18n[
-      contentStrings.some((contentStringName) => (
-        name === contentStringName ||
-        (contentStringName.endsWith('-') && name.startsWith(contentStringName))
-      ))
-        ? cd.g.contentLanguage
-        : cd.g.userLanguage
-    ]?.[name] || cd.i18n.en[name];
+    const lang = contentStrings.some((contentStringName) => (
+      name === contentStringName ||
+      (contentStringName.endsWith('-') && name.startsWith(contentStringName))
+    ))
+      ? cd.g.contentLanguage
+      : cd.g.userLanguage;
+    acc[name] = lang in cd.i18n ? cd.i18n[lang][name] : cd.i18n.en[name];
 
     return acc;
   }, /** @type {StringsByKey} */ ({}));
@@ -210,7 +209,7 @@ function setLanguages() {
   const languageOrFallback = (/** @type {string} */ lang) =>
     i18nList.includes(lang)
       ? lang
-      : (/** @type {StringArraysByKey} */ (languageFallbacks)[lang])?.find(
+      : (/** @type {{[key: string]: string[] | undefined}} */ (languageFallbacks)[lang])?.find(
           (/** @type {string} */ fallback) => i18nList.includes(fallback)
         ) || 'en';
 
@@ -374,7 +373,7 @@ export function getStringsPromise() {
   )
     // If no language fallbacks are employed, we can do without requesting additional i18ns.
     // cd.getStringsPromise may be set in the configuration file.
-    ? !cd.i18n && (cd.getStringsPromise || getStrings()) || Promise.resolve()
+    ? !(cd.i18n && (cd.getStringsPromise || getStrings())) || Promise.resolve()
 
     : getStrings();
 }

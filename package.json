@@ -2,31 +2,38 @@
   "name": "convenient-discussions",
   "version": "0.0.0",
   "description": "A JavaScript shell for wiki talk pages.",
-  "scripts": {
-    "build": "node buildConfigs.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider webpack",
-    "build16": "node buildConfigs.mjs && node buildI18n.mjs && webpack",
-    "start": "node buildConfigs.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs && cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack serve --env dev",
-    "serve": "cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack serve --env dev",
-    "configs": "node buildConfigs.mjs",
-    "deploy": "node --unhandled-rejections=strict deploy.mjs",
-    "docs": "rimraf dist/docs && jsdoc --configure jsdoc/config.js --readme jsdoc/home.md",
-    "i18n": "cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs",
-    "webpack": "cross-env NODE_OPTIONS=--openssl-legacy-provider webpack",
-    "single": "node buildConfigs.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs && cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack --env single",
-    "test": "jest",
-    "postinstall": "patch-package"
+  "homepage": "https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/Convenient_Discussions",
+  "bugs": {
+    "url": "https://phabricator.wikimedia.org/tag/convenient-discussions/"
   },
-  "browser": "src/app.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jwbth/convenient-discussions.git"
   },
-  "author": "Jack who built the house",
   "license": "MIT",
-  "bugs": {
-    "url": "https://phabricator.wikimedia.org/tag/convenient-discussions/"
+  "author": "Jack who built the house",
+  "sideEffects": [
+    "./src/worker/worker.js",
+    "./src/worker/extendDomhandler.js"
+  ],
+  "browser": "src/app.js",
+  "scripts": {
+    "build": "node buildConfigs.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider webpack",
+    "build16": "node buildConfigs.mjs && node buildI18n.mjs && webpack",
+    "configs": "node buildConfigs.mjs",
+    "deploy": "node --unhandled-rejections=strict deploy.mjs",
+    "docs": "rimraf dist/docs && jsdoc --configure jsdoc/config.js --readme jsdoc/home.md",
+    "i18n": "cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs",
+    "postinstall": "patch-package",
+    "serve": "cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack serve --env dev",
+    "single": "node buildConfigs.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs && cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack --env single",
+    "start": "node buildConfigs.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs && cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack serve --env dev",
+    "test": "jest",
+    "webpack": "cross-env NODE_OPTIONS=--openssl-legacy-provider webpack"
   },
-  "homepage": "https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/Convenient_Discussions",
+  "browserslist": [
+    "> 1%"
+  ],
   "dependencies": {
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
@@ -68,7 +75,7 @@
     "dompurify": "^3.2.6",
     "eslint": "^9.32.0",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-jsdoc": "^52.0.2",
+    "eslint-plugin-jsdoc": "^60.2.0",
     "eslint-plugin-no-one-time-vars": "^2.7.0",
     "eslint-plugin-unicorn": "^60.0.0",
     "http-proxy-to-socks": "^1.1.2",
@@ -98,13 +105,6 @@
     "worker-loader": "^3.0.8",
     "yargs": "^18.0.0"
   },
-  "sideEffects": [
-    "./src/worker/worker.js",
-    "./src/worker/extendDomhandler.js"
-  ],
-  "browserslist": [
-    "> 1%"
-  ],
   "engines": {
     "node": ">=16.0.0"
   }

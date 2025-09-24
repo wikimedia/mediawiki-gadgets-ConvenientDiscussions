@@ -171,7 +171,7 @@ export function splitIntoBatches(arr) {
  * Make a request that won't set the process on hold when the tab is in the background.
  *
  * @param {import('types-mediawiki/api_params').UnknownApiParams} params
- * @param {'get'|'post'|'postWithEditToken'} [method='post']
+ * @param {'get'|'post'|'postWithEditToken'} [method]
  * @returns {Promise.<import('types-mediawiki/mw/Api').ApiResponse>}
  */
 export function requestInBackground(params, method = 'post') {
@@ -249,7 +249,7 @@ export async function parseCode(code, customOptions) {
 /**
  * Make a userinfo request (see {@link https://www.mediawiki.org/wiki/API:Userinfo}).
  *
- * @param {boolean} [reuse=false] Whether to reuse a cached request.
+ * @param {boolean} [reuse] Whether to reuse a cached request.
  * @returns {JQuery.Promise.<UserInfo>} Promise for an object containing the full options object,
  *   visits, subscription list, and rights.
  * @throws {CdError}
@@ -357,7 +357,7 @@ export async function getPageIds(titles) {
  * Generic function for saving user options to the server.
  *
  * @param {{ [key: string]: ?string }} options Name-value pairs.
- * @param {boolean} [isGlobal=false] Whether to save the options globally (using
+ * @param {boolean} [isGlobal] Whether to save the options globally (using
  *   {@link https://www.mediawiki.org/wiki/Extension:GlobalPreferences Extension:GlobalPreferences}).
  * @throws {CdError}
  */
@@ -440,7 +440,7 @@ export async function saveGlobalOption(name, value) {
  * `'female'`, or `'unknown'`.
  *
  * @param {import('./User').default[]} users
- * @param {boolean} [doRequestInBackground=false] Make a request that won't set the process on hold
+ * @param {boolean} [doRequestInBackground] Make a request that won't set the process on hold
  *   when the tab is in the background.
  * @returns {Promise<void>}
  */

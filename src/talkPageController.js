@@ -175,7 +175,7 @@ class TalkPageController extends EventEmitter {
    * Save the scroll position relative to the first element in the viewport looking from the top of
    * the page.
    *
-   * @param {?boolean} [switchToAbsolute=null] If this value is `true` or `false` and the viewport
+   * @param {?boolean} [switchToAbsolute] If this value is `true` or `false` and the viewport
    *   is above the bottom of the table of contents, then use
    *   {@link TalkPageController#saveScrollPosition} (this allows for better precision).
    * @param {number} scrollY Cached horizontal scroll value used to avoid reflow.
@@ -252,44 +252,42 @@ class TalkPageController extends EventEmitter {
   /**
    * Restore the scroll position saved in {@link TalkPageController#saveRelativeScrollPosition}.
    *
-   * @param {boolean} [switchToAbsolute=false] Restore the absolute position using
+   * @param {boolean} [switchToAbsolute] Restore the absolute position using
    *   {@link TalkPageController#restoreScrollPosition} if
    *   {@link TalkPageController#saveScrollPosition} was previously used for saving the position.
    */
   restoreRelativeScrollPosition(switchToAbsolute = false) {
     if (switchToAbsolute && this.scrollData.offset !== null) {
       this.restoreScrollPosition();
-    } else {
-      if (this.scrollData.touchesBottom && window.scrollY !== 0) {
+    } else if (this.scrollData.touchesBottom && window.scrollY !== 0) {
+      window.scrollTo(
+        0,
+        document.documentElement.scrollHeight -
+        window.innerHeight -
+        /** @type {number} */ (this.scrollData.offsetBottom)
+      );
+    } else if (this.scrollData.element) {
+      const rect = this.scrollData.element.getBoundingClientRect();
+      if (getVisibilityByRects(rect)) {
         window.scrollTo(
           0,
-          document.documentElement.scrollHeight -
-            window.innerHeight -
-            /** @type {number} */ (this.scrollData.offsetBottom)
+          window.scrollY + rect.top - /** @type {number} */ (this.scrollData.elementTop)
         );
-      } else if (this.scrollData.element) {
-        const rect = this.scrollData.element.getBoundingClientRect();
-        if (getVisibilityByRects(rect)) {
-          window.scrollTo(
-            0,
-            window.scrollY + rect.top - /** @type {number} */ (this.scrollData.elementTop)
-          );
-        } else {
-          // In a collapsed thread?
-          const closestHidden = /** @type {?HTMLElement} */ (
-            this.scrollData.element.closest('.cd-hidden')
-          );
-          if (closestHidden) {
-            commentRegistry.getAll()
-              .map((comment) => comment.thread)
-              .filter(defined)
-              .filter((thread) => thread.isCollapsed)
-              .find((thread) =>
-                /** @type {HTMLElement[]} */ (thread.collapsedRange).includes(closestHidden)
-              )
-              ?.$expandNote
-              ?.cdScrollTo('top', false);
-          }
+      } else {
+        // In a collapsed thread?
+        const closestHidden = /** @type {?HTMLElement} */ (
+          this.scrollData.element.closest('.cd-hidden')
+        );
+        if (closestHidden) {
+          commentRegistry.getAll()
+            .map((comment) => comment.thread)
+            .filter(defined)
+            .filter((thread) => thread.isCollapsed)
+            .find((thread) =>
+            /** @type {HTMLElement[]} */ (thread.collapsedRange).includes(closestHidden)
+            )
+            ?.$expandNote
+            ?.cdScrollTo('top', false);
         }
       }
     }
@@ -312,7 +310,7 @@ class TalkPageController extends EventEmitter {
    * Save the scroll position to restore it later with
    * {@link TalkPageController#restoreScrollPosition}.
    *
-   * @param {boolean} [saveTocHeight=true] `false` is used for more fine control of scroll behavior
+   * @param {boolean} [saveTocHeight] `false` is used for more fine control of scroll behavior
    *   when visits are loaded after a page reboot.
    */
   saveScrollPosition(saveTocHeight = true) {
@@ -333,7 +331,7 @@ class TalkPageController extends EventEmitter {
   /**
    * Restore the scroll position saved in {@link TalkPageController#saveScrollPosition}.
    *
-   * @param {boolean} [resetTocHeight=true] `false` is used for more fine control of scroll behavior
+   * @param {boolean} [resetTocHeight] `false` is used for more fine control of scroll behavior
    *   after page reboots.
    */
   restoreScrollPosition(resetTocHeight = true) {
@@ -430,9 +428,9 @@ class TalkPageController extends EventEmitter {
   getHiddenElements() {
     if (!this.hiddenElements) {
       const hiddenElementSelector = this.getTsHiddenElementSelectors().join(', ');
-      this.hiddenElements = hiddenElementSelector ?
-        [...bootController.rootElement.querySelectorAll(hiddenElementSelector)] :
-        [];
+      this.hiddenElements = hiddenElementSelector
+        ? [...bootController.rootElement.querySelectorAll(hiddenElementSelector)]
+        : [];
     }
 
     return this.hiddenElements;
@@ -570,7 +568,7 @@ class TalkPageController extends EventEmitter {
           .some((el) => el.matches(':hover')) ||
 
         // WikiEditor dialog
-        $(document.body).children('.ui-dialog').not('[style*="display: none"]').length
+          $(document.body).children('.ui-dialog').not('[style*="display: none"]').length
       );
     }, 100)();
 
@@ -610,7 +608,7 @@ class TalkPageController extends EventEmitter {
 
   /**
    * _For internal use._ Handle a document's `scroll` event: Register seen comments, update the
-   * * navigation panel's first unseen button, and update the current section block. Trigger the
+   * navigation panel's first unseen button, and update the current section block. Trigger the
    * `horizontalscroll` event.
    */
   handleScroll() {
@@ -808,8 +806,8 @@ class TalkPageController extends EventEmitter {
     const goToCommentUrl = mw.util.getUrl('Special:GoToComment/');
     const extractCommentId = (/** @type {HTMLElement} */ el) =>
       /** @type {string} */ ($(el).attr('href'))
-      .replace(mw.util.escapeRegExp(goToCommentUrl), '#')
-      .slice(1);
+        .replace(mw.util.escapeRegExp(goToCommentUrl), '#')
+        .slice(1);
     $content
       .find(`a[href^="#"], a[href^="${goToCommentUrl}"]`)
       .filter((_, el) =>
@@ -841,18 +839,18 @@ class TalkPageController extends EventEmitter {
 
     const currentUserName = cd.user.getName();
     const excludeSelector = [
-      settings.get('reformatComments') ?
-        'cd-comment-author' :
-        'cd-signature'
+      settings.get('reformatComments')
+        ? 'cd-comment-author'
+        : 'cd-signature',
     ]
       .concat(cd.config.noSignatureClasses)
       .map((name) => `.${name}`)
       .join(', ');
     $content
       .find(
-        $content.hasClass('cd-comment-part') ?
-          `a[title$=":${currentUserName}"], a[title*=":${currentUserName} ("]` :
-          `.cd-comment-part a[title$=":${currentUserName}"], .cd-comment-part a[title*=":${currentUserName} ("]`
+        $content.hasClass('cd-comment-part')
+          ? `a[title$=":${currentUserName}"], a[title*=":${currentUserName} ("]`
+          : `.cd-comment-part a[title$=":${currentUserName}"], .cd-comment-part a[title*=":${currentUserName} ("]`
       )
       .filter(function () {
         return (
@@ -874,7 +872,9 @@ class TalkPageController extends EventEmitter {
   updatePageContents(parseData) {
     bootController.$content.children('.mw-parser-output').first().replaceWith(bootController.$root);
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     mw.util.clearSubtitle?.();
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     mw.util.addSubtitle?.(parseData.subtitle);
 
     if ($('#catlinks').length) {
@@ -945,9 +945,9 @@ class TalkPageController extends EventEmitter {
     const relevantMark = this.areRelevantCommentsAdded ? '*' : '';
     document.title = title.replace(
       /^(?:\(\d+\*?\) )?/,
-      this.addedCommentCount ?
-        `(${this.addedCommentCount}${relevantMark}) ` :
-        ''
+      this.addedCommentCount
+        ? `(${this.addedCommentCount}${relevantMark}) `
+        : ''
     );
   }
 
@@ -1010,14 +1010,14 @@ class TalkPageController extends EventEmitter {
       // therefore an ID. In that case Comment#getUrl() returns a string.
       link: /** @type {string} */ (object.getUrl()),
 
-      permanentLink: object.isComment() ?
-        /** @type {import('./Page').default} */ (pageRegistry.get(
-          mw.config.get('wgFormattedNamespaces')[-1] + ':' + 'GoToComment/' + fragment
-        )).getDecodedUrlWithFragment() :
-        object.getUrl(true),
-      jsCall: object.isComment() ?
-        `let c = convenientDiscussions.api.getCommentById('${object.id}');` :
-        `let s = convenientDiscussions.api.getSectionById('${object.id}');`,
+      permanentLink: object.isComment()
+        /** @type {import('./Page').default} */ ? (pageRegistry.get(
+            mw.config.get('wgFormattedNamespaces')[-1] + ':' + 'GoToComment/' + fragment
+          )).getDecodedUrlWithFragment()
+        : object.getUrl(true),
+      jsCall: object.isComment()
+        ? `let c = convenientDiscussions.api.getCommentById('${object.id}');`
+        : `let s = convenientDiscussions.api.getSectionById('${object.id}');`,
       jsBreakpoint: `this.id === '${object.id}'`,
       jsBreakpointTimestamp: object.isComment()
         ? `timestamp.element.textContent === '${object.timestampText}'`
@@ -1037,6 +1037,7 @@ class TalkPageController extends EventEmitter {
           copyText(content.link, content.copyMessages);
           break;
       }
+
       return;
     }
 
@@ -1049,7 +1050,7 @@ class TalkPageController extends EventEmitter {
    * Scroll to a specified position vertically.
    *
    * @param {number} y
-   * @param {boolean} [smooth=true]
+   * @param {boolean} [smooth]
    * @param {Function} [callback]
    */
   scrollToY(y, smooth = true, callback) {
@@ -1061,7 +1062,7 @@ class TalkPageController extends EventEmitter {
 
     if (smooth) {
       $('body, html').animate({ scrollTop: y }, {
-        complete: function () {
+        complete() {
           if (this !== document.documentElement) return;
           onComplete();
         },
@@ -1174,34 +1175,34 @@ class TalkPageController extends EventEmitter {
         const comment = filteredComments[0];
         html = comment.isToMe
           ? cd.sParse(
-              'notification-toyou',
-              comment.author.getName(),
-              comment.author,
+            'notification-toyou',
+            comment.author.getName(),
+            comment.author,
 
+            (
+              wordSeparator +
+
+              // Where the comment is
               (
-                wordSeparator +
-
-                // Where the comment is
-                (
-                  comment.sectionSubscribedTo
-                    ? cd.s('notification-part-insection', comment.sectionSubscribedTo.headline)
-                    : cd.s('notification-part-onthispage')
-                )
+                comment.sectionSubscribedTo
+                  ? cd.s('notification-part-insection', comment.sectionSubscribedTo.headline)
+                  : cd.s('notification-part-onthispage')
               )
-            ) +
-            wordSeparator +
-            rebootHtml
+            )
+          ) +
+          wordSeparator +
+          rebootHtml
           : cd.sParse(
-              'notification-insection',
-              comment.author.getName(),
-              comment.author,
-              /** @type {import('./Section').default} */ (comment.sectionSubscribedTo).headline
-            ) +
-            wordSeparator +
-            rebootHtml;
+            'notification-insection',
+            comment.author.getName(),
+            comment.author,
+            /** @type {import('./Section').default} */ (comment.sectionSubscribedTo).headline
+          ) +
+          wordSeparator +
+          rebootHtml;
       } else {
         const section =
-            // Is there a common section?
+        // Is there a common section?
           filteredComments.every(
             (comment) => comment.sectionSubscribedTo === filteredComments[0].sectionSubscribedTo
           )
@@ -1220,15 +1221,15 @@ class TalkPageController extends EventEmitter {
             filteredComments.length,
 
             wordSeparator +
-              (
-                // Where the comments are
-                section
-                  ? cd.s('notification-part-insection', section.headline)
-                  : cd.s('notification-part-onthispage')
-              ),
+            (
+            // Where the comments are
+              section
+                ? cd.s('notification-part-insection', section.headline)
+                : cd.s('notification-part-onthispage')
+            ),
 
-          // "that may be relevant to you" text is not needed when the section is watched and the
-          // user can clearly understand why they are notified.
+            // "that may be relevant to you" text is not needed when the section is watched and the
+            // user can clearly understand why they are notified.
             section ? '' : mayBeRelevantString
           ) +
           wordSeparator +

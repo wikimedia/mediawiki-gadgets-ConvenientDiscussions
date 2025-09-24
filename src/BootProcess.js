@@ -153,7 +153,7 @@ class BootProcess {
   /**
    * Create a boot process.
    *
-   * @param {PassedData} [passedData={}]
+   * @param {PassedData} [passedData]
    */
   constructor(passedData = {}) {
     this.passedData = passedData;

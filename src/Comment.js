@@ -374,7 +374,7 @@ class Comment extends CommentSkeleton {
    */
   isSeenBeforeChanged = null;
 
-  /** @type {import('./Thread').default} */
+  /** @type {import('./Thread').default | undefined} */
   thread;
 
   /** @type {string|undefined} */
@@ -556,7 +556,7 @@ class Comment extends CommentSkeleton {
    * Process a possible signature node or a node that contains text which is part of a signature.
    *
    * @param {?Node} node
-   * @param {boolean} [isSpaced=false] Was the previously removed node start with a space.
+   * @param {boolean} [isSpaced] Was the previously removed node start with a space.
    * @private
    */
   processPossibleSignatureNode(node, isSpaced = false) {
@@ -1411,21 +1411,20 @@ class Comment extends CommentSkeleton {
   /**
    * @template {boolean} [Set=false]
    * @typedef {object} GetOffsetOptions
-   * @property {import('./utils-window').ExtendedDOMRect[]} [options.floatingRects]
+   * @property {import('./utils-window').ExtendedDOMRect[]} [floatingRects]
    *   {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect Element#getBoundingClientRect}
    *   results for floating elements from `convenientDiscussions.g.floatingElements`. It may be
    *   calculated in advance for many elements in one sequence to save time.
-   * @property {boolean} [options.considerFloating] Whether to take floating elements around the
-   *   comment into account. Deemed `true` if `options.floatingRects` is set.
-   * @property {Set} [options.set] Whether to set the offset to the `offset` (if
-   *   `options.considerFloating` is `true`) or `roughOffset` (if `options.considerFloating` is
-   *   `false`) property. If `true`, the function will return a boolean value indicating if the
-   *   comment is moved instead of the offset. (This value can be used to stop recalculating comment
-   *   offsets if a number of comments in a row have not moved for optimization purposes.) Setting
-   *   the `offset` property implies that the layers offset will be updated afterwards (see
-   *   {@link Comment#updateLayersOffset}) - otherwise, the next attempt to call this method to
-   *   update the layers offset will return `false` meaning the comment isn't moved, and the layers
-   *   offset will stay wrong.
+   * @property {boolean} [considerFloating] Whether to take floating elements around the comment
+   *   into account. Deemed `true` if `floatingRects` is set.
+   * @property {Set} [set] Whether to set the offset to the `offset` (if `considerFloating` is
+   *   `true`) or `roughOffset` (if `considerFloating` is `false`) property. If `true`, the function
+   *   will return a boolean value indicating if the comment is moved instead of the offset. (This
+   *   value can be used to stop recalculating comment offsets if a number of comments in a row have
+   *   not moved for optimization purposes.) Setting the `offset` property implies that the layers
+   *   offset will be updated afterwards (see {@link Comment#updateLayersOffset}) - otherwise, the
+   *   next attempt to call this method to update the layers offset will return `false` meaning the
+   *   comment isn't moved, and the layers offset will stay wrong.
    */
 
   /**
@@ -1447,7 +1446,7 @@ class Comment extends CommentSkeleton {
    * Note that comment coordinates are not static, obviously, but we need to recalculate them only
    * occasionally.
    *
-   * @param {GetOffsetOptions<boolean>} [options={}]
+   * @param {GetOffsetOptions<boolean>} [options]
    * @returns {CommentOffset|boolean|undefined} Offset object. If the comment is not visible,
    *   returns `undefined`. If `options.set` is `true`, returns a boolean value indicating if the
    *   comment has moved instead of the offset.
@@ -1566,7 +1565,7 @@ class Comment extends CommentSkeleton {
    *   into account).
    * @param {number} bottom Bottom coordonate of the comment (calculated without taking floating
    *   elements into account).
-   * @param {import('./utils-window').ExtendedDOMRect[]} [floatingRects=controller.getFloatingElements().map(getExtendedRect)]
+   * @param {import('./utils-window').ExtendedDOMRect[]} [floatingRects]
    *   {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect Element#getBoundingClientRect}
    *   results for floating elements from `convenientDiscussions.g.floatingElements`. It may be
    *   calculated in advance for many elements in one sequence to save time.
@@ -1771,7 +1770,7 @@ class Comment extends CommentSkeleton {
    * Add the underlay and overlay if they are missing, update their styles, recalculate their offset
    * and redraw if the comment has been moved or do nothing if everything is right.
    *
-   * @param {ConfigureLayersOptions} [options={}]
+   * @param {ConfigureLayersOptions} [options]
    * @returns {boolean | undefined} Is the comment moved or created. `undefined` if we couldn't
    *   determine (for example, if the element is invisible).
    */
@@ -1780,7 +1779,7 @@ class Comment extends CommentSkeleton {
     options.update ??= true;
 
     const isMoved = this.computeLayersOffset(options);
-    if (isMoved === null) return;
+    if (isMoved === undefined) return;
 
     // Configure the layers only if they were unexistent or the comment position has changed, to
     // save time.
@@ -1803,7 +1802,7 @@ class Comment extends CommentSkeleton {
   /**
    * Calculate the underlay and overlay offset and set it to the `layersOffset` property.
    *
-   * @param {GetOffsetOptions} [options={}]
+   * @param {GetOffsetOptions} [options]
    * @returns {boolean | undefined} Is the comment moved. `null` if it is invisible.
    * @private
    */
@@ -2069,7 +2068,7 @@ class Comment extends CommentSkeleton {
   /**
    * Update the styles of the layers according to the comment's properties.
    *
-   * @param {boolean} [wereJustCreated=false] Were the layers just created.
+   * @param {boolean} [wereJustCreated] Were the layers just created.
    * @private
    */
   updateLayersStyles(wereJustCreated = false) {
@@ -2233,7 +2232,7 @@ class Comment extends CommentSkeleton {
   /**
    * Unhighlight the comment when it has lost focus.
    *
-   * @param {boolean} [force=false] Unhighlight even if the "Toggle child threads" popup is open.
+   * @param {boolean} [force] Unhighlight even if the "Toggle child threads" popup is open.
    */
   unhighlightHovered(force = false) {
     if (!this.isHovered || this.isReformatted() || (this.toggleChildThreadsPopup && !force)) return;
@@ -2368,8 +2367,10 @@ class Comment extends CommentSkeleton {
     this.unhighlightDeferred?.reject();
 
     this.unhighlightDeferred = $.Deferred();
-    this.unhighlightDeferred.then(this.animateBack.bind(this, flag, callback));
-    sleep(delay).then(this.unhighlightDeferred.resolve);
+    this.unhighlightDeferred.then(() => {
+      this.animateBack(flag, callback);
+    });
+    sleep(delay).then(() => this.unhighlightDeferred?.resolve());
   }
 
   /**
@@ -3197,7 +3198,7 @@ class Comment extends CommentSkeleton {
   /**
    * Get a diff link for the comment.
    *
-   * @param {'standard'|'short'|'wikilink'} [format='standard'] Format to get the link in.
+   * @param {'standard'|'short'|'wikilink'} [format] Format to get the link in.
    * @returns {Promise.<string>}
    */
   async getDiffLink(format = 'standard') {
@@ -3654,7 +3655,7 @@ class Comment extends CommentSkeleton {
    * offset.
    *
    * @param {boolean} partially Return `true` even if only a part of the comment is in the viewport.
-   * @param {CommentOffset|null} [offset=this.getOffset()] Prefetched offset.
+   * @param {CommentOffset|null} [offset] Prefetched offset.
    * @returns {?boolean}
    */
   isInViewport(partially = false, offset = this.getOffset()) {
@@ -3676,7 +3677,7 @@ class Comment extends CommentSkeleton {
    *
    * @param {'forward'|'backward'} [registerAllInDirection] Mark all comments in the forward or
    *   backward direction from this comment as seen.
-   * @param {boolean} [flash=false] Whether to flash the comment as a target.
+   * @param {boolean} [flash] Whether to flash the comment as a target.
    */
   registerSeen(registerAllInDirection, flash = false) {
     const isInVewport = !registerAllInDirection || this.isInViewport();
@@ -3752,7 +3753,7 @@ class Comment extends CommentSkeleton {
     let newElement;
     if (typeof newElementOrHtml === 'string') {
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-      const index = [.../** @type {HTMLElement} */ (nativeElement.parentElement).children].indexOf(
+      const index = [...(nativeElement.parentElement).children].indexOf(
         nativeElement
       );
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -3789,7 +3790,7 @@ class Comment extends CommentSkeleton {
   /**
    * Get the comment's text.
    *
-   * @param {boolean} [cleanUpSignature=true] Whether to clean up the signature.
+   * @param {boolean} [cleanUpSignature] Whether to clean up the signature.
    * @returns {string}
    */
   getText(cleanUpSignature = true) {
@@ -3832,7 +3833,7 @@ class Comment extends CommentSkeleton {
    *
    * @param {string} contextCode
    * @param {import('./updateChecker').CommentWorkerBase} [commentData]
-   * @param {boolean} [isInSectionContext=false]
+   * @param {boolean} [isInSectionContext]
    * @returns {CommentSource|undefined}
    * @private
    */
@@ -3946,7 +3947,7 @@ class Comment extends CommentSkeleton {
    * and do something when it's received.
    *
    * @param {() => void} callback
-   * @param {boolean} [runAlways=false] Whether to execute the callback even if the gender request
+   * @param {boolean} [runAlways] Whether to execute the callback even if the gender request
    *   is not needed.
    */
   async maybeRequestAuthorGender(callback, runAlways = false) {
@@ -4003,7 +4004,7 @@ class Comment extends CommentSkeleton {
   /**
    * Get a link to the comment with Unicode sequences decoded.
    *
-   * @param {boolean} [permanent=false] Get a permanent URL.
+   * @param {boolean} [permanent] Get a permanent URL.
    * @returns {?string}
    */
   getUrl(permanent = false) {
@@ -4636,7 +4637,8 @@ class Comment extends CommentSkeleton {
     return this.openingSection;
   }
 
-  /** @type {PrototypeRegistry<{
+  /**
+   * @type {PrototypeRegistry<{
    *   headerWrapperElement: HTMLElement
    *   goToParentButtonSvg: SVGElement
    *   goToChildButtonSvg: SVGElement
@@ -4644,7 +4646,7 @@ class Comment extends CommentSkeleton {
    *   expandChildThreadsButtonSvg: SVGElement
    *   underlay: HTMLElement
    *   overlay: HTMLElement
-   * }>} */
+    }>} */
   static prototypes = new PrototypeRegistry();
 
   /** @type {RegExp} */
@@ -4992,7 +4994,9 @@ class Comment extends CommentSkeleton {
       flash: false,
       pushState: true,
       callback: () => {
-        comments.forEach((comment) => comment.flashTarget());
+        comments.forEach((comment) => {
+          comment.flashTarget();
+        });
       },
       ...scrollToConfig,
     });

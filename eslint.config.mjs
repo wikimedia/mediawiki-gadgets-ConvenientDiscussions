@@ -1,10 +1,10 @@
 // import babelParser from '@babel/eslint-parser';
-import eslint from '@eslint/js';
+import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
-import jsdocPlugin from 'eslint-plugin-jsdoc';
-import noOneTimeVarsPlugin from 'eslint-plugin-no-one-time-vars';
-import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import { jsdoc } from 'eslint-plugin-jsdoc';
+import noOneTimeVars from 'eslint-plugin-no-one-time-vars';
+import unicorn from 'eslint-plugin-unicorn';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
@@ -14,16 +14,42 @@ const config = defineConfig(
     ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js'],
   },
 
+  js.configs.recommended,
+  tseslint.configs.recommended,
+  ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  unicorn.configs.recommended,
+  jsdoc({
+    config: 'flat/recommended-typescript-flavor',
+    rules: {
+      'jsdoc/check-alignment': 'off',
+      'jsdoc/check-line-alignment': ['warn', 'any', {
+        wrapIndent: '  ',
+      }],
+      'jsdoc/check-tag-names': 'off',
+      'jsdoc/check-types': 'off',
+      'jsdoc/require-property-description': 'off',
+      'jsdoc/require-returns-description': 'off',
+      'jsdoc/require-jsdoc': ['warn', {
+        require: {
+          ClassDeclaration: true,
+          ClassExpression: true,
+          FunctionDeclaration: true,
+          MethodDefinition: true,
+        },
+        enableFixer: false,
+      }],
+      'jsdoc/require-param-description': 'off',
+      'jsdoc/tag-lines': ['warn', 'any', {
+        startLines: 1,
+      }],
+    },
+  }),
+
   stylistic.configs.customize({
     semi: true,
     arrowParens: true,
   }),
-
-  eslint.configs.recommended,
-  tseslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
-  eslintPluginUnicorn.configs.recommended,
 
   // Main configuration
   {
@@ -41,7 +67,7 @@ const config = defineConfig(
           // allowDefaultProject: ['*.js', '*.mjs'],
         },
         tsconfigRootDir: import.meta.dirname,
-        jsDocParsingMode: 'all',
+        // jsDocParsingMode: 'all',
       },
       globals: {
         CONFIG_FILE_NAME: 'readonly',
@@ -65,9 +91,8 @@ const config = defineConfig(
       },
     },
     plugins: {
-      'jsdoc': jsdocPlugin,
       'import': importPlugin,
-      'no-one-time-vars': noOneTimeVarsPlugin,
+      'no-one-time-vars': noOneTimeVars,
       // 'unicorn': eslintPluginUnicorn,
       '@stylistic': stylistic,
       // '@typescript-eslint': tseslint.plugin,
@@ -297,38 +322,6 @@ const config = defineConfig(
         },
       ],
 
-      // JSDoc plugin rules
-      // 'jsdoc/check-alignment': 'warn',
-      'jsdoc/check-param-names': 'warn',
-      // 'jsdoc/check-tag-names': 'warn',
-      // 'jsdoc/check-types': 'warn',
-      'jsdoc/implements-on-classes': 'warn',
-      'jsdoc/require-jsdoc': [
-        'warn',
-        {
-          require: {
-            FunctionDeclaration: true,
-            MethodDefinition: true,
-            ClassDeclaration: true,
-            ClassExpression: true,
-          },
-        },
-      ],
-      'jsdoc/require-param': 'warn',
-      'jsdoc/require-param-name': 'warn',
-      'jsdoc/require-param-type': 'warn',
-      'jsdoc/require-returns': 'warn',
-      'jsdoc/require-returns-check': 'warn',
-      'jsdoc/require-returns-type': 'warn',
-      'jsdoc/tag-lines': [
-        'warn',
-        'any',
-        {
-          startLines: 1,
-        },
-      ],
-      'jsdoc/check-line-alignment': ['warn', 'any', { wrapIndent: '  ' }],
-
       '@stylistic/no-multi-spaces': ['error', {
         ignoreEOLComments: true,
       }],
@@ -410,9 +403,6 @@ const config = defineConfig(
 
       // Slow rules (run `cross-env TIMING=1 eslint --config eslint.config.mjs --fix-dry-run src/`)
       'unicorn/no-unnecessary-polyfills': 'off',
-      'jsdoc/check-tag-names': 'off',
-      'jsdoc/check-alignment': 'off',
-      'jsdoc/check-types': 'off',
     },
   },
 
@@ -450,6 +440,12 @@ const config = defineConfig(
     files: ['**/*.d.ts'],
     languageOptions: {
       parser: tseslint.parser,
+      parserOptions: {
+        projectService: {
+          defaultProject: 'tsconfig.json',
+        },
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       '@typescript-eslint': tseslint.plugin,
@@ -465,6 +461,7 @@ const config = defineConfig(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
       '@typescript-eslint/no-unnecessary-condition': 'off',
+      '@typescript-eslint/await-thenable': 'off',
     },
   },
 );

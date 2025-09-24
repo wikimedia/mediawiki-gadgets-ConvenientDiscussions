@@ -14,7 +14,8 @@ const context = self;
  * @namespace convenientDiscussions
  * @global
  */
-/** @type {any} */ (context).convenientDiscussions ||= /** @type {ConvenientDiscussionsBase} */ ({});
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+context.convenientDiscussions ||= /** @type {ConvenientDiscussionsBase} */ ({});
 
 const convenientDiscussionsShared = {
   /**

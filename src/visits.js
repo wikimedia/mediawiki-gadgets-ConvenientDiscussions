@@ -34,7 +34,7 @@ class Visits extends EventEmitter {
    * focused, so an indefinite amount of time can pass.
    *
    * @param {import('./BootProcess').default} bootProcess
-   * @param {boolean} [reuse=false] Whether to reuse a cached userinfo request.
+   * @param {boolean} [reuse] Whether to reuse a cached userinfo request.
    */
   async load(bootProcess, reuse = false) {
     if (!cd.user.isRegistered()) return;
@@ -45,6 +45,7 @@ class Visits extends EventEmitter {
       this.unpack(await getUserInfo(reuse).then(({ visits }) => visits));
     } catch (error) {
       console.warn('Convenient Discussions: Couldn\'t load the settings from the server.', error);
+
       return;
     }
 
@@ -197,7 +198,7 @@ class Visits extends EventEmitter {
   /**
    * Remove the oldest `share`% of visits when the size limit is hit.
    *
-   * @param {number} [share=0.1]
+   * @param {number} [share]
    * @private
    */
   cleanUp(share = 0.1) {
@@ -219,7 +220,7 @@ class Visits extends EventEmitter {
    * For tests: set the last visit to a date or a number of days before the current date. Use via
    * `cd.tests.visits.rollBack()`, then refresh the page.
    *
-   * @param {Date|number} [dateOrDays=1]
+   * @param {Date|number} [dateOrDays]
    */
   rollBack(dateOrDays = 1) {
     this.currentPageData.splice(1);

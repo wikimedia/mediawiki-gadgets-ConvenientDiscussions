@@ -30,7 +30,7 @@ import cd from './shared/cd';
 
 /**
  * @typedef {(
- *   & import('./shared/cd').ConvenientDiscussionsBase
+ *     import('./shared/cd').ConvenientDiscussionsBase
  *   & typeof import('./convenientDiscussions').convenientDiscussionsWindow
  *   & ConvenientDiscussionsWindowExtension
  * )} ConvenientDiscussions

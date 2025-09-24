@@ -244,12 +244,12 @@ class Thread extends mixInObject(
         nextForeignElement
       );
       visualEndElementFallback = this.visualLastComment === this.visualLastCommentFallback
-          ? visualEndElement
-          : Thread.findEndElementOfZeroLevelThread(
-              startElement,
-              visualHighlightablesFallback,
-              nextForeignElement
-            );
+        ? visualEndElement
+        : Thread.findEndElementOfZeroLevelThread(
+            startElement,
+            visualHighlightablesFallback,
+            nextForeignElement
+          );
       endElement = this.hasOutdents
         ? Thread.findEndElementOfZeroLevelThread(startElement, highlightables, nextForeignElement)
         : visualEndElement;
@@ -329,11 +329,11 @@ class Thread extends mixInObject(
   /**
    * Handle the `mouseenter` event on the click area.
    *
-   * @param {MouseEvent} [event]
-   * @param {boolean} [force=false]
+   * @param {MouseEvent} [_event]
+   * @param {boolean} [force]
    * @private
    */
-  handleClickAreaHover = (event, force = false) => {
+  handleClickAreaHover = (_event, force = false) => {
     if (Thread.navMode && !force) return;
 
     const highlight = () => {
@@ -637,12 +637,14 @@ class Thread extends mixInObject(
   handleClickAreaClick = (event) => {
     if (this.blockClickEvent) {
       this.blockClickEvent = false;
+
       return;
     }
 
-    if (!/** @type {HTMLElement} */ (
-      this.clickArea
-    ).classList.contains('cd-thread-clickArea-hovered')) return;
+    if (
+      !(this.clickArea).classList.contains('cd-thread-clickArea-hovered')
+    )
+      return;
 
     this.onToggleClick(event);
   };
@@ -690,7 +692,7 @@ class Thread extends mixInObject(
    * Get the end element of the thread, revising it based on
    * {@link Comment#subitemList comment subitems}.
    *
-   * @param {boolean} [visual=false] Use the visual thread end.
+   * @param {boolean} [visual] Use the visual thread end.
    * @returns {?HTMLElement} Logically, should never return `null`, unless something extraordinary
    *   happens that makes the return value of `Thread.findItemElement()` `null`.
    * @private
@@ -822,7 +824,7 @@ class Thread extends mixInObject(
     if (cd.g.genderAffectsUserString) {
       (loadUserGendersPromise || loadUserGenders(usersInThread)).then(
         () => {
-          setLabel();
+          setLabel(false);
         },
         () => {
           // Couldn't get the gender, use the genderless version.
@@ -830,7 +832,7 @@ class Thread extends mixInObject(
         }
       );
     } else {
-      setLabel();
+      setLabel(false);
     }
 
     const firstElement = /** @type {HTMLElement[]} */ (this.collapsedRange)[0];
@@ -891,13 +893,12 @@ class Thread extends mixInObject(
    * Expand the thread if it's collapsed and collapse if it's expanded, together with its sibling
    * threads.
    *
-   * @param {boolean} [clickedThread=false] Clicked the thread rather than a parent comment's
+   * @param {boolean} [clickedThread] Clicked the thread rather than a parent comment's
    *   button.
    */
   toggleWithSiblings(clickedThread = false) {
     const wasCollapsed = clickedThread
       ? this.isCollapsed
-
 
       : Boolean(this.rootComment.getParent()?.areChildThreadsCollapsed());
     this.rootComment.getSiblingsAndSelf().forEach((sibling) => {
@@ -930,9 +931,9 @@ class Thread extends mixInObject(
   /**
    * Collapse the thread.
    *
-   * @param {boolean} [auto=false] Automatic collapse - don't scroll anywhere and don't save
+   * @param {boolean} [auto] Automatic collapse - don't scroll anywhere and don't save
    *   collapsed threads.
-   * @param {boolean} [isBatchOperation=auto] Is this called as part of some batch operation (so, no
+   * @param {boolean} [isBatchOperation] Is this called as part of some batch operation (so, no
    *   scrolling or updating the parent comment's "Toggle child threads" button look).
    * @param {Promise.<void>} [loadUserGendersPromise]
    */
@@ -996,8 +997,8 @@ class Thread extends mixInObject(
   /**
    * Expand the thread.
    *
-   * @param {boolean} [auto=false] Automatic expand - don't save collapsed threads.
-   * @param {boolean} [isBatchOperation=auto] Is this called as part of some batch operation (so, no
+   * @param {boolean} [auto] Automatic expand - don't save collapsed threads.
+   * @param {boolean} [isBatchOperation] Is this called as part of some batch operation (so, no
    *   scrolling or updating the parent comment's "Toggle child threads" button look).
    */
   expand(auto = false, isBatchOperation = auto) {
@@ -1098,7 +1099,7 @@ class Thread extends mixInObject(
    */
   updateEndOfCollapsedRange(closedDiscussions) {
     const collapsedRange = /** @type {HTMLElement[]} */ (this.collapsedRange);
-    let end = collapsedRange.slice(-1)[0];
+    const end = collapsedRange.slice(-1)[0];
 
     // Include a closed discussion template if the entirety of its contents is included but not the
     // start.
@@ -1114,7 +1115,7 @@ class Thread extends mixInObject(
           (
             parent.lastElementChild === child.nextElementSibling &&
             /** @type {HTMLElement} */ (child.nextElementSibling).classList.contains('mw-notalk'))
-          )
+        )
       );
     /** @type {(el: HTMLElement | undefined) => HTMLElement | undefined} */
     const getParentIfItsFinalChild = (el) =>
@@ -1127,12 +1128,10 @@ class Thread extends mixInObject(
         : undefined;
     /** @type {(ancestor: HTMLElement, descendant: HTMLElement | undefined, maxDepth: number) => boolean} */
     const isFinalDescendant = (ancestor, descendant, maxDepth) =>
-      Boolean(
-        maxDepth > 0 &&
-        (
-          isFinalChild(ancestor, descendant) ||
-          isFinalDescendant(ancestor, getParentIfItsFinalChild(descendant), maxDepth - 1)
-        )
+      maxDepth > 0 &&
+      (
+        isFinalChild(ancestor, descendant) ||
+        isFinalDescendant(ancestor, getParentIfItsFinalChild(descendant), maxDepth - 1)
       );
 
     if (
@@ -1304,6 +1303,7 @@ class Thread extends mixInObject(
     }
 
     /** @type {ClickAreaOffset} */
+    // eslint-disable-next-line object-shorthand
     this.clickAreaOffset = { top, left: /** @type {number} */ (left), height };
 
     if (!this.line) {
@@ -1327,9 +1327,9 @@ class Thread extends mixInObject(
   updateClickAreaOffset() {
     const clickArea = /** @type {HTMLElement} */ (this.clickArea);
     const clickAreaOffset = /** @type {ClickAreaOffset} */ (this.clickAreaOffset);
-    clickArea.style.left = clickAreaOffset.left + 'px';
-    clickArea.style.top = clickAreaOffset.top + 'px';
-    clickArea.style.height = clickAreaOffset.height + 'px';
+    clickArea.style.left = String(clickAreaOffset.left) + 'px';
+    clickArea.style.top = String(clickAreaOffset.top) + 'px';
+    clickArea.style.height = String(clickAreaOffset.height) + 'px';
   }
 
   /**
@@ -1356,10 +1356,11 @@ class Thread extends mixInObject(
   /**
    * @private
    */
-  /** @type {PrototypeRegistry<{
+  /**
+   * @type {PrototypeRegistry<{
    *   expandButton: HTMLElement
    *   clickArea: HTMLElement
-   * }>} */
+    }>} */
   static prototypes = new PrototypeRegistry();
 
   /**
@@ -1422,13 +1423,14 @@ class Thread extends mixInObject(
   /**
    * Create threads. Can be re-run if DOM elements are replaced.
    *
-   * @param {boolean} [autocollapse=true] Autocollapse threads according to the settings and restore
+   * @param {boolean} [autocollapse] Autocollapse threads according to the settings and restore
    *   collapsed threads from the local storage.
    */
   static reset = (autocollapse = true) => {
     this.enabled = settings.get('enableThreads');
     if (!this.enabled) {
       (new StorageItemWithKeysAndSaveTime('collapsedThreads')).removeItem();
+
       return;
     }
 
@@ -1694,7 +1696,7 @@ class Thread extends mixInObject(
       .setWithTime(
         mw.config.get('wgArticleId'),
         commentRegistry
-          .query((comment) => (
+          .query((comment) => Boolean(
             comment.thread &&
             comment.thread.isCollapsed !== comment.thread.isAutocollapseTarget
           ))

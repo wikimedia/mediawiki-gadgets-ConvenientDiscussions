@@ -36,20 +36,20 @@ const pageRegistry = {
    * Get a page object for a page with the specified name (either a new one or already existing).
    *
    * @param {string | mw.Title} nameOrMwTitle
-   * @param {boolean} [isGendered=false] Used to keep the gendered namespace name (`nameOrMwTitle`
+   * @param {boolean} [isGendered] Used to keep the gendered namespace name (`nameOrMwTitle`
    *   should be a string).
    * @returns {?Page}
    */
   get(nameOrMwTitle, isGendered = false) {
-    const title = nameOrMwTitle instanceof mw.Title ?
-      nameOrMwTitle :
-      mw.Title.newFromText(nameOrMwTitle);
+    const title = nameOrMwTitle instanceof mw.Title
+      ? nameOrMwTitle
+      : mw.Title.newFromText(nameOrMwTitle);
     if (!title) {
       return null;
     }
 
     const name = title.getPrefixedText();
-    if (!this.items[name]) {
+    if (!(name in this.items)) {
       this.items[name] = new (nameOrMwTitle === cd.g.pageName ? CurrentPage : Page)(
         title,
         isGendered ? /** @type {string} */ (nameOrMwTitle) : undefined
