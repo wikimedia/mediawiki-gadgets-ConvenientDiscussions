@@ -439,17 +439,24 @@ const config = defineConfig(
   {
     files: ['**/*.d.ts'],
     languageOptions: {
-      parser: tseslint.parser,
+      // sourceType: 'module',
+      // ecmaVersion: 2020,
+      // parser: tseslint.parser,
+      // parserOptions: {
+      //   requireConfigFile: false,
+      // },
       parserOptions: {
         projectService: {
-          defaultProject: 'tsconfig.json',
+          defaultProject: 'jsconfig.json',
+          // allowDefaultProject: ['*.js', '*.mjs'],
         },
         tsconfigRootDir: import.meta.dirname,
+        // jsDocParsingMode: 'all',
       },
     },
-    plugins: {
-      '@typescript-eslint': tseslint.plugin,
-    },
+    // plugins: {
+    //   '@typescript-eslint': tseslint.plugin,
+    // },
     rules: {
       // Disable some rules that are not applicable to declaration files
       'no-unused-vars': 'off',

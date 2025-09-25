@@ -11,7 +11,9 @@ import { replaceEntitiesInI18n } from './misc/utils.mjs';
 
 const DOMPurify = createDOMPurify(new JSDOM('').window);
 
-const warning = (text) => console.log(chalk.yellowBright(text));
+const warning = (/** @type {string} */ text) => {
+  console.log(chalk.yellowBright(text));
+};
 const code = chalk.inverse;
 const keyword = chalk.cyan;
 
