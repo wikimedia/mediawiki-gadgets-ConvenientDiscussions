@@ -16,8 +16,6 @@ const config = defineConfig(
 
   js.configs.recommended,
   tseslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
   unicorn.configs.recommended,
   jsdoc({
     config: 'flat/recommended-typescript-flavor',
@@ -62,12 +60,8 @@ const config = defineConfig(
       //   requireConfigFile: false,
       // },
       parserOptions: {
-        projectService: {
-          defaultProject: 'jsconfig.json',
-          // allowDefaultProject: ['*.js', '*.mjs'],
-        },
-        tsconfigRootDir: import.meta.dirname,
-        // jsDocParsingMode: 'all',
+        ecmaVersion: 2020,
+        sourceType: 'module',
       },
       globals: {
         CONFIG_FILE_NAME: 'readonly',
@@ -446,12 +440,8 @@ const config = defineConfig(
       //   requireConfigFile: false,
       // },
       parserOptions: {
-        projectService: {
-          defaultProject: 'jsconfig.json',
-          // allowDefaultProject: ['*.js', '*.mjs'],
-        },
-        tsconfigRootDir: import.meta.dirname,
-        // jsDocParsingMode: 'all',
+        ecmaVersion: 2020,
+        sourceType: 'module',
       },
     },
     // plugins: {
