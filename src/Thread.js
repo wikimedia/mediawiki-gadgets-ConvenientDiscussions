@@ -574,6 +574,7 @@ class Thread extends mixInObject(
     const steps =
       direction *
       Math[
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-unary-minus
         direction === -(/** @type {number} */ (this.navCurrentThreadEscapeDirection))
           ? 'ceil'
           : 'floor'
@@ -640,6 +641,8 @@ class Thread extends mixInObject(
 
       return;
     }
+
+    [...new Map([['a', 'b']])].sort();
 
     if (
       !(this.clickArea).classList.contains('cd-thread-clickArea-hovered')
@@ -937,7 +940,7 @@ class Thread extends mixInObject(
    *   scrolling or updating the parent comment's "Toggle child threads" button look).
    * @param {Promise.<void>} [loadUserGendersPromise]
    */
-  collapse(auto = false, isBatchOperation = auto, loadUserGendersPromise) {
+  collapse(auto = false, isBatchOperation = auto, loadUserGendersPromise = undefined) {
     if (this.isCollapsed) return;
 
     this.collapsedRange = getRangeContents(
@@ -1103,7 +1106,7 @@ class Thread extends mixInObject(
 
     // Include a closed discussion template if the entirety of its contents is included but not the
     // start.
-    const discussion = closedDiscussions?.find((el) => el.contains(end));
+    const discussion = closedDiscussions.find((el) => el.contains(end));
 
     /** @type {(el: HTMLElement | undefined, child: HTMLElement | undefined) => boolean} */
     const isFinalChild = (parent, child) =>
@@ -1509,40 +1512,44 @@ class Thread extends mixInObject(
           (entry) => !entry.collapsedThreads.length || entry.saveTime < subtractDaysFromNow(60)
         )
       );
-    const data = collapsedThreadsStorageItem.get(mw.config.get('wgArticleId')) || {};
 
-    const comments = [];
+    const collapsedThreads = collapsedThreadsStorageItem.get(
+      mw.config.get('wgArticleId')
+    )?.collapsedThreads;
 
-    data.collapsedThreads?.forEach((thread) => {
-      const comment = commentRegistry.getById(thread.id);
+    /** @type {Thread[]} */
+    const threads = [];
+
+    collapsedThreads?.forEach((threadItem) => {
+      const comment = commentRegistry.getById(threadItem.id);
       if (comment?.thread) {
-        if (thread.collapsed) {
-          comments.push(comment);
+        if (threadItem.collapsed) {
+          threads.push(comment.thread);
         } else {
           comment.thread.wasManuallyExpanded = true;
         }
       } else {
         // Remove IDs that have no corresponding comments or threads from the data
-        removeFromArrayIfPresent(data.collapsedThreads, thread);
+        removeFromArrayIfPresent(collapsedThreads, threadItem);
       }
     });
 
     // Don't precisely target comments of level this.collapseThreadsLevel in case there is a gap,
-    // for example between the `(this.collapseThreadsLevel - 1)` level and the
-    // `(this.collapseThreadsLevel + 1)` level (the user muse have replied to a comment at the
-    // `(this.collapseThreadsLevel - 1)` level but inserted `::` instead of `:`).
+    // for example between the `this.collapseThreadsLevel - 1` level and the
+    // `this.collapseThreadsLevel + 1` level (the user muse have replied to a comment at the
+    // `this.collapseThreadsLevel - 1` level but inserted `::` instead of `:`).
     for (let i = 0; i < commentRegistry.getCount(); i++) {
-      const comment = /** @type {import('./Comment').default} */ (commentRegistry.getByIndex(i));
-      if (!comment.thread) continue;
+      const thread = /** @type {import('./Comment').default} */ (commentRegistry.getByIndex(i)).thread;
+      if (!thread) continue;
 
-      if (comment.level >= /** @type {number} */ (this.collapseThreadsLevel)) {
+      if (thread.rootComment.level >= /** @type {number} */ (this.collapseThreadsLevel)) {
         // Exclude threads where the user participates at any level up and down the tree or that
         // the user has specifically expanded.
         if (![...comment.getAncestors(), ...comment.thread.comments].some((c) => c.isOwn)) {
           comment.thread.isAutocollapseTarget = true;
 
           if (!comment.thread.wasManuallyExpanded) {
-            comments.push(comment);
+            threads.push(comment.thread);
           }
         }
 
@@ -1554,17 +1561,17 @@ class Thread extends mixInObject(
       ? loadUserGenders(comments.flatMap((comment) => comment.thread.getUsers()))
       : undefined;
 
-    // The reverse order is used for threads to be expanded correctly.
-    comments
-      .sort((c1, c2) => c1.index - c2.index)
-      .forEach((comment) => {
-        comment.thread.collapse(true, undefined, loadUserGendersPromise);
+    // The reverse order is used for the threads to be expanded correctly.
+    threads
+      .sort((thread1, thread2) => thread1.rootComment.index - thread2.rootComment.index)
+      .forEach((thread) => {
+        thread.collapse(true, undefined, loadUserGendersPromise);
       });
     this.emit('toggle');
 
-    if (bootController.isCurrentRevision()) {
+    if (bootController.isCurrentRevision() && collapsedThreads) {
       collapsedThreadsStorageItem
-        .setWithTime(mw.config.get('wgArticleId'), data.collapsedThreads)
+        .setWithTime(mw.config.get('wgArticleId'), collapsedThreads)
         .save();
     }
   }

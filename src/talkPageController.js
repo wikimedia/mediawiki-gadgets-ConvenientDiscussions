@@ -43,7 +43,7 @@ import { copyText, getVisibilityByRects, wrapHtml } from './utils-window';
  */
 class TalkPageController extends EventEmitter {
   /**
-   * @type {JQuery}
+   * @type {JQuery | undefined}
    * @private
    */
   $popupOverlay;
@@ -587,7 +587,7 @@ class TalkPageController extends EventEmitter {
     // The initial value is set in init.addTalkPageCss() through a style tag.
     $(document.documentElement).css(
       '--cd-content-start-margin',
-      bootController.getContentColumnOffsets(true).startMargin + 'px'
+      String(bootController.getContentColumnOffsets(true).startMargin) + 'px'
     );
 
     this.emit('resize');
@@ -816,8 +816,7 @@ class TalkPageController extends EventEmitter {
           commentRegistry.getByAnyId(extractCommentId(el), true)
         )
       )
-      // eslint-disable-next-line jsdoc/require-param
-      .on('click', function (event) {
+      .on('click', function onCommentLinkClick(event) {
         event.preventDefault();
         commentRegistry
           .getByAnyId(extractCommentId(this), true)
@@ -852,7 +851,7 @@ class TalkPageController extends EventEmitter {
           ? `a[title$=":${currentUserName}"], a[title*=":${currentUserName} ("]`
           : `.cd-comment-part a[title$=":${currentUserName}"], .cd-comment-part a[title*=":${currentUserName} ("]`
       )
-      .filter(function () {
+      .filter(function filterMentions() {
         return (
           cd.g.userLinkRegexp.test(this.title) &&
           !this.closest(excludeSelector) &&
@@ -985,15 +984,16 @@ class TalkPageController extends EventEmitter {
 
     event.preventDefault();
 
-    const fragment = object.getUrlFragment();
+    const fragment = /** @type {string} */ (object.getUrlFragment());
     const permalinkSpecialPagePrefix =
       mw.config.get('wgFormattedNamespaces')[-1] +
       ':' +
-      (
-        object.isComment()
-          ? 'GoToComment/'
-          : cd.g.specialPageAliases.PermanentLink[0] + '/' + mw.config.get('wgRevisionId') + '#'
-      );
+      (object.isComment()
+        ? 'GoToComment/'
+        : cd.g.specialPageAliases.PermanentLink[0] +
+          '/' +
+          String(mw.config.get('wgRevisionId')) +
+          '#');
 
     /** @type {import('./CopyLinkDialog').CopyLinkDialogContent} */
     const content = {
@@ -1011,7 +1011,7 @@ class TalkPageController extends EventEmitter {
       link: /** @type {string} */ (object.getUrl()),
 
       permanentLink: object.isComment()
-        /** @type {import('./Page').default} */ ? (pageRegistry.get(
+        ? /** @type {import('./Page').default} */ (pageRegistry.get(
             mw.config.get('wgFormattedNamespaces')[-1] + ':' + 'GoToComment/' + fragment
           )).getDecodedUrlWithFragment()
         : object.getUrl(true),
@@ -1080,7 +1080,7 @@ class TalkPageController extends EventEmitter {
    * @param {boolean} value
    */
   toggleAutoScrolling(value) {
-    this.autoScrolling = Boolean(value);
+    this.autoScrolling = value;
   }
 
   /**

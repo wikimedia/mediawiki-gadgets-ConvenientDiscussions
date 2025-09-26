@@ -46,7 +46,7 @@ class TextMasker {
    *
    * @param {RegExp} regexp
    * @param {string} [type] Should consist only of alphanumeric characters.
-   * @param {boolean} [useGroups=false] Use the first two capturing groups in the regexp as the
+   * @param {boolean} [useGroups] Use the first two capturing groups in the regexp as the
    *   `preText` and `textToMask` parameters. (Used for processing table code.)
    * @returns {this}
    */
@@ -65,11 +65,12 @@ class TextMasker {
       return (
         (preText || '') +
         (type === 'table' ? '\u0003' : '\u0001') +
-        this.maskedTexts.push(textToMask || s) +
+        String(this.maskedTexts.push(textToMask || s)) +
         (type ? '_' + type : '') +
         (type === 'table' ? '\u0004' : '\u0002')
       );
     });
+
     return this;
   }
 
@@ -81,12 +82,13 @@ class TextMasker {
    * @returns {string}
    */
   unmaskText(text, type) {
-    const regexp = type ?
-      new RegExp(`(?:\\x01|\\x03)(\\d+)(?:_${type}(?:_\\d+)?)?(?:\\x02|\\x04)`, 'g') :
-      /(?:\u0001|\u0003)(\d+)(?:_\w+)?(?:\u0002|\u0004)/g;
+    const regexp = type
+      ? new RegExp(`(?:\\x01|\\x03)(\\d+)(?:_${type}(?:_\\d+)?)?(?:\\x02|\\x04)`, 'g')
+      : /(?:\u0001|\u0003)(\d+)(?:_\w+)?(?:\u0002|\u0004)/g;
     while (regexp.test(text)) {
       text = text.replace(regexp, (s, num) => this.maskedTexts[num - 1]);
     }
+
     return text;
   }
 
@@ -98,6 +100,7 @@ class TextMasker {
    */
   unmask(type) {
     this.text = this.unmaskText(this.text, type);
+
     return this;
   }
 
@@ -108,7 +111,7 @@ class TextMasker {
    * https://ru.wikipedia.org/w/index.php?title=MediaWiki:Gadget-wikificator.js&oldid=102530721
    *
    * @param {(code: string) => string} [handler] Function that processes the template code.
-   * @param {boolean} [addLengths=false] Add lengths of the masked templates to markers.
+   * @param {boolean} [addLengths] Add lengths of the masked templates to markers.
    * @returns {this}
    * @author Putnik
    * @author Jack who built the house
@@ -117,7 +120,7 @@ class TextMasker {
     let pos = 0;
     const stack = [];
     while (true) {
-      let left = this.text.indexOf('{{', pos);
+      const left = this.text.indexOf('{{', pos);
       let right = this.text.indexOf('}}', pos);
 
       if (left !== -1 && left < right) {

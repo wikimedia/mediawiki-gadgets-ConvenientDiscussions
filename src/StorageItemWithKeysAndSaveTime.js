@@ -1,7 +1,9 @@
 import StorageItemWithKeys from './StorageItemWithKeys';
 
 /*
-  * StorageItemWithKeysAndSaveTime's storage item is structured like this:
+  Structure of storage items:
+
+  * StorageItemWithKeysAndSaveTime
       {
         [arbitrary key 1]: {
           [key named as the storage key]: [entry 2],
@@ -13,13 +15,13 @@ import StorageItemWithKeys from './StorageItemWithKeys';
         },
         // ...
       }
-  * StorageItemWithKeys's storage item is structured like this:
+  * StorageItemWithKeys
       {
         [arbitrary key 1]: [entry 1],
         [arbitrary key 2]: [entry 2],
         // ...
       }
-  * StorageItem's storage item is structured like this:
+  * StorageItem
       [entry]
     (i.e. it's just an arbitrary value).
  */
@@ -27,7 +29,7 @@ import StorageItemWithKeys from './StorageItemWithKeys';
 /**
  * @template {any} EntryType
  * @template {string} Key
- * @typedef {{ [key in Key]: EntryType } & { saveTime: number }} EntryTypeWithSaveTime
+ * @typedef {{ [key in Key]: EntryType | undefined } & { saveTime: number }} EntryTypeWithSaveTime
  */
 
 /**
@@ -42,15 +44,12 @@ class StorageItemWithKeysAndSaveTime extends StorageItemWithKeys {
    * @param {Key} key Local storage item key (will be prepended by {@link StorageItem.prefix}).
    * @abstract
    */
-  // constructor(key) {
-  //   super(key);
-  // }
 
   /**
    * Get an entry of the storage item by key.
    *
    * @param {ValidKey} key
-   * @returns {EntryTypeWithSaveTime<EntryType, Key>}
+   * @returns {EntryTypeWithSaveTime<EntryType, Key> | undefined}
    * @override
    */
   get(key) {
@@ -72,8 +71,8 @@ class StorageItemWithKeysAndSaveTime extends StorageItemWithKeys {
       Array.isArray(pageData)
         ? pageData.length
         : $.isPlainObject(pageData)
-        ? Object.keys(/** @type {object} */ (pageData)).length
-        : pageData
+          ? Object.keys(/** @type {object} */ (pageData)).length
+          : pageData
     ) {
       this.set(
         pageKey,

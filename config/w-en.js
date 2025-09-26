@@ -550,7 +550,9 @@ export default /** @type {Partial<typeof import('./default').default>} */ ({
   ],
 
   rejectNode(node) {
-    return ['boilerplate-header', 'side-box-right'].some((name) => node.classList.contains(name));
+    return ['boilerplate-header', 'side-box-right'].some((name) =>
+      node.classList.contains(name)
+    );
   },
 
   getMoveSourcePageCode(targetPageWikilink, signature) {

@@ -47,7 +47,7 @@
  *   placed so that topics are sorted by date (e.g. in between other topics).
  */
 
-export default {
+const defaultConfig = {
   /**
    * Object with the names and texts of the messages required by the script as keys and values. Used
    * to avoid making additional requests on every script run. Get these messages by running
@@ -119,14 +119,14 @@ export default {
    * Numbers of talk namespaces other than odd namespaces. If not set, the value of
    * `mw.config.get('wgExtraSignatureNamespaces')` will be used. For example: `[4]` for Project.
    *
-   * **Warning:** This value is overriden by {@link module:defaultConfig.pageWhitelist}:
+   * **Warning:** This value is overriden by {@link defaultConfig.pageWhitelist}:
    * `customTalkNamespaces` is used only if `pageWhitelist` is `[]` or `null`.
    *
    * Note that this value is used in the script as a "soft" value. I.e., the script can decide
    * (based on the presence of the "Add section" button, existence of comments on the page and
    * possibly other factors) that the page is not a talk page after all. Use
-   * {@link module:defaultConfig.pageWhitelist} to indicate pages where the script should work in
-   * any circumstances. (For example, you can specify the entire namespace, e.g., `/^Wikipedia:/`).
+   * {@link defaultConfig.pageWhitelist} to indicate pages where the script should work in any
+   * circumstances. (For example, you can specify the entire namespace, e.g., `/^Wikipedia:/`).
    *
    * @type {number[]}
    * @default mw.config.get('wgExtraSignatureNamespaces')
@@ -135,12 +135,12 @@ export default {
 
   /**
    * Pages where the script should run. If `[]`, all pages in the namespaces listed in
-   * {@link module:defaultConfig.customTalkNamespaces} will pass.
+   * {@link defaultConfig.customTalkNamespaces} will pass.
    *
-   * **If you add at least one value, {@link module:defaultConfig.customTalkNamespaces} will not be
-   * used.** This means you will probably need to specify the namespaces listed in that value here
-   * as regexps, partly or entirely. For example, to specify the entire "Wikipedia" namespace in
-   * this value, add `/^Wikipedia:/` to the array.
+   * **If you add at least one value, {@link defaultConfig.customTalkNamespaces} will not be used.**
+   * This means you will probably need to specify the namespaces listed in that value here as
+   * regexps, partly or entirely. For example, to specify the entire "Wikipedia" namespace in this
+   * value, add `/^Wikipedia:/` to the array.
    *
    * The blacklist has priority over the whitelist.
    *
@@ -322,9 +322,9 @@ export default {
   /**
    * Should a new comment at the first level (`:`) repeat the previous comment's indentation style
    * (`'mimic'` mode), or should the script use the default indentation character in
-   * {@link module:defaultConfig.defaultIndentationChar} in all cases (`'unify'` mode). Note that if
-   * the last comment of the section uses `#` as the first indentation character, the script will
-   * use it for the comment independent of this value.
+   * {@link defaultConfig.defaultIndentationChar} in all cases (`'unify'` mode). Note that if the
+   * last comment of the section uses `#` as the first indentation character, the script will use it
+   * for the comment independent of this value.
    *
    * @type {'mimic'|'unify'}
    * @default 'mimic'
@@ -395,7 +395,7 @@ export default {
 
   /**
    * Wikilink to the script's page. Used in the watchlist and, if there is no
-   * {@link module:defaultConfig.tagName tag}, in summary.
+   * {@link defaultConfig.tagName tag}, in summary.
    *
    * @type {string}
    * @default 'mw:c:Special:MyLanguage/User:JWBTH/CD'
@@ -517,7 +517,7 @@ export default {
 
   /**
    * Classes that the wrapper elements of the templates listed in
-   * {@link module:defaultConfig.reflistTalkTemplates} have.
+   * {@link defaultConfig.reflistTalkTemplates} have.
    *
    * @type {string[]}
    * @default []
@@ -534,8 +534,8 @@ export default {
 
   /**
    * Should there be a leading space (or other punctuation) before
-   * {@link module:defaultConfig.mentionCharacter the mention character} to trigger autocomplete.
-   * This is for languages where spaces are used less.
+   * {@link defaultConfig.mentionCharacter the mention character} to trigger autocomplete. This is
+   * for languages where spaces are used less.
    *
    * @type {boolean}
    * @default true
@@ -543,7 +543,7 @@ export default {
   mentionRequiresLeadingSpace: true,
 
   /**
-   * Function to use in the {@link module:defaultConfig.quoteFormatting} config value.
+   * Function to use in the {@link defaultConfig.quoteFormatting} config value.
    *
    * @callback QuoteFormattingFunction
    * @param {string} mentionSource Whether it's appropriate to mention the source of the quote (e.g.
@@ -576,10 +576,9 @@ export default {
   /**
    * Elements with classes listed here won't be considered legit comment timestamp containers. They
    * can still be parts of comments (e.g. in "moved section" templates); for the way to prevent
-   * certain elements from becoming comment parts, see {@link module:defaultConfig.rejectNode}. This
-   * value can have a wikitext counterpart (though not necessarily),
-   * {@link module:defaultConfig.noSignatureTemplates}, for classes that are specified inside
-   * templates.
+   * certain elements from becoming comment parts, see {@link defaultConfig.rejectNode}. This value
+   * can have a wikitext counterpart (though not necessarily),
+   * {@link defaultConfig.noSignatureTemplates}, for classes that are specified inside templates.
    *
    * It is preferable to add the `mw-notalk` class to these elements instead of using this value.
    *
@@ -594,7 +593,7 @@ export default {
    * Templates listed here (for example, "Moved discussion" templates) won't be considered legit
    * comment timestamp containers. All lines containing these templates are ignored when searching
    * for timestamps in the wikitext. This value can have a web page counterpart,
-   * {@link module:defaultConfig.noSignatureClasses}.
+   * {@link defaultConfig.noSignatureClasses}.
    *
    * @type {string[]}
    * @default []
@@ -614,8 +613,8 @@ export default {
    * Regexps for strings that should be cut out of comment beginnings (not considered parts of
    * comments) when editing comments. This is in addition to
    * {@link convenientDiscussions.g.badCommentBeginnings}, file markup and "clear" templates (see
-   * {@link module:defaultConfig.clearTemplates}). They begin with `^` and usually end with ` *\n+`
-   * or ` *\n+(?=[*:#])`. They _should_ match a newline character at the end for the script to work
+   * {@link defaultConfig.clearTemplates}). They begin with `^` and usually end with ` *\n+` or `
+   * \n+(?=[*:#])`. They _should_ match a newline character at the end for the script to work
    * properly.
    *
    * @type {RegExp[]}
@@ -814,7 +813,7 @@ export default {
 
   /**
    * Function that makes custom alterations to the comment's source code before it is processed and
-   * submitted. See also {@link module:defaultConfig.postTransformCode}.
+   * submitted. See also {@link defaultConfig.postTransformCode}.
    *
    * @type {((code: string, commentForm: import('../src/CommentForm').default) => string) | null}
    * @default null
@@ -825,7 +824,7 @@ export default {
    * Function that makes custom alterations to the comment's source code after it is processed and
    * before it is submitted. (An example would be adding a closer template to all the closures by a
    * user with the closer flag which is a requirement in Russian Wikipedia.) See also
-   * {@link module:defaultConfig.preTransformCode}.
+   * {@link defaultConfig.preTransformCode}.
    *
    * @type {((code: string, commentForm: import('../src/CommentForm').default) => string) | null}
    * @default null
@@ -833,9 +832,9 @@ export default {
   postTransformCode: null,
 
   /**
-   * Function that returns `true` for nodes that are not parts of comments and should terminate the
-   * collecting of comment parts. These rules often need correspoding rules in
-   * {@link module:defaultConfig.badCommentBeginnings}.
+   * Function that returns `true` for nodes (in fact, elements) that are not parts of comments and
+   * should terminate the collecting of comment parts. These rules often need correspoding rules in
+   * {@link defaultConfig.badCommentBeginnings}.
    *
    * The second parameter is a "context", i.e., a collection of classes, functions, elements, and
    * names that help perform the tasks we need in the current context (window or worker). Examples
@@ -847,7 +846,7 @@ export default {
    * https://github.com/jwbth/convenient-discussions/blob/6281b9ede22149beb47ba0da37549d13600cb1c9/src/js/BootProcess.js#L745
    * this}.
    *
-   * @type {((node: NodeLike, context: ParsingContext) => boolean) | null}
+   * @type {((node: ElementLike, context: ParsingContext) => boolean) | null}
    * @default null
    */
   rejectNode: null,
@@ -855,13 +854,12 @@ export default {
   /**
    * Function that runs when the "Reformat comments" setting is enabled before parsing the author
    * link. May return some data that will eventually supplied to the
-   * {@link module:defaultConfig.afterAuthorLinkParse} function (for example, an element). It
-   * accepts:
-   * * the author link (the link to the author's user page) as it was encountered on the page
-   * * and the author link dummy as part of the header dummy that we use as a prototype in which the
-   *   link dummy is replaced with a real element.
+   * {@link defaultConfig.afterAuthorLinkParse} function (for example, an element). It accepts: the
+   * author link (the link to the author's user page) as it was encountered on the page and the
+   * author link dummy as part of the header dummy that we use as a prototype in which the link
+   * dummy is replaced with a real element.
    *
-   * This function, together with {@link module:defaultConfig.afterAuthorLinkParse}, can be used to
+   * This function, together with {@link defaultConfig.afterAuthorLinkParse}, can be used to
    * optimize the script's performance with different kinds of "Mark administrators" gadget. See the
    * example at
    * {@link https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/convenientDiscussions-commonsConfig.js}.
@@ -875,9 +873,9 @@ export default {
    * Function that runs when the "Reformat comments" setting is enabled after parsing the author
    * link. May return (for example, an element). It accepts the author link (a link to the author's
    * user page) as it was encountered on the page and the return value of
-   * {@link module:defaultConfig.beforeAuthorLinkParse} that could be called previously.
+   * {@link defaultConfig.beforeAuthorLinkParse} that could be called previously.
    *
-   * This function, together with {@link module:defaultConfig.beforeAuthorLinkParse}, can be used to
+   * This function, together with {@link defaultConfig.beforeAuthorLinkParse}, can be used to
    * optimize the script's performance with different kinds of "Mark administrators" gadget. See the
    * example at
    * {@link https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/convenientDiscussions-commonsConfig.js}.
@@ -901,7 +899,7 @@ export default {
    * string normally ends with `\n`. If `null`, the section is just removed from the page.
    *
    * @type {(targetPageWikilink: string, signature: string, timestamp?: string) => string}
-   * @default function (targetPageWikilink, signature, timestamp) {
+   * @default
    *   return (
    *     convenientDiscussions.s('move-sourcepagecode', targetPageWikilink, signature, timestamp) +
    *     '\n'
@@ -922,7 +920,7 @@ export default {
    * respectively. The strings normally end with `\n`. If `null`, no code will be added.
    *
    * @type {(targetPageWikilink: string, signature: string) => string | string[]}
-   * @default function (targetPageWikilink, signature) {
+   * @default
    *   return convenientDiscussions.s('move-targetpagecode', targetPageWikilink, signature) + '\n';
    * }
    */
@@ -938,7 +936,7 @@ export default {
    * Code that creates an anchor on the page.
    *
    * @type {(id: string) => string}
-   * @default function (id) {
+   * @default
    *   return '&lt;span id="' + id + '"&gt;&lt;/span&gt;';
    * }
    */
@@ -946,3 +944,5 @@ export default {
     return '<span id="' + id + '"></span>';
   },
 };
+
+export default defaultConfig;

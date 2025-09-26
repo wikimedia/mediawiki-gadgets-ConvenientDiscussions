@@ -8,7 +8,7 @@ import { ConvenientDiscussionsBase } from './cd';
 import { HeadingTarget, SignatureTarget, Target } from './Parser';
 
 declare global {
-  type TypeByKey<T> = { [key: string]: T };
+  type TypeByKey<T> = Record<string, T>;
   type StringsByKey = TypeByKey<string>;
   type NumbersByKey = TypeByKey<number>;
   type AnyByKey = TypeByKey<any>;
@@ -85,12 +85,12 @@ declare global {
       callback?: () => void,
     ): this;
     cdIsInViewport(partially = false): boolean;
-    cdScrollIntoView(alignment: 'top'|'center'|'bottom' = 'top', smooth = true, callback?: () => void): this;
+    cdScrollIntoView(alignment: 'top' | 'center' | 'bottom' = 'top', smooth = true, callback?: () => void): this;
     cdGetText(): string;
     cdAddCloseButton(): this;
     cdRemoveCloseButton(): this;
 
-    wikiEditor(funcName: 'addModule' | 'addToToolbar' | 'removeFromToolbar' | 'addDialog' | 'openDialog' | 'closeDialog', data: any): this;
+    wikiEditor(functionName: 'addModule' | 'addToToolbar' | 'removeFromToolbar' | 'addDialog' | 'openDialog' | 'closeDialog', data: any): this;
   }
 
   interface Element {
@@ -144,7 +144,7 @@ declare global {
     ? import('domhandler').Document
     : Document;
 
-  interface ParsingContext<N extends AnyNode> {
+  interface ParsingContext<N extends AnyNode = AnyNode> {
     // Classes
     CommentClass: new (
       parser: Parser<N>,
@@ -177,10 +177,8 @@ declare global {
     // Note: NodeFor<N> instead of N here solves a bulk of type errors due to contravarience in all
     // places Parser<AnyNode>, CommentSkeleton<AnyNode> or SectionSkeleton<AnyNode> is expected and
     // Parser<Node> or CommentSkeleton<Node> or SectionSkeleton<Node> is used.
-    follows: (el1: NodeFor<N>, el2: NodeFor<N>) => boolean;
+    follows: (element1: NodeFor<N>, element2: NodeFor<N>) => boolean;
     getAllTextNodes: () => TextFor<N>[];
     getElementByClassName: (element: ElementFor<N>, className: string) => ElementFor<N> | null;
   }
 }
-
-export {};

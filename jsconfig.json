@@ -1,11 +1,6 @@
 {
   "extends": "./jsconfig-base.json",
   "compilerOptions": {
-    "target": "es2020",
-
-    // We mix `import`s and `require()` calls
-    "module": "preserve",
-
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["oojs", "oojs-ui", "jquery", "jqueryui"]
   },

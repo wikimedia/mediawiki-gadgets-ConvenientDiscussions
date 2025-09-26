@@ -99,9 +99,9 @@ function processAndRemoveDtElements(elements) {
   });
   if (!moveNotRemove) {
     [
-      ...(/** @type {NodeListOf<HTMLSpanElement>} */ (
+      .../** @type {NodeListOf<HTMLSpanElement>} */ (
         bootController.rootElement.querySelectorAll('span[data-mw-comment]')
-      )),
+      ),
     ].forEach((el) => {
       delete el.dataset.mwComment;
     });

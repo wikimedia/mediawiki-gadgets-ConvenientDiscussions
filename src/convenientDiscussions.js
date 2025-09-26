@@ -24,9 +24,9 @@ const serverName = mw.config.get('wgServerName');
 const localOptionsPrefix = serverName === 'ru.wikipedia.org' ? 'cd' : 'convenientDiscussions';
 
 // For historical reasons, ru.wikipedia.org has 'watchedTopics'.
-const subscriptionsOptionNameEnding = serverName === 'ru.wikipedia.org' ?
-  'watchedTopics' :
-  'watchedSections';
+const subscriptionsOptionNameEnding = serverName === 'ru.wikipedia.org'
+  ? 'watchedTopics'
+  : 'watchedSections';
 
 let server = mw.config.get('wgServer');
 if (server.startsWith('//')) {
@@ -87,22 +87,25 @@ const convenientDiscussionsWindow = {
    */
 
   /**
+   * @typedef {import('./User').default} User
+   */
+
+  /**
    * Get a language string.
    *
    * @param {string} name String name.
-   * @param {...(string | undefined | SLastParam)} params
-   *   String parameters (substituted strings, also {@link module:userRegistry.User User} objects
-   *   for use in `{{gender:}}`). The last parameter can be an object that can have a boolean
-   *   property `parse` (should the message be returned in a parsed form). In the `parse` form,
-   *   wikilinks are replaced with HTML tags, the code is sanitized. Use this for strings that have
-   *   their raw HTML inserted into the page.
+   * @param {...(string | undefined | SLastParam)} params String parameters (substituted strings,
+   *   also {@link User} objects for use in `{{gender:}}`). The last parameter can be an object that
+   *   can have a boolean property `parse` (should the message be returned in a parsed form). In the
+   *   `parse` form, wikilinks are replaced with HTML tags, the code is sanitized. Use this for
+   *   strings that have their raw HTML inserted into the page.
    * @returns {string}
    * @memberof convenientDiscussions
    */
   s(name, ...params) {
     const fullName = `convenient-discussions-${name}`;
     let options = /** @type {SOptions} */ ({});
-    let lastParam = params[params.length - 1];
+    const lastParam = params[params.length - 1];
 
     // lastParam.options is a `mw.user`-like object to provide to {{gender:}}
     if (typeof lastParam === 'object' && !('options' in lastParam)) {
@@ -113,10 +116,10 @@ const convenientDiscussionsWindow = {
     isQqxMode ??= /[?&]uselang=qqx(?=&|$)/.test(location.search);
     if (!isQqxMode && mw.messages.get(fullName) !== null) {
       return mw.message(fullName, ...params)[options.parse ? 'parse' : 'text']();
-    } else {
-      const paramsString = params.length ? `: ${params.join(', ')}` : '';
-      return `(${fullName}${paramsString})`;
     }
+    const paramsString = params.length ? `: ${params.join(', ')}` : '';
+
+    return `(${fullName}${paramsString})`;
   },
 
   /**
@@ -133,8 +136,10 @@ const convenientDiscussionsWindow = {
     if (params.some((param) => /[<>]/.test(param))) {
       // mw.message().parse() escapes tags in parameters - work around that.
       mw.messages.set('convenient-discussions-parsehack', cd.s(name, ...params));
+
       return mw.message('convenient-discussions-parsehack').parse();
     }
+
     return cd.s(name, ...params, { parse: true });
   },
 
@@ -157,7 +162,7 @@ const convenientDiscussionsWindow = {
    */
   mws(name, ...params) {
     let options;
-    let lastParam = params[params.length - 1];
+    const lastParam = params[params.length - 1];
     if (typeof lastParam === 'object') {
       options = lastParam;
       params.splice(-1);
@@ -171,9 +176,9 @@ const convenientDiscussionsWindow = {
 
     let message;
     if (/^(discussiontools|visualeditor)-/.test(name)) {
-      message = mw.messages.exists(name) ?
-        mw.message(name, ...params).parse() :
-        cd.sParse(name.slice(name.indexOf('-') + 1));
+      message = mw.messages.exists(name)
+        ? mw.message(name, ...params).parse()
+        : cd.sParse(name.slice(name.indexOf('-') + 1));
     } else {
       message = mw.message(name, ...params).parse();
     }
@@ -234,7 +239,7 @@ const convenientDiscussionsWindow = {
   /**
    * Create an OOUI window manager or return an existing one.
    *
-   * @param {string} [name='default'] Name of the window manager. We may need more than one if we,
+   * @param {string} [name] Name of the window manager. We may need more than one if we,
    *   for some reason, want to have more than one window open at any moment.
    * @returns {OO.ui.WindowManager}
    */
@@ -444,11 +449,15 @@ const globalProperties = {
   popularInlineElements: ['A', 'ABBR', 'B', 'BDI', 'BIG', 'BR', 'BUTTON', 'CITE', 'CODE', 'DEL', 'EM', 'FONT', 'I', 'IMG', 'INS', 'KBD', 'MARK', 'MW:DT-TIMESTAMPLINK', 'Q', 'RT', 'RP', 'RUBY', 'S', 'SAMP', 'SMALL', 'SPAN', 'STRIKE', 'STRONG', 'SUB', 'SUP', 'TIME', 'TT', 'U', 'VAR'],
 
   /**
+   * @typedef {typeof import('../config/default').default} DefaultConfig
+   */
+
+  /**
    * Elements with classes listed here won't be considered legit comment timestamp containers. They
    * can still be parts of comments; for the way to prevent certain elements from becoming comment
-   * parts, see {@link module:defaultConfig.rejectNode}. This value can have a wikitext counterpart
-   * (though not necessarily), {@link module:defaultConfig.noSignatureTemplates}, for classes that
-   * are specified inside templates.
+   * parts, see {@link DefaultConfig.rejectNode}. This value can have a wikitext counterpart (though
+   * not necessarily), {@link DefaultConfig.noSignatureTemplates}, for classes that are specified
+   * inside templates.
    *
    * When it comes to the wikitext, all lines containing these classes are ignored.
    *

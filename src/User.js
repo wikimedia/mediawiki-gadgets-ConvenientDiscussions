@@ -109,9 +109,11 @@ export default class User {
    * @returns {string}
    */
   getNamespaceAlias() {
+    const gender = this.getGender();
+
     return (
       cd.config.genderNeutralUserNamespaceAlias ||
-      cd.config.userNamespacesByGender?.[this.getGender()] ||
+      (cd.config.userNamespacesByGender && gender && cd.config.userNamespacesByGender[gender]) ||
       mw.config.get('wgFormattedNamespaces')[2]
     );
   }
@@ -131,7 +133,7 @@ export default class User {
    * @param {number} value
    */
   setGlobalId(value) {
-    this.globalId = Number(value);
+    this.globalId = value;
   }
 
   /**
@@ -149,6 +151,6 @@ export default class User {
    * @param {boolean} value
    */
   setMuted(value) {
-    this.muted = Boolean(value);
+    this.muted = value;
   }
 }

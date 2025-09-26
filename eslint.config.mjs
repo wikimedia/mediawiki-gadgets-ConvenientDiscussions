@@ -11,7 +11,7 @@ import tseslint from 'typescript-eslint';
 const config = defineConfig(
   // Base configuration for all files
   {
-    ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js'],
+    ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js', '**/test.ts', '**/test.js'],
   },
 
   js.configs.recommended,
@@ -43,6 +43,7 @@ const config = defineConfig(
       'jsdoc/tag-lines': ['warn', 'any', {
         startLines: 1,
       }],
+      'jsdoc/reject-any-type': 'off',
     },
   }),
 
@@ -299,10 +300,11 @@ const config = defineConfig(
       // Confuses OO.EventEmitter for Node's EventEmitter
       'unicorn/prefer-event-target': 'off',
 
-      // The default kills `undefined`s in .reduce() where they are typed
-      'unicorn/no-useless-undefined': ['error', {
-        checkArguments: false,
-      }],
+      // The default kills `undefined`s in .reduce() where they are typed. ...And in default parameters
+      // 'unicorn/no-useless-undefined': ['error', {
+      //   checkArguments: false,
+      // }],
+      'unicorn/no-useless-undefined': 'off',
 
       // We have files with JSDoc types
       'unicorn/no-empty-file': 'off',
@@ -387,7 +389,8 @@ const config = defineConfig(
       }],
 
       // Attacks JSDoc comments like `.../** @type {string} */ (smth)`
-      '@stylistic/rest-spread-spacing': 'off',
+      '@stylistic/rest-spread-spacing': ['error'],
+      '@stylistic/space-unary-ops': 'off',
 
       '@stylistic/quotes': ['error', 'single', {
         avoidEscape: true,
@@ -439,24 +442,13 @@ const config = defineConfig(
   {
     files: ['**/*.d.ts'],
     languageOptions: {
-      // sourceType: 'module',
-      // ecmaVersion: 2020,
-      // parser: tseslint.parser,
-      // parserOptions: {
-      //   requireConfigFile: false,
-      // },
       parserOptions: {
         projectService: {
           defaultProject: 'jsconfig.json',
-          // allowDefaultProject: ['*.js', '*.mjs'],
         },
         tsconfigRootDir: import.meta.dirname,
-        // jsDocParsingMode: 'all',
       },
     },
-    // plugins: {
-    //   '@typescript-eslint': tseslint.plugin,
-    // },
     rules: {
       // Disable some rules that are not applicable to declaration files
       'no-unused-vars': 'off',

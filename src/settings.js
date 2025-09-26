@@ -63,7 +63,7 @@ import { createSvg, formatDateImproved, formatDateNative, formatDateRelative, ge
 
 /**
  * @typedef {(
- *   & import('./utils-oojs').ControlOptionsBase
+ *     import('./utils-oojs').ControlOptionsBase
  *   & { name: keyof Settings['scheme']['controlTypes'] }
  *   & AnyByKey
  * )} UiControlData
@@ -689,12 +689,12 @@ class Settings {
    * Request the settings from the server, or extract the settings from the existing options
    * strings.
    *
-   * @param {object} [options={}]
+   * @param {object} [options]
    * @param {StringsByKey} [options.options] Object containing strings with the local and global
    *   settings.
-   * @param {boolean} [options.omitLocal=false] Whether to omit variables set via `cdLocal...`
+   * @param {boolean} [options.omitLocal] Whether to omit variables set via `cdLocal...`
    *   variables (they shouldn't be saved to the server).
-   * @param {boolean} [options.reuse=false] If `options` is not set, reuse the cached user info
+   * @param {boolean} [options.reuse] If `options` is not set, reuse the cached user info
    *   request.
    * @returns {Promise.<Partial<SettingsValues>>}
    */
@@ -733,7 +733,7 @@ class Settings {
    *
    * @param {AnyByKey} source
    * @param {string} [prefix]
-   * @param {Partial<SettingsValues>} [defaults=this.scheme.default]
+   * @param {Partial<SettingsValues>} [defaults]
    * @returns {Partial<SettingsValues>}
    * @private
    */
@@ -818,7 +818,7 @@ class Settings {
    * Save the settings to the server. This function will split the settings into the global and
    * local ones and make two respective requests.
    *
-   * @param {Partial<DocumentedSettingsValues>} [settings=this.values] Settings to save.
+   * @param {Partial<DocumentedSettingsValues>} [settings] Settings to save.
    */
   async save(settings = this.values) {
     if (!cd.user.isRegistered()) return;

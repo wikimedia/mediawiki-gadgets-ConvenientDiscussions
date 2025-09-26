@@ -37,10 +37,11 @@ let switchRelevantButton;
 /** @type {import('./LegacySubscriptions').default} */
 let subscriptions;
 
-/** @type {PrototypeRegistry<{
+/**
+ * @type {PrototypeRegistry<{
  *   wrapperRegular: HTMLElement
  *   wrapperRelevant: HTMLElement
- * }>} */
+  }>} */
 const prototypes = new PrototypeRegistry();
 
 /**
@@ -67,7 +68,7 @@ async function init() {
   try {
     await Promise.all(requests);
   } catch (error) {
-    throw ['Couldn\'t load the data required for the script.', error];
+    throw new Error(`Couldn't load the data required for the script.`, { cause: error });
   }
 
   mw.loader.addStyleTag(`:root {
@@ -151,7 +152,7 @@ function switchRelevant() {
     $collapsibles
       .has('.cd-commentLink-relevant')
       .find('.mw-enhancedchanges-arrow')
-      .click()
+      .click();
     $collapsibles
       .not(':has(.cd-commentLink-relevant)')
       .find('.mw-rcfilters-ui-highlights-enhanced-toplevel')
@@ -244,7 +245,7 @@ function isWikidataItem(linkElement) {
   return Boolean(
     cd.g.serverName === 'www.wikidata.org' &&
     linkElement.firstElementChild?.classList.contains('wb-itemlink')
-  )
+  );
 }
 
 /**
@@ -266,6 +267,7 @@ function extractAuthor(line) {
   if (mw.util.isIPv6Address(author)) {
     author = author.toUpperCase();
   }
+
   return author;
 }
 
@@ -377,7 +379,6 @@ function processWatchlist($content) {
     const nsNumber = nsMatch && Number(nsMatch[1]);
     if (nsNumber === null) return;
 
-
     const linkElement = /** @type {HTMLAnchorElement} */ (
       (line.tagName === 'TR' ? /** @type {HTMLElement} */ (line.parentElement) : line).querySelector(
         '.mw-changeslist-title'
@@ -465,7 +466,7 @@ function processContributions($content) {
   if (cd.g.uiTimezone === undefined) return;
 
   [
-    ...$content[0].querySelectorAll('.mw-contributions-list > li:not(.mw-tag-mw-new-redirect)')
+    ...$content[0].querySelectorAll('.mw-contributions-list > li:not(.mw-tag-mw-new-redirect)'),
   ].forEach((line) => {
     const linkElement = /** @type {HTMLAnchorElement} */ (
       line.querySelector('.mw-contributions-title')
@@ -473,7 +474,7 @@ function processContributions($content) {
     if (!linkElement || isWikidataItem(linkElement)) return;
 
     const page = pageRegistry.get(linkElement.textContent, true);
-    if (!page || !page.isProbablyTalkPage()) return;
+    if (!page?.isProbablyTalkPage()) return;
 
     const link = linkElement.href;
     if (!link) return;
@@ -541,7 +542,7 @@ function processHistory($content) {
   const link = cd.page.getUrl();
   [
     ...$content[0]
-      .querySelectorAll('#pagehistory > li, #pagehistory > .mw-contributions-list > li:not(.mw-tag-mw-new-redirect)')
+      .querySelectorAll('#pagehistory > li, #pagehistory > .mw-contributions-list > li:not(.mw-tag-mw-new-redirect)'),
   ].forEach((line) => {
     if (line.querySelector('.minoredit')) return;
 
@@ -757,6 +758,7 @@ export default async function addCommentLinks() {
     await init();
   } catch (error) {
     console.warn(error);
+
     return;
   }
 

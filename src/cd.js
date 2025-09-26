@@ -25,7 +25,7 @@ import cd from './shared/cd';
  * @property {import('./CommentForm').default[]} commentForms
  * @property {ConvenientDiscussionsApi} api
  * @property {boolean} isRunning
- * @property {typeof import('./app').getStringsPromise} getStringsPromise
+ * @property {ReturnType<import('./app').getStringsPromise> | undefined} getStringsPromise
  */
 
 /**

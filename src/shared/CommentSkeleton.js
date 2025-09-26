@@ -400,6 +400,7 @@ class CommentSkeleton {
         table = n;
       }
     }
+
     return !table || table.getElementsByClassName('cd-signature', 2).length > 1;
   }
 
@@ -485,27 +486,34 @@ class CommentSkeleton {
     const previousElement = element.previousElementSibling;
     const nextElement = element.nextElementSibling;
     let result =
-      (tagName === 'DL' &&
+      (
+        tagName === 'DL' &&
         element.firstElementChild &&
-        element.firstElementChild.tagName === 'DT') ||
+        element.firstElementChild.tagName === 'DT'
+      ) ||
+
       // Cases like the first comment at
       // https://ru.wikipedia.org/wiki/Project:Выборы_арбитров/Лето_2021/Форум/Кандидаты#Abiyoyo.
       // But don't affect cases like the first comment at
       // https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases#List_inside_a_comment.
       //
-      (['DL', 'UL'].includes(tagName) &&
+      (
+        ['DL', 'UL'].includes(tagName) &&
         previousElement &&
         isHeadingNode(previousElement) &&
         nextElement &&
         !['DL', 'OL'].includes(nextElement.tagName) &&
+
         // Helps at https://ru.wikipedia.org/wiki/Википедия:Форум/Архив/Общий/2019/11#201911201924_Vcohen
         !this.isPartOfList(lastPartNode, true) &&
+
         // Helps at
         // https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases#202110061810_Example
         !this.parser.context.getElementByClassName(
-          /** @type {ElementFor<N>} */ (element),
+        /** @type {ElementFor<N>} */ (element),
           'cd-signature'
-        )) ||
+        )
+      ) ||
       this.isOtherKindOfList(element);
 
     // "tagName !== 'OL'" helps in cases like
@@ -538,7 +546,7 @@ class CommentSkeleton {
    * numbered) list.
    *
    * @param {AnyNode} [node]
-   * @param {boolean} [isDefinitionListOnly=false]
+   * @param {boolean} [isDefinitionListOnly]
    * @returns {boolean}
    */
   isPartOfList(node, isDefinitionListOnly = false) {
@@ -586,6 +594,7 @@ class CommentSkeleton {
    * @param {ElementFor<N>} [options.lastPartNode]
    * @param {CommentPart} [options.previousPart]
    * @returns {boolean}
+   * @private
    */
   isIntro({ step, stage, node, nextNode, lastPartNode, previousPart }) {
     // Only the first `stage` code (in CommentSkeleton#traverseDom()) covers cases when there is
@@ -607,8 +616,7 @@ class CommentSkeleton {
         )
       ) &&
       (
-        isElement(nextNode) &&
-        ['UL', 'OL'].includes(nextNode.tagName) ||
+        (isElement(nextNode) && ['UL', 'OL'].includes(nextNode.tagName)) ||
 
         /*
           Including DLs at stage 1 is dangerous because comments like this may be broken:
@@ -630,7 +638,7 @@ class CommentSkeleton {
             (
               nextNode.parentElement !== this.parser.context.rootElement &&
               /** @type {ElementFor<N>} */ (nextNode.parentElement).parentElement !==
-                this.parser.context.rootElement
+              this.parser.context.rootElement
             )
           )
         )
@@ -957,14 +965,12 @@ class CommentSkeleton {
         ) {
           encloseThis = true;
         }
-      } else {
-        if (start !== undefined) {
-          if (encloseThis) {
-            sequencesToBeEnclosed.push({ start, end: i - 1 });
-          }
-          start = undefined;
-          encloseThis = false;
+      } else if (start !== undefined) {
+        if (encloseThis) {
+          sequencesToBeEnclosed.push({ start, end: i - 1 });
         }
+        start = undefined;
+        encloseThis = false;
       }
     }
 
@@ -1013,7 +1019,7 @@ class CommentSkeleton {
         ) ||
         node.tagName === 'HR' ||
         isMetadataNode(node) ||
-        Array.from(node.classList).some((name => ['references', 'reflist-talk'].includes(name))) ||
+        Array.from(node.classList).some((name) => ['references', 'reflist-talk'].includes(name)) ||
 
         // Ad hoc for cases like
         // https://ru.wikipedia.org/w/index.php?title=Википедия:Форум_администраторов&oldid=129874608#c-Lesless-20230416204100-Pessimist2006-20230416203500
@@ -1101,6 +1107,7 @@ class CommentSkeleton {
    */
   isCommentLevel(i, lastPartNode) {
     const part = /** @type {CommentPart<ElementLike>} */ (this.parts[i]);
+
     return (
       // 'DD', 'LI' are in this list too for this kind of structures:
       // https://ru.wikipedia.org/w/index.php?diff=103584477.
@@ -1382,7 +1389,7 @@ class CommentSkeleton {
    * Get list elements up the DOM tree. They will then be assigned the class `cd-commentLevel`.
    *
    * @param {ElementLike} initialElement
-   * @param {boolean} [includeFirstMatch=false]
+   * @param {boolean} [includeFirstMatch]
    * @returns {ElementLike[]}
    * @private
    */
@@ -1405,9 +1412,8 @@ class CommentSkeleton {
           }
 
           return listElements;
-        } else {
-          listElements.unshift(el);
         }
+        listElements.unshift(el);
       }
     }
 
@@ -1532,9 +1538,9 @@ class CommentSkeleton {
    *
    * ```html
    * List:
-   * * Item 1.
-   * * Item 2.
-   * * Item 3. [signature]
+   * Item 1.
+   * Item 2.
+   * Item 3. [signature]
    * ```
    *
    * @param {AtLeastOne<ElementFor<N>[]>} levelElements
@@ -1576,7 +1582,7 @@ class CommentSkeleton {
    * Set the necessary classes to parent elements of the comment's elements to make a visible tree
    * structure. While doing that, fix some markup.
    *
-   * @param {boolean} [fixMarkup=true]
+   * @param {boolean} [fixMarkup]
    * @protected
    */
   updateLevels(fixMarkup = true) {
@@ -1611,7 +1617,7 @@ class CommentSkeleton {
    * Get the parent comment of the comment. This shouldn't run before sections are set on comments
    * which is done in the {@link SectionSkeleton SectionSkeleton} constructor.
    *
-   * @param {boolean} [visual=false] Get the visual parent (according to the
+   * @param {boolean} [visual] Get the visual parent (according to the
    *   {@link Comment#level level} property, not {@link Comment#logicalLevel logicalLevel}).
    * @returns {this | undefined}
    */
@@ -1644,10 +1650,10 @@ class CommentSkeleton {
   /**
    * Get all replies to the comment.
    *
-   * @param {boolean} [indirect=false] Whether to include children of children and so on (return
+   * @param {boolean} [indirect] Whether to include children of children and so on (return
    *   descendants, in a word).
-   * @param {boolean} [visual=false] Whether to use visual levels instead of logical.
-   * @param {boolean} [allowSiblings=true] When `visual` is `true`, allow comments of the same
+   * @param {boolean} [visual] Whether to use visual levels instead of logical.
+   * @param {boolean} [allowSiblings] When `visual` is `true`, allow comments of the same
    *   level to be considered children (if they are outdented).
    * @returns {this[]}
    */
@@ -1678,28 +1684,29 @@ class CommentSkeleton {
           if (comment[prop] === this[prop] + 1 || indirect || comment.getParent() === this) {
             children.push(comment);
           }
+
           return false;
-        } else {
-          if (prop === 'logicalLevel' && this.parser.context.areThereOutdents()) {
-            // Outdented comments that are separated from their parents by interjected comments of
-            // higher level than the parent.
-            comments
-              .slice(comment.index + 1)
-              .some((c) => {
-                if (
-                  /** @type {CommentSkeleton<N> | null} */ (c.cachedParent?.logicalLevel) ===
-                  this
-                ) {
-                  children.push(c);
-
-                  return true;
-                }
-
-                return c.section !== this.section;
-              });
-          }
-          return true;
         }
+        if (prop === 'logicalLevel' && this.parser.context.areThereOutdents()) {
+          // Outdented comments that are separated from their parents by interjected comments of
+          // higher level than the parent.
+          comments
+            .slice(comment.index + 1)
+            .some((c) => {
+              if (
+              /** @type {CommentSkeleton<N> | null} */ (c.cachedParent?.logicalLevel) ===
+              this
+              ) {
+                children.push(c);
+
+                return true;
+              }
+
+              return c.section !== this.section;
+            });
+        }
+
+        return true;
       });
 
     return children;
@@ -1811,7 +1818,7 @@ class CommentSkeleton {
         let parentComment;
         const treeWalker = new ElementsTreeWalker(parser.context.rootElement, element);
         while (treeWalker.nextNode() && !childComment) {
-          let commentIndexAttr = treeWalker.currentNode.getAttribute('data-cd-comment-index');
+          const commentIndexAttr = treeWalker.currentNode.getAttribute('data-cd-comment-index');
           if (commentIndexAttr === '0') break;
           if (commentIndexAttr === null) continue;
 

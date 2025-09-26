@@ -166,7 +166,7 @@ function go() {
   // Don't run again if go() runs the second time (see maybeAddFooterSwitcher()).
   if (cd.g.pageWhitelistRegexp === undefined) {
     /**
-     * Script configuration. The default configuration is in {@link module:defaultConfig}.
+     * Script configuration. The default configuration is in {@link defaultConfig}.
      *
      * @name config
      * @type {object}
@@ -373,7 +373,8 @@ export function getStringsPromise() {
   )
     // If no language fallbacks are employed, we can do without requesting additional i18ns.
     // cd.getStringsPromise may be set in the configuration file.
-    ? !(cd.i18n && (cd.getStringsPromise || getStrings())) || Promise.resolve()
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    ? (cd.i18n ? Promise.resolve() : cd.getStringsPromise || getStrings())
 
     : getStrings();
 }

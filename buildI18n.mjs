@@ -202,136 +202,134 @@ DOMPurify.addHook('uponSanitizeAttribute', (_currentNode, hookEvent, config) => 
   }
 });
 
-(async () => {
-  const i18n = {};
-  fs.readdirSync('./i18n/')
-    .filter((filename) => path.extname(filename) === '.json' && filename !== 'qqq.json')
-    .forEach((filename) => {
-      const [, lang] = path.basename(filename).match(/^(.+)\.json$/) || [];
-      const strings = JSON.parse(fs.readFileSync(`./i18n/${filename}`, 'utf8'));
-      Object.keys(strings)
-        .filter((name) => typeof strings[name] === 'string')
-        .forEach((stringName) => {
-          const hidden = [];
-          let sanitized = hideText(
-            strings[stringName],
-            /<nowiki(?: [\w ]+(?:=[^<>]+?)?| *)>([^]*?)<\/nowiki *>/g,
-            hidden
-          );
+const i18n = {};
+fs.readdirSync('./i18n/')
+  .filter((filename) => path.extname(filename) === '.json' && filename !== 'qqq.json')
+  .forEach((filename) => {
+    const [, lang] = path.basename(filename).match(/^(.+)\.json$/) || [];
+    const strings = JSON.parse(fs.readFileSync(`./i18n/${filename}`, 'utf8'));
+    Object.keys(strings)
+      .filter((name) => typeof strings[name] === 'string')
+      .forEach((stringName) => {
+        const hidden = [];
+        let sanitized = hideText(
+          strings[stringName],
+          /<nowiki(?: [\w ]+(?:=[^<>]+?)?| *)>([^]*?)<\/nowiki *>/g,
+          hidden
+        );
 
-          sanitized = DOMPurify.sanitize(sanitized, {
-            ALLOWED_TAGS,
-            ALLOWED_ATTR: [
-              'class',
-              'dir',
-              'href',
-              'target',
-            ],
-            ALLOW_DATA_ATTR: false,
-            filename,
-            stringName,
-            lang,
-          });
+        sanitized = DOMPurify.sanitize(sanitized, {
+          ALLOWED_TAGS,
+          ALLOWED_ATTR: [
+            'class',
+            'dir',
+            'href',
+            'target',
+          ],
+          ALLOW_DATA_ATTR: false,
+          filename,
+          stringName,
+          lang,
+        });
 
-          sanitized = unhideText(sanitized, hidden);
+        sanitized = unhideText(sanitized, hidden);
 
-          // Just in case dompurify or jsdom gets outdated or the repository gets compromised, we will
-          // just manually check that only allowed tags are present.
-          for (const [, tagName] of sanitized.matchAll(/<(\w+)/g)) {
-            if (!ALLOWED_TAGS.includes(tagName.toLowerCase())) {
-              warning(`Disallowed tag ${code(tagName)} found in ${keyword(filename)} at the late stage: ${keyword(sanitized)}. The string has been removed altogether.`);
-              delete strings[stringName];
-
-              return;
-            }
-          }
-
-          // The same with suspicious strings containing what seems like the "javascript:" prefix or
-          // one of the "on..." attributes.
-          if (
-            /javascript:/i.test(sanitized.replace(/&\w+;|\s+/g, '')) ||
-            /\bon\w+\s*=/i.test(sanitized)
-          ) {
-            warning(
-              `Suspicious code found in ${keyword(filename)} at the late stage: ${keyword(
-                sanitized
-              )}. The string has been removed altogether.`
-            );
+        // Just in case dompurify or jsdom gets outdated or the repository gets compromised, we will
+        // just manually check that only allowed tags are present.
+        for (const [, tagName] of sanitized.matchAll(/<(\w+)/g)) {
+          if (!ALLOWED_TAGS.includes(tagName.toLowerCase())) {
+            warning(`Disallowed tag ${code(tagName)} found in ${keyword(filename)} at the late stage: ${keyword(sanitized)}. The string has been removed altogether.`);
             delete strings[stringName];
 
             return;
           }
+        }
 
-          strings[stringName] = sanitized;
-        });
+        // The same with suspicious strings containing what seems like the "javascript:" prefix or
+        // one of the "on..." attributes.
+        if (
+          /javascript:/i.test(sanitized.replace(/&\w+;|\s+/g, '')) ||
+          /\bon\w+\s*=/i.test(sanitized)
+        ) {
+          warning(
+            `Suspicious code found in ${keyword(filename)} at the late stage: ${keyword(
+              sanitized
+            )}. The string has been removed altogether.`
+          );
+          delete strings[stringName];
 
-      i18n[lang] = strings;
-    });
+          return;
+        }
 
-  const i18nWithFallbacks = {};
+        strings[stringName] = sanitized;
+      });
 
-  if (Object.keys(i18n).length) {
+    i18n[lang] = strings;
+  });
+
+const i18nWithFallbacks = {};
+
+if (Object.keys(i18n).length) {
   // Use language fallbacks data to fill missing messages. When the fallbacks need to be updated,
   // they can be collected using
   // https://phabricator.wikimedia.org/source/mediawiki/browse/master/languages/messages/?grep=fallback%20%3D.
-    const fallbackData = JSON.parse(fs.readFileSync('./data/languageFallbacks.json', 'utf8'));
-    Object.keys(i18n).forEach((lang) => {
-      const fallbacks = fallbackData[lang];
-      i18nWithFallbacks[lang] = fallbacks
-        ? Object.assign({}, ...fallbacks.map((fbLang) => i18n[fbLang]).reverse(), i18n[lang])
-        : i18n[lang];
-    });
+  const fallbackData = JSON.parse(fs.readFileSync('./data/languageFallbacks.json', 'utf8'));
+  Object.keys(i18n).forEach((lang) => {
+    const fallbacks = fallbackData[lang];
+    i18nWithFallbacks[lang] = fallbacks
+      ? Object.assign({}, ...fallbacks.map((fbLang) => i18n[fbLang]).reverse(), i18n[lang])
+      : i18n[lang];
+  });
 
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const langsHavingDayjsLocale = buildDayjsLocales(i18nWithFallbacks);
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const langsHavingDateFnsLocale = buildDateFnsLocales(i18nWithFallbacks);
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+  const langsHavingDayjsLocale = buildDayjsLocales(i18nWithFallbacks);
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+  const langsHavingDateFnsLocale = buildDateFnsLocales(i18nWithFallbacks);
 
-    // Create i18n files that combine translations with dayjs locales.
-    for (const [lang, json] of Object.entries(i18nWithFallbacks)) {
-      let jsonText = replaceEntitiesInI18n(JSON.stringify(json, null, '\t'));
+  // Create i18n files that combine translations with dayjs locales.
+  for (const [lang, json] of Object.entries(i18nWithFallbacks)) {
+    let jsonText = replaceEntitiesInI18n(JSON.stringify(json, null, '\t'));
 
-      if (lang === 'en') {
+    if (lang === 'en') {
       // Prevent creating "</nowiki>" character sequences when building the main script file.
-        jsonText = jsonText.replace(/<\/nowiki>/g, '</" + String("") + "nowiki>');
-      }
+      jsonText = jsonText.replace(/<\/nowiki>/g, '</" + String("") + "nowiki>');
+    }
 
-      let text = `window.convenientDiscussions = /** @type {import('../../src/cd').ConvenientDiscussions} */ (window.convenientDiscussions || {});
+    let text = `window.convenientDiscussions = /** @type {import('../../src/cd').ConvenientDiscussions} */ (window.convenientDiscussions || {});
 convenientDiscussions.i18n = convenientDiscussions.i18n || {};
 convenientDiscussions.i18n['${lang}'] = ${jsonText};
 `;
 
-      let dayjsLocaleText;
-      if (langsHavingDayjsLocale.includes(lang)) {
-        dayjsLocaleText = fs.readFileSync(`./${DAYJS_LOCALES_TEMP_DIR_NAME}/dist/${lang}.js`, 'utf8');
-        text += `
+    let dayjsLocaleText;
+    if (langsHavingDayjsLocale.includes(lang)) {
+      dayjsLocaleText = fs.readFileSync(`./${DAYJS_LOCALES_TEMP_DIR_NAME}/dist/${lang}.js`, 'utf8');
+      text += `
 // This assigns a day.js locale object to \`convenientDiscussions.i18n['${lang}'].dayjsLocale\`.
 ${dayjsLocaleText}
 `;
-      }
+    }
 
-      let dateFnsLocaleText;
-      if (langsHavingDateFnsLocale.includes(lang)) {
-        dateFnsLocaleText = fs.readFileSync(
-          `./${DATE_FNS_LOCALES_TEMP_DIR_NAME}/dist/${lang}.js`,
-          'utf8'
-        );
-        text += `
+    let dateFnsLocaleText;
+    if (langsHavingDateFnsLocale.includes(lang)) {
+      dateFnsLocaleText = fs.readFileSync(
+        `./${DATE_FNS_LOCALES_TEMP_DIR_NAME}/dist/${lang}.js`,
+        'utf8'
+      );
+      text += `
 // This assigns a date-fns locale object to \`convenientDiscussions.i18n['${lang}'].dateFnsLocale\`.
 ${dateFnsLocaleText}
 `;
-      }
-
-      fs.mkdirSync('dist/convenientDiscussions-i18n', { recursive: true });
-      fs.writeFileSync(`dist/convenientDiscussions-i18n/${lang}.js`, text);
     }
 
-    rimraf.sync(DAYJS_LOCALES_TEMP_DIR_NAME);
-    rimraf.sync(DATE_FNS_LOCALES_TEMP_DIR_NAME);
+    fs.mkdirSync('dist/convenientDiscussions-i18n', { recursive: true });
+    fs.writeFileSync(`dist/convenientDiscussions-i18n/${lang}.js`, text);
   }
 
-  fs.mkdirSync('data', { recursive: true });
-  fs.writeFileSync('data/i18nList.json', JSON.stringify(Object.keys(i18n), null, '\t') + '\n');
+  rimraf.sync(DAYJS_LOCALES_TEMP_DIR_NAME);
+  rimraf.sync(DATE_FNS_LOCALES_TEMP_DIR_NAME);
+}
 
-  console.log('Internationalization files have been built successfully.');
-})();
+fs.mkdirSync('data', { recursive: true });
+fs.writeFileSync('data/i18nList.json', JSON.stringify(Object.keys(i18n), null, '\t') + '\n');
+
+console.log('Internationalization files have been built successfully.');

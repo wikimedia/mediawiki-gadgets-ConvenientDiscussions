@@ -768,6 +768,7 @@ export function extractSignatures(code) {
   const adjustedCode = maskDistractingCode(code)
     .replace(
       cd.g.quoteRegexp,
+      /** @type {ReplaceCallback<4>} */
       (_, beginning, content, ending) => beginning + ' '.repeat(content.length) + ending
     )
     .replace(
@@ -808,7 +809,7 @@ export function extractSignatures(code) {
       i === 0 ? 0 : /** @type {number} */ (signatures[i - 1].nextCommentStartIndex);
   });
   signatures.forEach((sig, i) => {
-    const { date } = sig.timestamp && parseTimestamp(sig.timestamp) || {};
+    const { date } = (sig.timestamp && parseTimestamp(sig.timestamp)) || {};
     sig.index = i;
     sig.date = date;
     delete sig.nextCommentStartIndex;
@@ -1062,7 +1063,7 @@ export function getCommonGender(users) {
 export function initDayjs() {
   if (/** @type {any} */ (dayjs).utc) return;
 
-  const locale = cd.g.userLanguage in cd.i18n ? cd.i18n[cd.g.userLanguage].dayjsLocale : undefined;
+  const locale = cd.i18n[cd.g.userLanguage]?.dayjsLocale;
   if (locale) {
     dayjs.locale(locale);
   }

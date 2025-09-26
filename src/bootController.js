@@ -695,7 +695,7 @@ class BootController {
   /**
    * Get the offset data related to `.$contentColumn`.
    *
-   * @param {boolean} [bypassCache=false] Whether to bypass cache.
+   * @param {boolean} [bypassCache] Whether to bypass cache.
    * @returns {ContentColumnOffsets}
    */
   getContentColumnOffsets(bypassCache = false) {
@@ -1109,7 +1109,7 @@ class BootController {
   /**
    * Create a boot process.
    *
-   * @param {import('./BootProcess').PassedData} [passedData={}]
+   * @param {import('./BootProcess').PassedData} [passedData]
    * @returns {import('./BootProcess').default}
    */
   createBootProcess(passedData = {}) {
@@ -1218,7 +1218,7 @@ class BootController {
   /**
    * Reload the page via Ajax.
    *
-   * @param {import('./BootProcess').PassedData} [passedData={}] Data passed from the previous page
+   * @param {import('./BootProcess').PassedData} [passedData] Data passed from the previous page
    *   state. See {@link PassedData} for the list of possible properties. `html`, `unseenComments`
    *   properties are set in this function.
    * @throws {import('./shared/CdError').default|Error}
@@ -1450,12 +1450,12 @@ class BootController {
    * @returns {boolean}
    */
   isPageOverlayOn() {
-    return Boolean(this.$loadingPopup?.[0].inert || this.booting);
+    return this.$loadingPopup?.[0].inert || this.booting;
   }
 
   /**
    * Load the data required for the script to process the page as a log page and
-   * {@link module:addCommentLinks process it}.
+   * {@link addCommentLinks process it}.
    *
    * @private
    */

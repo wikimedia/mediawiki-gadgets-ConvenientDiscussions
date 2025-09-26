@@ -255,6 +255,7 @@ class Parser {
     element.classList.add('cd-timestamp');
     Parser.appendChild(element, Parser.createTextNode(match[2]));
     const remainedText = node.textContent.slice(
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       /** @type {number} */ (match.index) + match[0].length
     );
     const afterNode = remainedText ? document.createTextNode(remainedText) : undefined;
@@ -441,6 +442,7 @@ class Parser {
     Parser.insertBefore(signatureContainer, element, startElementNextSibling);
 
     return {
+      // eslint-disable-next-line object-shorthand
       element: /** @type {HTMLElementFor<N>} */ (element),
       timestampElement: timestamp.element,
       timestampText: timestamp.element.textContent,
@@ -557,7 +559,7 @@ class Parser {
    * With code like this:
    *
    * ```html
-   * * Smth. [signature]
+   * Smth. [signature]
    * :: Smth. [signature]
    * ```
    *
@@ -567,7 +569,7 @@ class Parser {
    * accurately). One of the most complex tree structures is this:
    *
    * ```html
-   *  * Smth. [signature]
+   *  Smth. [signature]
    *  :* Smth.
    *  :: Smth. [signature]
    * ```
@@ -577,7 +579,7 @@ class Parser {
    * It has a branchy structure that requires a tricky algorithm to be parsed correctly.
    *
    * @param {ElementLike} element
-   * @param {boolean} [onlyChildrenWithoutCommentLevel=false]
+   * @param {boolean} [onlyChildrenWithoutCommentLevel]
    * @returns {{
    *   nodes: ElementLike[];
    *   levelsPassed: number;
@@ -698,7 +700,7 @@ class Parser {
 
     let lastChild;
     while ((lastChild = parent.lastChild) && lastChild !== node) {
-      Parser.insertBefore(clone, lastChild, /** @type {N} */ (clone.firstChild));
+      Parser.insertBefore(clone, lastChild, clone.firstChild);
     }
     if (this.getChildElements(clone).length > 0 && parent.parentElement) {
       Parser.insertBefore(parent.parentElement, clone, parent.nextSibling);
