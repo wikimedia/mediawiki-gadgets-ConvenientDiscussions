@@ -185,6 +185,7 @@ class CommentRegistry extends EventEmitter {
     if (index < 0) {
       index = this.items.length + index;
     }
+
     return this.items[index] || null;
   }
 
@@ -250,9 +251,9 @@ class CommentRegistry extends EventEmitter {
   configureAndAddLayers(condition) {
     const comments = this.items.filter(condition);
 
-    const floatingRects = comments.length ?
-      talkPageController.getFloatingElements().map(getExtendedRect) :
-      undefined;
+    const floatingRects = comments.length
+      ? talkPageController.getFloatingElements().map(getExtendedRect)
+      : undefined;
     comments.forEach((comment) => {
       comment.configureLayers({
         add: false,
@@ -375,6 +376,7 @@ class CommentRegistry extends EventEmitter {
       const isInViewport = comment.isInViewport();
       if (isInViewport) {
         comment.registerSeen();
+
         return false;
       } else if (isInViewport === false) {
         // isInViewport could also be `null`.
@@ -442,7 +444,7 @@ class CommentRegistry extends EventEmitter {
       return null;
     }
 
-    let searchArea = {
+    const searchArea = {
       top: firstVisibleComment,
       bottom: /** @type {Comment} */ (lastVisibleComment),
     };
@@ -585,7 +587,7 @@ class CommentRegistry extends EventEmitter {
    * Get a comment by ID in the CD format.
    *
    * @param {string | undefined} id
-   * @param {boolean} [impreciseDate=false] Comment date is inferred from the edit date (but these
+   * @param {boolean} [impreciseDate] Comment date is inferred from the edit date (but these
    *   may be different). If `true`, we allow the time on the page to be 1-3 minutes less than the
    *   edit time.
    * @returns {?Comment}
@@ -669,7 +671,7 @@ class CommentRegistry extends EventEmitter {
    * Get a comment by a comment ID in the CD or DiscussionTools format.
    *
    * @param {string} id
-   * @param {boolean} [impreciseDate=false] (For CD IDs.) Comment date is inferred from the edit
+   * @param {boolean} [impreciseDate] (For CD IDs.) Comment date is inferred from the edit
    *   date (but these may be different). If `true`, we allow the time on the page to be 1-3 minutes
    *   less than the edit time.
    * @returns {Comment | null}
@@ -716,7 +718,7 @@ class CommentRegistry extends EventEmitter {
           .filter((comment) => comment.logicalLevel === 0)
           .reduce((arr, child) =>
             this.searchForNewCommentsInSubtree(child, arr, newCommentIndexes),
-            /** @type {import('./updateChecker').CommentWorkerNew[]} */ ([])
+          /** @type {import('./updateChecker').CommentWorkerNew[]} */ ([])
           );
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const threadComments = comments.filter((comment) => !sectionComments.includes(comment));
@@ -794,15 +796,15 @@ class CommentRegistry extends EventEmitter {
     } else {
       button.$element.addClass('cd-section-button');
       (
-        type === 'section' ?
-          $('<div>').append(button.$element) :
-          $('<dl>').append($('<dd>').append(button.$element))
+        type === 'section'
+          ? $('<div>').append(button.$element)
+          : $('<dl>').append($('<dd>').append(button.$element))
       )
         .addClass('cd-thread-button-container cd-thread-newCommentsNote')
         .insertAfter(
-          parent.$addSubsectionButtonsContainer && !parent.getChildren().length ?
-            parent.$addSubsectionButtonsContainer :
-            parent.$replyButtonContainer || parent.lastElementInFirstChunk
+          parent.$addSubsectionButtonsContainer && !parent.getChildren().length
+            ? parent.$addSubsectionButtonsContainer
+            : parent.$replyButtonContainer || parent.lastElementInFirstChunk
         );
     }
   }
@@ -825,7 +827,7 @@ class CommentRegistry extends EventEmitter {
     });
 
     // Check existence of user and user talk pages and apply respective changes to elements.
-    /** @type {Record<string, HTMLAnchorElement[]>} */
+    /** @type {{ [x: string]: HTMLAnchorElement[] }} */
     const pageNamesToLinks = {};
     pagesToCheckExistence.forEach((page) => {
       pageNamesToLinks[page.pageName] ||= [];
@@ -1035,7 +1037,7 @@ class CommentRegistry extends EventEmitter {
       );
 
     [...levels].forEach((bottomElement) => {
-      const topElement = /** @type {HTMLElement} */ (bottomElement.previousElementSibling);
+      const topElement = /** @type {HTMLElement | null} */ (bottomElement.previousElementSibling);
 
       // If the previous element was removed in this cycle
       if (!topElement) return;
@@ -1046,10 +1048,10 @@ class CommentRegistry extends EventEmitter {
           firstMoved;
         currentTopElement && currentBottomElement && isOrHasCommentLevel(currentBottomElement);
         currentBottomElement = firstMoved,
-          currentTopElement =
-            /** @type {HTMLElement | null} */ (firstMoved?.previousElementSibling) ||
-            undefined,
-          firstMoved = undefined
+        currentTopElement =
+          /** @type {HTMLElement | null} */ (firstMoved?.previousElementSibling) ||
+          undefined,
+        firstMoved = undefined
       ) {
         const topTag = currentTopElement.tagName;
         const bottomInnerTags = /** @type {Record<'DD' | 'LI', 'DD' | 'LI'>} */ ({});
@@ -1059,7 +1061,10 @@ class CommentRegistry extends EventEmitter {
           bottomInnerTags.LI = 'DD';
         }
 
-        if (isOrHasCommentLevel(currentTopElement) && /*
+        if (
+          isOrHasCommentLevel(currentTopElement) &&
+
+          /*
             Avoid collapsing adjacent <li>s and <dd>s if we deal with a structure like this:
 
               <li>
@@ -1073,35 +1078,36 @@ class CommentRegistry extends EventEmitter {
           */
           ['DL', 'DD', 'UL', 'LI'].includes(
             /** @type {HTMLElement} */ (currentBottomElement.firstElementChild).tagName
-          )) {
-            while (currentBottomElement.childNodes.length) {
-              let child = /** @type {ChildNode} */ (currentBottomElement.firstChild);
-              if (child instanceof HTMLElement) {
-                if (child.tagName in bottomInnerTags) {
-                  child = this.changeElementType(
-                    child,
-                    bottomInnerTags[/** @type {keyof typeof bottomInnerTags} */ (child.tagName)]
-                  );
-                }
-                firstMoved ??= /** @type {HTMLElement} */ (child);
-              } else if (firstMoved === undefined && child.textContent.trim()) {
-                // Don't fill the firstMoved variable which is used further to merge elements if
-                // there is a non-empty text node between. (An example that is now fixed:
-                // https://ru.wikipedia.org/wiki/Википедия:Форум/Архив/Викиданные/2018/1_полугодие#201805032155_NBS,
-                // but other can be on the loose.) Instead, wrap the text node into an element to
-                // prevent it from being ignored when searching next time for adjacent .commentLevel
-                // elements. This could be seen only as an additional precaution, since it doesn't
-                // fix the source of the problem: the fact that a bare text node is (probably) a
-                // part of the reply. It shouldn't be happening.
-                firstMoved = undefined;
-                const newChild = document.createElement('span');
-                newChild.append(child);
-                child = newChild;
+          )
+        ) {
+          while (currentBottomElement.childNodes.length) {
+            let child = /** @type {ChildNode} */ (currentBottomElement.firstChild);
+            if (child instanceof HTMLElement) {
+              if (child.tagName in bottomInnerTags) {
+                child = this.changeElementType(
+                  child,
+                  bottomInnerTags[/** @type {keyof typeof bottomInnerTags} */ (child.tagName)]
+                );
               }
-              currentTopElement.append(child);
+              firstMoved ??= /** @type {HTMLElement} */ (child);
+            } else if (firstMoved === undefined && child.textContent.trim()) {
+              // Don't fill the firstMoved variable which is used further to merge elements if
+              // there is a non-empty text node between. (An example that is now fixed:
+              // https://ru.wikipedia.org/wiki/Википедия:Форум/Архив/Викиданные/2018/1_полугодие#201805032155_NBS,
+              // but other can be on the loose.) Instead, wrap the text node into an element to
+              // prevent it from being ignored when searching next time for adjacent .commentLevel
+              // elements. This could be seen only as an additional precaution, since it doesn't
+              // fix the source of the problem: the fact that a bare text node is (probably) a
+              // part of the reply. It shouldn't be happening.
+              firstMoved = undefined;
+              const newChild = document.createElement('span');
+              newChild.append(child);
+              child = newChild;
             }
-            currentBottomElement.remove();
+            currentTopElement.append(child);
           }
+          currentBottomElement.remove();
+        }
       }
     });
   }

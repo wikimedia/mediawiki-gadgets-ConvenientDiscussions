@@ -16,8 +16,8 @@ const config = defineConfig(
 
   js.configs.recommended,
   tseslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
+  tseslint.configs.strictTypeChecked,
+  tseslint.configs.stylisticTypeChecked,
   unicorn.configs.recommended,
   jsdoc({
     config: 'flat/recommended-typescript-flavor',
@@ -50,11 +50,11 @@ const config = defineConfig(
   stylistic.configs.customize({
     semi: true,
     arrowParens: true,
+    severity: 'warn',
   }),
 
   // Main configuration
   {
-    files: ['**/*.js', '**/*.mjs'],
     languageOptions: {
       sourceType: 'module',
       ecmaVersion: 2020,
@@ -94,18 +94,12 @@ const config = defineConfig(
     plugins: {
       'import': importPlugin,
       'no-one-time-vars': noOneTimeVars,
-      // 'unicorn': eslintPluginUnicorn,
       '@stylistic': stylistic,
-      // '@typescript-eslint': tseslint.plugin,
     },
     linterOptions: {
       reportUnusedDisableDirectives: false,
-      noInlineConfig: false,
     },
     rules: {
-      // ...eslint.configs.recommended.rules,
-      // ...eslintPluginUnicorn.configs.recommended.rules,
-
       'prefer-const': ['warn', {
         destructuring: 'all',
       }],
@@ -211,7 +205,7 @@ const config = defineConfig(
       // individually.
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
 
-      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
+      '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/parameter-properties': 'error',
       '@typescript-eslint/no-shadow': 'error',
       // '@typescript-eslint/class-methods-use-this': ['error', {
@@ -409,6 +403,18 @@ const config = defineConfig(
     },
   },
 
+  // Overrides for JS
+  {
+    files: ['**/*.js', '**/*.mjs'],
+    languageOptions: {
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+      },
+    },
+  },
+
   // Overrides for specific files
   {
     files: ['./*', 'src/tribute/**', 'jsdoc/**', '*.test.js'],
@@ -426,18 +432,6 @@ const config = defineConfig(
     },
   },
 
-  // Environment configs
-  {
-    files: ['**/*.js'],
-    languageOptions: {
-      globals: {
-        // Browser globals
-        window: 'readonly',
-        document: 'readonly',
-      },
-    },
-  },
-
   // Configuration for .d.ts files
   {
     files: ['**/*.d.ts'],
@@ -452,40 +446,10 @@ const config = defineConfig(
     rules: {
       // Disable some rules that are not applicable to declaration files
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
       'jsdoc/require-jsdoc': 'off',
-      'import/order': 'off',
-
-      '@typescript-eslint/array-type': ['error', { default: 'array' }],
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-      '@typescript-eslint/no-unnecessary-condition': 'off',
-      '@typescript-eslint/await-thenable': 'off',
+      'unicorn/require-module-specifiers': 'off',
     },
   },
 );
-
-/**
- * Bulk-change the severity of many rules.
- *
- * @param {import('eslint').Linter.Config[]} conf
- * @param {string} prefix
- * @param {import('eslint').Linter.RuleSeverity} severity
- */
-function setRuleSeverityByPrefix(conf, prefix, severity) {
-  conf.forEach((confPart) => {
-    // Loop through each rule in the config
-    for (const rule in confPart.rules) {
-      if (rule.startsWith(prefix)) {
-        confPart.rules[rule] = Array.isArray(confPart.rules[rule])
-          ? [severity, ...confPart.rules[rule].slice(1)]  // Preserve additional options if present
-          : severity;
-      }
-    }
-  });
-}
-
-// Use the function to modify the rules in the baseConfig object
-setRuleSeverityByPrefix(config, '@stylistic/', 'warn');
 
 export default config;

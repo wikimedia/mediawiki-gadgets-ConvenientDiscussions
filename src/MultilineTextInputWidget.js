@@ -25,7 +25,7 @@ class MultilineTextInputWidget extends mixInClass(
    * Focus the input and select a specified range within the text.
    *
    * @param {number} start Select from offset
-   * @param {number} [end=start] Select to offset
+   * @param {number} [end] Select to offset
    * @returns {this} The widget, for chaining
    * @override
    */

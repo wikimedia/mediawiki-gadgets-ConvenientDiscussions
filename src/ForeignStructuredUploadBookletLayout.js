@@ -11,7 +11,6 @@ import { mergeJquery, wrapHtml } from './utils-window';
  * @see https://doc.wikimedia.org/mediawiki-core/master/js/mw.ForeignStructuredUpload.BookletLayout.html
  */
 
-
 /**
  * Class extending
  * {@link mw.ForeignStructuredUpload.BookletLayout mw.ForeignStructuredUpload.BookletLayout} and
@@ -168,7 +167,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
     this.controls.preset.input
       .on('select', (item) => {
         this.onPresetChange(/** @type {OO.ui.RadioOptionWidget} */ (item));
-      })
+      });
     projectScreenshotItem.radio.$input
       .on('focus', () => {
         this.controls.title.input.focus();
@@ -237,6 +236,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
     const preset = /** @type {import('./RadioOptionWidget').default} */ (
       this.controls.preset.input.findSelectedItem()
     )?.getData();
+
     return (
       (preset === 'projectScreenshot' || preset === 'mediawikiScreenshot') &&
       !this.controls.configure.input.isSelected()
@@ -419,9 +419,9 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
         this.controls.source.input.setValue('Screenshot');
         this.controls.author.input.setValue(`${projectNameOrPageLink} authors${historyText}`);
         this.controls.license.input.setValue(
-          hasIwPrefix ?
-            '{{Wikimedia-screenshot}}' :
-            this.constructor.getTemplateForHostname(cd.g.serverName)
+          hasIwPrefix
+            ? '{{Wikimedia-screenshot}}'
+            : this.constructor.getTemplateForHostname(cd.g.serverName)
         );
 
         // Load the English project name for the file name if we can
@@ -429,7 +429,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
           deferred = deferred
             .then(
               () => getUrlFromInterwikiLink?.(pageName),
-              (error) => {
+              (/** @type {unknown} */ error) => {
                 throw ['badUpload', error];
               }
             )
@@ -462,7 +462,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
                 this.filenameWidget.setValue(`${newProjectName} ${unprefixedPageName} ${filenameDate}`);
                 this.controls.author.input.setValue(`${newProjectName} authors${newHistoryText}`);
               },
-              (error) => {
+              (/** @type {unknown} */ error) => {
                 // Unless there is something wrong with uploading, always resolve - this
                 // functionality is non-essential.
                 if (error[0] === 'badUpload') {
@@ -564,6 +564,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
     this.upload.setSource(this.controls.source.input.getValue());
     this.upload.setUser(this.controls.author.input.getValue());
     this.upload.setLicense(this.controls.license.input.getValue());
+
     return super.getText();
   }
 
@@ -656,6 +657,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
       ),
     });
     const link = `https://${hostname}${path}`;
+
     return `, see the [${link} page history]`;
   }
 
@@ -683,11 +685,14 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
     ]).some(([regexp, format]) => {
       const match = hostname.match(regexp);
       if (match) {
-        template = format.replace('%s', match[1] ? '|' + match[1] : '')
+        template = format.replace('%s', match[1] ? '|' + match[1] : '');
+
         return true;
       }
+
       return false;
     });
+
     return template || '{{Wikimedia-screenshot}}';
   }
 }

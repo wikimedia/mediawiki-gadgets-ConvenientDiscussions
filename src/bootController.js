@@ -57,7 +57,7 @@ class BootController {
    */
 
   /**
-   * @type {ContentColumnOffsets}
+   * @type {ContentColumnOffsets | undefined}
    * @private
    */
   contentColumnOffsets;
@@ -90,7 +90,7 @@ class BootController {
   /** @type {boolean} */
   talkPage;
 
-  /** @type {JQuery.Promise<any>[]} */
+  /** @type {JQuery.Promise<any>[] | undefined} */
   siteDataRequests;
 
   /**
@@ -348,7 +348,12 @@ class BootController {
     cd.g.contentTimezone = cd.config.timezone;
 
     const specialPages = ['Contributions', 'Diff', 'PermanentLink'];
-    if (specialPages.some((page) => !cd.g.specialPageAliases[page]?.length) || !cd.g.contentTimezone) {
+    if (
+      !specialPages.every(
+        (page) => page in cd.g.specialPageAliases && cd.g.specialPageAliases[page].length
+      ) ||
+      !cd.g.contentTimezone
+    ) {
       requests.push(
         cd
           .getApi()
@@ -731,7 +736,7 @@ class BootController {
    * _For internal use._ Set a number of {@link convenientDiscussions global object} properties.
    */
   initGlobals() {
-    if (cd.page) return;
+    if (!('page' in cd)) return;
 
     const script = mw.loader.moduleRegistry['mediawiki.Title'].script;
     cd.g.phpCharToUpper =
@@ -968,11 +973,10 @@ class BootController {
 
     this.pageTypes.diff = /[?&]diff=[^&]/.test(location.search);
 
-    this.pageTypes.talk = Boolean(
+    this.pageTypes.talk =
       mw.config.get('wgIsArticle') &&
       !isDisabledInQuery &&
-      (isEnabledInQuery || this.articlePageOfTalkType)
-    );
+      (isEnabledInQuery || this.articlePageOfTalkType);
 
     this.pageTypes.watchlist = this.isWatchlistPage();
     this.pageTypes.contributions = this.isContributionsPage();
@@ -988,7 +992,7 @@ class BootController {
    * @param {boolean} value
    */
   setPageTypeTalk(value) {
-    this.pageTypes.talk = Boolean(value);
+    this.pageTypes.talk = value;
   }
 
   /**
@@ -1063,15 +1067,15 @@ class BootController {
     // thrashing) could happen without impeding performance, we cache the value so that it could
     // be used in .saveRelativeScrollPosition() without causing a reflow.
     this.bootProcess = this.createBootProcess(
-      !modulesRequest && siteDataRequests.every((request) => request.state() === 'resolved')
+      siteDataRequests.every((request) => request.state() === 'resolved') && !modulesRequest
         ? { scrollY: window.scrollY }
         : {}
     );
 
     this.showLoadingOverlay();
-    Promise.all([modulesRequest, ...siteDataRequests]).then(
+    Promise.all([modulesRequest || Promise.resolve(), ...siteDataRequests]).then(
       () => this.tryBoot(false),
-      (error) => {
+      (/** @type {unknown} */ error) => {
         mw.notify(cd.s('error-loaddata'), { type: 'error' });
         console.error(error);
         this.hideLoadingOverlay();
@@ -1176,7 +1180,7 @@ class BootController {
    */
   setupOnTalkPage(pageHtml) {
     // RevisionSlider replaces the #mw-content-text element.
-    if (!this.$content[0]?.parentNode) {
+    if (!this.$content.get(0)?.parentNode) {
       this.$content = $('#mw-content-text');
     }
 
@@ -1249,7 +1253,7 @@ class BootController {
 
     // Save time by requesting the options in advance. This also resets the cache since the `reuse`
     // parameter is `false`.
-    getUserInfo().catch((error) => {
+    getUserInfo().catch((/** @type {unknown} */ error) => {
       console.warn(error);
     });
 

@@ -31,9 +31,9 @@ export default {
       name = name.slice(0, name.indexOf('#'));
     }
     name = (
-      mw.util.isIPv6Address(name) ?
-        name.toUpperCase() :
-        underlinesToSpaces(ucFirst(name))
+      mw.util.isIPv6Address(name)
+        ? name.toUpperCase()
+        : underlinesToSpaces(ucFirst(name))
     ).trim();
     this.items[name] ||= new User(
       name,
@@ -100,7 +100,7 @@ export default {
            */
           mw.hook('convenientDiscussions.mutedUsers').fire(users);
         },
-        (error) => {
+        (/** @type {unknown} */ error) => {
           console.error('Couldn\'t load the names of the muted users.', error);
         }
       );

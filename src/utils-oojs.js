@@ -158,7 +158,7 @@ import { copyText } from './utils-window';
  * and also a window close by pressing Esc).
  *
  * @param {string|JQuery} message
- * @param {AnyByKey} [options={}]
+ * @param {AnyByKey} [options]
  * @returns {Promise.<'accept' | 'reject' | undefined>} `undefined` is possible when pressing Esc, I
  *   think.
  */
@@ -419,30 +419,29 @@ export function createCopyTextControl({
     });
 
     return { type: 'copyText', field, input: field.textInput };
-  } else {
-    // MediaWiki versions before 1.34 do not have CopyTextLayout, so we use ActionFieldLayout
-    // instead
-    const input = new OO.ui.TextInputWidget({ value, disabled });
-    const button = new OO.ui.ButtonWidget({
-      label: cd.s('copy'),
-      icon: 'copy',
-      disabled,
-    });
-    button.on('click', () => {
-      copyCallback(copyText(input.getValue()), input);
-    });
-
-    return {
-      type: 'copyText',
-      field: new OO.ui.ActionFieldLayout(input, button, {
-        align: 'top',
-        label,
-        help,
-        helpInline: Boolean(help),
-      }),
-      input,
-    };
   }
+
+  // MediaWiki versions before 1.34 do not have CopyTextLayout, so we use ActionFieldLayout instead
+  const input = new OO.ui.TextInputWidget({ value, disabled });
+  const button = new OO.ui.ButtonWidget({
+    label: cd.s('copy'),
+    icon: 'copy',
+    disabled,
+  });
+  button.on('click', () => {
+    copyCallback(copyText(input.getValue()), input);
+  });
+
+  return {
+    type: 'copyText',
+    field: new OO.ui.ActionFieldLayout(input, button, {
+      align: 'top',
+      label,
+      help,
+      helpInline: Boolean(help),
+    }),
+    input,
+  };
 }
 
 /**
@@ -555,8 +554,8 @@ export function createTitleControl(options) {
  * @template {ControlType} T
  * @param {T} type Control type identifier
  * @param {ControlTypeToWidget[T]} input The input widget
- * @param {GenericFieldOptions} [fieldOptions={}] Configuration for the field layout
- * @param {AnyByKey} [data={}] Additional data to attach to the control
+ * @param {GenericFieldOptions} [fieldOptions] Configuration for the field layout
+ * @param {AnyByKey} [data] Additional data to attach to the control
  * @returns {GenericControl<T>}
  */
 export function createGenericControl(type, input, fieldOptions = {}, data = {}) {

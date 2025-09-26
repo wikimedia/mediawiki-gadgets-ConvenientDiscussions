@@ -238,7 +238,7 @@ function getConfig() {
       /** @type {StringsByKey} */ (configUrls)[key] ||
       /** @type {StringsByKey} */ (configUrls)[mw.config.get('wgServerName')];
     if (configUrl) {
-      const rejectWithMsg = (/** @type {any} */ error) => {
+      const rejectWithMsg = (/** @type {unknown} */ error) => {
         reject(
           new Error(`Convenient Discussions can't run: couldn't load the configuration.`, {
             cause: error,

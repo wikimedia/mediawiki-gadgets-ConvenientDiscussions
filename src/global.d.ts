@@ -1,8 +1,10 @@
 /// <reference types="types-mediawiki" />
 
-import { ConvenientDiscussions } from './cd';
+import { ApiResponse } from 'types-mediawiki/mw/Api';
+
 import CheckboxInputWidget from './CheckboxInputWidget';
 import TextInputWidget from './TextInputWidget';
+import { ConvenientDiscussions } from './cd';
 
 declare global {
   const IS_TEST: boolean;
@@ -23,6 +25,8 @@ declare global {
   type HasProperty<T extends readonly string[], K extends string> = K extends T[number]
     ? true
     : false;
+
+  type ApiAnyResponse = ApiResponse | ApiRejectResponse;
 
   interface ApiResponseQueryPage {
     title: string;
@@ -68,33 +72,31 @@ declare global {
     pages: Pages;
   }
 
-  export interface Pages {
-    [x: string]: TemplateData;
-  }
+  export type Pages = Record<string, TemplateData>;
 
   interface TemplateData {
-    title:       string;
-    ns:          number;
+    title: string;
+    ns: number;
     description: StringsByKey;
-    params:      { [key: string]: Param };
-    format:      string;
-    paramOrder:  string[];
-    sets:        AnyByKey[];
-    maps:        AnyByKey[];
+    params: Record<string, Param>;
+    format: string;
+    paramOrder: string[];
+    sets: AnyByKey[];
+    maps: AnyByKey[];
   }
 
   interface Param {
-    description:     StringsByKey | null;
-    type:            string;
-    label:           StringsByKey | null;
-    required:        boolean;
-    suggested:       boolean;
-    deprecated:      boolean;
-    aliases:         any[];
-    autovalue:       null | string;
-    default:         null;
+    description: StringsByKey | null;
+    type: string;
+    label: StringsByKey | null;
+    required: boolean;
+    suggested: boolean;
+    deprecated: boolean;
+    aliases: any[];
+    autovalue: null | string;
+    default: null;
     suggestedvalues: string[];
-    example:         StringsByKey | null;
+    example: StringsByKey | null;
   }
 
   // Generic Revision type that conditionally includes properties
@@ -103,12 +105,12 @@ declare global {
 
   // Conditional type that adds properties based on the presence of strings in the array
   type RevisionConditionalProperties<T extends readonly string[]> =
-    & (HasProperty<T, 'ids'> extends true ? { ids: string } : {})
-    & (HasProperty<T, 'timestamp'> extends true ? { timestamp: string } : {})
-    & (HasProperty<T, 'flags'> extends true ? { minor: boolean } : {})
-    & (HasProperty<T, 'comment'> extends true ? { comment: string } : {})
-    & (HasProperty<T, 'user'> extends true ? { user: string } : {})
-    & (HasProperty<T, 'parsedcomment'> extends true ? { parsedcomment: string } : {});
+    & (HasProperty<T, 'ids'> extends true ? { ids: string } : {}) &
+    (HasProperty<T, 'timestamp'> extends true ? { timestamp: string } : {}) &
+    (HasProperty<T, 'flags'> extends true ? { minor: boolean } : {}) &
+    (HasProperty<T, 'comment'> extends true ? { comment: string } : {}) &
+    (HasProperty<T, 'user'> extends true ? { user: string } : {}) &
+    (HasProperty<T, 'parsedcomment'> extends true ? { parsedcomment: string } : {});
 
   interface FromTo {
     from: string;
@@ -126,7 +128,6 @@ declare global {
     batchcomplete?: boolean;
     continue?: object;
   }
-
 
   interface ApiResponseQueryContentPages {
     query?: {
@@ -159,19 +160,19 @@ declare global {
   type ControlType = 'button' | 'checkbox' | 'copyText' | 'multicheckbox' | 'multilineText' | 'multitag' | 'number' | 'radio' | 'text' | 'title';
 
   interface ControlTypeToControl {
-    'button': ButtonControl;
-    'checkbox': CheckboxControl;
-    'copyText': CopyTextControl;
-    'multicheckbox': MulticheckboxControl;
-    'multilineText': MultilineTextInputControl;
-    'multitag': MultitagControl;
-    'number': NumberControl;
-    'radio': RadioControl;
-    'title': TitleControl;
-    'text': TextControl;
+    button: ButtonControl;
+    checkbox: CheckboxControl;
+    copyText: CopyTextControl;
+    multicheckbox: MulticheckboxControl;
+    multilineText: MultilineTextInputControl;
+    multitag: MultitagControl;
+    number: NumberControl;
+    radio: RadioControl;
+    title: TitleControl;
+    text: TextControl;
   }
 
-  type ControlTypesByName<T extends { [K: string]: ControlType }> = {
+  type ControlTypesByName<T extends Record<string, ControlType>> = {
     -readonly [K in keyof T]: ControlTypeToControl[T[K]];
   };
 
@@ -253,7 +254,7 @@ declare global {
       callback?: () => void,
     ): this;
     cdIsInViewport(partially?: boolean): boolean;
-    cdScrollIntoView(alignment?: 'top'|'center'|'bottom', smooth?: boolean, callback?: () => void): this;
+    cdScrollIntoView(alignment?: 'top' | 'center' | 'bottom', smooth?: boolean, callback?: () => void): this;
     cdGetText(): string;
     cdAddCloseButton(): this;
     cdRemoveCloseButton(): this;
@@ -335,21 +336,19 @@ declare global {
     // Add native Promise since it seems to work and we use it
     namespace Process {
       type StepOverride<C> =
-        | number
-        | JQuery.Promise<void>
-        | Promise<void>
-        | ((this: C) => boolean | number | JQuery.Promise<void> | Promise<void> | Error | [Error] | undefined);
+        | number |
+        JQuery.Promise<void> |
+        Promise<void> |
+        ((this: C) => boolean | number | JQuery.Promise<void> | Promise<void> | Error | [Error] | undefined);
 
-      interface Constructor {
-        /**
+      /**
          * @param step Number of milliseconds to wait before proceeding,
          *   promise that must be resolved before proceeding, or a function to execute.
          *   See {@link Process.first first} for more information.
          * @param context Execution context of the function. The context is ignored if the step
          *   is a number or promise.
          */
-        new<C = null>(step?: StepOverride<C>, context?: C): Process;
-      }
+      type Constructor = new<C = null>(step?: StepOverride<C>, context?: C) => Process;
     }
 
     namespace PageLayout {

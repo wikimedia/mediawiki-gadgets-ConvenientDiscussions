@@ -9,13 +9,13 @@
     // We mix `import`s and `require()` calls
     "module": "preserve",
 
+    "strict": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "strictNullChecks": true,
     "noImplicitOverride": true,
-    "strict": true,
     "strictPropertyInitialization": false,
     "noUncheckedSideEffectImports": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "moduleDetection": "force"
   }
 }
