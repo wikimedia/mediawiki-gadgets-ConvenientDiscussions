@@ -2,28 +2,51 @@
 import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
-import jsdoc from 'eslint-plugin-jsdoc';
+import { jsdoc } from 'eslint-plugin-jsdoc';
 import noOneTimeVars from 'eslint-plugin-no-one-time-vars';
 import unicorn from 'eslint-plugin-unicorn';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-const config = defineConfig([
+const config = defineConfig(
   // Base configuration for all files
   {
     ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js', '**/test.ts', '**/test.js'],
   },
 
-  // Base recommended configs
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  tseslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   unicorn.configs.recommended,
+  jsdoc({
+    config: 'flat/recommended-typescript-flavor',
+    rules: {
+      'jsdoc/check-alignment': 'off',
+      'jsdoc/check-line-alignment': ['warn', 'any', {
+        wrapIndent: '  ',
+      }],
+      'jsdoc/check-tag-names': 'off',
+      'jsdoc/check-types': 'off',
+      'jsdoc/require-property-description': 'off',
+      'jsdoc/require-returns-description': 'off',
+      'jsdoc/require-jsdoc': ['warn', {
+        require: {
+          ClassDeclaration: true,
+          ClassExpression: true,
+          FunctionDeclaration: true,
+          MethodDefinition: true,
+        },
+        enableFixer: false,
+      }],
+      'jsdoc/require-param-description': 'off',
+      'jsdoc/tag-lines': ['warn', 'any', {
+        startLines: 1,
+      }],
+      'jsdoc/reject-any-type': 'off',
+    },
+  }),
 
-  // JSDoc config - will be configured in main rules section
-
-  // Stylistic config
   stylistic.configs.customize({
     semi: true,
     arrowParens: true,
@@ -35,11 +58,17 @@ const config = defineConfig([
     languageOptions: {
       sourceType: 'module',
       ecmaVersion: 2020,
+      // parser: '@typescript-eslint/parser',
+      // parserOptions: {
+      //   requireConfigFile: false,
+      // },
       parserOptions: {
         projectService: {
           defaultProject: 'jsconfig.json',
+          // allowDefaultProject: ['*.js', '*.mjs'],
         },
         tsconfigRootDir: import.meta.dirname,
+        // jsDocParsingMode: 'all',
       },
       globals: {
         CONFIG_FILE_NAME: 'readonly',
@@ -65,38 +94,17 @@ const config = defineConfig([
     plugins: {
       'import': importPlugin,
       'no-one-time-vars': noOneTimeVars,
+      // 'unicorn': eslintPluginUnicorn,
       '@stylistic': stylistic,
-      jsdoc,
+      // '@typescript-eslint': tseslint.plugin,
     },
     linterOptions: {
       reportUnusedDisableDirectives: false,
       noInlineConfig: false,
     },
     rules: {
-      // JSDoc rules (override the defaults)
-      'jsdoc/check-alignment': 'off',
-      'jsdoc/check-line-alignment': ['warn', 'any', {
-        wrapIndent: '  ',
-      }],
-      'jsdoc/check-tag-names': 'off',
-      'jsdoc/check-types': 'off',
-      'jsdoc/require-property-description': 'off',
-      'jsdoc/require-returns-description': 'off',
-      'jsdoc/require-jsdoc': ['warn', {
-        require: {
-          ClassDeclaration: true,
-          ClassExpression: true,
-          FunctionDeclaration: true,
-          MethodDefinition: true,
-        },
-        enableFixer: false,
-      }],
-      'jsdoc/require-param-description': 'off',
-      'jsdoc/tag-lines': ['warn', 'any', {
-        startLines: 1,
-      }],
-      'jsdoc/reject-any-type': 'off',
-      // Base rules
+      // ...eslint.configs.recommended.rules,
+      // ...eslintPluginUnicorn.configs.recommended.rules,
 
       'prefer-const': ['warn', {
         destructuring: 'all',
@@ -403,7 +411,7 @@ const config = defineConfig([
 
   // Overrides for specific files
   {
-    files: ['./*', 'src/tribute/**', 'jsdoc/**', '*.test.js', 'tests/**'],
+    files: ['./*', 'src/tribute/**', 'jsdoc/**', '*.test.js'],
     rules: {
       'jsdoc/require-jsdoc': 'off',
       'import/order': 'off',
@@ -455,7 +463,7 @@ const config = defineConfig([
       '@typescript-eslint/await-thenable': 'off',
     },
   },
-]);
+);
 
 /**
  * Bulk-change the severity of many rules.
