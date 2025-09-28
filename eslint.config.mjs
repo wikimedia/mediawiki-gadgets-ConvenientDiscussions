@@ -1,17 +1,24 @@
+/* eslint-disable import/no-named-as-default-member */
 // import babelParser from '@babel/eslint-parser';
 import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
+import { defineConfig } from 'eslint/config';
 import importPlugin from 'eslint-plugin-import';
 import { jsdoc } from 'eslint-plugin-jsdoc';
 import noOneTimeVars from 'eslint-plugin-no-one-time-vars';
 import unicorn from 'eslint-plugin-unicorn';
-import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 const config = defineConfig(
-  // Base configuration for all files
   {
     ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js', '**/test.ts', '**/test.js'],
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: './jsconfig.json',
+        },
+      },
+    },
   },
 
   js.configs.recommended,
@@ -46,7 +53,8 @@ const config = defineConfig(
       'jsdoc/reject-any-type': 'off',
     },
   }),
-
+  importPlugin.flatConfigs.recommended,
+  importPlugin.flatConfigs.typescript,
   stylistic.configs.customize({
     semi: true,
     arrowParens: true,
@@ -92,9 +100,7 @@ const config = defineConfig(
       },
     },
     plugins: {
-      'import': importPlugin,
       'no-one-time-vars': noOneTimeVars,
-      '@stylistic': stylistic,
     },
     linterOptions: {
       reportUnusedDisableDirectives: false,
@@ -423,7 +429,6 @@ const config = defineConfig(
     files: ['./*', 'src/tribute/**', 'jsdoc/**', '*.test.js'],
     rules: {
       'jsdoc/require-jsdoc': 'off',
-      'import/order': 'off',
     },
   },
 

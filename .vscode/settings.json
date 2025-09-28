@@ -6,7 +6,7 @@
   "editor.tabSize": 2,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "explicit"
+    //"source.organizeImports": "explicit"
   },
   "eslint.codeActionsOnSave.rules": [
     "!unicorn/prefer-ternary",
