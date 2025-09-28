@@ -136,7 +136,7 @@ class SectionRegistry {
    * @returns {?import('./Section').default}
    */
   getById(id) {
-    return id && this.items.find((section) => section.id === id) || null;
+    return (id && this.items.find((section) => section.id === id)) || null;
   }
 
   /**
@@ -168,15 +168,14 @@ class SectionRegistry {
    */
   findByHeadlineParts(sectionName) {
     return (
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       this.items
         .map((section) => ({
           section,
           score: calculateWordOverlap(sectionName, section.headline),
         }))
         .filter((match) => match.score > 0.66)
-        .sort((m1, m2) => m2.score - m1.score)[0]
-        ?.section ||
-      null
+        .sort((m1, m2) => m2.score - m1.score)[0]?.section || null
     );
   }
 
@@ -189,7 +188,7 @@ class SectionRegistry {
    * @param {number} options.index
    * @param {string} options.headline
    * @param {string} options.id
-   * @param {string[]} options.ancestors
+   * @param {string[]} [options.ancestors]
    * @param {?string} [options.oldestCommentId]
    * @returns {?SectionMatch}
    */
@@ -204,9 +203,9 @@ class SectionRegistry {
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const doesIdMatch = section.id === id;
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-      const doAncestorsMatch = ancestors ?
-        areObjectsEqual(section.getAncestors().map((sect) => sect.headline), ancestors) :
-        false;
+      const doAncestorsMatch = ancestors
+        ? areObjectsEqual(section.getAncestors().map((sect) => sect.headline), ancestors)
+        : false;
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const doesOldestCommentMatch = section.oldestComment?.id === oldestCommentId;
 
@@ -287,11 +286,11 @@ class SectionRegistry {
   /**
    * _For internal use._ Get the top offset of the first section relative to the viewport.
    *
-   * @param {number} [scrollY=window.scrollY]
+   * @param {number} [scrollY]
    * @param {number} [tocOffset]
    * @returns {number | undefined}
    */
-  getFirstSectionRelativeTopOffset(scrollY = window.scrollY, tocOffset) {
+  getFirstSectionRelativeTopOffset(scrollY = window.scrollY, tocOffset = undefined) {
     if (scrollY <= cd.g.bodyScrollPaddingTop) return;
 
     return this.items.reduce((result, section) => {
@@ -303,9 +302,9 @@ class SectionRegistry {
 
       // The third check to exclude the possibility that the first section is above the TOC, like
       // at https://commons.wikimedia.org/wiki/Project:Graphic_Lab/Illustration_workshop.
-      return getVisibilityByRects(rect) && (!tocOffset || rect.outerTop > tocOffset) ?
-        rect.outerTop :
-        undefined;
+      return getVisibilityByRects(rect) && (!tocOffset || rect.outerTop > tocOffset)
+        ? rect.outerTop
+        : undefined;
     }, /** @type {number | undefined} */ (undefined));
   }
 
@@ -318,18 +317,21 @@ class SectionRegistry {
     const firstSectionTop = this.getFirstSectionRelativeTopOffset();
 
     return (
-      firstSectionTop !== undefined &&
-      firstSectionTop < cd.g.bodyScrollPaddingTop + 1 &&
-      this.items
-        .slice()
-        .reverse()
-        .find((section) => {
-          const extendedRect = getExtendedRect(section.headingElement);
-          return (
-            getVisibilityByRects(extendedRect) &&
-            extendedRect.outerTop < cd.g.bodyScrollPaddingTop + 1
-          );
-        }) ||
+      (
+        firstSectionTop !== undefined &&
+        firstSectionTop < cd.g.bodyScrollPaddingTop + 1 &&
+        this.items
+          .slice()
+          .reverse()
+          .find((section) => {
+            const extendedRect = getExtendedRect(section.headingElement);
+
+            return (
+              getVisibilityByRects(extendedRect) &&
+              extendedRect.outerTop < cd.g.bodyScrollPaddingTop + 1
+            );
+          })
+      ) ||
       null
     );
   }
@@ -365,7 +367,8 @@ class SectionRegistry {
         .filter((section) => !currentSection || section.index > currentSection.index)
         .find((section) => {
           const rect = section.headingElement.getBoundingClientRect();
-          let blockSize = 10_000;
+          const blockSize = 10_000;
+
           return (
             getVisibilityByRects(rect) &&
             rect.top >= threeScreens &&

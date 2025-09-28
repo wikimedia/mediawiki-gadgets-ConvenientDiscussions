@@ -150,21 +150,23 @@ export function isInputFocused() {
  * @returns {ExtendedDOMRect}
  */
 export function getExtendedRect(el) {
-  if (el.cdMarginTop === undefined) {
+  if (el.cdMargin === undefined) {
     const style = window.getComputedStyle(el);
-    el.cdMarginTop = Number.parseFloat(style.marginTop);
-    el.cdMarginBottom = Number.parseFloat(style.marginBottom);
-    el.cdMarginLeft = Number.parseFloat(style.marginLeft);
-    el.cdMarginRight = Number.parseFloat(style.marginRight);
+    el.cdMargin = {
+      top: Number.parseFloat(style.marginTop),
+      bottom: Number.parseFloat(style.marginBottom),
+      left: Number.parseFloat(style.marginLeft),
+      right: Number.parseFloat(style.marginRight),
+    };
   }
   const rect = el.getBoundingClientRect();
   const isVisible = getVisibilityByRects(rect);
 
   return $.extend({
-    outerTop: rect.top - (isVisible ? el.cdMarginTop : 0),
-    outerBottom: rect.bottom + (isVisible ? el.cdMarginBottom : 0),
-    outerLeft: rect.left - (isVisible ? el.cdMarginLeft : 0),
-    outerRight: rect.right + (isVisible ? el.cdMarginRight : 0),
+    outerTop: rect.top - (isVisible ? el.cdMargin.top : 0),
+    outerBottom: rect.bottom + (isVisible ? el.cdMargin.bottom : 0),
+    outerLeft: rect.left - (isVisible ? el.cdMargin.left : 0),
+    outerRight: rect.right + (isVisible ? el.cdMargin.right : 0),
   }, rect);
 }
 
@@ -201,6 +203,7 @@ export function keyCombination(event, keyCode, modifiers = []) {
   }
 
   return (
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     event.keyCode === keyCode &&
     /** @type {typeof modifiers} */ (['ctrl', 'shift', 'alt', 'meta']).every(
       (mod) => modifiers.includes(mod) === event[/** @type {keyof typeof event} */ (mod + 'Key')]
@@ -278,8 +281,8 @@ export function getHigherNodeAndOffsetInSelection(selection) {
 
 /**
  * @typedef {object} SuccessAndFailMessages
- * @property {string|JQuery} messages.success Success message.
- * @property {string|JQuery} messages.fail Fail message.
+ * @property {string|JQuery} success Success message.
+ * @property {string|JQuery} fail Fail message.
  */
 
 /**
@@ -403,7 +406,7 @@ export function cleanUpPasteDom(element, containerElement) {
       (
         el.nextElementSibling ||
 
-        // Cases like "<div><div>Quote</div>Text</div>", e.g. created by
+        // Cases like `<div><div>Quote</div>Text</div>`, e.g. created by
         // https://ru.wikipedia.org/wiki/Template:Цитата_сообщения
         el.nextSibling?.textContent?.trim()
       )
@@ -952,7 +955,7 @@ function extractRegularSignatures(adjustedCode, code) {
  * @private
  */
 function extractUnsigneds(adjustedCode, code, signatures) {
-  if (!cd.config.unsignedTemplates.length) {
+  if (!cd.g.unsignedTemplatesPattern) {
     return [];
   }
 
@@ -1063,7 +1066,7 @@ export function getCommonGender(users) {
 export function initDayjs() {
   if (/** @type {any} */ (dayjs).utc) return;
 
-  const locale = cd.i18n[cd.g.userLanguage]?.dayjsLocale;
+  const locale = cd.g.userLanguage in cd.i18n ? cd.i18n[cd.g.userLanguage].dayjsLocale : undefined;
   if (locale) {
     dayjs.locale(locale);
   }
@@ -1101,7 +1104,7 @@ export function formatDate(date, addTimezone = false) {
  * @param {string} [timezone] Use the specified time zone no matter user settings.
  * @returns {string}
  */
-export function formatDateNative(date, addTimezone = false, timezone) {
+export function formatDateNative(date, addTimezone = false, timezone = undefined) {
   let timezoneOffset;
   let year;
   let monthIdx;

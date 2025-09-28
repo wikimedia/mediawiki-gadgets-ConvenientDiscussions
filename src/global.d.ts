@@ -263,15 +263,17 @@ declare global {
   }
 
   interface Element {
-    cdStyle: CSSStyleDeclaration;
-    cdIsTopLayersContainer: boolean;
-    cdCachedLayersContainerTop: number;
-    cdCachedLayersContainerLeft: number;
-    cdCouldHaveMoved: boolean;
-    cdMarginTop: number;
-    cdMarginBottom: number;
-    cdMarginLeft: number;
-    cdMarginRight: number;
+    cdStyle?: CSSStyleDeclaration;
+    cdIsTopLayersContainer?: boolean;
+    cdCachedLayersContainerTop?: number;
+    cdCachedLayersContainerLeft?: number;
+    cdCouldHaveMoved?: boolean;
+    cdMargin?: {
+      top: number;
+      bottom: number;
+      left: number;
+      right: number;
+    };
     cdInput?: TextInputWidget;
   }
 
@@ -293,7 +295,11 @@ declare global {
     }
 
     namespace widgets {
-      function visibleCodePointLimit(textInputWidget: OO.ui.TextInputWidget, limit?: number, filterFunction?: (...args: any) => any): void;
+      function visibleCodePointLimit(
+        textInputWidget: OO.ui.TextInputWidget,
+        limit?: number,
+        filterFunction?: (...args: any) => any
+      ): void;
     }
   }
 

@@ -199,9 +199,9 @@ class CommentButton extends Button {
    * @param {Event} event
    * @private
    */
-  static stopPropagation(event) {
+  static stopPropagation = (event) => {
     event.stopPropagation();
-  }
+  };
 }
 
 export default CommentButton;

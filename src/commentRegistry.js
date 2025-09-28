@@ -292,7 +292,7 @@ class CommentRegistry extends EventEmitter {
     // repositioned immediately and therefore not appearing as misplaced to this procedure. Three
     // comments threshold should be more reliable.
     this.items.slice().reverse().some((comment) => {
-      const shouldBeHighlighted = Boolean(
+      const shouldBeHighlighted =
         !comment.isCollapsed &&
         (
           comment.isNew ||
@@ -303,8 +303,7 @@ class CommentRegistry extends EventEmitter {
 
           // Need to generate a gray line to close the gaps between adjacent list item elements.
           comment.isLineGapped
-        )
-      );
+        );
 
       if (
         comment.underlay &&
@@ -328,7 +327,7 @@ class CommentRegistry extends EventEmitter {
         if (isMoved || redrawAll) {
           notMovedCount = 0;
           comments.push(comment);
-        } else if (isMoved === null) {
+        } else if (isMoved === undefined) {
           comment.removeLayers();
 
           // Nested containers shouldn't count, the offset of layers inside them may be OK, unlike the
@@ -424,7 +423,7 @@ class CommentRegistry extends EventEmitter {
     const findVisible = (
       /** @type {'forward' | 'backward'} */ direction,
       startIndex = 0,
-      /** @type {number} */ endIndex
+      /** @type {number | undefined} */ endIndex = undefined
     ) => {
       let comments = reorderArray(this.items, startIndex, direction === 'backward');
       if (endIndex !== undefined) {
@@ -471,9 +470,10 @@ class CommentRegistry extends EventEmitter {
     // is used as an upper boundary for the number of cycle steps. It's more of a protection against
     // an infinite loop: the value is with a large margin and not practically reachable, unless when
     // there is only few comments. Usually the cycle finishes after a few steps.
-    for (let i = 0; i < this.items.length; i++) {
+    for (const _item of this.items) {
       if (!comment.roughOffset) {
         comment.getOffset({ set: true });
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!comment.roughOffset) {
           const commentCandidate = (
             findVisible('forward', comment.index, searchArea.bottom.index) ||
@@ -631,7 +631,7 @@ class CommentRegistry extends EventEmitter {
    * @returns {(ReturnComponents extends true ? DtIdComponents : Comment) | null}
    */
   getByDtId(id, returnComponents) {
-    const data = /** @type {DtIdComponents} */ (Comment.parseDtId(id));
+    const data = Comment.parseDtId(id);
     if (!data) {
       return null;
     }
@@ -830,7 +830,9 @@ class CommentRegistry extends EventEmitter {
     /** @type {{ [x: string]: HTMLAnchorElement[] }} */
     const pageNamesToLinks = {};
     pagesToCheckExistence.forEach((page) => {
-      pageNamesToLinks[page.pageName] ||= [];
+      if (!(page.pageName in pageNamesToLinks)) {
+        pageNamesToLinks[page.pageName] = [];
+      }
       pageNamesToLinks[page.pageName].push(page.link);
     });
     const pagesExistence = await getPagesExistence(Object.keys(pageNamesToLinks));
@@ -892,13 +894,13 @@ class CommentRegistry extends EventEmitter {
       do {
         commentIndex =
           treeWalker.currentNode instanceof HTMLElement
-            ? treeWalker.currentNode.dataset?.cdCommentIndex
+            ? treeWalker.currentNode.dataset.cdCommentIndex
             : undefined;
       } while (commentIndex === undefined && treeWalker.parentNode());
       if (commentIndex === undefined) {
         this.resetSelectedComment();
       } else {
-        comment = this.items[Number(commentIndex)];
+        comment = this.getByIndex(Number(commentIndex));
         if (comment) {
           if (!comment.isSelected) {
             this.resetSelectedComment();
@@ -1305,6 +1307,7 @@ class CommentRegistry extends EventEmitter {
 
     const candidates = this.query((c) => c.isSeen === false);
     const comment = candidates.find((c) => c.isInViewport() === false) || candidates[0];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     comment?.scrollTo({
       flash: false,
       callback: () => {

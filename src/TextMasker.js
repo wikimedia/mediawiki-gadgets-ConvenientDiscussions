@@ -55,21 +55,24 @@ class TextMasker {
       console.warn('TextMasker.mask: the `type` argument should match `^\\w+$/`. Proceeding nevertheless.');
     }
 
-    this.text = this.text.replace(regexp, (s, preText, textToMask) => {
-      if (!useGroups) {
-        preText = null;
-        textToMask = null;
-      }
+    this.text = this.text.replace(
+      regexp,
+      /** @type {ReplaceCallback<3>} */ (s, preText, textToMask) => {
+        if (!useGroups) {
+          preText = '';
+          textToMask = '';
+        }
 
-      // Handle tables separately.
-      return (
-        (preText || '') +
-        (type === 'table' ? '\u0003' : '\u0001') +
-        String(this.maskedTexts.push(textToMask || s)) +
-        (type ? '_' + type : '') +
-        (type === 'table' ? '\u0004' : '\u0002')
-      );
-    });
+        // Handle tables separately.
+        return (
+          (preText || '') +
+          (type === 'table' ? '\u0003' : '\u0001') +
+          String(this.maskedTexts.push(textToMask || s)) +
+          (type ? '_' + type : '') +
+          (type === 'table' ? '\u0004' : '\u0002')
+        );
+      }
+    );
 
     return this;
   }
@@ -86,7 +89,7 @@ class TextMasker {
       ? new RegExp(`(?:\\x01|\\x03)(\\d+)(?:_${type}(?:_\\d+)?)?(?:\\x02|\\x04)`, 'g')
       : /(?:\u0001|\u0003)(\d+)(?:_\w+)?(?:\u0002|\u0004)/g;
     while (regexp.test(text)) {
-      text = text.replace(regexp, (s, num) => this.maskedTexts[num - 1]);
+      text = text.replace(regexp, (_s, num) => this.maskedTexts[num - 1]);
     }
 
     return text;
@@ -158,13 +161,16 @@ class TextMasker {
         this.text =
           this.text.substring(0, stackLeft) +
           '\u0001' +
-          this.maskedTexts.push(template) +
+          String(this.maskedTexts.push(template)) +
           '_template' +
 
           // Length if needed
           (
             addLengths
-              ? '_' + template.replace(/\u0001\d+_template_(\d+)\u0002/g, (m, n) => ' '.repeat(n)).length
+              ? '_' +
+              String(
+                template.replace(/\u0001\d+_template_(\d+)\u0002/g, (_m, n) => ' '.repeat(n)).length
+              )
               : ''
           ) +
 

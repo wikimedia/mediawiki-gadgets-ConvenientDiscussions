@@ -117,23 +117,25 @@ const config = defineConfig(
       'no-new': 'error',
       'func-names': 'error',
       'no-unused-expressions': 'warn',
-      'max-params': ['warn', 4],
-      'max-lines-per-function': ['warn', {
-        max: 100,
-        skipBlankLines: true,
-        skipComments: true,
-      }],
-      'max-statements': ['warn', 40],
-      'max-classes-per-file': ['error', {
-        ignoreExpressions: true,
-      }],
-      'max-nested-callbacks': ['warn', 5],
-      'max-depth': ['warn', 5],
       'no-else-return': 'error',
       'prefer-regex-literals': 'error',
       'eqeqeq': 'error',
       'no-lone-blocks': 'error',
       'prefer-object-spread': 'error',
+
+      // Limits on sizes
+      // 'max-params': ['warn', 4],
+      // 'max-lines-per-function': ['warn', {
+      //   max: 100,
+      //   skipBlankLines: true,
+      //   skipComments: true,
+      // }],
+      // 'max-statements': ['warn', 40],
+      // 'max-classes-per-file': ['error', {
+      //   ignoreExpressions: true,
+      // }],
+      // 'max-nested-callbacks': ['warn', 5],
+      // 'max-depth': ['warn', 5],
 
       // We use these for text masking
       'no-control-regex': 'off',
@@ -172,6 +174,7 @@ const config = defineConfig(
 
       '@typescript-eslint/no-unused-vars': ['warn', {
         argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
         args: 'all',
       }],
       '@typescript-eslint/no-misused-promises': ['error', {
@@ -445,7 +448,7 @@ const config = defineConfig(
     },
     rules: {
       // Disable some rules that are not applicable to declaration files
-      'no-unused-vars': 'off',
+      // 'no-unused-vars': 'off',
       'jsdoc/require-jsdoc': 'off',
       'unicorn/require-module-specifiers': 'off',
     },

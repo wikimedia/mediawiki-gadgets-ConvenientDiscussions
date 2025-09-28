@@ -1542,10 +1542,10 @@ class TalkPageController extends EventEmitter {
    * Get the list of DiscussionTools threads that are related to subscribable (2-level) threads.
    * This is updated on page reboot.
    *
-   * @returns {mw.DiscussionToolsHeading[]}
+   * @returns {mw.DiscussionToolsHeading[] | undefined}
    */
   getDtSubscribableThreads() {
-    const threads = /** @type {mw.DiscussionToolsHeading[]} */ (
+    const threads = /** @type {mw.DiscussionToolsHeading[] | undefined} */ (
       mw.config.get('wgDiscussionToolsPageThreads')
     );
     this.dtSubscribableThreads ||= threads

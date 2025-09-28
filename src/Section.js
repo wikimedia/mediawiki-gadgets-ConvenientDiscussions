@@ -111,7 +111,7 @@ class Section extends SectionSkeleton {
   /**
    * Sections contents as HTML elements.
    *
-   * @type {HTMLElement[]}
+   * @type {HTMLElement[] | undefined}
    */
   elements;
 
@@ -216,9 +216,9 @@ class Section extends SectionSkeleton {
      *
      * @type {import('./Page').default}
      */
-    this.sourcePage = this.sourcePageName ?
-      /** @type {import('./Page').default} */ (pageRegistry.get(this.sourcePageName)) :
-      cd.page;
+    this.sourcePage = this.sourcePageName
+      ? /** @type {import('./Page').default} */ (pageRegistry.get(this.sourcePageName))
+      : cd.page;
 
     /**
      * @type {?string}
@@ -240,11 +240,10 @@ class Section extends SectionSkeleton {
      *
      * @type {boolean}
      */
-    this.isActionable = Boolean(
+    this.isActionable =
       cd.page.isActive() &&
       !talkPageController.getClosedDiscussions().some((el) => el.contains(this.headingElement)) &&
-      !this.isTranscludedFromTemplate
-    );
+      !this.isTranscludedFromTemplate;
 
     if (this.isTranscludedFromTemplate) {
       this.comments.forEach((comment) => {
@@ -445,7 +444,7 @@ class Section extends SectionSkeleton {
   /**
    * Create an "Add subsection" button (any kind).
    *
-   * @param {Section} [buttonsContainerInstance=this]
+   * @param {Section} [buttonsContainerInstance]
    * @returns {Button}
    */
   createAddSubsectionButton(buttonsContainerInstance = this) {
@@ -631,7 +630,7 @@ class Section extends SectionSkeleton {
   canBeReplied() {
     const nextSection = sectionRegistry.getByIndex(this.index + 1);
 
-    return Boolean(
+    return (
       this.isActionable &&
 
       // Is the first chunk closed
@@ -666,7 +665,7 @@ class Section extends SectionSkeleton {
       .slice(this.index + 1)
       .find((otherSection) => otherSection.level === this.level);
 
-    return Boolean(
+    return (
       this.isActionable &&
       this.level >= 2 &&
       this.level <= 5 &&
@@ -743,7 +742,9 @@ class Section extends SectionSkeleton {
           $authorLink: $('<a>')
             .text(author.getName())
             .attr('href', `#${comments[0].getUrlFragment()}`)
-            .on('click', () => Comment.scrollToFirstFlashAll(comments)),
+            .on('click', () => {
+              Comment.scrollToFirstFlashAll(comments);
+            }),
         };
       });
 
@@ -1023,27 +1024,27 @@ class Section extends SectionSkeleton {
         [
           this.canFirstCommentBeEdited()
             ? new OO.ui.MenuOptionWidget({
-                data: 'editOpeningComment',
-                label: cd.s('sm-editopeningcomment'),
-                title: cd.s('sm-editopeningcomment-tooltip'),
-                icon: 'edit',
-              })
+              data: 'editOpeningComment',
+              label: cd.s('sm-editopeningcomment'),
+              title: cd.s('sm-editopeningcomment-tooltip'),
+              icon: 'edit',
+            })
             : undefined,
           this.canBeMoved()
             ? new OO.ui.MenuOptionWidget({
-                data: 'move',
-                label: cd.s('sm-move'),
-                title: cd.s('sm-move-tooltip'),
-                icon: 'arrowNext',
-              })
+              data: 'move',
+              label: cd.s('sm-move'),
+              title: cd.s('sm-move-tooltip'),
+              icon: 'arrowNext',
+            })
             : undefined,
           this.canBeSubsectioned()
             ? new OO.ui.MenuOptionWidget({
-                data: 'addSubsection',
-                label: cd.s('sm-addsubsection'),
-                title: cd.s('sm-addsubsection-tooltip'),
-                icon: 'speechBubbleAdd',
-              })
+              data: 'addSubsection',
+              label: cd.s('sm-addsubsection'),
+              title: cd.s('sm-addsubsection-tooltip'),
+              icon: 'speechBubbleAdd',
+            })
             : undefined,
         ].filter(defined)
       )
@@ -1283,7 +1284,6 @@ class Section extends SectionSkeleton {
     Comment.scrollToFirstFlashAll(/** @type {Comment[]} */ (this.newComments));
   }
 
-
   /**
    * _For internal use._ Update the new comments data for the section and add the new comment count
    * to the metadata element. ("New" actually means "unseen at the moment of load".).
@@ -1304,17 +1304,15 @@ class Section extends SectionSkeleton {
       return;
     }
 
-    const newText = cd.s('section-metadata-newcommentcount', String(this.newComments.length));
-
-    let newLink = document.createElement('a');
-    newLink.textContent = newText;
+    const newLink = document.createElement('a');
+    newLink.textContent = cd.s('section-metadata-newcommentcount', String(this.newComments.length));
     newLink.href = `#${this.newComments[0].dtId}`;
     newLink.className = 'cd-clickHandled';
     newLink.addEventListener('click', this.scrollToNewComments.bind(this));
 
     const newCommentCountWrapper = document.createElement('span');
     newCommentCountWrapper.className = 'cd-section-bar-item';
-    newCommentCountWrapper.append(newLink || newText);
+    newCommentCountWrapper.append(newLink);
 
     /** @type {HTMLElement} */ (this.metadataElement).insertBefore(
       newCommentCountWrapper,
@@ -1588,9 +1586,9 @@ class Section extends SectionSkeleton {
       this.id,
       !!mode,
       // Unsubscribe from
-      renamedFrom && !sectionRegistry.getBySubscribeId(renamedFrom).length ?
-        renamedFrom :
-        undefined,
+      renamedFrom && !sectionRegistry.getBySubscribeId(renamedFrom).length
+        ? renamedFrom
+        : undefined,
     )
       .then(() => {
         // TODO: this condition seems a bad idea because when we could update the subscriptions but
@@ -1760,7 +1758,7 @@ class Section extends SectionSkeleton {
     const main = revision?.slots?.main;
     const content = main?.content;
 
-    if (!query || !page || !main) {
+    if (!query || !page || !main || content === undefined) {
       throw new CdError({
         type: 'response',
         code: 'noData',
@@ -1785,13 +1783,6 @@ class Section extends SectionSkeleton {
       throw new CdError({
         type: 'response',
         code: 'noSuchSection',
-      });
-    }
-
-    if (!revision || content === undefined) {
-      throw new CdError({
-        type: 'response',
-        code: 'noData',
       });
     }
 
@@ -1866,15 +1857,10 @@ class Section extends SectionSkeleton {
   locateInCode(sectionCode) {
     this.source = null;
 
-    const code = sectionCode || this.getSourcePage().source.getCode();
-    if (code === undefined) {
-      throw new CdError({
-        type: 'parse',
-        code: 'noCode',
-      });
-    }
-
-    const source = this.searchInCode(code, Boolean(sectionCode));
+    const source = this.searchInCode(
+      sectionCode || this.getSourcePage().source.getCode(),
+      Boolean(sectionCode)
+    );
     if (!source) {
       throw new CdError({
         type: 'parse',
@@ -1964,27 +1950,27 @@ class Section extends SectionSkeleton {
    * section itself if it is of level 2 (even if there is a level 1 section) or if there is no
    * higher level section (the current section may be of level 3 or 1, for example).
    *
-   * @param {boolean} [forceLevel2=false] Guarantee a 2-level section is returned.
+   * @param {boolean} [forceLevel2] Guarantee a 2-level section is returned.
    * @returns {?Section}
    */
   getBase(forceLevel2 = false) {
     const defaultValue = forceLevel2 && !this.isTopic() ? null : this;
 
-    return this.level <= 2 ?
-      defaultValue :
-      (
-        sectionRegistry.getAll()
-          .slice(0, this.index)
-          .reverse()
-          .find((section) => section.level === 2) ||
-        defaultValue
-      );
+    return this.level <= 2
+      ? defaultValue
+      : (
+          sectionRegistry.getAll()
+            .slice(0, this.index)
+            .reverse()
+            .find((section) => section.level === 2) ||
+            defaultValue
+        );
   }
 
   /**
    * Get the collection of the section's subsections.
    *
-   * @param {boolean} [indirect=false] Whether to include subsections of subsections and so on
+   * @param {boolean} [indirect] Whether to include subsections of subsections and so on
    *   (return descendants, in a word).
    * @returns {Section[]}
    */
@@ -2018,7 +2004,7 @@ class Section extends SectionSkeleton {
   /**
    * Get the first upper level section relative to the current section that is subscribed to.
    *
-   * @param {boolean} [includeCurrent=false] Check the current section too.
+   * @param {boolean} [includeCurrent] Check the current section too.
    * @returns {?Section}
    */
   getClosestSectionSubscribedTo(includeCurrent = false) {
@@ -2031,6 +2017,7 @@ class Section extends SectionSkeleton {
         return otherSection;
       }
     }
+
     return null;
   }
 
@@ -2054,7 +2041,7 @@ class Section extends SectionSkeleton {
   /**
    * Get a link to the section with Unicode sequences decoded.
    *
-   * @param {boolean} [permanent=false] Get a permanent URL.
+   * @param {boolean} [permanent] Get a permanent URL.
    * @returns {string}
    */
   getUrl(permanent = false) {
@@ -2147,7 +2134,7 @@ class Section extends SectionSkeleton {
       lastElement instanceof HTMLElement &&
       (
         lastElement.matches('.cd-section-button-container') ||
-        (additionalCondition && additionalCondition(lastElement))
+        (additionalCondition?.(lastElement))
       );
       lastElement = lastElement.nextElementSibling
     ) {
@@ -2163,7 +2150,7 @@ class Section extends SectionSkeleton {
    * @param {boolean} show Show or hide.
    */
   updateVisibility(show) {
-    if (Boolean(show) !== this.isHidden) return;
+    if (show !== this.isHidden) return;
 
     this.elements ||= /** @type {HTMLElement[]} */ (getRangeContents(
       this.headingElement,
@@ -2251,9 +2238,9 @@ class Section extends SectionSkeleton {
    * @returns {string}
    */
   getCommentFormCommentInputPlaceholder(mode) {
-    return mode === 'replyInSection' ?
-      cd.s('cf-comment-placeholder-replytosection', this.headline) :
-      cd.s('cf-comment-placeholder');
+    return mode === 'replyInSection'
+      ? cd.s('cf-comment-placeholder-replytosection', this.headline)
+      : cd.s('cf-comment-placeholder');
   }
 
   /**
@@ -2276,8 +2263,7 @@ class Section extends SectionSkeleton {
       this.commentsInFirstChunk
         .slice()
         .reverse()
-        .find((c) => c.level === 0) ||
-      null
+        .find((c) => c.level === 0) || null
     );
   }
 
@@ -2303,11 +2289,12 @@ class Section extends SectionSkeleton {
     delete this.queryTimestamp;
   }
 
-  /** @type {PrototypeRegistry<{
+  /**
+   * @type {PrototypeRegistry<{
    *   replyButton: HTMLElement
    *   addSubsectionButton: HTMLElement
    *   copyLinkButton: HTMLElement
-   * }>} */
+    }>} */
   static prototypes = new PrototypeRegistry();
 
   /**

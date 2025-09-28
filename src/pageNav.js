@@ -169,8 +169,8 @@ class PageNav {
       $bottomElement.show();
     }
 
-    $topElement.css('width', width + 'px');
-    $bottomElement.css('width', width + 'px');
+    $topElement.css('width', String(width) + 'px');
+    $bottomElement.css('width', String(width) + 'px');
   };
 
   /**
@@ -233,10 +233,8 @@ class PageNav {
           )
           .appendTo(this.$linksOnTop);
       }
-    } else {
-      if (this.$linksOnTop) {
-        this.reset('top');
-      }
+    } else if (this.$linksOnTop) {
+      this.reset('top');
     }
 
     if (this.$linksOnTop) {
@@ -291,10 +289,8 @@ class PageNav {
           )
           .appendTo(/** @type {JQuery} */ (this.$bottomElement));
       }
-    } else {
-      if (this.$bottomLink) {
-        this.reset('bottom');
-      }
+    } else if (this.$bottomLink) {
+      this.reset('bottom');
     }
   }
 
@@ -312,6 +308,7 @@ class PageNav {
       if (this.currentSection) {
         this.resetSections();
       }
+
       return;
     }
 
@@ -408,13 +405,13 @@ class PageNav {
    *
    * @param {JQuery | number} $elementOrOffset Element or top offset to jump to.
    * @param {JQuery} $item Navigation item that initiated the jump.
-   * @param {boolean} [isBackLink=false] Was the jump initiated by a back link.
+   * @param {boolean} [isBackLink] Was the jump initiated by a back link.
    * @private
    */
   jump($elementOrOffset, $item, isBackLink = false) {
-    const offset = typeof $elementOrOffset === 'number' ?
-      $elementOrOffset :
-      /** @type {JQuery.Coordinates} */ ($elementOrOffset.offset()).top - cd.g.bodyScrollPaddingTop;
+    const offset = typeof $elementOrOffset === 'number'
+      ? $elementOrOffset
+      /** @type {JQuery.Coordinates} */ : ($elementOrOffset.offset()).top - cd.g.bodyScrollPaddingTop;
     if (!isBackLink && Math.abs(offset - window.scrollY) < 1) return;
 
     if (this.backLinkLocation) {

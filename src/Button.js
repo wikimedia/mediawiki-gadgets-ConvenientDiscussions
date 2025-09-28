@@ -75,7 +75,6 @@ class Button {
       this.element.classList.add(...classes);
     }
 
-
     /**
      * Button element (an `'a'` element by default). It can be the same as the
      * {@link Button#element main element} or its descendant.
@@ -245,8 +244,8 @@ class Button {
     if (action) {
       this.callback = (event) => {
         if (
-          !(event instanceof KeyboardEvent)
-          || [OO.ui.Keys.ENTER, OO.ui.Keys.SPACE].includes(event.keyCode)
+          !(event instanceof KeyboardEvent) ||
+          [OO.ui.Keys.ENTER, OO.ui.Keys.SPACE].includes(event.keyCode)
         ) {
           this.maybeExecuteAction(action, event);
         }

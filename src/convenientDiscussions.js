@@ -15,7 +15,7 @@ import { wrapDiffBody, wrapHtml } from './utils-window';
 import WebpackWorker from './worker/worker-gate';
 
 const mwStringsCache = /** @type {StringsByKey} */ ({});
-/** @type {boolean} */
+/** @type {boolean | undefined} */
 let isQqxMode;
 
 const serverName = mw.config.get('wgServerName');
@@ -83,7 +83,7 @@ const convenientDiscussionsWindow = {
    */
 
   /**
-   * @typedef {SOptions | import('types-mediawiki/mw/user').User | import('./User').default | undefined} SLastParam
+   * @typedef {SOptions | import('types-mediawiki/mw/user').User | import('./User').default | undefined} SLastArg
    */
 
   /**
@@ -94,7 +94,7 @@ const convenientDiscussionsWindow = {
    * Get a language string.
    *
    * @param {string} name String name.
-   * @param {...(string | undefined | SLastParam)} params String parameters (substituted strings,
+   * @param {...(string | undefined | SLastArg)} args String parameters (substituted strings,
    *   also {@link User} objects for use in `{{gender:}}`). The last parameter can be an object that
    *   can have a boolean property `parse` (should the message be returned in a parsed form). In the
    *   `parse` form, wikilinks are replaced with HTML tags, the code is sanitized. Use this for
@@ -102,18 +102,22 @@ const convenientDiscussionsWindow = {
    * @returns {string}
    * @memberof convenientDiscussions
    */
-  s(name, ...params) {
+  s(name, ...args) {
     const fullName = `convenient-discussions-${name}`;
     let options = /** @type {SOptions} */ ({});
-    const lastParam = params[params.length - 1];
+    const lastParam = args[args.length - 1];
 
-    // lastParam.options is a `mw.user`-like object to provide to {{gender:}}
+    // lastParam.options can be a `mw.user`-like object to provide to {{gender:}}
+    let params;
     if (typeof lastParam === 'object' && !('options' in lastParam)) {
       options = lastParam;
-      params.splice(-1);
+      params = /** @type {string[]} */ (args.splice(-1));
+    } else {
+      params = /** @type {string[]} */ (args);
     }
 
     isQqxMode ??= /[?&]uselang=qqx(?=&|$)/.test(location.search);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!isQqxMode && mw.messages.get(fullName) !== null) {
       return mw.message(fullName, ...params)[options.parse ? 'parse' : 'text']();
     }
@@ -244,7 +248,7 @@ const convenientDiscussionsWindow = {
    * @returns {OO.ui.WindowManager}
    */
   getWindowManager(name = 'default') {
-    if (!this.windowManagers[name]) {
+    if (!(name in this.windowManagers)) {
       const windowManager = new OO.ui.WindowManager();
       windowManager.on('closing', async (_, closed) => {
         // We don't have windows that can be reused.
@@ -252,6 +256,7 @@ const convenientDiscussionsWindow = {
         windowManager.clearWindows();
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       $(OO.ui.getTeleportTarget?.() || document.body).append(windowManager.$element);
       this.windowManagers[name] = windowManager;
     }
@@ -354,7 +359,7 @@ const globalProperties = {
   // subject to change by site administrators although this may be disputable. Some of them are
   // extensible in the configuration file (such as noHighlightClasses).
 
-  debug: getQueryParamBooleanValue('cddebug') ?? Boolean(IS_DEV),
+  debug: getQueryParamBooleanValue('cddebug') ?? IS_DEV,
 
   /**
    * A replacement for
@@ -663,7 +668,8 @@ const globalProperties = {
   // options for them anyway). `<unregistered>` is a workaround for anonymous users (there are
   // such!).
   userName:
-    ((!mw.user.isNamed || mw.user.isNamed()) && mw.config.get('wgUserName')) || '<unregistered>',
+    ((!('isNamed' in mw.user) || mw.user.isNamed()) && mw.config.get('wgUserName')) ||
+    '<unregistered>',
 
   contentDirection: /** @type {Direction} */ (
     bodyClassList.contains('sitedir-rtl') ? 'rtl' : 'ltr'
@@ -675,6 +681,7 @@ const globalProperties = {
   // https://stackoverflow.com/a/24600597 (sends to
   // https://developer.mozilla.org/en-US/docs/Browser_detection_using_the_user_agent) and
   // https://stackoverflow.com/a/14301832.
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   isMobile: /Mobi|Android/i.test(navigator.userAgent) || typeof window.orientation !== 'undefined',
 
   isDtInstalled: Boolean(mw.loader.getState('ext.discussionTools.init')),
