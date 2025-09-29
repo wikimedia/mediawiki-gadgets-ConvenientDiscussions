@@ -408,7 +408,7 @@ export function cleanUpPasteDom(element, containerElement) {
 
         // Cases like `<div><div>Quote</div>Text</div>`, e.g. created by
         // https://ru.wikipedia.org/wiki/Template:Цитата_сообщения
-        el.nextSibling?.textContent?.trim()
+        el.nextSibling?.textContent.trim()
       )
     ) {
       el.after('\n');
@@ -609,6 +609,7 @@ export function getRangeContents(start, end, rootElement) {
     let parent;
     while (
       (parent = end.parentElement) &&
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       parent &&
       parent.lastChild === end &&
       treeWalker.currentNode.contains(parent)

@@ -58,10 +58,10 @@ function testWithData({ label, code, expected, commentForm, action = 'submit', c
     Object.assign(commentForm.target, {
       TYPE:
         ['addSection', 'addSubsection'].includes(commentForm.mode)
-        ? 'section'
-        : ['reply', 'edit'].includes(commentForm.mode)
-        ? 'comment'
-        : 'page',
+          ? 'section'
+          : ['reply', 'edit'].includes(commentForm.mode)
+              ? 'comment'
+              : 'page',
       source: commentForm.target.source,
       isOpeningSection: () => commentForm.target.openingSection,
     });
@@ -89,7 +89,6 @@ function testWithData({ label, code, expected, commentForm, action = 'submit', c
     }
   });
 }
-
 
 /* Forms for test cases */
 
@@ -221,7 +220,6 @@ const addSubsectionForm = {
     getValue: () => 'Headline',
   },
 };
-
 
 /* Test cases */
 

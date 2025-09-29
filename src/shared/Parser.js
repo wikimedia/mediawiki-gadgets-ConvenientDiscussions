@@ -342,7 +342,7 @@ class Parser {
     do {
       length += node.textContent.length;
       if (isElement(node)) {
-        authorData.isLastLinkAuthorLink = false;
+        authorData.isLastLinkAuthorLink = /** @type {boolean} */ (false);
 
         if (node.tagName === 'A') {
           if (!this.processLinkData(node, authorData)) break;
@@ -947,7 +947,7 @@ class Parser {
    * @returns {boolean}
    */
   static contains(el, node) {
-    return Boolean(el && el.contains(/** @type {any} */ (node)));
+    return Boolean(el?.contains(/** @type {any} */ (node)));
   }
 
   /**

@@ -787,7 +787,7 @@ const defaultConfig = {
   /**
    * @typedef {object} Module
    * @property {string} name Name of the module.
-   * @property {Function} [checkFunc] Function that must return `true` for the module to be loaded
+   * @property {() => boolean} [checkFunc] Function that must return `true` for the module to be loaded
    *   (if it is present).
    */
 

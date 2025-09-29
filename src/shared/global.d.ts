@@ -99,22 +99,22 @@ declare global {
   interface Element {
     cdIsInline?: boolean;
 
-    // Hack: Exclude `null` which is not done in the native lib
+    // Hack: Exclude `null`
     textContent: string;
   }
 
   interface Text {
-    // Hack: Exclude `null` which is not done in the native lib
+    // Hack: Exclude `null`
     textContent: string;
   }
 
   interface Comment {
-    // Hack: Exclude `null` which is not done in the native lib
+    // Hack: Exclude `null`
     textContent: string;
   }
 
   interface ChildNode {
-    // Hack: Exclude `null` which is not done in the native lib
+    // Hack: Exclude `null`
     textContent: string;
   }
 

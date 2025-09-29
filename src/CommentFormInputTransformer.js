@@ -667,7 +667,7 @@ class CommentFormInputTransformer extends TextMasker {
      * @property {ListType | undefined} [type]
      */
     /** @type {AccumulatedList} */
-    let accumulatedList = { items: /** @type {Item[]} */ ([]) };
+    let accumulatedList = { items: [] };
     for (let i = 0; i <= lines.length; i++) {
       if (i === lines.length) {
         // When at the end of code, finalize the list that we accumulated, if any.

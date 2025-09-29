@@ -918,9 +918,12 @@ class Comment extends CommentSkeleton {
 
     if (
       commentRegistry.getByIndex(this.index + 1)?.isOutdented &&
-      (!this.section ||
+      (
+        !this.section ||
+
         // Probably shouldn't add a comment to a numbered list
-        this.elements[0].matches('ol *'))
+        this.elements[0].matches('ol *')
+      )
     ) {
       this.replyButton.setDisabled(true);
       this.replyButton.setTooltip(cd.s('cm-reply-outdented-tooltip'));
@@ -1372,8 +1375,10 @@ class Comment extends CommentSkeleton {
         if (
           // Currently we can't have comments with no highlightable elements.
           this.highlightables.length > 1 &&
-          (talkPageController.getFloatingElements().includes(testElement) ||
-            talkPageController.getHiddenElements().includes(testElement))
+          (
+            talkPageController.getFloatingElements().includes(testElement) ||
+            talkPageController.getHiddenElements().includes(testElement)
+          )
         ) {
           if (el.classList.contains('cd-comment-part-first')) {
             el.classList.remove('cd-comment-part-first');
@@ -1951,8 +1956,10 @@ class Comment extends CommentSkeleton {
         const classList = new Set(Array.from(node.classList));
         if (
           ['absolute', 'relative'].includes(style.position) ||
-          (node !== bootController.$content[0] &&
-            (classList.has('mw-content-ltr') || classList.has('mw-content-rtl')))
+          (
+            node !== bootController.$content[0] &&
+            (classList.has('mw-content-ltr') || classList.has('mw-content-rtl'))
+          )
         ) {
           offsetParent = node;
         }
@@ -3905,12 +3912,17 @@ class Comment extends CommentSkeleton {
       .filter(
         (signature) =>
           (signature.author === this.author || signature.author.getName() === '<undated>') &&
-          (this.timestamp === signature.timestamp ||
+          (
+            this.timestamp === signature.timestamp ||
             // .startsWith() to account for cases where you can ignore the timezone string in
             // "unsigned" templates (it may be present and may be not), but it appears on the page.
-            (this.timestamp &&
+
+            (
+              this.timestamp &&
               signature.timestamp &&
-              this.timestamp.startsWith(signature.timestamp)))
+              this.timestamp.startsWith(signature.timestamp)
+            )
+          )
       )
       .map((signature) => new CommentSource(this, signature, contextCode, isInSectionContext))
       .map((source, _, sources) => source.calculateMatchScore(thisData, sources, signatures))

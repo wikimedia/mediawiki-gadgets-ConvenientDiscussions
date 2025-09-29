@@ -1,13 +1,13 @@
 /**
  * Error type:
- * * `'internal'` for errors defined in the script related to the script's internal logic
- * * `'network'` for network errors defined in the script, whether on the client or server
- * * `'api'` for MediaWiki API errors defined on the server
- * * `'response'` for errors defined in the script when there is something wrong with the MediaWiki
+ * - `'internal'` for errors defined in the script related to the script's internal logic
+ * - `'network'` for network errors defined in the script, whether on the client or server
+ * - `'api'` for MediaWiki API errors defined on the server
+ * - `'response'` for errors defined in the script when there is something wrong with the MediaWiki
  *   API response, excluding MediaWiki API errors defined on the server
- * * `'parse'` for parse errors defined in the script
- * * `'ui'` for UI errors (e.g. when the user does something wrong and we can't handle it silently)
- * * `'javascript'` for JavaScript errors
+ * - `'parse'` for parse errors defined in the script
+ * - `'ui'` for UI errors (e.g. when the user does something wrong and we can't handle it silently)
+ * - `'javascript'` for JavaScript errors
  *
  * @typedef {'internal' | 'network' | 'api' | 'response' | 'parse' | 'ui' | 'javascript'} ErrorType
  */
@@ -41,7 +41,7 @@
 /**
  * @template {ErrorType} Type
  * @typedef {Expand<
- *   & ErrorDataBase<Type>
+ *     ErrorDataBase<Type>
  *   & (ErrorDataServerDefinedApiError | ErrorDataResponseError | {})
  * >} ErrorDataParameter
  */
@@ -67,7 +67,7 @@ class CdError extends Error {
   /**
    * Create a custom error.
    *
-   * @param {ErrorDataParameter<Type> | string} [data={}]
+   * @param {ErrorDataParameter<Type> | string} [data]
    */
   constructor(data = {}) {
     if (typeof data === 'string') {

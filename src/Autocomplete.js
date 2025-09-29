@@ -186,8 +186,8 @@ class Autocomplete {
    * Get the list of collections of specified types.
    *
    * @param {AutocompleteType[]} types
-   * @param {import('./Comment').default[]} [comments=[]]
-   * @param {string[]} [defaultUserNames=[]]
+   * @param {import('./Comment').default[]} [comments]
+   * @param {string[]} [defaultUserNames]
    * @returns {import('./tribute/Tribute').TributeCollection[]}
    * @private
    */
@@ -286,7 +286,7 @@ class Autocomplete {
 
               // To see the issue we're trying to prevent here, remove this line, type "[[Text",
               // then delete and type "<s" quickly.
-              if (!this.tribute.current || this.tribute.current.trigger !== '@') return;
+              if (this.tribute.current.trigger !== '@') return;
 
               this.mentions.lastResults = vals.slice();
 
@@ -309,7 +309,7 @@ class Autocomplete {
         trigger: '[[#',
         keepAsEnd: /^\]\]/,
         selectTemplate: defaultSelectTemplate,
-        values: async (text, callback) => {
+        values: (text, callback) => {
           this.commentLinks.default ||= /** @type {CommentLinksItem[]} */ (
             this.commentLinks.defaultLazy()
           );
@@ -391,7 +391,7 @@ class Autocomplete {
               }
 
               // Type "[[Text", then delete and type "<s" quickly.
-              if (!this.tribute.current || this.tribute.current.trigger !== '[[') return;
+              if (this.tribute.current.trigger !== '[[') return;
 
               this.wikilinks.lastResults = vals.slice();
 
@@ -438,6 +438,7 @@ class Autocomplete {
 
           if (text.includes('{{')) {
             callback([]);
+
             return;
           }
 
@@ -472,7 +473,7 @@ class Autocomplete {
               }
 
               // Type "{{Text", then delete and type "<s" quickly.
-              if (!this.tribute.current || this.tribute.current.trigger !== '{{') return;
+              if (this.tribute.current.trigger !== '{{') return;
 
               this.templates.lastResults = vals.slice();
 
@@ -523,7 +524,7 @@ class Autocomplete {
 
     /** @type {Partial<AutocompleteConfigs>} */
     const params = {
-      mentions: { default: defaultUserNames || [] },
+      mentions: { default: defaultUserNames },
       commentLinks: { data: { comments } },
     };
 
@@ -562,7 +563,8 @@ class Autocomplete {
       ['syntaxhighlight lang=""', '<syntaxhighlight lang="', '">\n\n</syntaxhighlight>'],
       [
         'syntaxhighlight inline lang=""',
-        '<syntaxhighlight inline lang="', '"></syntaxhighlight>',
+        '<syntaxhighlight inline lang="',
+        '"></syntaxhighlight>',
       ],
       ['syntaxhighlight', '<syntaxhighlight>\n', '\n</syntaxhighlight>'],
       ['templatestyles', '<templatestyles src="', '" />'],
@@ -581,7 +583,7 @@ class Autocomplete {
 
         /**
          * @this {Value<string>}
-         * @returns {import('./tribute/Tribute').InsertData}
+         * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
          */
         transformItemToInsertData() {
           const name = this.item.trim();
@@ -609,7 +611,7 @@ class Autocomplete {
         default: /** @type {CommentLinksItem[]|undefined} */ (undefined),
 
         // Lazy initialization, because getText() takes time
-        defaultLazy: function () {
+        defaultLazy() {
           return /** @type {{ comments: import('./Comment').default[] }} */ (this.data).comments
             .reduce((acc, comment) => {
               const urlFragment = comment.getUrlFragment();
@@ -661,11 +663,11 @@ class Autocomplete {
                 return acc;
               }, /** @type {CommentLinksItem[]} */([]))
             );
-          },
+        },
 
         /**
          * @this {Value<CommentLinksItem>}
-         * @returns {import('./tribute/Tribute').InsertData}
+         * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
          */
         transformItemToInsertData() {
           const object = this.item;
@@ -676,7 +678,7 @@ class Autocomplete {
             content:
               'timestamp' in object
                 ? cd.s('cf-autocomplete-commentlinks-text', object.authorName, object.timestamp)
-                : object.headline,
+                : /** @type {string} */ (object.headline),
           };
         },
       },
@@ -688,7 +690,7 @@ class Autocomplete {
 
         /**
          * @this {Value<string>}
-         * @returns {import('./tribute/Tribute').InsertData}
+         * @returns {import('./tribute/Tribute').InsertData & { end: string }}
          */
         transformItemToInsertData() {
           return {
@@ -709,7 +711,7 @@ class Autocomplete {
 
         /**
          * @this {Value<string>}
-         * @returns {import('./tribute/Tribute').InsertData}
+         * @returns {import('./tribute/Tribute').InsertData & { end: string }}
          */
         transformItemToInsertData() {
           return {
@@ -776,10 +778,8 @@ class Autocomplete {
         titles: `Template:${item.original.key}`,
         redirects: true,
       }).catch(handleApiReject);
-      if (!response.pages) {
-        throw 'No data.';
-      } else if (!Object.keys(response.pages).length) {
-        throw 'Template missing.';
+      if (!Object.keys(response.pages).length) {
+        throw new CdError('Template missing.');
       }
     } catch {
       input
@@ -799,7 +799,7 @@ class Autocomplete {
     let firstValueIndex = 0;
     Object.keys(pages).forEach((key) => {
       const template = pages[key];
-      const params = template.params || [];
+      const params = template.params || {};
 
       // Parameter names
       (template.paramOrder || Object.keys(params))
@@ -826,7 +826,7 @@ class Autocomplete {
       .insertContent(paramsString)
 
       // `input.getRange().to` is the current caret index
-      .selectRange(/** @type {number} */ (input.getRange().to) + firstValueIndex - 1)
+      .selectRange(/** @type {number} */ (input.getRange().to || 0) + firstValueIndex - 1)
 
       .popPending();
   }
@@ -893,7 +893,7 @@ class Autocomplete {
         Autocomplete.promiseIsNotSuperseded(promise);
 
         const users = response[1]
-          ?.map((name) => (name.match(cd.g.userNamespacesRegexp) || [])[1])
+          .map((name) => (name.match(cd.g.userNamespacesRegexp) || [])[1])
           .filter(defined)
           .filter((name) => !name.includes('/'));
 
@@ -996,7 +996,7 @@ class Autocomplete {
         Autocomplete.promiseIsNotSuperseded(promise);
 
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-        const results = response[1]?.map((/** @type {string} */ name) => {
+        const results = response[1].map((/** @type {string} */ name) => {
           if (mw.config.get('wgCaseSensitiveNamespaces').length) {
             const title = mw.Title.newFromText(name);
             if (
@@ -1055,7 +1055,7 @@ class Autocomplete {
 
         // eslint-disable-next-line no-one-time-vars/no-one-time-vars
         const results = response[1]
-          ?.filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
+          .filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
           .map((name) => text.startsWith(':') ? name : name.slice(name.indexOf(':') + 1))
           .map((name) => (
             mw.config.get('wgCaseSensitiveNamespaces').includes(10)
@@ -1084,6 +1084,7 @@ class Autocomplete {
   static search(string, list) {
     const containsRegexp = new RegExp(mw.util.escapeRegExp(string), 'i');
     const startsWithRegexp = new RegExp('^' + mw.util.escapeRegExp(string), 'i');
+
     return list
       .filter((item) => containsRegexp.test(item))
       .sort(

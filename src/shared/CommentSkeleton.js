@@ -692,7 +692,7 @@ class CommentSkeleton {
       return false;
     }
 
-    const link = /** @type {ElementLike} */ (part.node.querySelectorAll('a')[0]);
+    const link = /** @type {ElementLike | undefined} */ (part.node.querySelectorAll('a')[0]);
     if (
       !link ||
 
@@ -934,7 +934,6 @@ class CommentSkeleton {
     for (let i = 0; i <= this.parts.length; i++) {
       const part = this.parts[i];
       if (
-        part &&
         (start === undefined || (['back', 'start'].includes(part.step))) &&
         !part.hasForeignComponents &&
         !part.isHeading
@@ -1051,7 +1050,7 @@ class CommentSkeleton {
     if (
       firstNode.tagName === 'P' &&
       isElement(firstNode.firstChild) &&
-      firstNode.firstChild?.tagName === 'BR'
+      firstNode.firstChild.tagName === 'BR'
     ) {
       this.parser.constructor.insertBefore(
         /** @type {ElementFor<N>} */ (firstNode.parentElement),
@@ -1507,6 +1506,7 @@ class CommentSkeleton {
       .reduce((acc, ancestors, i) => {
         if (!ancestors.length) {
           const lastGroup = acc[acc.length - 1];
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (!lastGroup || lastGroup[lastGroup.length - 1] !== i) {
             acc.push([]);
           }
@@ -1632,7 +1632,7 @@ class CommentSkeleton {
         for (let i = this.index - 1; i >= 0; i--) {
           const comment = cd.comments[i];
           if (comment.section !== this.section) break;
-          if (comment[prop] === this[prop] && comment.cachedParent?.[prop]) {
+          if (comment[prop] === this[prop] && comment.cachedParent[prop]) {
             this.cachedParent[prop] = comment.cachedParent[prop];
             break;
           }
@@ -1694,7 +1694,7 @@ class CommentSkeleton {
             .slice(comment.index + 1)
             .some((c) => {
               if (
-              /** @type {CommentSkeleton<N> | null} */ (c.cachedParent?.logicalLevel) ===
+              /** @type {CommentSkeleton<N> | null} */ (c.cachedParent.logicalLevel) ===
               this
               ) {
                 children.push(c);
@@ -1752,7 +1752,7 @@ class CommentSkeleton {
    * @returns {string | undefined}
    */
   static generateId(date, author, existingIds) {
-    if (!date || !author) return;
+    if (!author) return;
 
     let id = generateFixedPosTimestamp(date) + '_' + spacesToUnderlines(author);
     if (existingIds?.includes(id)) {
@@ -1781,7 +1781,7 @@ class CommentSkeleton {
     [...element.childNodes].forEach((child) => {
       if (!(child instanceof HTMLElement)) return;
 
-      const width = child.style?.width;
+      const width = child.style.width;
       if (width) {
         const match = width.match(/^([\d.]+)(.+)$/);
         if (match) {
@@ -1793,7 +1793,7 @@ class CommentSkeleton {
 
           child.style.borderColor = `var(--border-color-subtle, #c8ccd1)`;
         }
-      } else if (!parser.getChildElements(child)?.length && child.textContent.includes('─')) {
+      } else if (!parser.getChildElements(child).length && child.textContent.includes('─')) {
         child.textContent = child.textContent
           .replace(/─+/, (s) => '─'.repeat(Math.round(s.length * 1.25)));
       }
@@ -1840,7 +1840,6 @@ class CommentSkeleton {
 
           if (parentComment.index !== commentIndex - 1) {
             // Explicitly set the parent.
-            childComment.cachedParent ||= {};
             childComment.cachedParent.logicalLevel = parentComment;
           }
 

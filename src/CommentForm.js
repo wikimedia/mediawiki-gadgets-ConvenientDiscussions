@@ -1030,7 +1030,9 @@ class CommentForm extends EventEmitter {
     } else if (this.isMode('edit')) {
       this.containerListType = this.target.containerListType;
     } else if (this.isMode('replyInSection')) {
-      this.containerListType = this.target.$replyButtonContainer.prop('tagName').toLowerCase();
+      this.containerListType = /** @type {JQuery} */ (this.target.$replyButtonContainer)
+        .prop('tagName')
+        .toLowerCase();
     }
 
     this.$element = $('<div>').addClass(
@@ -3143,7 +3145,7 @@ class CommentForm extends EventEmitter {
 
     if (operation.maybeClose()) return;
 
-    const html = response.compare?.body;
+    const html = response.compare.body;
     if (html) {
       this.$previewArea
         .html(wrapDiffBody(html))
@@ -3153,9 +3155,7 @@ class CommentForm extends EventEmitter {
         .cdAddCloseButton();
     } else {
       this.$previewArea.empty();
-      if (html !== undefined) {
-        this.showMessage(cd.sParse('cf-notice-nochanges'));
-      }
+      this.showMessage(cd.sParse('cf-notice-nochanges'));
     }
 
     if (this.autopreview) {
@@ -3645,7 +3645,7 @@ class CommentForm extends EventEmitter {
    * @private
    */
   reactToText(text, { regexp, checkFunc, message, type, name }) {
-    if (regexp?.test(text) && (typeof checkFunc !== 'function' || checkFunc(this))) {
+    if (regexp.test(text) && (typeof checkFunc !== 'function' || checkFunc(this))) {
       this.showMessage(message, { type, name });
     } else {
       this.hideMessage(name);
@@ -3732,6 +3732,7 @@ class CommentForm extends EventEmitter {
       // an umbrella function.
       const editOrDeleteText = (/** @type {'edit'|'delete'} */ action) => {
         let subject;
+        /** @type {Comment} */
         let realTarget = this.target;
         if (this.target.isOwn) {
           const targetParent = this.target.getParent();
@@ -3771,7 +3772,7 @@ class CommentForm extends EventEmitter {
     } else if (this.isMode('replyInSection')) {
       return cd.s('es-reply');
     } else if (this.isMode('addSection')) {
-      return this.preloadConfig?.summary || cd.s('es-new-topic');
+      return this.preloadConfig.summary || cd.s('es-new-topic');
     }
 
     // if (this.isMode('addSubsection'))

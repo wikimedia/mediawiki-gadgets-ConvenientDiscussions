@@ -1,4 +1,3 @@
-/* eslint-disable import/no-named-as-default-member */
 // import babelParser from '@babel/eslint-parser';
 import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
@@ -326,6 +325,7 @@ const config = defineConfig(
           'newlines-between': 'always',
         },
       ],
+      'import/no-named-as-default-member': 'off',
 
       '@stylistic/no-multi-spaces': ['error', {
         ignoreEOLComments: true,

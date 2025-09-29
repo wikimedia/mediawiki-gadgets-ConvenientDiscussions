@@ -69,23 +69,23 @@ declare global {
   }
 
   export interface APIResponseTemplateData {
-    pages: Pages;
+    pages: TemplateDataPages;
   }
 
-  export type Pages = Record<string, TemplateData>;
+  export type TemplateDataPages = Record<string, TemplateData>;
 
   interface TemplateData {
     title: string;
     ns: number;
-    description: StringsByKey;
-    params: Record<string, Param>;
-    format: string;
-    paramOrder: string[];
-    sets: AnyByKey[];
-    maps: AnyByKey[];
+    description?: StringsByKey;
+    params?: Record<string, TemplateDataParam>;
+    format?: string;
+    paramOrder?: string[];
+    sets?: AnyByKey[];
+    maps?: AnyByKey[];
   }
 
-  interface Param {
+  interface TemplateDataParam {
     description: StringsByKey | null;
     type: string;
     label: StringsByKey | null;
