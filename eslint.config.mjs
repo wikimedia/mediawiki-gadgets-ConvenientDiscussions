@@ -394,6 +394,7 @@ const config = defineConfig(
       // Attacks JSDoc comments like `.../** @type {string} */ (smth)`
       '@stylistic/rest-spread-spacing': 'off',
       '@stylistic/space-unary-ops': 'off',
+      '@stylistic/array-bracket-spacing': 'off',
 
       '@stylistic/quotes': ['error', 'single', {
         avoidEscape: true,

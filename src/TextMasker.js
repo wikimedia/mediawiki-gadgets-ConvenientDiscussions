@@ -30,7 +30,7 @@ class TextMasker {
      * Text parts of which are masked.
      *
      * @type {string}
-     * @private
+     * @protected
      */
     this.text = text;
 
@@ -38,7 +38,7 @@ class TextMasker {
      * Array of masked texts. Its indexes correspond to marker indexes.
      *
      * @type {string[]}
-     * @private
+     * @protected
      */
     this.maskedTexts = maskedTexts || [];
   }

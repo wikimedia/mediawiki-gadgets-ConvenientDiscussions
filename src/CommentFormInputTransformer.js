@@ -86,12 +86,11 @@ class CommentFormInputTransformer extends TextMasker {
       const lastCommentIndentation = this.target.source.extractLastCommentIndentation(
         this.commentForm
       );
-      this.indentation = (
+      this.indentation =
         lastCommentIndentation &&
-        (lastCommentIndentation[0] === '#' || cd.config.indentationCharMode === 'mimic')
-      )
-        ? lastCommentIndentation[0]
-        : cd.config.defaultIndentationChar;
+        (lastCommentIndentation.startsWith('#') || cd.config.indentationCharMode === 'mimic')
+          ? lastCommentIndentation[0]
+          : cd.config.defaultIndentationChar;
     } else {
       this.indentation = '';
     }
@@ -194,10 +193,10 @@ class CommentFormInputTransformer extends TextMasker {
   initSignatureAndFixCode() {
     this.signature =
       this.commentForm.omitSignatureCheckbox?.isSelected()
-      ? ''
-      : this.isMode('edit')
-        ? this.target.source.signatureCode
-        : cd.g.userSignature;
+        ? ''
+        : this.isMode('edit')
+          ? this.target.source.signatureCode
+          : cd.g.userSignature;
 
     // Make so that the signature doesn't turn out to be at the end of the last item of the list if
     // the comment contains one.
@@ -247,27 +246,26 @@ class CommentFormInputTransformer extends TextMasker {
 
     code = code.replace(
       // Lines with list and table markup as well as lines wholly occupied by file markup
-      new RegExp(
-        `(\\n+)([:*#;\\x03]|${CommentFormInputTransformer.filePatternEnd})`,
-        'gmi'
-      ),
+      new RegExp(`(\\n+)([:*#;\\x03]|${CommentFormInputTransformer.filePatternEnd})`, 'gmi'),
 
       // Add indentation characters. File markup is tricky because, depending on the alignment and
       // line breaks, the result can be very different. The safest way to fight that is to use
       // indentation.
-      (_s, newlines, nextLine) => (
+      (_s, newlines, nextLine) =>
         // Newline sequences will be replaced with a paragraph template below. It could help
         // visual formatting. If there is no paragraph template, there won't be multiple newlines,
         // as they will have been removed above.
         (newlines.length > 1 ? '\n\n\n' : '\n') +
 
         CommentFormInputTransformer.prependIndentationToLine(this.restLinesIndentation, nextLine)
-      )
     );
 
     // Add newlines before and after gallery (yes, even if the comment starts with it).
     code = code
-      .replace(/(^|[^\n])(\u0001\d+_gallery\u0002)/g, (_s, before, m) => before + '\n' + m)
+      .replace(
+        /(^|[^\n])(\u0001\d+_gallery\u0002)/g,
+        /** @type {ReplaceCallback<2>} */ (_s, before, m) => before + '\n' + m
+      )
       .replace(/\u0001\d+_gallery\u0002(?=(?:$|[^\n]))/g, (s) => s + '\n');
 
     // Table markup is OK only with colons as indentation characters.
@@ -290,7 +288,7 @@ class CommentFormInputTransformer extends TextMasker {
       /^((?:[:*#;\u0003].+|\u0001\d+_gallery\u0002))(\n+)(?![:#])/mg,
 
       // Add indentation characters
-      (_s, previousLine, newlines) => (
+      /** @type {ReplaceCallback<2>} */ (_s, previousLine, newlines) => (
         previousLine +
         '\n' +
         CommentFormInputTransformer.prependIndentationToLine(
@@ -305,14 +303,16 @@ class CommentFormInputTransformer extends TextMasker {
     );
 
     // We we only check for `:` here, not other markup, because we only add `:` in those places.
-    code = code.replace(/^(.*)\n\n+(?!:)/gm, (_, m1) =>
-      cd.config.paragraphTemplates.length
-        ? `${m1}{{${cd.config.paragraphTemplates[0]}}}\n`
-        : this.areThereTagsAroundMultipleLines
-        ? `${m1}<br> \n`
-        : m1 +
-          '\n' +
-          CommentFormInputTransformer.prependIndentationToLine(this.restLinesIndentation, '')
+    code = code.replace(
+      /^(.*)\n\n+(?!:)/gm,
+      /** @type {ReplaceCallback<1>} */ (_, m1) =>
+        cd.config.paragraphTemplates.length
+          ? `${m1}{{${cd.config.paragraphTemplates[0]}}}\n`
+          : this.areThereTagsAroundMultipleLines
+            ? `${m1}<br> \n`
+            : m1 +
+              '\n' +
+              CommentFormInputTransformer.prependIndentationToLine(this.restLinesIndentation, '')
     );
 
     return code;
@@ -349,14 +349,13 @@ class CommentFormInputTransformer extends TextMasker {
       'i'
     );
 
-
     code = code.replace(
       // Capture newline characters
       this.isIndented()
         ? /^(.+)\n(?![:#])(?=(.*))/gm
         : /^((?![:*#; ]).+)\n(?![\n:*#; \u0003])(?=(.*))/gm,
 
-      (_s, currentLine, nextLine) =>
+      /** @type {ReplaceCallback} */ (_s, currentLine, nextLine) =>
         currentLine +
 
         // Line break if needed
@@ -396,7 +395,7 @@ class CommentFormInputTransformer extends TextMasker {
    * Make the core code transformations.
    *
    * @param {string} code
-   * @param {boolean} [isInTemplate=false] Is the code in a template.
+   * @param {boolean} [isInTemplate] Is the code in a template.
    * @returns {string}
    * @private
    */
@@ -407,6 +406,7 @@ class CommentFormInputTransformer extends TextMasker {
       isInTemplate
     );
     code = this.processNewlines(code, isInTemplate);
+
     return code;
   }
 
@@ -418,6 +418,7 @@ class CommentFormInputTransformer extends TextMasker {
    */
   processAllCode() {
     this.text = this.processCode(this.text);
+
     return this;
   }
 
@@ -451,9 +452,13 @@ class CommentFormInputTransformer extends TextMasker {
       this.isMode('addSection') ||
 
       // To have pretty diffs
-      (this.isMode('edit') && this.isTargetOpeningSection() && /^\n/.test(this.target.source.code))
+      (
+        this.isMode('edit') &&
+        this.isTargetOpeningSection() &&
+        this.target.source.code.startsWith('\n')
+      )
     ) {
-      this.text = '\n' + this.text;
+      /** @type {this} */ (this).text = '\n' + /** @type {this} */ (this).text;
     }
     this.text = `${equalSigns} ${headline} ${equalSigns}\n${this.text}`;
 
@@ -574,12 +579,15 @@ class CommentFormInputTransformer extends TextMasker {
       if (this.isMode('addSubsection')) {
         this.text += '\n';
       }
-    } else if (this.action === 'preview' && this.isIndented() && this.initialText) {
+    } else if (this.isIndented() && this.initialText) {
       this.text = CommentFormInputTransformer.prependIndentationToLine(':', this.text);
     }
 
     return this;
   }
+
+  /** @type {string} */
+  static filePatternEnd;
 
   static galleryRegexp = /^\u0001\d+_gallery\u0002$/m;
 
@@ -648,7 +656,7 @@ class CommentFormInputTransformer extends TextMasker {
    * Transform line objects, turning lines that contain lists into list objects.
    *
    * @param {Line[]} lines
-   * @param {boolean} [areItems=false]
+   * @param {boolean} [areItems]
    * @returns {Array<Line|List>}
    * @private
    */
@@ -715,7 +723,7 @@ class CommentFormInputTransformer extends TextMasker {
    * @param {Array<Line|List>} linesAndLists
    * @param {number} i
    * @param {List} list
-   * @param {boolean} [areItems=false]
+   * @param {boolean} [areItems]
    * @private
    */
   static linesToList(linesAndLists, i, list, areItems = false) {
@@ -739,10 +747,10 @@ class CommentFormInputTransformer extends TextMasker {
   }
 
   /**
-   * Convert an array of line and list objects to a string with HTML tags.
+   * Convert an array of line and list objects to a HTML string.
    *
    * @param {(Line | List)[]} linesAndLists
-   * @param {boolean} [areItems=false]
+   * @param {boolean} [areItems]
    * @returns {string}
    * @private
    */
@@ -754,7 +762,8 @@ class CommentFormInputTransformer extends TextMasker {
             const itemText = this.isList(item)
               ? this.listsToTags(item.items, true)
               : item.text.trim();
-            return item.type ? `<${item.type}>${itemText}</${item.type}>` : itemText;
+
+            return `<${item.type}>${itemText}</${item.type}>`;
           })
           .join('');
         text += `<${lineOrList.type}>${itemsText}</${lineOrList.type}>`;
