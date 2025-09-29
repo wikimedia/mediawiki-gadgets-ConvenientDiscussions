@@ -14,7 +14,7 @@ import CdError from './shared/CdError';
 import CommentSkeleton from './shared/CommentSkeleton';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
 import TreeWalker from './shared/TreeWalker';
-import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, underlinesToSpaces, unique } from './shared/utils-general';
+import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, underlinesToSpaces, unique } from './shared/utils-general';
 import { extractNumeralAndConvertToNumber, removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
@@ -149,19 +149,19 @@ class Comment extends CommentSkeleton {
   marginHighlightable;
 
   /**
-   * @typedef {Reformatted extends true ? HTMLElement : never} HTMLElementIfReformatted
+   * @typedef {Reformatted extends true ? HTMLElement : undefined} HTMLElementIfReformatted
    */
 
   /**
-   * @typedef {NotReformattedAndHavingUnderlay extends true ? HTMLElement : never} HTMLElementIfNotReformattedAndHavingUnderlay
+   * @typedef {NotReformattedAndHavingUnderlay extends true ? HTMLElement : undefined} HTMLElementIfNotReformattedAndHavingUnderlay
    */
 
   /**
-   * @typedef {Reformatted extends true ? JQuery<HTMLElementIfReformatted> : never} JQueryIfReformatted
+   * @typedef {Reformatted extends true ? JQuery<HTMLElementIfReformatted> : undefined} JQueryIfReformatted
    */
 
   /**
-   * @typedef {NotReformattedAndHavingUnderlay extends true ? JQuery<HTMLElementIfNotReformattedAndHavingUnderlay> : never} JQueryIfNotReformattedAndHavingUnderlay
+   * @typedef {NotReformattedAndHavingUnderlay extends true ? JQuery<HTMLElementIfNotReformattedAndHavingUnderlay> : undefined} JQueryIfNotReformattedAndHavingUnderlay
    */
 
   /**
@@ -721,7 +721,9 @@ class Comment extends CommentSkeleton {
     const pagesToCheckExistence = [];
 
     const headerWrapper = Comment.prototypes.get('headerWrapperElement');
-    this.headerElement = /** @type {HTMLElementIfReformatted} */ (headerWrapper.firstChild);
+    this.headerElement = /** @type {HTMLElementIfReformatted & HTMLElement} */ (
+      headerWrapper.firstChild
+    );
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const authorWrapper = /** @type {HTMLElement} */ (this.headerElement.firstChild);
     const userInfoCardButton = /** @type {HTMLAnchorElement} */ (authorWrapper.firstChild);
@@ -834,7 +836,7 @@ class Comment extends CommentSkeleton {
       }
     }
 
-    this.$header = /** @type {JQueryIfReformatted} */ ($(this.headerElement));
+    this.$header = /** @type {JQueryIfReformatted & JQuery} */ ($(this.headerElement));
 
     this.rewrapHighlightables();
     this.highlightables[0].insertBefore(headerWrapper, this.highlightables[0].firstChild);
@@ -861,8 +863,8 @@ class Comment extends CommentSkeleton {
 
     const menuElement = /** @type {HTMLElement} */ (document.createElement('div'));
     menuElement.className = 'cd-comment-menu';
-    this.menuElement = /** @type {HTMLElementIfReformatted} */ (menuElement);
-    this.$menu = /** @type {JQueryIfReformatted} */ ($(menuElement));
+    this.menuElement = /** @type {HTMLElementIfReformatted & HTMLElement} */ (menuElement);
+    this.$menu = /** @type {JQueryIfReformatted & JQuery} */ ($(menuElement));
 
     this.addReplyButton();
     this.addEditButton();
@@ -957,7 +959,7 @@ class Comment extends CommentSkeleton {
       });
 
       this.menuElement.append(this.editButton.element);
-    } else {
+    } else if (this.hasClassicUnderlay()) {
       this.editButton = new CommentButton({
         element: this.createEditButton().$element[0],
         action,
@@ -998,7 +1000,7 @@ class Comment extends CommentSkeleton {
       });
 
       this.menuElement.append(this.thankButton.element);
-    } else {
+    } else if (this.hasClassicUnderlay()) {
       this.thankButton = new CommentButton({
         element: this.createThankButton().$element[0],
         action,
@@ -1019,7 +1021,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   addCopyLinkButton() {
-    if (!this.id || this.isReformatted()) return;
+    if (!this.id || !this.hasClassicUnderlay()) return;
 
     const element = this.createCopyLinkButton().$element[0];
     this.copyLinkButton = new CommentButton({
@@ -1056,7 +1058,7 @@ class Comment extends CommentSkeleton {
 
       this.goToParentButton.element.append(Comment.prototypes.get('goToParentButtonSvg'));
       this.headerElement.append(this.goToParentButton.element);
-    } else {
+    } else if (this.hasClassicUnderlay()) {
       const buttonElement = this.createGoToParentButton().$element[0];
       this.goToParentButton = new CommentButton({
         buttonElement,
@@ -1999,14 +2001,15 @@ class Comment extends CommentSkeleton {
       /** @type {HTMLElement} */ (this.overlay.firstChild).nextSibling
     );
 
-    if (!this.isReformatted()) {
-      this.overlayInnerWrapper = /** @type {HTMLElementIfNotReformattedAndHavingUnderlay} */ (
-        this.overlay.lastChild
-      );
-      this.overlayGradient = /** @type {HTMLElementIfNotReformattedAndHavingUnderlay} */ (
+    if (this.hasClassicUnderlay()) {
+      this.overlayInnerWrapper =
+        /** @type {HTMLElementIfNotReformattedAndHavingUnderlay & HTMLElement} */ (
+          this.overlay.lastChild
+        );
+      this.overlayGradient = /** @type {HTMLElementIfNotReformattedAndHavingUnderlay & HTMLElement} */ (
         this.overlayInnerWrapper.firstChild
       );
-      this.overlayMenu = /** @type {HTMLElementIfNotReformattedAndHavingUnderlay} */ (
+      this.overlayMenu = /** @type {HTMLElementIfNotReformattedAndHavingUnderlay & HTMLElement} */ (
         this.overlayInnerWrapper.lastChild
       );
 
@@ -2048,11 +2051,11 @@ class Comment extends CommentSkeleton {
      */
     this.$marker = $(this.marker);
 
-    if (!this.isReformatted()) {
-      this.$overlayMenu = /** @type {JQueryIfNotReformattedAndHavingUnderlay} */ (
+    if (this.hasClassicUnderlay()) {
+      this.$overlayMenu = /** @type {JQueryIfNotReformattedAndHavingUnderlay & JQuery} */ (
         $(this.overlayMenu)
       );
-      this.$overlayGradient = /** @type {JQueryIfNotReformattedAndHavingUnderlay} */ (
+      this.$overlayGradient = /** @type {JQueryIfNotReformattedAndHavingUnderlay & JQuery} */ (
         $(this.overlayGradient)
       );
     }
@@ -2087,6 +2090,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   hideMenu(event) {
+    if (!this.overlayInnerWrapper) return;
+
     event?.preventDefault();
     this.overlayInnerWrapper.style.display = 'none';
     this.wasMenuHidden = true;
@@ -2135,7 +2140,7 @@ class Comment extends CommentSkeleton {
       return;
 
     this.underlay.classList.toggle(`cd-comment-underlay-${flag}`, add);
-    /** @type {HTMLElement} */ (this.overlay).classList.toggle(`cd-comment-overlay-${flag}`, add);
+    this.overlay.classList.toggle(`cd-comment-overlay-${flag}`, add);
 
     if (flag === 'deleted') {
       this.replyButton?.setDisabled(add);
@@ -2320,7 +2325,7 @@ class Comment extends CommentSkeleton {
       if (this !== $background.get(-1)) return;
 
       callback?.();
-      $background.add(comment.$overlayGradient).css(propertyDefaults);
+      $background.add(comment.$overlayGradient || $()).css(propertyDefaults);
     });
   }
 
@@ -2366,7 +2371,7 @@ class Comment extends CommentSkeleton {
     /** @type {JQuery} */ (this.$animatedBackground).css({
       backgroundColor: initialBackgroundColor,
     });
-    this.$overlayGradient.css({ backgroundImage: 'none' });
+    this.$overlayGradient?.css({ backgroundImage: 'none' });
 
     this.animateToColors(finalMarkerColor, finalBackgroundColor, callback);
   }
@@ -2392,7 +2397,7 @@ class Comment extends CommentSkeleton {
      *
      * @type {JQuery|undefined}
      */
-    this.$animatedBackground = this.$underlay.add(this.$overlayMenu);
+    this.$animatedBackground = this.$underlay.add(this.$overlayMenu || $());
 
     // Reset animations and colors
     this.$animatedBackground.add(this.$marker).stop(true, true);
@@ -4252,9 +4257,11 @@ class Comment extends CommentSkeleton {
    */
   expandAllThreadsDownTo() {
     [this, ...this.getAncestors()]
-      .filter((comment) => comment.thread?.isCollapsed)
-      .forEach((comment) => {
-        comment.thread.expand();
+      .map((comment) => comment.thread)
+      .filter(defined)
+      .filter((thread) => thread.isCollapsed)
+      .forEach((thread) => {
+        thread.expand();
       });
   }
 
