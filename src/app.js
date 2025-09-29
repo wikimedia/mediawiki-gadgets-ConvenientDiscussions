@@ -68,7 +68,6 @@ function setStrings() {
   ];
 
   if (!IS_SINGLE) {
-    // @ts-expect-error: Use the file for its side effect
     require('../dist/convenientDiscussions-i18n/en.js');
   }
   const strings = Object.keys(cd.i18n.en).reduce((acc, name) => {

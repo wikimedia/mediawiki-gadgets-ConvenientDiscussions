@@ -392,7 +392,7 @@ const config = defineConfig(
       }],
 
       // Attacks JSDoc comments like `.../** @type {string} */ (smth)`
-      '@stylistic/rest-spread-spacing': ['error'],
+      '@stylistic/rest-spread-spacing': 'off',
       '@stylistic/space-unary-ops': 'off',
 
       '@stylistic/quotes': ['error', 'single', {
@@ -440,22 +440,14 @@ const config = defineConfig(
     },
   },
 
-  // Configuration for .d.ts files
   {
     files: ['**/*.d.ts'],
-    languageOptions: {
-      parserOptions: {
-        projectService: {
-          defaultProject: 'jsconfig.json',
-        },
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
     rules: {
       // Disable some rules that are not applicable to declaration files
       // 'no-unused-vars': 'off',
       'jsdoc/require-jsdoc': 'off',
       'unicorn/require-module-specifiers': 'off',
+      '@stylistic/operator-linebreak': 'off',
     },
   },
 );

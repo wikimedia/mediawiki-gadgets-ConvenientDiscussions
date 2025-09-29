@@ -60,8 +60,10 @@ function buildDayjsLocales(i18nWithFallbacks) {
   fs.mkdirSync(DAYJS_LOCALES_TEMP_DIR_NAME, { recursive: true });
 
   // Add temporary language files to that folder that import respective locales if they exist.
+  // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const dayjsLocales = JSON.parse(fs.readFileSync('./node_modules/dayjs/locale.json', 'utf8'));
   const locales = new Set(dayjsLocales.map((locale) => locale.key));
+  /** @type {string[]} */
   const langsHavingLocale = [];
   Object.keys(i18nWithFallbacks).forEach((lang) => {
     const localLangName = lang
@@ -115,6 +117,7 @@ function buildDateFnsLocales(i18nWithFallbacks) {
   // Create a temporary folder.
   fs.mkdirSync(DATE_FNS_LOCALES_TEMP_DIR_NAME, { recursive: true });
 
+  /** @type {AnyByKey} */
   const langNames = {};
   Object.keys(i18nWithFallbacks).forEach((lang) => {
     langNames[lang] = {};

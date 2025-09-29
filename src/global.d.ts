@@ -265,8 +265,10 @@ declare global {
   interface Element {
     cdStyle?: CSSStyleDeclaration;
     cdIsTopLayersContainer?: boolean;
-    cdCachedLayersContainerTop?: number;
-    cdCachedLayersContainerLeft?: number;
+    cdCachedLayersContainerOffset?: {
+      top: number;
+      left: number;
+    };
     cdCouldHaveMoved?: boolean;
     cdMargin?: {
       top: number;

@@ -18,6 +18,7 @@ import { decodeHtmlEntities } from './utils-general';
  */
 export function generateTagsRegexp(tags) {
   const tagsJoined = tags.join('|');
+
   return new RegExp(`(<(${tagsJoined})(?: [\\w ]+(?:=[^<>]+?)?| *)>)([^]*?)(</\\2>)`, 'ig');
 }
 
@@ -36,13 +37,19 @@ export function maskDistractingCode(code) {
   return code
     .replace(
       generateTagsRegexp(['nowiki', 'syntaxhighlight', 'source', 'pre']),
-      (s, before, tagName, content, after) => before + ' '.repeat(content.length) + after
+      /** @type {ReplaceCallback} */ (_s, before, _tagName, content, after) =>
+        before + ' '.repeat(content.length) + after
     )
-    .replace(/<!--([^]*?)-->/g, (s, content) => '\u0001' + ' '.repeat(content.length + 5) + '\u0002')
+    .replace(
+      /<!--([^]*?)-->/g,
+      /** @type {ReplaceCallback} */ (_s, content) =>
+        '\u0001' + ' '.repeat(content.length + 5) + '\u0002'
+    )
     .replace(/[\u200E\u200F]/g, () => ' ')
     .replace(
       /(<\/?(?:br|p)\b.*)(\n+)(>)/g,
-      (s, before, newline, after) => before + ' '.repeat(newline.length) + after
+      /** @type {ReplaceCallback} */ (_s, before, newline, after) =>
+        before + ' '.repeat(newline.length) + after
     );
 }
 
@@ -185,6 +192,7 @@ export function escapePipesOutsideLinks(code, maskedTexts) {
   if (!maskedTexts) {
     textMasker.maskSensitiveCode();
   }
+
   return textMasker
     .mask(/\[\[[^\]|]+\|/g, 'link')
     .withText((text) => (
@@ -202,7 +210,7 @@ export function escapePipesOutsideLinks(code, maskedTexts) {
  * extract the digits and convert them to a number.
  *
  * @param {string} string
- * @param {string} [digits='0123456789']
+ * @param {string} [digits]
  * @returns {number}
  */
 export function extractNumeralAndConvertToNumber(string, digits = '0123456789') {

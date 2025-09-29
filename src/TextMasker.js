@@ -30,6 +30,7 @@ class TextMasker {
      * Text parts of which are masked.
      *
      * @type {string}
+     * @private
      */
     this.text = text;
 
@@ -37,6 +38,7 @@ class TextMasker {
      * Array of masked texts. Its indexes correspond to marker indexes.
      *
      * @type {string[]}
+     * @private
      */
     this.maskedTexts = maskedTexts || [];
   }
@@ -175,7 +177,7 @@ class TextMasker {
           ) +
 
           '\u0002' +
-          this.text.substr(right);
+          this.text.slice(right);
 
         // Synchronize the position
         pos = right - template.length;

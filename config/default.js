@@ -356,7 +356,7 @@ const defaultConfig = {
    * `(?:\s[-–−—―]+\xa0?[A-Z][A-Za-z-_]*)?` is for cases like
    * {@link https://en.wikipedia.org/?diff=1033395227}.
    *
-   * @type {RegExp}
+   * @type {RegExp | null}
    * @default
    * /(?:\s[-–−—―]+\xa0?[A-Z][A-Za-z-_]*)?(?:\s+>+)?(?:[·•\-‑–−—―─~⁓/→⇒\s\u200e\u200f\u2060]|&amp;\w+;|&amp;#\d+;)*(?:\s+\()?$/
    */

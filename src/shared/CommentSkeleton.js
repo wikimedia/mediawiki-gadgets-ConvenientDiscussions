@@ -426,7 +426,7 @@ class CommentSkeleton {
         )
       ) ||
 
-      element.tagName === 'META' && element.getAttribute('property') === 'mw:PageProp/toc' ||
+      (element.tagName === 'META' && element.getAttribute('property') === 'mw:PageProp/toc') ||
       element.getAttribute('id') === 'toc' ||
 
       // Seems to be the best option given pages like

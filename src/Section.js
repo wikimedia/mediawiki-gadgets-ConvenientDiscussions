@@ -232,7 +232,7 @@ class Section extends SectionSkeleton {
      *
      * @type {boolean}
      */
-    this.isTranscludedFromTemplate = this.sourcePage?.namespaceId === 10;
+    this.isTranscludedFromTemplate = this.sourcePage.namespaceId === 10;
 
     /**
      * Is the section actionable. (If it is in a closed discussion or on an old version page, then
@@ -308,6 +308,7 @@ class Section extends SectionSkeleton {
           // item.
           (
             isVotePlaceholder ||
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             lastElement !== lastComment?.elements[lastComment.elements.length - 1]
           )
         )
@@ -321,9 +322,7 @@ class Section extends SectionSkeleton {
       }
     } else {
       tag = 'dd';
-      if (!isVotePlaceholder) {
-        createList = true;
-      }
+      createList = true;
     }
 
     // Don't set more DOM properties to help performance. We don't need them in practice.
