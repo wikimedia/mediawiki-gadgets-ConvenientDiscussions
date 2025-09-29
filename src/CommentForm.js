@@ -75,12 +75,12 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
  * @property {string} comment
  * @property {string} summary
  * @property {boolean|undefined} minor
- * @property {boolean} watch
+ * @property {boolean|undefined} watch
  * @property {boolean|undefined} subscribe
  * @property {boolean|undefined} omitSignature
  * @property {boolean|undefined} delete
- * @property {string} originalHeadline
- * @property {string} originalComment
+ * @property {string|undefined} originalHeadline
+ * @property {string|undefined} originalComment
  * @property {boolean} summaryAltered
  * @property {boolean} omitSignatureCheckboxAltered
  * @property {Date|undefined} lastFocused
@@ -99,7 +99,7 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
 
 /**
  * @typedef {(
- *   | import('./Comment').default['reply']
+ *     import('./Comment').default['reply']
  *   | import('./Comment').default['edit']
  *   | import('./Section').default['reply']
  *   | import('./Section').default['addSubsection']
@@ -109,33 +109,19 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
 
 /**
  * @template {CommentFormMode} Mode
- * @typedef {(
- *   Mode extends 'replyInSection'
- *     ? {
- *         replyButton: Button;
- *         $replyButtonWrapper: JQuery;
- *         $replyButtonContainer: JQuery;
- *       }
- *     : {}
- * )} CommentFormTargetMapExtension
- */
-
-/**
- * @template {CommentFormMode} Mode
- * @typedef {CommentFormTargetMap[Mode] & CommentFormTargetMapExtension<Mode>} TypedTarget
+ * @typedef {CommentFormTargetMap[Mode]} TypedTarget
  */
 
 /**
  * @template {CommentFormMode} Mode
  * @typedef {object} CommentFormConfig
- * @property {Mode} config.mode
- * @property {TypedTarget<Mode>} config.target Comment, section, or page that the form is associated
- *   in the UI.
- * @property {CommentFormInitialState} [config.initialState = {}] Initial state of the form (data
- *   saved in the previous session, quoted text, data transferred from DT's new topic form, etc.).
- * @property {PreloadConfig} [config.preloadConfig = {}] Configuration to preload content into the
- *   form.
- * @property {boolean} [config.newTopicOnTop=false] When adding a topic, whether it should be on top.
+ * @property {Mode} mode
+ * @property {TypedTarget<Mode>} target Comment, section, or page that the form is associated in the
+ *   UI.
+ * @property {CommentFormInitialState} [initialState = {}] Initial state of the form (data saved in
+ *   the previous session, quoted text, data transferred from DT's new topic form, etc.).
+ * @property {PreloadConfig} [preloadConfig = {}] Configuration to preload content into the form.
+ * @property {boolean} [newTopicOnTop=false] When adding a topic, whether it should be on top.
  */
 
 /**
@@ -244,7 +230,7 @@ class CommentForm extends EventEmitter {
   /**
    * Watch page checkbox.
    *
-   * @type {import('./CheckboxInputWidget').default}
+   * @type {import('./CheckboxInputWidget').default | undefined}
    * @memberof CommentForm
    * @instance
    */
@@ -340,7 +326,7 @@ class CommentForm extends EventEmitter {
   /**
    * Script settings button.
    *
-   * @type {OO.ui.ButtonWidget}
+   * @type {OO.ui.ButtonWidget | undefined}
    */
   settingsButton;
 
@@ -450,10 +436,14 @@ class CommentForm extends EventEmitter {
    */
   checkCodeRequest;
 
-  /** @type {string} */
+  /**
+   * @type {string | undefined}
+   */
   originalComment;
 
-  /** @type {string} */
+  /**
+   * @type {string | undefined}
+   */
   originalHeadline;
 
   /**
@@ -476,6 +466,13 @@ class CommentForm extends EventEmitter {
    * @type {Autocomplete}
    */
   summaryAutocomplete;
+
+  /**
+   * Automatically generated summary.
+   *
+   * @type {string | undefined}
+   */
+  autoSummary;
 
   /**
    * @typedef {Mode extends 'addSection' ? null : import('./Section').default | null} CommentFormTargetSection
@@ -659,7 +656,7 @@ class CommentForm extends EventEmitter {
   /**
    * Setup the form after it is added to the page for the first time (not after a page reload).
    *
-   * @param {CommentFormInitialState} [initialState={}]
+   * @param {CommentFormInitialState} [initialState]
    */
   setup(initialState = {}) {
     this.adjustLabels();
@@ -1058,9 +1055,11 @@ class CommentForm extends EventEmitter {
     this.$buttonsStart = $('<div>')
       .addClass('cd-commentForm-buttons-start')
       .append(
-        this.advancedButton.$element,
-        this.helpPopupButton.$element,
-        this.settingsButton?.$element
+        [
+          this.advancedButton.$element,
+          this.helpPopupButton.$element,
+          this.settingsButton?.$element,
+        ].filter(defined)
       );
 
     this.$buttonsEnd = $('<div>')
@@ -1543,13 +1542,14 @@ class CommentForm extends EventEmitter {
   /**
    * Load the edited comment to the comment form.
    *
+   * @this {CommentForm<'edit'>}
    * @param {CommentFormInitialState} initialState
    * @private
    */
   async loadComment(initialState) {
     const operation = this.operations.add('load');
     try {
-      const source = await /** @type {Comment} */ (this.target).loadCode(this);
+      const source = await this.target.loadCode(this);
       let commentInputValue = source.toInput();
       if (source.inSmallFont) {
         commentInputValue = `<small>${commentInputValue}</small>`;
@@ -1559,10 +1559,12 @@ class CommentForm extends EventEmitter {
       this.originalComment = commentInputValue;
 
       // I think a situation where the headline input is present and but not in the source or vice
-      // versa is impossible, but need to recheck.
-      if (this.headlineInput && source.headlineCode) {
+      // versa is impossible, but got to recheck.
+      if (this.headlineInput && source.headlineCode !== undefined) {
         this.headlineInput.setValue(source.headlineCode);
         this.originalHeadline = source.headlineCode;
+      } else {
+        this.originalHeadline = '';
       }
 
       operation.close();
@@ -1786,6 +1788,7 @@ class CommentForm extends EventEmitter {
    */
   async suggestConvertToWikitext(html, insertedText) {
     await sleep();
+
     const button = new OO.ui.ButtonWidget({
       label: cd.s('cf-popup-richformatting-convert'),
       flags: ['progressive'],
@@ -1833,7 +1836,7 @@ class CommentForm extends EventEmitter {
    * Upload an image and insert its markup to the comment form.
    *
    * @param {File} [file] File to upload.
-   * @param {boolean} [openInsertFileDialogAfterwards=false] Whether to open the WikiEditor's
+   * @param {boolean} [openInsertFileDialogAfterwards] Whether to open the WikiEditor's
    *   "Insert file" dialog after the "Upload file" dialog is closed with success.
    */
   async uploadImage(file, openInsertFileDialogAfterwards = false) {
@@ -1877,26 +1880,25 @@ class CommentForm extends EventEmitter {
         if (openInsertFileDialogAfterwards) {
           $.wikiEditor.modules.dialogs.api.openDialog(this, 'insert-file');
           $('#wikieditor-toolbar-file-target').val(imageInfo.canonicaltitle);
+
+        // If some text was selected, insert a link. Otherwise, insert an image.
+        } else if (this.commentInput.getRange().from === this.commentInput.getRange().to) {
+          // Localise the "File:" prefix
+          const filename = new mw.Title(imageInfo.canonicaltitle).getPrefixedText();
+
+          // Sometimes the file is not yet available on Commons. The preview gives a red link in
+          // that case. Use a hack to run the preview now so that the next preview runs a second
+          // later.
+          this.preview(true);
+
+          this.encapsulateSelection({
+            pre: `[[${filename}|frameless|none]]`,
+          });
         } else {
-          // If some text was selected, insert a link. Otherwise, insert an image.
-          if (this.commentInput.getRange().from === this.commentInput.getRange().to) {
-            // Localise the "File:" prefix
-            const filename = new mw.Title(imageInfo.canonicaltitle).getPrefixedText();
-
-            // Sometimes the file is not yet available on Commons. The preview gives a red link in
-            // that case. Use a hack to run the preview now so that the next preview runs a second
-            // later.
-            this.preview(true);
-
-            this.encapsulateSelection({
-              pre: `[[${filename}|frameless|none]]`,
-            });
-          } else {
-            this.encapsulateSelection({
-              pre: `[${imageInfo.url} `,
-              post: `]`,
-            });
-          }
+          this.encapsulateSelection({
+            pre: `[${imageInfo.url} `,
+            post: `]`,
+          });
         }
       });
     });
@@ -1921,7 +1923,7 @@ class CommentForm extends EventEmitter {
       const html = data.getData('text/html');
       if (!isHtmlConvertibleToWikitext(html, this.commentInput.$element[0])) return;
 
-      this.suggestConvertToWikitext(html, data.getData('text/plain')?.replace(/\r/g, ''));
+      this.suggestConvertToWikitext(html, data.getData('text/plain').replace(/\r/g, ''));
     }
   };
 
@@ -2015,7 +2017,7 @@ class CommentForm extends EventEmitter {
 
         // Ctrk+Shift+8
         if (keyCombination(event, 56, ['cmd', 'shift'])) {
-          this.commentInput.$element.find('.tool[rel="ulist"] a')[0]?.click();
+          this.commentInput.$element.find('.tool[rel="ulist"] a').get(0)?.click();
           event.preventDefault();
         }
       },
@@ -2066,7 +2068,7 @@ class CommentForm extends EventEmitter {
         type: 'warning',
         name: 'templateInHeadline',
         target: 'headline',
-        checkFunc: () => !this.preloadConfig?.headline,
+        checkFunc: () => !this.preloadConfig.headline,
       },
       ...cd.config.textReactions,
     ]);
@@ -2481,8 +2483,8 @@ class CommentForm extends EventEmitter {
   /**
    * Pop the pending status of the form inputs.
    *
-   * @param {boolean} [setEnabled=false] Whether to set buttons and inputs enabled.
-   * @param {boolean} [affectsHeadline=true] Should the `popPending` method be applied to the
+   * @param {boolean} [setEnabled] Whether to set buttons and inputs enabled.
+   * @param {boolean} [affectsHeadline] Should the `popPending` method be applied to the
    *   headline input.
    * @see https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.mixin.PendingElement.html#popPending
    */
@@ -2527,10 +2529,10 @@ class CommentForm extends EventEmitter {
    *
    * @param {string|JQuery} htmlOrJquery
    * @param {object} [options]
-   * @param {'notice'|'error'|'warning'|'success'} [options.type='notice'] See the
+   * @param {'notice'|'error'|'warning'|'success'} [options.type] See the
    *   {@link https://doc.wikimedia.org/oojs-ui/master/demos/?page=widgets&theme=wikimediaui&direction=ltr&platform=desktop#MessageWidget-type-notice-inline-true OOUI Demos}.
    * @param {string} [options.name] Name added to the class name of the message element.
-   * @param {boolean} [options.isRaw=false] Message HTML contains the whole message code. It doesn't
+   * @param {boolean} [options.isRaw] Message HTML contains the whole message code. It doesn't
    *   need to be wrapped in a widget.
    */
   showMessage(htmlOrJquery, { type = 'notice', name, isRaw = false } = {}) {
@@ -2574,12 +2576,12 @@ class CommentForm extends EventEmitter {
    *
    * @param {object} options
    * @param {JQuery} options.$message Message visible to the user.
-   * @param {'error'|'notice'|'warning'} [options.messageType='error'] Message type if not
+   * @param {'error'|'notice'|'warning'} [options.messageType] Message type if not
    *   `'error'`.
-   * @param {boolean} [options.isRawMessage=false] Show the message as it is, without icons and
+   * @param {boolean} [options.isRawMessage] Show the message as it is, without icons and
    *   framing.
    * @param {Error | undefined} [options.errorToLog] Error to log in the browser console.
-   * @param {boolean} [options.cancel=false] Cancel the form and show the message as a notification.
+   * @param {boolean} [options.cancel] Cancel the form and show the message as a notification.
    * @param {import('./CommentFormOperation').default} [options.operation]
    *   Operation the form is undergoing.
    * @private
@@ -2628,16 +2630,13 @@ class CommentForm extends EventEmitter {
   //  *   server. (Either `code`, `apiResponse`, or `message` should be specified.)
   /**
    * @typedef {object} HandleErrorOptions
-   * @property {unknown} options.error
-   * @property {string | JQuery} [options.message] Text of the error or a JQuery element with it.
-   *   (Either `code`, `apiResponse`, or `message` should be specified.)
-   * @property {'error' | 'notice' | 'warning'} [options.messageType='error'] Message type if not
-   *   `'error'`.
-   * @property {boolean} [options.cancel=false] Cancel the form and show the message as a
-   *   notification.
-   * @property {boolean} [options.isRawMessage=false] Show the message as it is, without OOUI
-   *   framing.
-   * @property {import('./CommentFormOperation').default} [options.operation] Operation the form is
+   * @property {unknown} error
+   * @property {string | JQuery} [message] Text of the error or a JQuery element with it. (Either
+   *   `code`, `apiResponse`, or `message` should be specified.)
+   * @property {'error' | 'notice' | 'warning'} [messageType='error'] Message type if not `'error'`.
+   * @property {boolean} [cancel=false] Cancel the form and show the message as a notification.
+   * @property {boolean} [isRawMessage=false] Show the message as it is, without OOUI framing.
+   * @property {import('./CommentFormOperation').default} [operation] Operation the form is
    *   undergoing.
    */
 
@@ -2846,7 +2845,7 @@ class CommentForm extends EventEmitter {
    * @param {'submit'|'viewChanges'} action
    * @param {import('./CommentFormOperation').default} operation Operation the form is undergoing.
    * @returns {Promise<
-   *   | {
+   *     {
    *       contextCode: string;
    *       commentCode?: string;
    *     }
@@ -2954,13 +2953,13 @@ class CommentForm extends EventEmitter {
   /**
    * Preview the comment.
    *
-   * @param {boolean} [isAuto=true] Preview is initiated automatically (if the user has the
+   * @param {boolean} [isAuto] Preview is initiated automatically (if the user has the
    *   `autopreview` setting set to `true`).
    * @param {import('./CommentFormOperation').default} [operation] Operation object when the
    *   function is called from within itself, being delayed.
    * @fires previewReady
    */
-  async preview(isAuto = true, operation) {
+  async preview(isAuto = true, operation = undefined) {
     if (this.isContentBeingLoaded() || (!this.autopreview && (isAuto || this.isBeingSubmitted()))) {
       operation?.close();
 
@@ -3006,9 +3005,7 @@ class CommentForm extends EventEmitter {
      */
     if (!this.isMode('addSection') && !this.target.source) {
       await this.checkCode();
-      if (!this.target.source) {
-        operation.close();
-      }
+      operation.close();
       if (operation.isClosed()) return;
     }
 
@@ -3255,7 +3252,7 @@ class CommentForm extends EventEmitter {
           !doDelete &&
           /^==[^=]/m.test(this.commentInput.getValue()) &&
           !this.isMode('edit') &&
-          !this.preloadConfig?.commentTemplate,
+          !this.preloadConfig.commentTemplate,
         confirmation: () => confirm(cd.s('cf-confirm-secondlevelheading')),
       },
       {
@@ -3280,7 +3277,7 @@ class CommentForm extends EventEmitter {
    *
    * @param {string} code Code to save.
    * @param {import('./CommentFormOperation').default} operation Operation the form is undergoing.
-   * @param {boolean} [suppressTag=false]
+   * @param {boolean} [suppressTag]
    * @returns {Promise<string | undefined>}
    * @private
    */
@@ -3326,7 +3323,7 @@ class CommentForm extends EventEmitter {
         if (errorCode === 'editconflict') {
           error.setMessage(message + ' ' + cd.sParse('cf-notice-editconflict-retrying'));
           messageType = 'notice';
-        } else if (errorCode === 'captcha' && mw.libs.confirmEdit) {
+        } else if (errorCode === 'captcha' && 'confirmEdit' in mw.libs) {
           this.captchaInput = new mw.libs.confirmEdit.CaptchaInputWidget(
             /** @type {{ edit: mw.libs.confirmEdit.CaptchaData }} */ (
               error.getApiResponse()
@@ -3399,7 +3396,7 @@ class CommentForm extends EventEmitter {
         } else {
           subscribeId = headline;
           if (this.isSectionOpeningCommentEdited()) {
-            originalHeadline = removeWikiMarkup(this.originalHeadline);
+            originalHeadline = removeWikiMarkup(this.originalHeadline || '');
             isHeadlineAltered = subscribeId !== originalHeadline;
           }
         }
@@ -3469,8 +3466,8 @@ class CommentForm extends EventEmitter {
   /**
    * Submit the form.
    *
-   * @param {boolean} [clearMessages=true]
-   * @param {boolean} [suppressTag=false]
+   * @param {boolean} [clearMessages]
+   * @param {boolean} [suppressTag]
    */
   async submit(clearMessages = true, suppressTag = false) {
     const doDelete = Boolean(this.deleteCheckbox?.isSelected());
@@ -3551,9 +3548,9 @@ class CommentForm extends EventEmitter {
    * Close the form, asking for confirmation if necessary, and scroll to the target comment if
    * available.
    *
-   * @param {boolean} [confirmClose=true] Whether to confirm form close.
+   * @param {boolean} [confirmClose] Whether to confirm form close.
    */
-  async cancel(confirmClose = true) {
+  cancel(confirmClose = true) {
     // Why check for this.torndown: CodeMirror may emit an event of an Esc button press late
     if (bootController.isPageOverlayOn() || this.isBeingSubmitted() || this.torndown) return;
 
@@ -3658,9 +3655,9 @@ class CommentForm extends EventEmitter {
   /**
    * _For internal use._ Update the automatic text for the edit summary.
    *
-   * @param {boolean} [set=true] Whether to actually set the input value, or just save the auto
+   * @param {boolean} [set] Whether to actually set the input value, or just save the auto
    *   summary to a property (e.g. to later tell if it was altered).
-   * @param {boolean} [blockAutopreview=false] Whether to prevent making autopreview request in
+   * @param {boolean} [blockAutopreview] Whether to prevent making autopreview request in
    *   order not to make two identical requests (for example, if the update is initiated by a change
    *   in the comment – that change would initiate its own request).
    * @private
@@ -3698,8 +3695,8 @@ class CommentForm extends EventEmitter {
       text: this.generateStaticSummaryText(this.targetWithOutdentedReplies || undefined),
       section:
         this.headlineInput && !this.isMode('addSubsection')
-          ? // Unclear why `this` becomes `never` here without a type hint
-            removeWikiMarkup(/** @type {this} */ (this).headlineInput.getValue())
+          ? removeWikiMarkup(this.headlineInput.getValue())
+
           : this.target.getRelevantSection()?.headline,
       optionalText,
       addPostfix: false,
@@ -3713,7 +3710,7 @@ class CommentForm extends EventEmitter {
    * _For internal use._ Generate the _static_ part of the automatic text for the edit summary,
    * excluding the section headline.
    *
-   * @param {Comment} [substituteTarget=this.target]
+   * @param {Comment} [substituteTarget]
    * @returns {string}
    * @private
    */
@@ -3724,6 +3721,7 @@ class CommentForm extends EventEmitter {
       if (target.isOpeningSection()) {
         return cd.s('es-reply');
       }
+
       target.maybeRequestAuthorGender(this.updateAutoSummary);
 
       return target.isOwn
@@ -3734,7 +3732,7 @@ class CommentForm extends EventEmitter {
       // an umbrella function.
       const editOrDeleteText = (/** @type {'edit'|'delete'} */ action) => {
         let subject;
-        let realTarget = /** @type {Comment} */ (this.target);
+        let realTarget = this.target;
         if (this.target.isOwn) {
           const targetParent = this.target.getParent();
           if (targetParent) {
@@ -4001,15 +3999,15 @@ class CommentForm extends EventEmitter {
    * provided value if no text is selected.
    *
    * @param {object} options
-   * @param {string} [options.pre=''] Text to insert before the caret/selection.
-   * @param {string} [options.peri=''] Fallback value used instead of a selection and selected
+   * @param {string} [options.pre] Text to insert before the caret/selection.
+   * @param {string} [options.peri] Fallback value used instead of a selection and selected
    *   afterwards.
-   * @param {string} [options.post=''] Text to insert after the caret/selection.
-   * @param {boolean} [options.replace=false] If there is a selection, replace it with `pre`,
+   * @param {string} [options.post] Text to insert after the caret/selection.
+   * @param {boolean} [options.replace] If there is a selection, replace it with `pre`,
    *   `peri`, `post` instead of leaving it alone.
    * @param {string} [options.selection] Selected text. Use if the selection is outside of the
    *   input.
-   * @param {boolean} [options.ownline=false] Put the inserted text on a line of its own.
+   * @param {boolean} [options.ownline] Put the inserted text on a line of its own.
    */
   encapsulateSelection({
     pre = '',
@@ -4088,7 +4086,7 @@ class CommentForm extends EventEmitter {
   /**
    * Get the headline at the time of the form creation.
    *
-   * @returns {string}
+   * @returns {string | undefined}
    */
   getOriginalHeadline() {
     return this.originalHeadline;
@@ -4097,7 +4095,7 @@ class CommentForm extends EventEmitter {
   /**
    * Get the comment text at the time of the form creation.
    *
-   * @returns {string}
+   * @returns {string | undefined}
    */
   getOriginalComment() {
     return this.originalComment;
@@ -4192,7 +4190,7 @@ class CommentForm extends EventEmitter {
    * @param {boolean} value
    */
   setNewSectionApi(value) {
-    this.newSectionApi = Boolean(value);
+    this.newSectionApi = value;
   }
 
   /**
@@ -4210,7 +4208,7 @@ class CommentForm extends EventEmitter {
    * @param {boolean} value
    */
   setSectionSubmitted(value) {
-    this.sectionSubmitted = Boolean(value);
+    this.sectionSubmitted = value;
   }
 
   /**
