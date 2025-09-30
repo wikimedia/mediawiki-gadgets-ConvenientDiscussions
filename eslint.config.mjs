@@ -427,7 +427,7 @@ const config = defineConfig(
 
   // Overrides for specific files
   {
-    files: ['./*', 'src/tribute/**', 'jsdoc/**', '*.test.js'],
+    files: ['./*', 'src/tribute/**', 'jsdoc/**', '**/*.test.js'],
     rules: {
       'jsdoc/require-jsdoc': 'off',
     },

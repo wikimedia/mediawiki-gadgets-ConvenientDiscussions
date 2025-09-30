@@ -67,7 +67,7 @@ class TalkPageController extends EventEmitter {
   $emulatedAddTopicButton;
 
   /**
-   * @type {import('./Subscriptions').default}
+   * @type {import('./Subscriptions').default | undefined}
    */
   subscriptionsInstance;
 
@@ -78,25 +78,25 @@ class TalkPageController extends EventEmitter {
   dtSubscribableThreads;
 
   /**
-   * @type {HTMLElement}
+   * @type {HTMLElement | undefined}
    * @private
    */
   notificationArea;
 
   /**
-   * @type {HTMLElement}
+   * @type {HTMLElement | undefined}
    * @private
    */
   tocButton;
 
   /**
-   * @type {HTMLElement}
+   * @type {HTMLElement | undefined}
    * @private
    */
   stickyHeader;
 
   /**
-   * @type {HTMLElement}
+   * @type {HTMLElement | undefined}
    * @private
    */
   tocContent;
@@ -116,13 +116,13 @@ class TalkPageController extends EventEmitter {
   content = {};
 
   /**
-   * @type {() => void}
+   * @type {(() => void) | undefined}
    * @private
    */
   throttledHandleScroll;
 
   /**
-   * @type {() => void}
+   * @type {(() => void) | undefined}
    * @private
    */
   throttledHandleSelectionChange;
@@ -1051,9 +1051,9 @@ class TalkPageController extends EventEmitter {
    *
    * @param {number} y
    * @param {boolean} [smooth]
-   * @param {Function} [callback]
+   * @param {AnyFunction} [callback]
    */
-  scrollToY(y, smooth = true, callback) {
+  scrollToY(y, smooth = true, callback = undefined) {
     const onComplete = () => {
       this.toggleAutoScrolling(false);
       this.handleScroll();
