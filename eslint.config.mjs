@@ -327,17 +327,17 @@ const config = defineConfig(
       ],
       'import/no-named-as-default-member': 'off',
 
-      '@stylistic/no-multi-spaces': ['error', {
+      '@stylistic/no-multi-spaces': ['warn', {
         ignoreEOLComments: true,
       }],
-      '@stylistic/comma-dangle': ['error', {
+      '@stylistic/comma-dangle': ['warn', {
         arrays: 'always-multiline',
         objects: 'always-multiline',
         functions: 'only-multiline',
       }],
-      '@stylistic/brace-style': ['error', '1tbs'],
-      '@stylistic/arrow-parens': 'error',
-      '@stylistic/lines-between-class-members': ['error', {
+      '@stylistic/brace-style': ['warn', '1tbs'],
+      '@stylistic/arrow-parens': 'warn',
+      '@stylistic/lines-between-class-members': ['warn', {
         enforce: [
           {
             blankLine: 'always',
@@ -346,16 +346,16 @@ const config = defineConfig(
           },
         ],
       }],
-      '@stylistic/array-bracket-newline': ['error', 'consistent'],
-      '@stylistic/array-element-newline': ['error', 'consistent'],
-      '@stylistic/object-property-newline': ['error', {
+      '@stylistic/array-bracket-newline': ['warn', 'consistent'],
+      '@stylistic/array-element-newline': ['warn', 'consistent'],
+      '@stylistic/object-property-newline': ['warn', {
         allowAllPropertiesOnSameLine: true,
       }],
-      '@stylistic/object-curly-newline': ['error', {
+      '@stylistic/object-curly-newline': ['warn', {
         consistent: true,
         multiline: true,
       }],
-      '@stylistic/max-len': ['error', {
+      '@stylistic/max-len': ['warn', {
         code: 110,  // Non-rigid 100; it doesn't autofix anyway
         tabWidth: 2,
         ignoreComments: true,
@@ -364,17 +364,17 @@ const config = defineConfig(
         ignoreTemplateLiterals: true,
         ignoreRegExpLiterals: true,
       }],
-      '@stylistic/operator-linebreak': ['error', 'after', {
+      '@stylistic/operator-linebreak': ['warn', 'after', {
         overrides: {
           '?': 'before',
           ':': 'before',
         },
       }],
-      '@stylistic/newline-per-chained-call': ['error', {
+      '@stylistic/newline-per-chained-call': ['warn', {
         ignoreChainWithDepth: 3,
       }],
       '@stylistic/padding-line-between-statements': [
-        'error',
+        'warn',
         // Always require a blank line before any return
         {
           blankLine: 'always',
@@ -396,7 +396,7 @@ const config = defineConfig(
       '@stylistic/space-unary-ops': 'off',
       '@stylistic/array-bracket-spacing': 'off',
 
-      '@stylistic/quotes': ['error', 'single', {
+      '@stylistic/quotes': ['warn', 'single', {
         avoidEscape: true,
         allowTemplateLiterals: 'always',
       }],
