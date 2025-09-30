@@ -24,19 +24,12 @@
 
 - [x] 4. Implement WikilinksAutocomplete class
 
-
-  - Create class extending BaseAutocomplete for page links
   - Implement page name validation and OpenSearch API integration
   - Handle colon prefixes, namespace logic, and case sensitivity
   - Migrate wikilinks logic from existing Autocomplete.getCollections
   - _Requirements: 1.1, 1.2, 1.3, 2.4, 3.2, 4.1, 8.2_
 
 - [x] 5. Implement TemplatesAutocomplete class
-
-
-
-
-
 
   - Create class extending BaseAutocomplete for templates
   - Implement template validation and TemplateData API integration
@@ -46,18 +39,14 @@
 
 - [x] 6. Implement TagsAutocomplete class
 
-
-
-
-
-
   - Create class extending BaseAutocomplete for HTML tags
   - Implement tag validation and predefined tag list management
   - Handle both simple tags and complex tag structures with parameters
   - Migrate tags logic from existing Autocomplete.getCollections
   - _Requirements: 1.1, 1.2, 1.3, 2.4, 3.2, 4.1, 8.4_
 
-- [ ] 7. Implement CommentLinksAutocomplete class
+- [x] 7. Implement CommentLinksAutocomplete class
+
 
   - Create class extending BaseAutocomplete for comment/section links
   - Implement lazy loading from comment and section registries
