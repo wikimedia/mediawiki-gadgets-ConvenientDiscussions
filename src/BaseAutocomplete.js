@@ -1,3 +1,4 @@
+import AutocompleteCache from './AutocompleteCache';
 import cd from './cd';
 import CdError from './shared/CdError';
 import { defined, removeDoubleSpaces, sleep, unique } from './shared/utils-general';
@@ -27,11 +28,11 @@ import { handleApiReject } from './utils-api';
  */
 class BaseAutocomplete {
   /**
-   * Cache for storing API results by query text.
+   * Advanced cache for storing API results by query text.
    *
-   * @type {{ [key: string]: string[] }}
+   * @type {AutocompleteCache}
    */
-  cache = {};
+  cache;
 
   /**
    * Results from the last API request.
@@ -95,10 +96,19 @@ class BaseAutocomplete {
   /**
    * Create a base autocomplete instance.
    *
-   * @param {AutocompleteConfigShared} [config={}] Configuration options
+   * @param {AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
     Object.assign(this, config);
+
+    // Initialize advanced cache if not provided
+    if (!this.cache || !(this.cache instanceof AutocompleteCache)) {
+      this.cache = new AutocompleteCache({
+        maxSize: config.cacheMaxSize || 500,
+        ttl: config.cacheTtl || 5 * 60 * 1000, // 5 minutes
+        maxMemory: config.cacheMaxMemory || 5 * 1024 * 1024, // 5MB
+      });
+    }
   }
 
   /**
@@ -162,7 +172,7 @@ class BaseAutocomplete {
    * @param {string} text The search text
    * @returns {Promise<string[]>} Promise resolving to array of suggestions
    */
-  async makeApiRequest(text) {
+  makeApiRequest(text) {
     throw new CdError({
       type: 'internal',
       message: 'makeApiRequest() must be implemented by subclass',
@@ -189,6 +199,7 @@ class BaseAutocomplete {
     const cachedResults = this.handleCache(text);
     if (cachedResults) {
       callback(this.processResults(cachedResults, this));
+
       return;
     }
 
@@ -284,6 +295,7 @@ class BaseAutocomplete {
   searchLocal(text, list) {
     const containsRegexp = new RegExp(mw.util.escapeRegExp(text), 'i');
     const startsWithRegexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
+
     return list
       .filter((item) => containsRegexp.test(item))
       .sort(
@@ -299,7 +311,7 @@ class BaseAutocomplete {
    * @returns {string[] | null} Cached results or null if not found
    */
   handleCache(text) {
-    return this.cache[text] || null;
+    return this.cache.get(text);
   }
 
   /**
@@ -309,7 +321,7 @@ class BaseAutocomplete {
    * @param {string[]} results Results to cache
    */
   updateCache(text, results) {
-    this.cache[text] = results;
+    this.cache.set(text, results);
   }
 
   /**
@@ -321,6 +333,7 @@ class BaseAutocomplete {
     if ((!this.default || this.default.length === 0) && this.defaultLazy) {
       this.default = this.defaultLazy();
     }
+
     return this.default || [];
   }
 
@@ -366,6 +379,7 @@ class BaseAutocomplete {
       }
     });
     this.currentPromise = promise;
+
     return promise;
   }
 
@@ -390,6 +404,57 @@ class BaseAutocomplete {
       this.promiseIsNotSuperseded(this.currentPromise);
       resolve(response);
     });
+  }
+
+  /**
+   * Get performance metrics for this autocomplete instance.
+   *
+   * @returns {object} Performance metrics
+   */
+  getPerformanceMetrics() {
+    const cacheStats = this.cache.getStats();
+
+    return {
+      type: this.constructor.name,
+      cache: cacheStats,
+      defaultItemsCount: this.getDefaultItems().length,
+      lastResultsCount: this.lastResults.length,
+      lastQuery: this.lastQuery,
+    };
+  }
+
+  /**
+   * Optimize cache by removing least used entries.
+   */
+  optimizeCache() {
+    // The AutocompleteCache handles optimization automatically,
+    // but we can trigger manual cleanup if needed
+    this.cache.cleanup();
+  }
+
+  /**
+   * Prefetch data for common queries to improve performance.
+   *
+   * @param {string[]} commonQueries Array of common query strings
+   * @returns {Promise<void>}
+   */
+  async prefetchCommonQueries(commonQueries) {
+    await this.cache.prefetch(commonQueries, async (query) => {
+      if (this.validateInput(query)) {
+        return await this.makeApiRequest(query);
+      }
+
+      return [];
+    });
+  }
+
+  /**
+   * Destroy the autocomplete instance and clean up resources.
+   */
+  destroy() {
+    if (this.cache && typeof this.cache.destroy === 'function') {
+      this.cache.destroy();
+    }
   }
 }
 

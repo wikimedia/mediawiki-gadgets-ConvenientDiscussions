@@ -1,4 +1,5 @@
 import AutocompleteFactory from './AutocompleteFactory';
+import AutocompletePerformanceMonitor from './AutocompletePerformanceMonitor';
 import cd from './cd';
 import settings from './settings';
 import CdError from './shared/CdError';
@@ -72,12 +73,27 @@ class AutocompleteManager {
    *   the mentions and comment links autocomplete.
    * @param {string[]} [options.defaultUserNames] Default list of user names for the mentions
    *   autocomplete.
+   * @param {boolean} [options.enablePerformanceMonitoring] Whether to enable performance monitoring
    */
-  constructor({ types, inputs, comments, defaultUserNames }) {
+  constructor({ types, inputs, comments, defaultUserNames, enablePerformanceMonitoring = false }) {
     this.types = settings.get('autocompleteTypes');
     this.useTemplateData = settings.get('useTemplateData');
 
     types = types.filter((type) => this.types.includes(type));
+
+    /**
+     * Performance monitor for tracking autocomplete performance.
+     *
+     * @type {AutocompletePerformanceMonitor | null}
+     * @private
+     */
+    this.performanceMonitor = enablePerformanceMonitoring
+      ? new AutocompletePerformanceMonitor({
+        enabled: true,
+        maxMetrics: 500,
+        reportInterval: 0, // Disable automatic reporting
+      })
+      : null;
 
     /**
      * Map of autocomplete type to autocomplete instance.
@@ -169,6 +185,19 @@ class AutocompleteManager {
     this.inputs.forEach((input) => {
       this.tribute.detach(input.$input[0]);
     });
+
+    // Clean up autocomplete instances
+    for (const instance of this.autocompleteInstances.values()) {
+      if (typeof instance.destroy === 'function') {
+        instance.destroy();
+      }
+    }
+
+    // Clean up performance monitor
+    if (this.performanceMonitor) {
+      this.performanceMonitor.destroy();
+      this.performanceMonitor = null;
+    }
   }
 
   /**
@@ -201,7 +230,27 @@ class AutocompleteManager {
           return '';
         },
         values: async (text, callback) => {
-          await instance.getValues(text, callback);
+          // Start performance monitoring if enabled
+          const perfContext = this.performanceMonitor?.startOperation(
+            'getValues',
+            type,
+            text
+          );
+
+          try {
+            // Check if result will come from cache
+            const cacheHit = instance.handleCache(text) !== null;
+
+            await instance.getValues(text, (results) => {
+              // End performance monitoring
+              perfContext?.end(results.length, cacheHit);
+              callback(results);
+            });
+          } catch (error) {
+            // End performance monitoring on error
+            perfContext?.end(0, false);
+            throw error;
+          }
         },
       };
 
@@ -511,6 +560,104 @@ class AutocompleteManager {
     this.currentPromise = promise;
 
     return promise;
+  }
+
+  /**
+   * Get performance metrics for all autocomplete instances.
+   *
+   * @returns {object} Combined performance metrics
+   */
+  getPerformanceMetrics() {
+    const metrics = {
+      manager: {
+        instanceCount: this.autocompleteInstances.size,
+        types: Array.from(this.autocompleteInstances.keys()),
+        monitoringEnabled: this.performanceMonitor !== null,
+      },
+      instances: {},
+      monitor: null,
+    };
+
+    // Get metrics from each instance
+    for (const [type, instance] of this.autocompleteInstances) {
+      if (typeof instance.getPerformanceMetrics === 'function') {
+        metrics.instances[type] = instance.getPerformanceMetrics();
+      }
+    }
+
+    // Get monitor metrics if available
+    if (this.performanceMonitor) {
+      metrics.monitor = this.performanceMonitor.generateSummary();
+    }
+
+    return metrics;
+  }
+
+  /**
+   * Generate a performance report.
+   *
+   * @returns {string} Formatted performance report
+   */
+  generatePerformanceReport() {
+    if (!this.performanceMonitor) {
+      return 'Performance monitoring is not enabled.';
+    }
+
+    return this.performanceMonitor.generateReport();
+  }
+
+  /**
+   * Optimize all autocomplete instances.
+   */
+  optimizePerformance() {
+    for (const instance of this.autocompleteInstances.values()) {
+      if (typeof instance.optimizeCache === 'function') {
+        instance.optimizeCache();
+      }
+    }
+  }
+
+  /**
+   * Prefetch common queries for all instances.
+   *
+   * @param {object} commonQueriesByType Object mapping type to array of common queries
+   * @returns {Promise<void>}
+   */
+  async prefetchCommonQueries(commonQueriesByType) {
+    const promises = [];
+
+    for (const [type, queries] of Object.entries(commonQueriesByType)) {
+      const instance = this.autocompleteInstances.get(type);
+      if (instance && typeof instance.prefetchCommonQueries === 'function') {
+        promises.push(instance.prefetchCommonQueries(queries));
+      }
+    }
+
+    await Promise.all(promises);
+  }
+
+  /**
+   * Enable performance monitoring.
+   */
+  enablePerformanceMonitoring() {
+    if (this.performanceMonitor) {
+      this.performanceMonitor.enable();
+    } else {
+      this.performanceMonitor = new AutocompletePerformanceMonitor({
+        enabled: true,
+        maxMetrics: 500,
+        reportInterval: 0,
+      });
+    }
+  }
+
+  /**
+   * Disable performance monitoring.
+   */
+  disablePerformanceMonitoring() {
+    if (this.performanceMonitor) {
+      this.performanceMonitor.disable();
+    }
   }
 
   /**

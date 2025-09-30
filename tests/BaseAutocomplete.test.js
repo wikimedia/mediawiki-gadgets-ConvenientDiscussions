@@ -27,7 +27,8 @@ describe('BaseAutocomplete', () => {
 
   describe('constructor', () => {
     it('should initialize with default values', () => {
-      expect(autocomplete.cache).toEqual({});
+      expect(autocomplete.cache).toBeDefined();
+      expect(autocomplete.cache.constructor.name).toBe('AutocompleteCache');
       expect(autocomplete.lastResults).toEqual([]);
       expect(autocomplete.lastQuery).toBe('');
       expect(autocomplete.default).toEqual([]);
@@ -36,13 +37,13 @@ describe('BaseAutocomplete', () => {
 
     it('should accept configuration options', () => {
       const config = {
-        cache: { test: ['result'] },
         default: ['item1', 'item2'],
         data: { key: 'value' },
       };
       const instance = new BaseAutocomplete(config);
 
-      expect(instance.cache).toEqual(config.cache);
+      expect(instance.cache).toBeDefined();
+      expect(instance.cache.constructor.name).toBe('AutocompleteCache');
       expect(instance.default).toEqual(config.default);
       expect(instance.data).toEqual(config.data);
     });
@@ -73,14 +74,12 @@ describe('BaseAutocomplete', () => {
   describe('searchLocal', () => {
     it('should filter and sort results correctly', () => {
       const list = ['apple', 'application', 'banana', 'grape'];
-      const results = autocomplete.searchLocal('app', list);
 
-      expect(results).toEqual(['apple', 'application']);
+      expect(autocomplete.searchLocal('app', list)).toEqual(['apple', 'application']);
     });
 
     it('should prioritize items that start with search text', () => {
-      const list = ['pineapple', 'application', 'apple'];
-      const results = autocomplete.searchLocal('app', list);
+      const results = autocomplete.searchLocal('app', ['pineapple', 'application', 'apple']);
 
       // Items that start with 'app' should come first
       expect(results[0]).toBe('application');
@@ -89,8 +88,7 @@ describe('BaseAutocomplete', () => {
     });
 
     it('should be case insensitive', () => {
-      const list = ['Apple', 'BANANA', 'grape'];
-      const results = autocomplete.searchLocal('app', list);
+      const results = autocomplete.searchLocal('app', ['Apple', 'BANANA', 'grape']);
 
       expect(results).toEqual(['Apple']);
     });
@@ -98,7 +96,7 @@ describe('BaseAutocomplete', () => {
 
   describe('cache methods', () => {
     it('should handle cache correctly', () => {
-      autocomplete.cache = { test: ['result1', 'result2'] };
+      autocomplete.cache.set('test', ['result1', 'result2']);
 
       expect(autocomplete.handleCache('test')).toEqual(['result1', 'result2']);
       expect(autocomplete.handleCache('nonexistent')).toBeNull();
@@ -107,7 +105,7 @@ describe('BaseAutocomplete', () => {
     it('should update cache correctly', () => {
       autocomplete.updateCache('query', ['result1', 'result2']);
 
-      expect(autocomplete.cache.query).toEqual(['result1', 'result2']);
+      expect(autocomplete.cache.get('query')).toEqual(['result1', 'result2']);
     });
   });
 
@@ -122,10 +120,8 @@ describe('BaseAutocomplete', () => {
       const lazyItems = ['lazy1', 'lazy2'];
       autocomplete.defaultLazy = jest.fn(() => lazyItems);
 
-      const result = autocomplete.getDefaultItems();
-
       expect(autocomplete.defaultLazy).toHaveBeenCalled();
-      expect(result).toEqual(lazyItems);
+      expect(autocomplete.getDefaultItems()).toEqual(lazyItems);
       expect(autocomplete.default).toEqual(lazyItems);
     });
 
@@ -133,41 +129,34 @@ describe('BaseAutocomplete', () => {
       autocomplete.default = ['existing'];
       autocomplete.defaultLazy = jest.fn();
 
-      const result = autocomplete.getDefaultItems();
-
       expect(autocomplete.defaultLazy).not.toHaveBeenCalled();
-      expect(result).toEqual(['existing']);
+      expect(autocomplete.getDefaultItems()).toEqual(['existing']);
     });
 
     it('should handle undefined defaultLazy function', () => {
       autocomplete.default = [];
       autocomplete.defaultLazy = undefined;
 
-      const result = autocomplete.getDefaultItems();
-
-      expect(result).toEqual([]);
+      expect(autocomplete.getDefaultItems()).toEqual([]);
     });
 
     it('should handle null default array', () => {
       autocomplete.default = null;
       autocomplete.defaultLazy = jest.fn(() => ['lazy']);
 
-      const result = autocomplete.getDefaultItems();
-
-      expect(result).toEqual(['lazy']);
+      expect(autocomplete.getDefaultItems()).toEqual(['lazy']);
     });
   });
 
   describe('processResults', () => {
     it('should process string items correctly', () => {
-      const items = ['item1', 'item2'];
       const config = {
         transformItemToInsertData() {
           return { start: this.item, end: '' };
         },
       };
 
-      const results = autocomplete.processResults(items, config);
+      const results = autocomplete.processResults(['item1', 'item2'], config);
 
       expect(results).toHaveLength(2);
       expect(results[0].key).toBe('item1');
@@ -176,10 +165,9 @@ describe('BaseAutocomplete', () => {
     });
 
     it('should process array items correctly', () => {
-      const items = [['tag1', 'start', 'end'], ['tag2', 'start2', 'end2']];
       const config = {};
 
-      const results = autocomplete.processResults(items, config);
+      const results = autocomplete.processResults([['tag1', 'start', 'end'], ['tag2', 'start2', 'end2']], config);
 
       expect(results).toHaveLength(2);
       expect(results[0].key).toBe('tag1');
@@ -187,13 +175,12 @@ describe('BaseAutocomplete', () => {
     });
 
     it('should process object items with key property correctly', () => {
-      const items = [
-        { key: 'comment1', id: 'c1' },
-        { key: 'comment2', id: 'c2' },
-      ];
       const config = {};
 
-      const results = autocomplete.processResults(items, config);
+      const results = autocomplete.processResults([
+        { key: 'comment1', id: 'c1' },
+        { key: 'comment2', id: 'c2' },
+      ], config);
 
       expect(results).toHaveLength(2);
       expect(results[0].key).toBe('comment1');
@@ -202,9 +189,8 @@ describe('BaseAutocomplete', () => {
 
     it('should filter out undefined and duplicate items', () => {
       const items = ['item1', undefined, 'item2', 'item1', null];
-      const config = {};
 
-      const results = autocomplete.processResults(items, config);
+      const results = autocomplete.processResults(items, {});
 
       expect(results).toHaveLength(2);
       expect(results.map((r) => r.key)).toEqual(['item1', 'item2']);
@@ -232,7 +218,7 @@ describe('BaseAutocomplete', () => {
     });
 
     it('should use cached results when available', async () => {
-      autocomplete.cache = { test: ['cached1', 'cached2'] };
+      autocomplete.cache.set('test', ['cached1', 'cached2']);
 
       await autocomplete.getValues('test', mockCallback);
 
@@ -277,10 +263,10 @@ describe('BaseAutocomplete', () => {
 
       BaseAutocomplete.currentPromise = promise1;
       expect(() => {
-        BaseAutocomplete.promiseIsNotSuperseded(promise1); 
+        BaseAutocomplete.promiseIsNotSuperseded(promise1);
       }).not.toThrow();
       expect(() => {
-        BaseAutocomplete.promiseIsNotSuperseded(promise2); 
+        BaseAutocomplete.promiseIsNotSuperseded(promise2);
       }).toThrow(CdError);
     });
 
@@ -289,13 +275,12 @@ describe('BaseAutocomplete', () => {
       const promise = Promise.resolve();
 
       expect(() => {
-        BaseAutocomplete.promiseIsNotSuperseded(promise); 
+        BaseAutocomplete.promiseIsNotSuperseded(promise);
       }).toThrow(CdError);
     });
 
     it('should create delayed promise correctly', () => {
-      const executor = jest.fn();
-      const promise = BaseAutocomplete.createDelayedPromise(executor);
+      const promise = BaseAutocomplete.createDelayedPromise(jest.fn());
 
       expect(promise).toBeInstanceOf(Promise);
       expect(BaseAutocomplete.currentPromise).toBe(promise);
