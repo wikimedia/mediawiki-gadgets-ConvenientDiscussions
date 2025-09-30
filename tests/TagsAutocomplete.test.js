@@ -23,6 +23,7 @@ describe('TagsAutocomplete', () => {
 
   beforeEach(() => {
     tagsAutocomplete = new TagsAutocomplete();
+    jest.clearAllMocks();
   });
 
   describe('getLabel', () => {
@@ -56,8 +57,7 @@ describe('TagsAutocomplete', () => {
 
   describe('transformItemToInsertData', () => {
     it('should transform simple string tags correctly', () => {
-      const result = tagsAutocomplete.transformItemToInsertData.call({ item: 'div' });
-      expect(result).toEqual({
+      expect(tagsAutocomplete.transformItemToInsertData.call({ item: 'div' })).toEqual({
         start: '<div>',
         end: '</div>',
         selectContent: true,
@@ -65,8 +65,7 @@ describe('TagsAutocomplete', () => {
     });
 
     it('should transform array tags correctly', () => {
-      const result = tagsAutocomplete.transformItemToInsertData.call({ item: ['br', '<br>'] });
-      expect(result).toEqual({
+      expect(tagsAutocomplete.transformItemToInsertData.call({ item: ['br', '<br>'] })).toEqual({
         start: '<br>',
         end: undefined,
         selectContent: true,
@@ -155,10 +154,8 @@ describe('TagsAutocomplete', () => {
 
       // Should include span but not div
 
-      const divResult = results.find((result) => result.key === 'div');
-
       expect(results.find((result) => result.key === 'span')).toBeDefined();
-      expect(divResult).toBeUndefined();
+      expect(results.find((result) => result.key === 'div')).toBeUndefined();
     });
   });
 
@@ -179,8 +176,7 @@ describe('TagsAutocomplete', () => {
     });
 
     it('should sort tags alphabetically', () => {
-      const tags = tagsAutocomplete.createDefaultLazy()();
-      const tagNames = tags.map((tag) => (Array.isArray(tag) ? tag[0] : tag));
+      const tagNames = tagsAutocomplete.createDefaultLazy()().map((tag) => (Array.isArray(tag) ? tag[0] : tag));
 
       // Check that tags are sorted
 
@@ -191,10 +187,8 @@ describe('TagsAutocomplete', () => {
       // Add a tag that exists in both lists to test deduplication
       cd.g.allowedTags.push('br');
 
-      const tags = tagsAutocomplete.createDefaultLazy()();
-
       // Count occurrences of 'br'
-      const brCount = tags.map((tag) => (Array.isArray(tag) ? tag[0] : tag)).filter((name) => name === 'br').length;
+      const brCount = tagsAutocomplete.createDefaultLazy()().map((tag) => (Array.isArray(tag) ? tag[0] : tag)).filter((name) => name === 'br').length;
       expect(brCount).toBe(1);
 
       // Clean up

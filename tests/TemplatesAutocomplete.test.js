@@ -130,8 +130,17 @@ describe('TemplatesAutocomplete', () => {
       expect(typeof templatesAutocomplete.makeApiRequest).toBe('function');
     });
 
-    // Note: Full API testing is complex due to async mocking.
+    // Note: Full API testing is complex due to async mocking and static method dependencies.
     // The method is tested through integration tests.
+  });
+
+  describe('getCollectionProperties', () => {
+    it('should return templates-specific collection properties', () => {
+      const properties = templatesAutocomplete.getCollectionProperties();
+
+      expect(properties).toHaveProperty('keepAsEnd');
+      expect(properties.keepAsEnd).toBeInstanceOf(RegExp);
+    });
   });
 
   describe('insertTemplateData', () => {

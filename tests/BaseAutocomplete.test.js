@@ -138,13 +138,31 @@ describe('BaseAutocomplete', () => {
       expect(autocomplete.defaultLazy).not.toHaveBeenCalled();
       expect(result).toEqual(['existing']);
     });
+
+    it('should handle undefined defaultLazy function', () => {
+      autocomplete.default = [];
+      autocomplete.defaultLazy = undefined;
+
+      const result = autocomplete.getDefaultItems();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle null default array', () => {
+      autocomplete.default = null;
+      autocomplete.defaultLazy = jest.fn(() => ['lazy']);
+
+      const result = autocomplete.getDefaultItems();
+
+      expect(result).toEqual(['lazy']);
+    });
   });
 
   describe('processResults', () => {
     it('should process string items correctly', () => {
       const items = ['item1', 'item2'];
       const config = {
-        transformItemToInsertData: function() {
+        transformItemToInsertData() {
           return { start: this.item, end: '' };
         },
       };
@@ -189,7 +207,66 @@ describe('BaseAutocomplete', () => {
       const results = autocomplete.processResults(items, config);
 
       expect(results).toHaveLength(2);
-      expect(results.map(r => r.key)).toEqual(['item1', 'item2']);
+      expect(results.map((r) => r.key)).toEqual(['item1', 'item2']);
+    });
+  });
+
+  describe('getValues', () => {
+    let mockCallback;
+
+    beforeEach(() => {
+      mockCallback = jest.fn();
+      autocomplete.validateInput = jest.fn(() => true);
+      autocomplete.makeApiRequest = jest.fn(() => Promise.resolve(['result1', 'result2']));
+      autocomplete.processResults = jest.fn((items) =>
+        items.map((item) => ({ key: item, item, transform: () => ({ start: item, end: '' }) }))
+      );
+    });
+
+    it('should handle valid input with API request', async () => {
+      await autocomplete.getValues('test', mockCallback);
+
+      expect(autocomplete.validateInput).toHaveBeenCalledWith('test');
+      expect(autocomplete.makeApiRequest).toHaveBeenCalledWith('test');
+      expect(mockCallback).toHaveBeenCalledWith(expect.any(Array));
+    });
+
+    it('should use cached results when available', async () => {
+      autocomplete.cache = { test: ['cached1', 'cached2'] };
+
+      await autocomplete.getValues('test', mockCallback);
+
+      expect(autocomplete.makeApiRequest).not.toHaveBeenCalled();
+      expect(mockCallback).toHaveBeenCalledWith(expect.any(Array));
+    });
+
+    it('should handle invalid input', async () => {
+      autocomplete.validateInput.mockReturnValue(false);
+
+      await autocomplete.getValues('', mockCallback);
+
+      expect(autocomplete.makeApiRequest).not.toHaveBeenCalled();
+      expect(mockCallback).toHaveBeenCalledWith([]);
+    });
+
+    it('should handle API request errors', async () => {
+      autocomplete.makeApiRequest.mockRejectedValue(new Error('API Error'));
+
+      await autocomplete.getValues('test', mockCallback);
+
+      // Should still call callback with processed results (empty in this case due to error)
+      expect(mockCallback).toHaveBeenCalled();
+    });
+
+    it('should use default items when query is empty', async () => {
+      autocomplete.validateInput.mockReturnValue(false);
+      autocomplete.getDefaultItems = jest.fn(() => ['default1', 'default2']);
+      autocomplete.searchLocal = jest.fn(() => ['default1']);
+
+      await autocomplete.getValues('', mockCallback);
+
+      expect(autocomplete.getDefaultItems).toHaveBeenCalled();
+      expect(mockCallback).toHaveBeenCalledWith(expect.any(Array));
     });
   });
 
@@ -199,8 +276,30 @@ describe('BaseAutocomplete', () => {
       const promise2 = Promise.resolve();
 
       BaseAutocomplete.currentPromise = promise1;
-      expect(() => BaseAutocomplete.promiseIsNotSuperseded(promise1)).not.toThrow();
-      expect(() => BaseAutocomplete.promiseIsNotSuperseded(promise2)).toThrow(CdError);
+      expect(() => {
+        BaseAutocomplete.promiseIsNotSuperseded(promise1); 
+      }).not.toThrow();
+      expect(() => {
+        BaseAutocomplete.promiseIsNotSuperseded(promise2); 
+      }).toThrow(CdError);
+    });
+
+    it('should handle undefined current promise', () => {
+      BaseAutocomplete.currentPromise = undefined;
+      const promise = Promise.resolve();
+
+      expect(() => {
+        BaseAutocomplete.promiseIsNotSuperseded(promise); 
+      }).toThrow(CdError);
+    });
+
+    it('should create delayed promise correctly', () => {
+      const executor = jest.fn();
+      const promise = BaseAutocomplete.createDelayedPromise(executor);
+
+      expect(promise).toBeInstanceOf(Promise);
+      expect(BaseAutocomplete.currentPromise).toBe(promise);
+      // The executor is called asynchronously after delay, not immediately
     });
   });
 });

@@ -5,6 +5,7 @@ jest.mock('../src/cd', () => ({
   s: jest.fn((key) => `mocked-${key}`),
   config: {
     mentionCharacter: '@',
+    mentionRequiresLeadingSpace: true,
   },
   mws: jest.fn((key) => ' '),
   g: {
@@ -60,13 +61,12 @@ describe('MentionsAutocomplete', () => {
     });
 
     it('should reject input that is too long', () => {
-      const longInput = 'a'.repeat(86);
-      expect(mentionsAutocomplete.validateInput(longInput)).toBe(false);
+      expect(mentionsAutocomplete.validateInput('a'.repeat(86))).toBe(false);
     });
 
     it('should reject input with too many spaces', () => {
-      const inputWithManySpaces = 'a b c d e f';  // 6 spaces
-      expect(mentionsAutocomplete.validateInput(inputWithManySpaces)).toBe(false);
+      // 6 spaces
+      expect(mentionsAutocomplete.validateInput('a b c d e f')).toBe(false);
     });
   });
 
@@ -83,8 +83,55 @@ describe('MentionsAutocomplete', () => {
       const result = mentionsAutocomplete.transformItemToInsertData('Test(User)');
 
       expect(result.start).toBe('@[[User:Test(User)|');
-      expect(result.end).toBe('Test(User)]]');
+      expect(result.end).toBe('Test(User)]]'); // Special characters cause name to be included in end
       expect(result.content).toBe('Test(User)');
+    });
+
+    it('should handle user names with spaces', () => {
+      const result = mentionsAutocomplete.transformItemToInsertData('Test User');
+
+      expect(result.start).toBe('@[[User:Test User|');
+      expect(result.end).toBe(']]');
+      expect(result.content).toBe('Test User');
+    });
+
+    it('should handle empty user name', () => {
+      const result = mentionsAutocomplete.transformItemToInsertData('');
+
+      expect(result.start).toBe('@[[User:|');
+      expect(result.end).toBe(']]');
+      expect(result.content).toBe('');
+    });
+
+    it('should trim whitespace from user name', () => {
+      const result = mentionsAutocomplete.transformItemToInsertData('  TestUser  ');
+
+      expect(result.start).toBe('@[[User:TestUser|');
+      expect(result.content).toBe('TestUser');
+    });
+  });
+
+  describe('makeApiRequest', () => {
+    beforeEach(() => {
+      require('../src/cd').getApi.mockReturnValue({
+        get: jest.fn(),
+      });
+    });
+
+    it('should be defined and callable', () => {
+      expect(typeof mentionsAutocomplete.makeApiRequest).toBe('function');
+    });
+
+    // Note: Full API testing requires complex mocking of AutocompleteManager static methods
+    // These are covered in integration tests
+  });
+
+  describe('getCollectionProperties', () => {
+    it('should return mention-specific collection properties', () => {
+      const properties = mentionsAutocomplete.getCollectionProperties();
+
+      expect(properties).toHaveProperty('requireLeadingSpace');
+      expect(properties.requireLeadingSpace).toBe(true);
     });
   });
 });
