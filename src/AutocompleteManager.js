@@ -13,6 +13,30 @@ import { handleApiReject } from './utils-api';
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
 /**
+ * @typedef {object} ItemByCollection
+ * @property {string} mentions
+ * @property {CommentLinksItem} commentLinks
+ * @property {string} wikilinks
+ * @property {string} templates
+ * @property {TagsItem} tags
+ */
+
+/**
+ * @typedef {object} CommentLinksItem
+ * @property {string} key
+ * @property {string} urlFragment
+ * @property {string} [authorName]
+ * @property {string} [snippet]
+ * @property {string} [headline]
+ */
+
+/**
+ * @typedef {object} TagsItem
+ * @property {string} name
+ * @property {string} [attributes]
+ */
+
+/**
  * @typedef {object} AutocompleteConfigShared
  * @property {StringArraysByKey} [cache] Results by query
  * @property {string[]} [lastResults] Results of last query
@@ -183,7 +207,7 @@ class AutocompleteManager {
 
       // Add type-specific properties from the instance
 
-      Object.assign(collection, instance.getCollectionProperties?.() || {});
+      Object.assign(collection, instance.getCollectionProperties() || {});
 
       collections.push(collection);
     }

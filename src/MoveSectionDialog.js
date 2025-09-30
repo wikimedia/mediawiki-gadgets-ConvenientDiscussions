@@ -1,4 +1,4 @@
-import Autocomplete from './Autocomplete';
+import AutocompleteManager from './AutocompleteManager';
 import ProcessDialog from './ProcessDialog';
 import Pseudolink from './Pseudolink';
 import TextInputWidget from './TextInputWidget';
@@ -265,7 +265,7 @@ class MoveSectionDialog extends ProcessDialog {
         // TODO: Take into account the whole summary length, updating the maximum value dynamically.
         maxLength: 250,
       });
-      this.summaryEndingAutocomplete = new Autocomplete({
+      this.summaryEndingAutocomplete = new AutocompleteManager({
         types: ['mentions', 'wikilinks'],
         inputs: [this.controls.summaryEnding.input],
       });

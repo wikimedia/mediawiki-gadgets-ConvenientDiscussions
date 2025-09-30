@@ -1,9 +1,10 @@
-import Autocomplete from './Autocomplete';
+import AutocompleteManager from './AutocompleteManager';
 import Button from './Button';
 import Comment from './Comment';
 import CommentFormInputTransformer from './CommentFormInputTransformer';
 import CommentFormOperationRegistry from './CommentFormOperationRegistry';
 import EventEmitter from './EventEmitter';
+import MentionsAutocomplete from './MentionsAutocomplete';
 import TextMasker from './TextMasker';
 import bootController from './bootController';
 import cd from './cd';
@@ -449,21 +450,21 @@ class CommentForm extends EventEmitter {
   /**
    * Autocomplete object for the comment input.
    *
-   * @type {Autocomplete}
+   * @type {AutocompleteManager}
    */
   autocomplete;
 
   /**
    * Autocomplete object for the headline input.
    *
-   * @type {Autocomplete|undefined}
+   * @type {AutocompleteManager|undefined}
    */
   headlineAutocomplete;
 
   /**
    * Autocomplete object for the summary input.
    *
-   * @type {Autocomplete}
+   * @type {AutocompleteManager}
    */
   summaryAutocomplete;
 
@@ -2359,7 +2360,7 @@ class CommentForm extends EventEmitter {
 
     defaultUserNames = defaultUserNames.filter(unique);
 
-    this.autocomplete = new Autocomplete({
+    this.autocomplete = new AutocompleteManager({
       types: ['mentions', 'wikilinks', 'templates', 'tags', 'commentLinks'],
       inputs: [this.commentInput],
       comments: commentsInSection,
@@ -2368,7 +2369,7 @@ class CommentForm extends EventEmitter {
     this.autocomplete.init();
 
     if (this.headlineInput) {
-      this.headlineAutocomplete = new Autocomplete({
+      this.headlineAutocomplete = new AutocompleteManager({
         types: ['mentions', 'wikilinks', 'tags'],
         inputs: [this.headlineInput],
         comments: commentsInSection,
@@ -2377,7 +2378,7 @@ class CommentForm extends EventEmitter {
       this.headlineAutocomplete.init();
     }
 
-    this.summaryAutocomplete = new Autocomplete({
+    this.summaryAutocomplete = new AutocompleteManager({
       types: ['mentions', 'wikilinks'],
       inputs: [this.summaryInput],
       comments: commentsInSection,
@@ -3838,9 +3839,7 @@ class CommentForm extends EventEmitter {
     const range = this.commentInput.getRange();
 
     if (mentionAddressee && this.parentComment) {
-      const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
-        Autocomplete.configs
-      ).mentions.transformItemToInsertData.call({ item: this.parentComment.author.getName() });
+      const data = MentionsAutocomplete.transformItemToInsertData(this.parentComment.author.getName());
       if (/** @type {NonNullable<typeof data.omitContentCheck>} */ (data.omitContentCheck)()) {
         data.content = '';
       }
@@ -3863,9 +3862,7 @@ class CommentForm extends EventEmitter {
       // Valid username
       (mw.Title.newFromText(selection) && !selection.includes('/') && selection.length <= 85)
     ) {
-      const data = /** @type {import('./Autocomplete').AutocompleteStaticConfig} */ (
-        Autocomplete.configs
-      ).mentions.transformItemToInsertData.call({ item: selection });
+      const data = MentionsAutocomplete.transformItemToInsertData(selection);
       if (/** @type {NonNullable<typeof data.omitContentCheck>} */ (data.omitContentCheck)()) {
         data.content = '';
       }

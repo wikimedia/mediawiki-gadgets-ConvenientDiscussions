@@ -1,4 +1,4 @@
-import { ItemByCollection } from './Autocomplete';
+import { ItemByCollection } from './AutocompleteManager';
 
 type Item = ItemByCollection[keyof ItemByCollection];
 

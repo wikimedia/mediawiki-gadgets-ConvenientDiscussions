@@ -1,4 +1,4 @@
-import Autocomplete from './Autocomplete';
+import AutocompleteManager from './AutocompleteManager';
 import CommentForm from './CommentForm';
 import EventEmitter from './EventEmitter';
 import Thread from './Thread';
@@ -552,7 +552,7 @@ class TalkPageController extends EventEmitter {
       this.isObstructingElementHoveredCached = Boolean(
         [
           ...(this.notificationArea?.querySelectorAll('.mw-notification') || []),
-          Autocomplete.getActiveMenu(),
+          AutocompleteManager.getActiveMenu(),
           navPanel.$element?.[0],
           ...document.body.querySelectorAll('.oo-ui-popupWidget:not(.oo-ui-element-hidden)'),
           $(document.body).children('dialog')[0],

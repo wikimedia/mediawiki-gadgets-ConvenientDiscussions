@@ -11,7 +11,7 @@ import { createSvg, formatDateImproved, formatDateNative, formatDateRelative, ge
  * @property {boolean} allowEditOthersComments
  * @property {boolean} alwaysExpandAdvanced
  * @property {'name'|'count'|'date'} authorsSort
- * @property {import('./Autocomplete').AutocompleteType[]} autocompleteTypes
+ * @property {import('./AutocompleteManager').AutocompleteType[]} autocompleteTypes
  * @property {boolean} autopreview
  * @property {boolean} collapseThreads
  * @property {number} collapseThreadsLevel
@@ -471,7 +471,7 @@ class Settings {
                 .map((v) => {
                   const textMasker = new TextMasker(v).mask(/\\[+;\\]/g);
                   let [, snippet, label] = textMasker.getText().match(/^(.*?)(?:;(.+))?$/) || [];
-                  if (!snippet?.replace(/^ +$/, '')) return;
+                  if (!snippet.replace(/^ +$/, '')) return;
 
                   snippet = textMasker.unmaskText(snippet);
                   label &&= textMasker.unmaskText(label);
