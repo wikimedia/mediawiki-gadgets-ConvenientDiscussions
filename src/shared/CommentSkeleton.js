@@ -747,8 +747,11 @@ class CommentSkeleton {
         */
 
         // Get the last not inline child of the current node.
-        let parentNode;
-        while ((parentNode = treeWalker.currentNode) && treeWalker.lastChild()) {
+        for (
+          let parentNode = treeWalker.currentNode;
+          treeWalker.lastChild();
+          parentNode = treeWalker.currentNode
+        ) {
           while (
             isText(treeWalker.currentNode) &&
             !treeWalker.currentNode.textContent.trim() &&
