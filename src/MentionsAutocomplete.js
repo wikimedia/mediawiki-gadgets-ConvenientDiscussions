@@ -15,7 +15,57 @@ class MentionsAutocomplete extends BaseAutocomplete {
    * @param {import('./Autocomplete').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
-    super(config);
+    // Set default configuration for mentions
+    const defaultConfig = {
+      cache: {},
+      lastResults: [],
+      default: [],
+      transformItemToInsertData: MentionsAutocomplete.prototype.transformItemToInsertData,
+    };
+
+    super({ ...defaultConfig, ...config });
+  }
+
+  /**
+   * Static configuration for mentions autocomplete.
+   *
+   * @returns {import('./Autocomplete').AutocompleteConfigShared}
+   * @static
+   */
+  static getConfig() {
+    return {
+      cache: {},
+      lastResults: [],
+      default: [],
+    };
+  }
+
+  /**
+   * Transform a user name item into insert data for the Tribute library.
+   *
+   * @param {string} item The user name to transform
+   * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
+   * @static
+   */
+  static transformItemToInsertData(item) {
+    const name = item.trim();
+    const user = userRegistry.get(name);
+    const userNamespace = user.getNamespaceAlias();
+    const pageName = user.isRegistered()
+      ? `${userNamespace}:${name}`
+      : `${cd.g.contribsPages[0]}/${name}`;
+
+    return {
+      start: `@[[${pageName}|`,
+      end: name.match(/[(,]/) ? `${name}]]` : ']]',
+      content: name,
+      omitContentCheck() {
+        return !this.start.includes('/');
+      },
+      cmdModify() {
+        this.end += cd.mws('colon-separator', { language: 'content' });
+      },
+    };
   }
 
   /**
@@ -40,29 +90,26 @@ class MentionsAutocomplete extends BaseAutocomplete {
 
   /**
    * Transform a user name item into insert data for the Tribute library.
+   * This method can be called directly with an item parameter or as a bound method where `this.item` contains the user name.
    *
    * @override
-   * @param {string} item The user name to transform
+   * @param {string} [item] The user name to transform (optional if called as bound method)
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    */
   transformItemToInsertData(item) {
-    const name = item.trim();
-    const user = userRegistry.get(name);
-    const userNamespace = user.getNamespaceAlias();
-    const pageName = user.isRegistered()
-      ? `${userNamespace}:${name}`
-      : `${cd.g.contribsPages[0]}/${name}`;
+    // Support both direct calls (with parameter) and bound calls (using this.item)
 
+    return MentionsAutocomplete.transformItemToInsertData(item === undefined ? this.item : item);
+  }
+
+  /**
+   * Get collection-specific properties for Tribute configuration.
+   *
+   * @returns {object} Collection properties
+   */
+  getCollectionProperties() {
     return {
-      start: `@[[${pageName}|`,
-      end: name.match(/[(,]/) ? `${name}]]` : ']]',
-      content: name,
-      omitContentCheck() {
-        return !this.start.includes('/');
-      },
-      cmdModify() {
-        this.end += cd.mws('colon-separator', { language: 'content' });
-      },
+      requireLeadingSpace: cd.config.mentionRequiresLeadingSpace,
     };
   }
 

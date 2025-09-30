@@ -24,10 +24,44 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    * @param {import('./Comment').default[]} [config.comments] List of comments for autocomplete
    */
   constructor(config = {}) {
-    super(config);
+    // Set default configuration for comment links
+    const defaultConfig = {
+      default: undefined,
+      defaultLazy: () => this.generateCommentLinksData(),
+      transformItemToInsertData: CommentLinksAutocomplete.prototype.transformItemToInsertData,
+    };
 
-    // Set up lazy loading function for comment and section data
-    this.defaultLazy = () => this.generateCommentLinksData();
+    super({ ...defaultConfig, ...config });
+  }
+
+  /**
+   * Static configuration for comment links autocomplete.
+   *
+   * @returns {import('./Autocomplete').AutocompleteConfigShared}
+   * @static
+   */
+  static getConfig() {
+    return {
+      default: undefined,
+    };
+  }
+
+  /**
+   * Transform a comment links item into insert data for Tribute.
+   *
+   * @param {CommentLinksItem} item The comment links item to transform
+   * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
+   * @static
+   */
+  static transformItemToInsertData(item) {
+    return {
+      start: `[[#${item.urlFragment}|`,
+      end: ']]',
+      content:
+        'timestamp' in item
+          ? cd.s('cf-autocomplete-commentlinks-text', item.authorName, item.timestamp)
+          : /** @type {string} */ (item.headline),
+    };
   }
 
   /**
@@ -52,20 +86,17 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
 
   /**
    * Transform a comment links item into insert data for Tribute.
+   * This method can be called directly with an item parameter or as a bound method where `this.item` contains the comment links item.
    *
    * @override
-   * @param {CommentLinksItem} item The comment links item to transform
+   * @param {CommentLinksItem} [item] The comment links item to transform (optional if called as bound method)
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    */
   transformItemToInsertData(item) {
-    return {
-      start: `[[#${item.urlFragment}|`,
-      end: ']]',
-      content:
-        'timestamp' in item
-          ? cd.s('cf-autocomplete-commentlinks-text', item.authorName, item.timestamp)
-          : /** @type {string} */ (item.headline),
-    };
+    // Support both direct calls (with parameter) and bound calls (using this.item)
+    const actualItem = item === undefined ? this.item : item;
+
+    return CommentLinksAutocomplete.transformItemToInsertData(actualItem);
   }
 
   /**
@@ -88,7 +119,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    * @param {string} text The search text
    * @returns {Promise<string[]>} Empty array since no API requests are made
    */
-  async makeApiRequest(text) {
+  makeApiRequest(text) {
     return [];
   }
 
@@ -121,6 +152,17 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
     const matches = this.filterCommentLinks(text, this.default);
 
     callback(this.processResults(matches, this));
+  }
+
+  /**
+   * Get collection-specific properties for Tribute configuration.
+   *
+   * @returns {object} Collection properties
+   */
+  getCollectionProperties() {
+    return {
+      keepAsEnd: /^\]\]/,
+    };
   }
 
   /**

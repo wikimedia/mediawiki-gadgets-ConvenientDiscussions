@@ -318,10 +318,20 @@ class BaseAutocomplete {
    * @returns {any[]} Default items
    */
   getDefaultItems() {
-    if (this.default.length === 0 && this.defaultLazy) {
+    if ((!this.default || this.default.length === 0) && this.defaultLazy) {
       this.default = this.defaultLazy();
     }
-    return this.default;
+    return this.default || [];
+  }
+
+  /**
+   * Get collection-specific properties for Tribute configuration.
+   * Subclasses can override this to provide type-specific properties.
+   *
+   * @returns {object} Collection properties
+   */
+  getCollectionProperties() {
+    return {};
   }
 
   /**

@@ -16,7 +16,45 @@ class WikilinksAutocomplete extends BaseAutocomplete {
    * @param {import('./Autocomplete').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
-    super(config);
+    // Set default configuration for wikilinks
+    const defaultConfig = {
+      cache: {},
+      lastResults: [],
+      transformItemToInsertData: WikilinksAutocomplete.prototype.transformItemToInsertData,
+    };
+
+    super({ ...defaultConfig, ...config });
+  }
+
+  /**
+   * Static configuration for wikilinks autocomplete.
+   *
+   * @returns {import('./Autocomplete').AutocompleteConfigShared}
+   * @static
+   */
+  static getConfig() {
+    return {
+      cache: {},
+      lastResults: [],
+    };
+  }
+
+  /**
+   * Transform a page name item into insert data for the Tribute library.
+   *
+   * @param {string} item The page name to transform
+   * @returns {import('./tribute/Tribute').InsertData & { end: string }}
+   * @static
+   */
+  static transformItemToInsertData(item) {
+    return {
+      start: '[[' + item.trim(),
+      end: ']]',
+      shiftModify() {
+        this.content = this.start.slice(2);
+        this.start += '|';
+      },
+    };
   }
 
   /**
@@ -42,7 +80,6 @@ class WikilinksAutocomplete extends BaseAutocomplete {
    */
   validateInput(text) {
     const allNssPattern = Object.keys(mw.config.get('wgNamespaceIds')).filter(Boolean).join('|');
-    const allNamespacesRegexp = new RegExp(`^:?(?:${allNssPattern}):`, 'i');
 
     const valid =
       text &&
@@ -58,7 +95,7 @@ class WikilinksAutocomplete extends BaseAutocomplete {
       // Interwikis
       !(
         (text.startsWith(':') || /^[a-z-]\w*:/.test(text)) &&
-        !allNamespacesRegexp.test(text)
+        !new RegExp(`^:?(?:${allNssPattern}):`, 'i').test(text)
       );
 
     return Boolean(valid);
@@ -108,18 +145,27 @@ class WikilinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
+   * Transform a page name item into insert data for the Tribute library.
+   * This method can be called directly with an item parameter or as a bound method where `this.item` contains the page name.
+   *
    * @override
-   * @param {any} item The item to transform
+   * @param {string} [item] The page name to transform (optional if called as bound method)
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
    */
   transformItemToInsertData(item) {
+    // Support both direct calls (with parameter) and bound calls (using this.item)
+
+    return WikilinksAutocomplete.transformItemToInsertData(item === undefined ? this.item : item);
+  }
+
+  /**
+   * Get collection-specific properties for Tribute configuration.
+   *
+   * @returns {object} Collection properties
+   */
+  getCollectionProperties() {
     return {
-      start: '[[' + item.trim(),
-      end: ']]',
-      shiftModify() {
-        this.content = this.start.slice(2);
-        this.start += '|';
-      },
+      keepAsEnd: /^(?:\||\]\])/,
     };
   }
 

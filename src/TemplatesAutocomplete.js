@@ -17,7 +17,44 @@ class TemplatesAutocomplete extends BaseAutocomplete {
    * @param {import('./Autocomplete').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
-    super(config);
+    // Set default configuration for templates
+    const defaultConfig = {
+      cache: {},
+      lastResults: [],
+      transformItemToInsertData: TemplatesAutocomplete.prototype.transformItemToInsertData,
+    };
+
+    super({ ...defaultConfig, ...config });
+  }
+
+  /**
+   * Static configuration for templates autocomplete.
+   *
+   * @returns {import('./Autocomplete').AutocompleteConfigShared}
+   * @static
+   */
+  static getConfig() {
+    return {
+      cache: {},
+      lastResults: [],
+    };
+  }
+
+  /**
+   * Transform a template name item into insert data for the Tribute library.
+   *
+   * @param {string} item The template name to transform
+   * @returns {import('./tribute/Tribute').InsertData & { end: string }}
+   * @static
+   */
+  static transformItemToInsertData(item) {
+    return {
+      start: '{{' + item.trim(),
+      end: '}}',
+      shiftModify() {
+        this.start += '|';
+      },
+    };
   }
 
   /**
@@ -86,17 +123,27 @@ class TemplatesAutocomplete extends BaseAutocomplete {
   }
 
   /**
+   * Transform a template name item into insert data for the Tribute library.
+   * This method can be called directly with an item parameter or as a bound method where `this.item` contains the template name.
+   *
    * @override
-   * @param {string} item The template name to transform
+   * @param {string} [item] The template name to transform (optional if called as bound method)
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
    */
   transformItemToInsertData(item) {
+    // Support both direct calls (with parameter) and bound calls (using this.item)
+
+    return TemplatesAutocomplete.transformItemToInsertData(item === undefined ? this.item : item);
+  }
+
+  /**
+   * Get collection-specific properties for Tribute configuration.
+   *
+   * @returns {object} Collection properties
+   */
+  getCollectionProperties() {
     return {
-      start: '{{' + item.trim(),
-      end: '}}',
-      shiftModify() {
-        this.start += '|';
-      },
+      keepAsEnd: /^(?:\||\}\})/,
     };
   }
 

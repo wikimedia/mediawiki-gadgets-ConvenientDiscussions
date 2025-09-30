@@ -181,25 +181,9 @@ class AutocompleteManager {
         },
       };
 
-      // Add type-specific properties
-      switch (type) {
-        case 'mentions':
-          collection.requireLeadingSpace = cd.config.mentionRequiresLeadingSpace;
-          break;
-        case 'commentLinks':
-          collection.keepAsEnd = /^\]\]/;
-          break;
-        case 'wikilinks':
-          collection.keepAsEnd = /^(?:\||\]\])/;
-          break;
-        case 'templates':
-          collection.keepAsEnd = /^(?:\||\}\})/;
-          break;
-        case 'tags':
-          collection.keepAsEnd = /^>/;
-          collection.replaceEnd = false;
-          break;
-      }
+      // Add type-specific properties from the instance
+
+      Object.assign(collection, instance.getCollectionProperties?.() || {});
 
       collections.push(collection);
     }
