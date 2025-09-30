@@ -31,7 +31,12 @@
   - Migrate wikilinks logic from existing Autocomplete.getCollections
   - _Requirements: 1.1, 1.2, 1.3, 2.4, 3.2, 4.1, 8.2_
 
-- [ ] 5. Implement TemplatesAutocomplete class
+- [x] 5. Implement TemplatesAutocomplete class
+
+
+
+
+
 
   - Create class extending BaseAutocomplete for templates
   - Implement template validation and TemplateData API integration
