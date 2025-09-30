@@ -18,10 +18,6 @@ import { handleApiReject } from './utils-api';
  */
 
 /**
- * @typedef {ItemByCollection[keyof ItemByCollection]} Item
- */
-
-/**
  * @typedef {object} ItemByCollection
  * @property {string} mentions
  * @property {CommentLinksItem} commentLinks
@@ -48,9 +44,10 @@ import { handleApiReject } from './utils-api';
  * @property {StringArraysByKey} [cache] Results by query
  * @property {string[]} [lastResults] Results of last query
  * @property {string} [lastQuery] Last query
- * @property {Item[]} [default] Default set of items to search across (may be more narrow than the
- *   list of all potential values, as in the case of user names)
- * @property {(() => Item[])} [defaultLazy] Function for lazy loading of the defaults
+ * @property {import('./AutocompleteTypes').Item[]} [default] Default set of items to search across
+ *   (may be more narrow than the list of all potential values, as in the case of user names)
+ * @property {(() => import('./AutocompleteTypes').Item[])} [defaultLazy] Function for lazy loading
+ *   of the defaults
  * @property {() => import('./tribute/Tribute').InsertData} [transformItemToInsertData] Function
  *   that transforms the item into the data that is actually inserted
  * @property {AnyByKey} [data] Any additional data to be used by methods
@@ -198,7 +195,7 @@ class Autocomplete {
     ) => item?.original.transform?.() || '';
 
     /**
-     * @template {Item} T
+     * @template {import('./AutocompleteTypes').Item} T
      * @param {T[]} arr
      * @param {AutocompleteConfigShared} config
      * @returns {Value<T>[]}
@@ -247,7 +244,7 @@ class Autocomplete {
           }
           this.mentions.lastQuery = text;
 
-          if (this.mentions.cache[text]) {
+          if (text in this.mentions.cache) {
             callback(getValuesForItems(this.mentions.cache[text], this.mentions));
           } else {
             const matches = Autocomplete.search(text, this.mentions.default);
@@ -351,7 +348,7 @@ class Autocomplete {
           }
           this.wikilinks.lastQuery = text;
 
-          if (this.wikilinks.cache[text]) {
+          if (text in this.wikilinks.cache) {
             callback(getValuesForItems(this.wikilinks.cache[text], this.wikilinks));
           } else {
             /** @type {string[]} */
@@ -442,7 +439,7 @@ class Autocomplete {
             return;
           }
 
-          if (this.templates.cache[text]) {
+          if (text in this.templates.cache) {
             callback(getValuesForItems(this.templates.cache[text], this.templates));
           } else {
             /** @type {string[]} */
