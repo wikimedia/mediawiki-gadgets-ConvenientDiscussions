@@ -1323,13 +1323,19 @@ class Comment extends CommentSkeleton {
         this.timestampElement.title = title;
         new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
         this.extraSignatures.forEach((sig) => {
+          if (!sig.timestampText) return;
+
           const { timestamp: extraSigTimestamp, title: extraSigTitle } = this.formatTimestamp(
-            sig.date,
+            /** @type {Date} */ (sig.date),
             sig.timestampText
           );
           sig.timestampElement.textContent = extraSigTimestamp;
           sig.timestampElement.title = extraSigTitle;
-          new LiveTimestamp(sig.timestampElement, sig.date, !this.hideTimezone).init();
+          new LiveTimestamp(
+            sig.timestampElement,
+            /** @type {Date} */ (sig.date),
+            !this.hideTimezone
+          ).init();
         });
       }
     }

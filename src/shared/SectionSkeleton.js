@@ -95,7 +95,7 @@ class SectionSkeleton {
      * @param {AnyNode} node
      * @returns {AnyElement | null}
      */
-    const returnElementIfHElement = (/** @type {?AnyNode} */ node) =>
+    const returnSelfIfHElement = (/** @type {?AnyNode} */ node) =>
       node && isHeadingNode(node, true) ? /** @type {ElementLike} */ (node) : null;
 
     /**
@@ -105,8 +105,8 @@ class SectionSkeleton {
      * @protected
      */
     this.hElement = /** @type {ElementFor<N>} */ (
-      returnElementIfHElement(this.headingElement) ||
-      returnElementIfHElement(this.headingElement.firstElementChild) ||
+      returnSelfIfHElement(this.headingElement) ||
+      returnSelfIfHElement(this.headingElement.firstElementChild) ||
 
       // Russian Wikivoyage and anything with .mw-h2section (not to be confused with .mw-heading2).
       // Also, a precaution in case something in MediaWiki changes.
@@ -118,18 +118,14 @@ class SectionSkeleton {
      *
      * @type {ElementFor<N>}
      */
-    this.headlineElement = cd.g.isParsoidUsed ?
-      this.hElement :
+    this.headlineElement = cd.g.isParsoidUsed
+      ? this.hElement
 
       // Presence of .mw-heading doesn't guarantee we have the new HTML for headings
       // (https://www.mediawiki.org/wiki/Heading_HTML_changes). We should test for the existence of
       // .mw-headline to make sure it's not there. (Could also check that .mw-editsection follows
       // hN.)
-      (this.parser.context.getElementByClassName(this.hElement, 'mw-headline') || this.hElement);
-
-    if (!this.headlineElement) {
-      throw new CdError();
-    }
+      : this.parser.context.getElementByClassName(this.hElement, 'mw-headline') || this.hElement;
 
     /**
      * Section id.
@@ -163,8 +159,8 @@ class SectionSkeleton {
         // htmlparser2Extended doesn't support composite selectors.
         this.parser.context.getElementByClassName(this.headingElement, 'mw-editsection')
           ?.getElementsByTagName('a') ||
-        []
-      )
+          []
+      ),
     ]
       // &action=edit, ?action=edit (couldn't figure out where this comes from, but at least one
       // user has such links), &veaction=editsource. We perhaps could catch veaction=edit, but
@@ -253,9 +249,9 @@ class SectionSkeleton {
       this.getLastElement(nextNotDescendantHeadingElement, treeWalker)
     );
 
-    this.lastElementInFirstChunk = nextHeadingElement === nextNotDescendantHeadingElement ?
-      this.lastElement :
-      /** @type {ElementFor<N>} */ (this.getLastElement(nextHeadingElement, treeWalker));
+    this.lastElementInFirstChunk = nextHeadingElement === nextNotDescendantHeadingElement
+      ? this.lastElement
+      : /** @type {ElementFor<N>} */ (this.getLastElement(nextHeadingElement, treeWalker));
 
     const targetsToComments = (/** @type {import('./Parser').Target<N>[]} */ targetsRange) =>
       targetsRange
@@ -266,8 +262,8 @@ class SectionSkeleton {
     this.comments = targetsToComments(targets.slice(headingIndex, nndheIndex));
     this.commentsInFirstChunk = targetsToComments(targets.slice(headingIndex, nextHeadingIndex));
     this.oldestComment = CommentSkeleton.getOldest(this.comments, true);
-    this.comments ||= [];
-    this.commentsInFirstChunk ||= this.comments;
+    this.comments = [];
+    this.commentsInFirstChunk = this.comments;
     this.commentsInFirstChunk.forEach((comment) => {
       comment.section = this;
     });
@@ -315,7 +311,6 @@ class SectionSkeleton {
 
     // Some wrappers that include the section heading added by users
     while (
-      lastElement &&
       this.parser.constructor.contains(lastElement, this.headingElement) &&
       lastElement !== this.headingElement
     ) {
@@ -358,9 +353,9 @@ class SectionSkeleton {
   /**
    * Get the parent section of the section.
    *
-   * @param {boolean} [ignoreFirstLevel=true] Don't consider sections of the first level parent
+   * @param {boolean} [ignoreFirstLevel] Don't consider sections of the first level parent
    *   sections; stop at second level sections.
-   * @param {this[]} [sections=cd.sections]
+   * @param {this[]} [sections]
    * @returns {?this}
    */
   getParent(ignoreFirstLevel = true, sections = /** @type {this[]} */ (cd.sections)) {
@@ -373,7 +368,7 @@ class SectionSkeleton {
         .slice(0, this.index)
         .reverse()
         .find((section) => section.level < this.level) ||
-      null
+        null
     );
   }
 

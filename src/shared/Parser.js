@@ -43,8 +43,8 @@ import { parseTimestamp } from './utils-timestamp';
  * @property {'signature'} type
  * @property {HTMLElementFor<N>} element
  * @property {HTMLElementFor<N>} timestampElement
- * @property {string} timestampText
- * @property {Date} date
+ * @property {string} [timestampText]
+ * @property {Date} [date]
  * @property {HTMLElementFor<N>} [authorLink]
  * @property {HTMLElementFor<N>} [authorTalkLink]
  * @property {string} authorName

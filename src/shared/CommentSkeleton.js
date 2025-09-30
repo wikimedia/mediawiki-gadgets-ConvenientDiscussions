@@ -199,7 +199,11 @@ class CommentSkeleton {
     this.signatureText = signature.element.textContent;
     this.date = signature.date || null;
     this.authorName = signature.authorName;
-    this.id = CommentSkeleton.generateId(this.date, this.authorName, parser.existingCommentIds);
+    this.id = CommentSkeleton.generateId(
+      this.date || undefined,
+      this.authorName,
+      parser.existingCommentIds
+    );
 
     // Identify all comment nodes and save a path to them. The parameter is the heading element
     // preceding the comment.
@@ -1745,14 +1749,14 @@ class CommentSkeleton {
   /**
    * Generate a comment ID from a date and author.
    *
-   * @param {Date} date
+   * @param {Date} [date]
    * @param {string} [author]
    * @param {string[]} [existingIds] IDs that collide with IDs in the array will get a `_<number>`
    *   postfix. The array will be appended to in that case.
    * @returns {string | undefined}
    */
   static generateId(date, author, existingIds) {
-    if (!author) return;
+    if (!date || !author) return;
 
     let id = generateFixedPosTimestamp(date) + '_' + spacesToUnderlines(author);
     if (existingIds?.includes(id)) {
