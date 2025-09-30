@@ -22,7 +22,8 @@
   - Migrate mentions logic from existing Autocomplete.getCollections
   - _Requirements: 1.1, 1.2, 1.3, 2.4, 3.2, 4.1, 8.1_
 
-- [ ] 4. Implement WikilinksAutocomplete class
+- [x] 4. Implement WikilinksAutocomplete class
+
 
   - Create class extending BaseAutocomplete for page links
   - Implement page name validation and OpenSearch API integration
