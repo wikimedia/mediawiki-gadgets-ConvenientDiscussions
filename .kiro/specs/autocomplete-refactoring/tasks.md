@@ -47,14 +47,14 @@
 
 - [x] 7. Implement CommentLinksAutocomplete class
 
-
   - Create class extending BaseAutocomplete for comment/section links
   - Implement lazy loading from comment and section registries
   - Handle comment snippet generation and section headline processing
   - Migrate commentLinks logic from existing Autocomplete.getCollections
   - _Requirements: 1.1, 1.2, 1.3, 2.4, 3.2, 4.1, 8.5_
 
-- [ ] 8. Refactor main Autocomplete class to AutocompleteManager
+- [x] 8. Refactor main Autocomplete class to AutocompleteManager
+
 
   - Convert existing Autocomplete class to coordinate type-specific classes
   - Update constructor to use AutocompleteFactory for creating instances
