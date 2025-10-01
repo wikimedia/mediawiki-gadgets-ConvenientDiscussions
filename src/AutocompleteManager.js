@@ -214,7 +214,7 @@ class AutocompleteManager {
         label: instance.getLabel(),
         trigger: instance.getTrigger(),
         searchOpts: { skip: true },
-        selectTemplate: (item, event) => {
+        selectTemplate: (/** @type {any} */ item, /** @type {any} */ event) => {
           if (item) {
             // Handle special template data insertion for templates
             if (type === 'templates' && this.useTemplateData && event?.shiftKey && !event?.altKey) {
@@ -229,7 +229,7 @@ class AutocompleteManager {
 
           return '';
         },
-        values: async (text, callback) => {
+        values: async (/** @type {string} */ text, /** @type {Function} */ callback) => {
           // Start performance monitoring if enabled
           const perfContext = this.performanceMonitor?.startOperation(
             'getValues',
@@ -241,14 +241,18 @@ class AutocompleteManager {
             // Check if result will come from cache
             const cacheHit = instance.handleCache(text) !== null;
 
-            await instance.getValues(text, (results) => {
+            await instance.getValues(text, (/** @type {any[]} */ results) => {
               // End performance monitoring
-              perfContext?.end(results.length, cacheHit);
+              if (perfContext) {
+                perfContext.end(results.length, cacheHit);
+              }
               callback(results);
             });
           } catch (error) {
             // End performance monitoring on error
-            perfContext?.end(0, false);
+            if (perfContext) {
+              perfContext.end(0, false);
+            }
             throw error;
           }
         },
@@ -666,7 +670,6 @@ class AutocompleteManager {
    * @param {string} string
    * @param {string[]} list
    * @returns {string[]}
-   * @private
    */
   static search(string, list) {
     const containsRegexp = new RegExp(mw.util.escapeRegExp(string), 'i');

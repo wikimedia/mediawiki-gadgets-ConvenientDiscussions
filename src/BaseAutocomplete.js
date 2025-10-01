@@ -13,6 +13,10 @@ import { handleApiReject } from './utils-api';
  */
 
 /**
+ * @typedef {import('./AutocompleteTypes').Item} Item
+ */
+
+/**
  * @template {any} [T=any]
  * @typedef {object} Value
  * @property {string} [key]
@@ -104,9 +108,9 @@ class BaseAutocomplete {
     // Initialize advanced cache if not provided
     if (!this.cache || !(this.cache instanceof AutocompleteCache)) {
       this.cache = new AutocompleteCache({
-        maxSize: config.cacheMaxSize || 500,
-        ttl: config.cacheTtl || 5 * 60 * 1000, // 5 minutes
-        maxMemory: config.cacheMaxMemory || 5 * 1024 * 1024, // 5MB
+        maxSize: /** @type {any} */ (config).cacheMaxSize || 500,
+        ttl: /** @type {any} */ (config).cacheTtl || 5 * 60 * 1000, // 5 minutes
+        maxMemory: /** @type {any} */ (config).cacheMaxMemory || 5 * 1024 * 1024, // 5MB
       });
     }
   }
@@ -141,10 +145,10 @@ class BaseAutocomplete {
    * Transform an item into insert data for the Tribute library.
    *
    * @abstract
-   * @param {any} item The item to transform
+   * @param {any} _item The item to transform
    * @returns {import('./tribute/Tribute').InsertData}
    */
-  transformItemToInsertData(item) {
+  transformItemToInsertData(_item) {
     throw new CdError({
       type: 'internal',
       message: 'transformItemToInsertData() must be implemented by subclass',
@@ -155,10 +159,10 @@ class BaseAutocomplete {
    * Validate input text for this autocomplete type.
    *
    * @abstract
-   * @param {string} text The input text to validate
+   * @param {string} _text The input text to validate
    * @returns {boolean} Whether the input is valid
    */
-  validateInput(text) {
+  validateInput(_text) {
     throw new CdError({
       type: 'internal',
       message: 'validateInput() must be implemented by subclass',
@@ -169,10 +173,10 @@ class BaseAutocomplete {
    * Make an API request to get autocomplete suggestions.
    *
    * @abstract
-   * @param {string} text The search text
+   * @param {string} _text The search text
    * @returns {Promise<string[]>} Promise resolving to array of suggestions
    */
-  makeApiRequest(text) {
+  makeApiRequest(_text) {
     throw new CdError({
       type: 'internal',
       message: 'makeApiRequest() must be implemented by subclass',
@@ -183,7 +187,7 @@ class BaseAutocomplete {
    * Get autocomplete values for the given text. This is the main method called by Tribute.
    *
    * @param {string} text The search text
-   * @param {Function} callback Callback function to call with results
+   * @param {(values: any[]) => void} callback Callback function to call with results
    * @returns {Promise<void>}
    */
   async getValues(text, callback) {
@@ -198,7 +202,7 @@ class BaseAutocomplete {
     // Check cache first
     const cachedResults = this.handleCache(text);
     if (cachedResults) {
-      callback(this.processResults(cachedResults, this));
+      callback(this.processResults(cachedResults, /** @type {any} */ (this)));
 
       return;
     }
@@ -224,7 +228,7 @@ class BaseAutocomplete {
       }
     }
 
-    callback(this.processResults(values, this));
+    callback(this.processResults(values, /** @type {any} */ (this)));
 
     // Make API request if needed
     if (shouldMakeRequest && !localMatches.length) {
@@ -243,7 +247,7 @@ class BaseAutocomplete {
         }
 
         this.updateCache(text, apiResults);
-        callback(this.processResults(apiResults, this));
+        callback(this.processResults(apiResults, /** @type {any} */ (this)));
       } catch (error) {
         // Silently handle API errors to avoid disrupting user experience
         console.warn('Autocomplete API request failed:', error);
@@ -363,13 +367,13 @@ class BaseAutocomplete {
   /**
    * Create a promise with delay and supersession checking.
    *
-   * @param {Function} executor Promise executor function
+   * @param {(resolve: any, reject: any) => Promise<void>} executor Promise executor function
    * @returns {Promise<any>} Promise with delay and checking
    * @static
    */
   static createDelayedPromise(executor) {
     // eslint-disable-next-line no-async-promise-executor
-    const promise = new Promise(async (resolve, reject) => {
+    const promise = new Promise(async (/** @type {any} */ resolve, /** @type {any} */ reject) => {
       try {
         await sleep(this.delay);
         this.promiseIsNotSuperseded(promise);
@@ -401,7 +405,9 @@ class BaseAutocomplete {
         })
         .catch(handleApiReject);
 
-      this.promiseIsNotSuperseded(this.currentPromise);
+      if (this.currentPromise) {
+        this.promiseIsNotSuperseded(this.currentPromise);
+      }
       resolve(response);
     });
   }

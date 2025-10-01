@@ -11,6 +11,14 @@ import userRegistry from './userRegistry';
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
 /**
+ * @template {any} [T=any]
+ * @typedef {object} Value
+ * @property {string} [key]
+ * @property {T} item
+ * @property {(() => import('./tribute/Tribute').InsertData) | undefined} [transform]
+ */
+
+/**
  * @typedef {NonNullable<typeof Autocomplete.configs>} AutocompleteStaticConfig
  */
 
@@ -205,7 +213,7 @@ class Autocomplete extends AutocompleteManager {
          */
         transformItemToInsertData() {
           return {
-            start: '[[' + this.item.trim(),
+            start: '[[' + /** @type {string} */ (this.item).trim(),
             end: ']]',
             shiftModify() {
               this.content = this.start.slice(2);
@@ -226,7 +234,7 @@ class Autocomplete extends AutocompleteManager {
          */
         transformItemToInsertData() {
           return {
-            start: '{{' + this.item.trim(),
+            start: '{{' + /** @type {string} */ (this.item).trim(),
             end: '}}',
             shiftModify() {
               this.start += '|';
@@ -237,7 +245,7 @@ class Autocomplete extends AutocompleteManager {
 
       tags: {
         defaultLazy: () =>
-          /** @type {Array<TagsItem>} */(cd.g.allowedTags)
+          /** @type {any[]} */(cd.g.allowedTags)
             .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
             .concat(tagAdditions)
             .sort((item1, item2) =>
@@ -249,7 +257,7 @@ class Autocomplete extends AutocompleteManager {
                 : -1
             ),
 
-        /** @type {TagsItem[] | undefined} */
+        /** @type {any[] | undefined} */
         default: undefined,
 
         /**
@@ -271,42 +279,64 @@ class Autocomplete extends AutocompleteManager {
 
   // Delegate static methods to AutocompleteManager for backward compatibility
 
-  /** @returns {number} */
+  /**
+   * @override
+   * @returns {number}
+   */
   static get delay() {
     return AutocompleteManager.delay;
   }
 
-  /** @returns {{ ajax: { timeout: number } }} */
+  /**
+   * @override
+   * @returns {{ ajax: { timeout: number } }}
+   */
   static get apiConfig() {
     return AutocompleteManager.apiConfig;
   }
 
-  /** @returns {HTMLElement|undefined} */
+  /**
+   * @override
+   * @returns {HTMLElement|undefined}
+   */
   static get activeMenu() {
     return AutocompleteManager.activeMenu;
   }
 
-  /** @param {HTMLElement|undefined} value */
+  /**
+   * @override
+   * @param {HTMLElement|undefined} value
+   */
   static set activeMenu(value) {
     AutocompleteManager.activeMenu = value;
   }
 
-  /** @returns {Promise<any> | undefined} */
+  /**
+   * @override
+   * @returns {Promise<any> | undefined}
+   */
   static get currentPromise() {
     return AutocompleteManager.currentPromise;
   }
 
-  /** @param {Promise<any> | undefined} value */
+  /**
+   * @override
+   * @param {Promise<any> | undefined} value
+   */
   static set currentPromise(value) {
     AutocompleteManager.currentPromise = value;
   }
 
-  /** @returns {Element|undefined} */
+  /**
+   * @override
+   * @returns {Element|undefined}
+   */
   static getActiveMenu() {
     return AutocompleteManager.getActiveMenu();
   }
 
   /**
+   * @override
    * @param {Promise<any>} promise
    * @returns {void}
    */
@@ -315,6 +345,7 @@ class Autocomplete extends AutocompleteManager {
   }
 
   /**
+   * @override
    * @param {string} text
    * @returns {Promise<string[]>}
    */
@@ -323,6 +354,7 @@ class Autocomplete extends AutocompleteManager {
   }
 
   /**
+   * @override
    * @param {string} result
    * @param {string} query
    * @returns {string}
@@ -332,6 +364,7 @@ class Autocomplete extends AutocompleteManager {
   }
 
   /**
+   * @override
    * @param {string} text
    * @returns {Promise<string[]>}
    */
@@ -340,6 +373,7 @@ class Autocomplete extends AutocompleteManager {
   }
 
   /**
+   * @override
    * @param {string} text
    * @returns {Promise<string[]>}
    */
@@ -348,6 +382,7 @@ class Autocomplete extends AutocompleteManager {
   }
 
   /**
+   * @override
    * @param {string} string
    * @param {string[]} list
    * @returns {string[]}
@@ -503,7 +538,7 @@ Autocomplete.configs = /** @satisfies {AutocompleteConfigs} */ ({
      */
     transformItemToInsertData() {
       return {
-        start: '[[' + this.item.trim(),
+        start: '[[' + /** @type {string} */ (this.item).trim(),
         end: ']]',
         shiftModify() {
           this.content = this.start.slice(2);
@@ -524,7 +559,7 @@ Autocomplete.configs = /** @satisfies {AutocompleteConfigs} */ ({
      */
     transformItemToInsertData() {
       return {
-        start: '{{' + this.item.trim(),
+        start: '{{' + /** @type {string} */ (this.item).trim(),
         end: '}}',
         shiftModify() {
           this.start += '|';
@@ -535,7 +570,7 @@ Autocomplete.configs = /** @satisfies {AutocompleteConfigs} */ ({
 
   tags: {
     defaultLazy: () =>
-      /** @type {Array<TagsItem>} */(cd.g.allowedTags)
+      /** @type {any[]} */(cd.g.allowedTags)
         .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
         .concat(tagAdditions)
         .sort((item1, item2) =>
@@ -547,7 +582,7 @@ Autocomplete.configs = /** @satisfies {AutocompleteConfigs} */ ({
             : -1
         ),
 
-    /** @type {TagsItem[] | undefined} */
+    /** @type {any[] | undefined} */
     default: undefined,
 
     /**

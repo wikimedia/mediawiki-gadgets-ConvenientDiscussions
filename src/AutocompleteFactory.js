@@ -16,7 +16,7 @@ const AutocompleteFactory = {
    * Create an autocomplete instance of the specified type.
    *
    * @param {AutocompleteType} type The autocomplete type to create
-   * @param {AutocompleteConfigShared} [options={}] Configuration options
+   * @param {AutocompleteConfigShared} [options] Configuration options
    * @returns {import('./BaseAutocomplete').default} Autocomplete instance
    * @throws {CdError} If the type is unknown
    */
@@ -36,7 +36,7 @@ const AutocompleteFactory = {
       default:
         throw new CdError({
           type: 'internal',
-          message: `Unknown autocomplete type: ${type}`,
+          message: `Unknown autocomplete type: ${String(type)}`,
         });
     }
   },
