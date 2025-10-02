@@ -6,8 +6,8 @@ import Mw from 'nodemw';
 import prompts from 'prompts';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import config from './config.mjs';
 
+import config from './config.mjs';
 import { getUrl, unique } from './misc/utils.mjs';
 
 const argv = /** @type {YargsNonAwaited} */ (yargs(hideBin(process.argv)).argv);
@@ -274,7 +274,7 @@ function getLastDeployedCommit(revisions) {
  * Keep only the first 300 characters of content.
  *
  * @param {string} content
- * @param {number} [n=300]
+ * @param {number} [n]
  * @returns {string}
  */
 function cutContent(content, n = 300) {
@@ -482,7 +482,8 @@ async function logIn(server) {
   } else {
     credentials ||= fs.existsSync('./credentials.json')
       // @ts-ignore
-      ? require('./credentials.json')
+      // eslint-disable-next-line import/no-unresolved
+      ? await import('./credentials.json')
       : undefined;
     if (credentials?.username && credentials.password) {
       clients[server].logIn(credentials.username, credentials.password, callback);

@@ -546,11 +546,12 @@ const defaultConfig = {
    * Function to use in the {@link defaultConfig.quoteFormatting} config value.
    *
    * @callback QuoteFormattingFunction
-   * @param {string} mentionSource Whether it's appropriate to mention the source of the quote (e.g.
+   * @param {object} options
+   * @param {boolean} options.mentionSource Whether it's appropriate to mention the source of the quote (e.g.
    *   when quoting a different comment than the user is replying to).
-   * @param {string} [author] Quote author.
-   * @param {string} [timestamp] Quote timestamp.
-   * @param {string} [dtId] Comment's DiscussionTools ID.
+   * @param {string} [options.author] Quote author.
+   * @param {string} [options.timestamp] Quote timestamp.
+   * @param {string} [options.dtId] Comment's DiscussionTools ID.
    * @returns {string[]}
    */
 

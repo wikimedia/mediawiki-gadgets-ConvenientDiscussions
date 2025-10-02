@@ -52,7 +52,7 @@ class TreeWalker {
    *   tree: only the root node and its descendants.
    * @param {AcceptNode} [acceptNode] Function that returns `true` if the tree walker should accept
    *   the node and `false` if it should reject.
-   * @param {boolean} [elementsOnly=false] Walk only on element nodes, ignoring nodes of other
+   * @param {boolean} [elementsOnly] Walk only on element nodes, ignoring nodes of other
    *   types.
    * @param {AcceptedNode} [startNode] Node to set as the current node. The current node is set to
    *   `root` if not specified and `root` node is accepted. Otherwise the current node is set to the
@@ -60,7 +60,7 @@ class TreeWalker {
    *   to have `currentNode` never be `null` to simplify type checking.)
    * @throws {Error}
    */
-  constructor(root, acceptNode, elementsOnly = false, startNode) {
+  constructor(root, acceptNode, elementsOnly = false, startNode = undefined) {
     this.acceptNode = acceptNode || /** @type {AcceptNode} */ (elementsOnly ? isElement : isNode);
 
     this.root = root;

@@ -736,7 +736,8 @@ class BootController {
    * _For internal use._ Set a number of {@link convenientDiscussions global object} properties.
    */
   initGlobals() {
-    if (!('page' in cd)) return;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (cd.page) return;
 
     const script = mw.loader.moduleRegistry['mediawiki.Title'].script;
     cd.g.phpCharToUpper =
@@ -1484,7 +1485,7 @@ class BootController {
       // Loading user info on diff pages could lead to problems with saving visits when many pages
       // are opened, but not yet focused, simultaneously.
       if (!this.isPageOfType('talk')) {
-        getUserInfo(true).catch((error) => {
+        getUserInfo(true).catch((/** @type {unknown} */ error) => {
           console.warn(error);
         });
       }

@@ -938,7 +938,7 @@ class CommentSkeleton {
     const sequencesToBeEnclosed = [];
     let start;
     let encloseThis = false;
-    for (let i = 0; i <= this.parts.length; i++) {
+    for (let i = 0; i <= this.parts.length - 1; i++) {
       const part = this.parts[i];
       if (
         (start === undefined || (['back', 'start'].includes(part.step))) &&

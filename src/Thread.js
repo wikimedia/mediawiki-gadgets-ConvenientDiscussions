@@ -1539,26 +1539,27 @@ class Thread extends mixInObject(
     // `this.collapseThreadsLevel + 1` level (the user muse have replied to a comment at the
     // `this.collapseThreadsLevel - 1` level but inserted `::` instead of `:`).
     for (let i = 0; i < commentRegistry.getCount(); i++) {
-      const thread = /** @type {import('./Comment').default} */ (commentRegistry.getByIndex(i)).thread;
+      const thread = /** @type {import('./Comment').default} */ (commentRegistry.getByIndex(i))
+        .thread;
       if (!thread) continue;
 
       if (thread.rootComment.level >= /** @type {number} */ (this.collapseThreadsLevel)) {
         // Exclude threads where the user participates at any level up and down the tree or that
         // the user has specifically expanded.
-        if (![...comment.getAncestors(), ...comment.thread.comments].some((c) => c.isOwn)) {
-          comment.thread.isAutocollapseTarget = true;
+        if (![...thread.rootComment.getAncestors(), ...thread.comments].some((c) => c.isOwn)) {
+          thread.isAutocollapseTarget = true;
 
-          if (!comment.thread.wasManuallyExpanded) {
-            threads.push(comment.thread);
+          if (!thread.wasManuallyExpanded) {
+            threads.push(thread);
           }
         }
 
-        i = comment.thread.lastComment.index;
+        i = thread.lastComment.index;
       }
     }
 
     const loadUserGendersPromise = cd.g.genderAffectsUserString
-      ? loadUserGenders(comments.flatMap((comment) => comment.thread.getUsers()))
+      ? loadUserGenders(threads.flatMap((thread) => thread.getUsers()))
       : undefined;
 
     // The reverse order is used for the threads to be expanded correctly.

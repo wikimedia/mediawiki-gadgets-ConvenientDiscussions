@@ -3929,11 +3929,17 @@ class CommentForm extends EventEmitter {
 
       const [pre, post] =
         typeof cd.config.quoteFormatting === 'function'
-          ? cd.config.quoteFormatting.apply(
-              null,
+          ? cd.config.quoteFormatting(
               comment && (mentionSource ?? comment !== this.parentComment)
-                ? [true, comment.author.getName(), comment.timestamp, comment.dtId]
-                : [selection.match(new RegExp(`<${cd.g.pniePattern}\\b|(^|\n)[:*#;]`, 'i'))]
+                ? {
+                    mentionSource: true,
+                    author: comment.author.getName(),
+                    timestamp: comment.timestamp,
+                    dtId: comment.dtId,
+                  }
+                : {
+                    mentionSource: Boolean(selection.match(new RegExp(`<${cd.g.pniePattern}\\b|(^|\n)[:*#;]`, 'i'))),
+                  }
             )
           : cd.config.quoteFormatting;
 

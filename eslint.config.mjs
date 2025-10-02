@@ -121,7 +121,6 @@ const config = defineConfig(
       }],
       'no-new': 'error',
       'func-names': 'error',
-      'no-unused-expressions': 'warn',
       'no-else-return': 'error',
       'prefer-regex-literals': 'error',
       'eqeqeq': 'error',
@@ -156,6 +155,7 @@ const config = defineConfig(
 
       // Handled by TypeScript
       'no-undef': 'off',
+      'no-unused-expressions': 'off',
 
       // Enabled in TypeScript with strictNullChecks
       'no-unsafe-optional-chaining': 'off',
