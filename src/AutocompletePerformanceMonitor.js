@@ -66,11 +66,11 @@ class AutocompletePerformanceMonitor {
 
   /**
    * @typedef {object} Operation
-   * @property {(resultCount: number, cacheHit: boolean) => void} end\
+   * @property {(resultCount: number, cacheHit: boolean) => void} end
    *
    * @typedef {object} OperationContext
    * @property {string} operation
-   * @property {AutocompleteType} autocompleteType
+   * @property {import('./AutocompleteManager').AutocompleteType} autocompleteType
    * @property {string} query
    * @property {number} startTime
    * @property {number} memoryBefore
@@ -241,11 +241,17 @@ class AutocompletePerformanceMonitor {
   }
 
   /**
+   * @template T
+   * @typedef {{ [key: string]: T[] }} GroupedObject
+   */
+
+  /**
    * Group array by property.
    *
-   * @param {any[]} array Array to group
+   * @template T
+   * @param {T[]} array Array to group
    * @param {string} property Property to group by
-   * @returns {object} Grouped object
+   * @returns {GroupedObject<T>} Grouped object
    */
   groupBy(array, property) {
     return array.reduce((groups, item) => {
