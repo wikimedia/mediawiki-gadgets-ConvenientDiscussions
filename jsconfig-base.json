@@ -6,11 +6,6 @@
     // The default in jsconfig.json
     // "noEmit": true,
 
-    "target": "es2020",
-
-    // We mix `import`s and `require()` calls
-    "module": "preserve",
-
     "strict": true,
     "isolatedModules": true,
     // The default in jsconfig.json
@@ -20,6 +15,8 @@
     "noUncheckedSideEffectImports": true,
     // The default in jsconfig.json
     // "skipLibCheck": true,
-    "moduleDetection": "force"
+    "moduleDetection": "force",
+
+    "types": []
   }
 }
