@@ -18,6 +18,14 @@
  */
 
 /**
+ * @typedef {object} TypePerformanceMetrics
+ * @property {number} operationCount Number of operations for this type
+ * @property {number} averageResponseTime Average response time in ms
+ * @property {number} cacheHitRate Cache hit rate percentage
+ * @property {number} totalResults Total number of results returned
+ */
+
+/**
  * @typedef {object} PerformanceSummary
  * @property {number} totalOperations Total number of operations
  * @property {number} averageResponseTime Average response time in ms
@@ -25,7 +33,7 @@
  * @property {number} p95ResponseTime 95th percentile response time in ms
  * @property {number} cacheHitRate Cache hit rate percentage
  * @property {number} totalMemoryUsage Total memory usage in bytes
- * @property {object} byType Performance metrics by autocomplete type
+ * @property {{ [key: string]: TypePerformanceMetrics }} byType Performance metrics by autocomplete type
  */
 
 /**
@@ -163,11 +171,20 @@ class AutocompletePerformanceMonitor {
    * @returns {number} Memory usage in bytes
    */
   getMemoryUsage() {
-    if (typeof performance !== 'undefined' && performance.memory) {
-      return performance.memory.usedJSHeapSize;
+    // Browser environment with memory API
+    if (typeof performance !== 'undefined' && 'memory' in performance) {
+      /** @type {any} */
+      const perfMemory = performance;
+      return perfMemory.memory.usedJSHeapSize;
     }
-    if (typeof process !== 'undefined' && process.memoryUsage) {
-      return process.memoryUsage().heapUsed;
+
+    // Node.js environment
+    if (typeof globalThis !== 'undefined' && 'process' in globalThis) {
+      /** @type {any} */
+      const nodeProcess = /** @type {any} */ (globalThis).process;
+      if (nodeProcess && typeof nodeProcess.memoryUsage === 'function') {
+        return nodeProcess.memoryUsage().heapUsed;
+      }
     }
 
     return 0;
@@ -200,6 +217,7 @@ class AutocompletePerformanceMonitor {
     const p95 = this.getPercentile(durations, 95);
 
     // Group by type
+    /** @type {{ [key: string]: TypePerformanceMetrics }} */
     const byType = {};
     const typeGroups = this.groupBy(this.metrics, 'autocompleteType');
 
@@ -254,15 +272,17 @@ class AutocompletePerformanceMonitor {
    * @returns {GroupedObject<T>} Grouped object
    */
   groupBy(array, property) {
+    /** @type {GroupedObject<T>} */
     return array.reduce((groups, item) => {
-      const key = item[property];
-      if (!groups[key]) {
+      /** @type {string} */
+      const key = /** @type {AnyByKey} */ (item)[property];
+      if (!(key in groups)) {
         groups[key] = [];
       }
       groups[key].push(item);
 
       return groups;
-    }, {});
+    }, /** @type {GroupedObject<T>} */({}));
   }
 
   /**
@@ -442,9 +462,17 @@ Optimization Recommendations:
   }
 
   /**
+   * @typedef {object} MetricsData
+   * @property {PerformanceMetric[]} metrics
+   * @property {PerformanceSummary} summary
+   * @property {number} startTime
+   * @property {number} uptime
+   */
+
+  /**
    * Export metrics data.
    *
-   * @returns {object} Exportable metrics data
+   * @returns {MetricsData} Exportable metrics data
    */
   export() {
     return {
