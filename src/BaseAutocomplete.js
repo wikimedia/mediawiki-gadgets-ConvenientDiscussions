@@ -5,15 +5,8 @@ import { defined, removeDoubleSpaces, sleep, unique } from './shared/utils-gener
 import { handleApiReject } from './utils-api';
 
 /**
- * @typedef {import('./AutocompleteManager').AutocompleteType} AutocompleteType
- */
-
-/**
- * @typedef {import('./AutocompleteManager').AutocompleteConfigShared} AutocompleteConfigShared
- */
-
-/**
- * @typedef {import('./AutocompleteTypes').Item} Item
+ * @import {AutocompleteConfigShared} from './AutocompleteManager';
+ * @import {Item} from './AutocompleteTypes';
  */
 
 /**
@@ -117,9 +110,9 @@ class BaseAutocomplete {
     // Initialize advanced cache if not provided
     if (!this.cache || !(this.cache instanceof AutocompleteCache)) {
       this.cache = new AutocompleteCache({
-        maxSize: /** @type {any} */ (config).cacheMaxSize || 500,
-        ttl: /** @type {any} */ (config).cacheTtl || 5 * 60 * 1000, // 5 minutes
-        maxMemory: /** @type {any} */ (config).cacheMaxMemory || 5 * 1024 * 1024, // 5MB
+        maxSize: config.cacheMaxSize || 500,
+        ttl: config.cacheTtl || 5 * cd.g.msInMin,
+        maxMemory: config.cacheMaxMemory || 5 * 1024 * 1024,  // 5MB
       });
     }
   }
