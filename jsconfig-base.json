@@ -15,8 +15,6 @@
     "noUncheckedSideEffectImports": true,
     // The default in jsconfig.json
     // "skipLibCheck": true,
-    "moduleDetection": "force",
-
-    "types": []
+    "moduleDetection": "force"
   }
 }

@@ -9,8 +9,5 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["oojs", "oojs-ui", "jquery", "jqueryui"]
   },
-  "include": ["**/*", "../config/**/*", "../data/**/*", "../node_modules/types-mediawiki"],
-
-  // Doesn't work. It gets included via imports?
-  "exclude": ["worker/**/*"]
+  "include": ["**/*", "../config/**/*", "../data/**/*", "../node_modules/types-mediawiki"]
 }

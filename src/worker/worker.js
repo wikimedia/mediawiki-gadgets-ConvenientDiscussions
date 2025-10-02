@@ -190,6 +190,7 @@ function parse() {
     getElementByClassName: (el, className) =>
       /** @type {import('domhandler').Element} */ (el).getElementsByClassName(className, 1)[0] ||
       null,
+    // eslint-disable-next-line object-shorthand
     rootElement: /** @type {NonNullable<typeof rootElement>} */ (rootElement),
     document,
     areThereOutdents: () => {

@@ -62,7 +62,6 @@
 
 - **global.d.ts** (at most one per directory): Global type definitions
 - **Per-module .d.ts files**: Type definitions for some of the individual modules
-- **jsdocTypes.js**: Additional global type definitions written in the JSDoc format
 - JSDoc type definitions inside individual module files
 
 ### Subdirectories
@@ -91,7 +90,13 @@
 - **babel.config.js**: Babel transpilation setup
 - **eslint.config.js**: ESLint rules and configuration
 - **jest.config.js**: Test configuration
-- **jsconfig.json**: TypeScript/JSDoc configuration
+- **jsconfig.json**: TypeScript/JSDoc configuration, split between:
+  - **./jsconfig.json**: utility scripts
+  - **src/jsconfig.json**: web source files
+  - **src/worker/jsconfig.json**: worker-related source files
+  - **src/shared/jsconfig.json**: source files shared between web and worker
+  - **tests/jsconfig.json**: test files
+  The common part is stored in **jsconfig-base.json**.
 
 ## Development Tools
 
