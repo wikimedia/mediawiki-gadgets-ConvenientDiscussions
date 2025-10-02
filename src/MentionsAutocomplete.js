@@ -17,8 +17,6 @@ class MentionsAutocomplete extends BaseAutocomplete {
   constructor(config = {}) {
     // Set default configuration for mentions
     const defaultConfig = {
-      cache: {},
-      lastResults: [],
       default: [],
       transformItemToInsertData: MentionsAutocomplete.prototype.transformItemToInsertData,
     };
@@ -34,8 +32,6 @@ class MentionsAutocomplete extends BaseAutocomplete {
    */
   static getConfig() {
     return {
-      cache: {},
-      lastResults: [],
       default: [],
     };
   }
@@ -189,7 +185,7 @@ class MentionsAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} text The search text
-   * @param {(values: import('./BaseAutocomplete').Value[]) => void} callback Callback function to call with results
+   * @param {(values: import('./BaseAutocomplete').Result[]) => void} callback Callback function to call with results
    * @returns {Promise<void>}
    */
   async getValues(text, callback) {

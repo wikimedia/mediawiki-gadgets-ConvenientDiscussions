@@ -17,10 +17,7 @@ class TemplatesAutocomplete extends BaseAutocomplete {
    * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
-    // Set default configuration for templates
     const defaultConfig = {
-      cache: {},
-      lastResults: [],
       transformItemToInsertData: TemplatesAutocomplete.prototype.transformItemToInsertData,
     };
 
@@ -34,10 +31,7 @@ class TemplatesAutocomplete extends BaseAutocomplete {
    * @static
    */
   static getConfig() {
-    return {
-      cache: {},
-      lastResults: [],
-    };
+    return {};
   }
 
   /**
@@ -181,7 +175,7 @@ class TemplatesAutocomplete extends BaseAutocomplete {
    * Get autocomplete data for a template and insert template parameters.
    * This method handles the Shift+Enter functionality for template parameter insertion.
    *
-   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Value<string>>} item
+   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Result<string>>} item
    * @param {import('./TextInputWidget').default} input
    * @returns {Promise<void>}
    */
@@ -195,7 +189,7 @@ class TemplatesAutocomplete extends BaseAutocomplete {
     try {
       response = await cd.getApi(BaseAutocomplete.apiConfig).get({
         action: 'templatedata',
-        titles: `Template:${item.original.key}`,
+        titles: `Template:${item.original.label}`,
         redirects: true,
       }).catch(handleApiReject);
       if (!Object.keys(response.pages).length) {
@@ -204,8 +198,8 @@ class TemplatesAutocomplete extends BaseAutocomplete {
     } catch {
       input
         .setDisabled(false)
-        .focus();
-      input.popPending();
+        .focus()
+        .popPending();
 
       return;
     }

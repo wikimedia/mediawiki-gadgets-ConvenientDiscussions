@@ -11,8 +11,8 @@ import { handleApiReject } from './utils-api';
 
 /**
  * @template {any} [T=any]
- * @typedef {object} Value
- * @property {string} [key]
+ * @typedef {object} Result
+ * @property {string} [label] Text searched against and displayed
  * @property {T} item
  * @property {(() => import('./tribute/Tribute').InsertData) | undefined} [transform]
  */
@@ -71,7 +71,7 @@ class BaseAutocomplete {
   /**
    * Additional data used by autocomplete methods.
    *
-   * @type {{ [key: string]: any }}
+   * @type {{ [x: string]: any }}
    */
   data = {};
 
@@ -108,13 +108,11 @@ class BaseAutocomplete {
     Object.assign(this, config);
 
     // Initialize advanced cache if not provided
-    if (!this.cache || !(this.cache instanceof AutocompleteCache)) {
-      this.cache = new AutocompleteCache({
-        maxSize: config.cacheMaxSize || 500,
-        ttl: config.cacheTtl || 5 * cd.g.msInMin,
-        maxMemory: config.cacheMaxMemory || 5 * 1024 * 1024,  // 5MB
-      });
-    }
+    this.cache = new AutocompleteCache({
+      maxSize: config.cacheMaxSize || 500,
+      ttl: config.cacheTtl || 5 * cd.g.msInMin,
+      maxMemory: config.cacheMaxMemory || 5 * 1024 * 1024,  // 5MB
+    });
   }
 
   /**
@@ -178,7 +176,8 @@ class BaseAutocomplete {
    * @param {string} _text The search text
    * @returns {Promise<string[]>} Promise resolving to array of suggestions
    */
-  makeApiRequest(_text) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async makeApiRequest(_text) {
     throw new CdError({
       type: 'internal',
       message: 'makeApiRequest() must be implemented by subclass',
@@ -262,29 +261,28 @@ class BaseAutocomplete {
    *
    * @param {Item[]} items Raw items to process
    * @param {AutocompleteConfigShared} config Configuration object
-   * @returns {Value[]} Processed values
+   * @returns {Result[]} Processed values
    */
   processResults(items, config) {
     return items
       .filter(defined)
-      .filter((item) => item !== null)
       .filter(unique)
       .map((item) => {
         /** @type {string} */
-        let key;
+        let label;
         if (Array.isArray(item)) {
           // Tags
-          key = item[0];
-        } else if (typeof item === 'object' && item !== null && 'key' in item) {
+          label = item[0];
+        } else if (typeof item === 'object' && 'label' in item) {
           // Comment links
-          key = item.key;
+          label = item.label;
         } else {
           // The rest
-          key = item;
+          label = item;
         }
 
-        /** @type {Value} */
-        const value = { key, item };
+        /** @type {Result} */
+        const value = { label, item };
         value.transform = config.transformItemToInsertData?.bind(value);
 
         return value;
@@ -336,16 +334,16 @@ class BaseAutocomplete {
    * @returns {any[]} Default items
    */
   getDefaultItems() {
-    if ((!this.default || this.default.length === 0) && this.defaultLazy) {
+    if (this.default.length === 0 && this.defaultLazy) {
       this.default = this.defaultLazy();
     }
 
-    return this.default || [];
+    return this.default;
   }
 
   /**
-   * Get collection-specific properties for Tribute configuration.
-   * Subclasses can override this to provide type-specific properties.
+   * Get collection-specific properties for Tribute configuration. Subclasses can override this to
+   * provide type-specific properties.
    *
    * @returns {Partial<import('./tribute/Tribute').TributeCollection>} Collection properties
    */

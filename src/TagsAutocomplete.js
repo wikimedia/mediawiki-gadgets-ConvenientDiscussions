@@ -149,8 +149,9 @@ class TagsAutocomplete extends BaseAutocomplete {
    * @param {string} _text The search text (unused)
    * @returns {Promise<string[]>} Empty array since no API requests are made
    */
-  makeApiRequest(_text) {
-    return Promise.resolve([]);
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async makeApiRequest(_text) {
+    return [];
   }
 
   /**
@@ -158,14 +159,15 @@ class TagsAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} text The search text
-   * @param {(values: import('./BaseAutocomplete').Value[]) => void} callback Callback function to call with results
+   * @param {(values: import('./BaseAutocomplete').Result[]) => void} callback Callback function to
+   *   call with results
    * @returns {Promise<void>}
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   async getValues(text, callback) {
     // Initialize default items if not already done
-    if ((!this.default || this.default.length === 0) && this.defaultLazy) {
-      this.default = this.defaultLazy();
+    if (this.default.length === 0) {
+      this.default = this.getDefaultItems();
     }
 
     // Validate input
@@ -180,7 +182,7 @@ class TagsAutocomplete extends BaseAutocomplete {
 
     callback(
       this.processResults(
-        (this.default || []).filter((tag) => regexp.test(Array.isArray(tag) ? tag[0] : tag)),
+        this.default.filter((tag) => regexp.test(Array.isArray(tag) ? tag[0] : tag)),
         this
       )
     );

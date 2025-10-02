@@ -61,8 +61,8 @@ import TributeSearch from "./TributeSearch";
  * @template {any} [I=any]
  * @typedef {object} TributeCollectionSpecific
  * @property {string} label Collection identifier/label
- * @property {I[] | ((text: string, callback: (arr: I[]) => void) => void)} values REQUIRED: array
- *   of objects to match or a function that returns data
+ * @property {I[] | ((text: string, callback: (arr: I[]) => void) => void)} values Array of objects
+ *   to search across or a function that takes that array
  * @property {RegExp} [keepAsEnd] Custom regex for end matching behavior
  * @property {(item: TributeSearchResults<I>) => string} [menuItemTemplate] Template for displaying
  *   item in menu
@@ -71,7 +71,7 @@ import TributeSearch from "./TributeSearch";
  *   string
  * @property {(item: TributeSearchResults<I> | undefined, event: KeyboardEvent | MouseEvent) =>
  * string | InsertData} [selectTemplate] Function called on select that returns the content to
- *   insert
+ * insert
  */
 
 /**

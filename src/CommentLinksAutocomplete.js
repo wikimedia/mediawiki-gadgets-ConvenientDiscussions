@@ -103,10 +103,10 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    * Validate input text for comment links autocomplete.
    *
    * @override
-   * @param {string} text The input text to validate
+   * @param {string} _text The input text to validate
    * @returns {boolean} Whether the input is valid
    */
-  validateInput(text) {
+  validateInput(_text) {
     // Comment links don't use API requests, so always return false
     return false;
   }
@@ -116,10 +116,11 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    * are generated from local data only.
    *
    * @override
-   * @param {string} text The search text
+   * @param {string} _text The search text
    * @returns {Promise<string[]>} Empty array since no API requests are made
    */
-  makeApiRequest(text) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async makeApiRequest(_text) {
     return [];
   }
 
@@ -129,14 +130,14 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} text The search text
-   * @param {(value: import('./BaseAutocomplete').Value[]) => void} callback Callback function to
+   * @param {(value: import('./BaseAutocomplete').Result[]) => void} callback Callback function to
    *   call with results
    * @returns {Promise<void>}
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   async getValues(text, callback) {
-    // Ensure default items are loaded
-    if (!this.default || this.default.length === 0) {
+    // Initialize default items if not already done
+    if (this.default.length === 0) {
       this.default = this.getDefaultItems();
     }
 

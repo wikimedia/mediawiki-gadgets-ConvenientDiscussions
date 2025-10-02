@@ -18,8 +18,6 @@ class WikilinksAutocomplete extends BaseAutocomplete {
   constructor(config = {}) {
     // Set default configuration for wikilinks
     const defaultConfig = {
-      cache: {},
-      lastResults: [],
       transformItemToInsertData: WikilinksAutocomplete.prototype.transformItemToInsertData,
     };
 
@@ -33,10 +31,7 @@ class WikilinksAutocomplete extends BaseAutocomplete {
    * @static
    */
   static getConfig() {
-    return {
-      cache: {},
-      lastResults: [],
-    };
+    return {};
   }
 
   /**

@@ -3,7 +3,10 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "nodenext",
-    "types": []
+    "types": [
+      // For typescript-eslint
+      "prompts"
+    ]
   },
   "include": ["*"]
 }

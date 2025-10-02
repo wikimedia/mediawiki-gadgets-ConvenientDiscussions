@@ -38,10 +38,11 @@ import { handleApiReject } from './utils-api';
  */
 
 /**
+ * @typedef {(results: import('./BaseAutocomplete').Result[]) => void} ProcessValues
+ */
+
+/**
  * @typedef {object} AutocompleteConfigShared
- * @property {StringArraysByKey} [cache] Results by query
- * @property {string[]} [lastResults] Results of last query
- * @property {string} [lastQuery] Last query
  * @property {import('./AutocompleteTypes').Item[]} [default] Default set of items to search across
  *   (may be more narrow than the list of all potential values, as in the case of user names)
  * @property {(() => import('./AutocompleteTypes').Item[])} [defaultLazy] Function for lazy loading
@@ -49,6 +50,9 @@ import { handleApiReject } from './utils-api';
  * @property {() => import('./tribute/Tribute').InsertData} [transformItemToInsertData] Function
  *   that transforms the item into the data that is actually inserted
  * @property {AnyByKey} [data] Any additional data to be used by methods
+ * @property {number} [cacheMaxSize]
+ * @property {number} [cacheTtl]
+ * @property {number} [cacheMaxMemory]
  */
 
 /**
@@ -210,55 +214,60 @@ class AutocompleteManager {
     const collections = [];
 
     for (const [type, instance] of this.autocompleteInstances) {
-      const collection = {
-        label: instance.getLabel(),
-        trigger: instance.getTrigger(),
-        searchOpts: { skip: true },
-        selectTemplate: (/** @type {any} */ item, /** @type {any} */ event) => {
-          if (item) {
-            // Handle special template data insertion for templates
-            if (type === 'templates' && this.useTemplateData && event?.shiftKey && !event?.altKey) {
-              const input = /** @type {import('./TextInputWidget').default} */ (
-                /** @type {HTMLElement} */ (this.tribute.current.element).cdInput
-              );
-              setTimeout(() => this.insertTemplateData(item, input));
-            }
-
-            return item.original.transform?.() || '';
-          }
-
-          return '';
-        },
-        values: async (/** @type {string} */ text, /** @type {AnyFunction} */ callback) => {
-          // Start performance monitoring if enabled
-          const perfContext = this.performanceMonitor?.startOperation('getValues', type, text);
-
-          try {
-            // Check if result will come from cache
-            const cacheHit = instance.handleCache(text) !== null;
-
-            await instance.getValues(text, (/** @type {any[]} */ results) => {
-              // End performance monitoring
-              if (perfContext) {
-                perfContext.end(results.length, cacheHit);
+      collections.push(
+        /** @type {import('./tribute/Tribute').TributeCollection} */ ({
+          lookup: 'label',
+          label: instance.getLabel(),
+          trigger: instance.getTrigger(),
+          searchOpts: { skip: true },
+          selectTemplate: (/** @type {any} */ item, /** @type {any} */ event) => {
+            if (item) {
+              // Handle special template data insertion for templates
+              if (
+                type === 'templates' &&
+                this.useTemplateData &&
+                event?.shiftKey &&
+                !event?.altKey
+              ) {
+                const input = /** @type {import('./TextInputWidget').default} */ (
+                  /** @type {HTMLElement} */ (this.tribute.current.element).cdInput
+                );
+                setTimeout(() => this.insertTemplateData(item, input));
               }
-              callback(results);
-            });
-          } catch (error) {
-            // End performance monitoring on error
-            if (perfContext) {
-              perfContext.end(0, false);
+
+              return item.original.transform?.() || '';
             }
-            throw error;
-          }
-        },
-      };
 
-      // Add type-specific properties from the instance
+            return '';
+          },
+          values: async (/** @type {string} */ text, /** @type {ProcessValues} */ callback) => {
+            // Start performance monitoring if enabled
+            const perfContext = this.performanceMonitor?.startOperation('getValues', type, text);
 
-      Object.assign(collection, instance.getCollectionProperties() || {});
+            try {
+              // Check if result will come from cache
+              const cacheHit = instance.handleCache(text) !== null;
 
-      collections.push(collection);
+              await instance.getValues(text, (/** @type {any[]} */ results) => {
+                // End performance monitoring
+                if (perfContext) {
+                  perfContext.end(results.length, cacheHit);
+                }
+                callback(results);
+              });
+            } catch (error) {
+              // End performance monitoring on error
+              if (perfContext) {
+                perfContext.end(0, false);
+              }
+              throw error;
+            }
+          },
+
+          // Add type-specific properties from the instance
+          ...instance.getCollectionProperties(),
+        })
+      );
     }
 
     return collections;
@@ -267,7 +276,7 @@ class AutocompleteManager {
   /**
    * Get autocomplete data for a template.
    *
-   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Value<string>>} item
+   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Result<string>>} item
    * @param {import('./TextInputWidget').default} input
    * @returns {Promise<void>}
    */
@@ -281,7 +290,7 @@ class AutocompleteManager {
     try {
       response = await cd.getApi(AutocompleteManager.apiConfig).get({
         action: 'templatedata',
-        titles: `Template:${item.original.key}`,
+        titles: `Template:${item.original.label}`,
         redirects: true,
       }).catch(handleApiReject);
       if (!Object.keys(response.pages).length) {
@@ -290,8 +299,8 @@ class AutocompleteManager {
     } catch {
       input
         .setDisabled(false)
-        .focus();
-      input.popPending();
+        .focus()
+        .popPending();
 
       return;
     }

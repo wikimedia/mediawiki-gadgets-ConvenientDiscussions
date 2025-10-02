@@ -388,11 +388,12 @@ async function getConfigsEdits() {
       throw error(`Modules string for ${keyword(asset.target)} contains illegal characters: ${matchesString}`);
     }
 
+
+
     asset.content = content.replace(
       /^(\* *convenientDiscussions *\[.*dependencies *= *)[^|\]]*?( *[|\]])/m,
       /** @type {ReplaceCallback<3>} */
-      (_s, before, after) =>
-        before + modulesString + after
+      (_s, before, after) => before + modulesString + after
     );
   });
 
@@ -439,7 +440,7 @@ async function prepareEdits() {
  * @returns {string}
  */
 function createEditOverview(edit) {
-  const byteLength = (text) => (new TextEncoder().encode(text)).length;
+  const byteLength = (/** @type {string} */ text) => (new TextEncoder().encode(text)).length;
 
   return (
     `${keyword('URL:')} ${edit.url}\n` +
@@ -466,9 +467,9 @@ function loginToNextServer() {
  * @param {string} server
  */
 async function logIn(server) {
-  const callback = (err) => {
-    if (err) {
-      throw error(err);
+  const callback = (error) => {
+    if (error) {
+      throw error(error);
     }
     deploy(server);
   };

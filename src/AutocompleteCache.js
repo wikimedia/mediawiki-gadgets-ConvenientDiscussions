@@ -57,7 +57,7 @@ class AutocompleteCache {
     // Periodic cleanup
     /** @type {number | undefined} */
     this.cleanupInterval = setInterval(() => {
-      this.cleanup(); 
+      this.cleanup();
     }, cd.g.msInMin);
   }
 
@@ -155,7 +155,7 @@ class AutocompleteCache {
    * Evict the least recently used entry.
    */
   evictLRU() {
-    let oldestKey = null;
+    let oldestKey;
     let oldestTime = Infinity;
 
     for (const [key, entry] of this.cache) {
