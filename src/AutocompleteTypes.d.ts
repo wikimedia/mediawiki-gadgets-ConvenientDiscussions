@@ -1,4 +1,5 @@
-/**
- * Generic item type for autocomplete
- */
-export type Item = any;
+import { ItemByCollection } from './AutocompleteManager';
+
+type Item = ItemByCollection[keyof ItemByCollection];
+
+export { Item };

@@ -37,7 +37,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   /**
    * Static configuration for comment links autocomplete.
    *
-   * @returns {import('./Autocomplete').AutocompleteConfigShared}
+   * @returns {import('./AutocompleteManager').AutocompleteConfigShared}
    * @static
    */
   static getConfig() {
@@ -129,10 +129,12 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} text The search text
-   * @param {Function} callback Callback function to call with results
+   * @param {(value: import('./BaseAutocomplete').Value[]) => void} callback Callback function to
+   *   call with results
    * @returns {Promise<void>}
    */
-  getValues(text, callback) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getValues(text, callback) {
     // Ensure default items are loaded
     if (!this.default || this.default.length === 0) {
       this.default = this.getDefaultItems();
@@ -157,7 +159,8 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   /**
    * Get collection-specific properties for Tribute configuration.
    *
-   * @returns {object} Collection properties
+   * @override
+   * @returns {Partial<import('./tribute/Tribute').TributeCollection>} Collection properties
    */
   getCollectionProperties() {
     return {

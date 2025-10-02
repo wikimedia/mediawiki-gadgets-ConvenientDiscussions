@@ -2,6 +2,8 @@
  * Advanced caching system for autocomplete with LRU eviction and memory management.
  */
 
+import cd from './cd';
+
 /**
  * @typedef {object} CacheEntry
  * @property {any[]} data The cached data
@@ -28,10 +30,10 @@ class AutocompleteCache {
    * Create a new autocomplete cache.
    *
    * @param {object} [options] Cache configuration options
-   * @param {number} [options.maxSize=1000] Maximum number of entries
-   * @param {number} [options.ttl=300000] Time to live in milliseconds (5 minutes)
-   * @param {number} [options.maxMemory=10485760] Maximum memory usage in bytes (10MB)
-   * @param {boolean} [options.enableStats=true] Whether to collect statistics
+   * @param {number} [options.maxSize] Maximum number of entries
+   * @param {number} [options.ttl] Time to live in milliseconds (5 minutes)
+   * @param {number} [options.maxMemory] Maximum memory usage in bytes (10MB)
+   * @param {boolean} [options.enableStats] Whether to collect statistics
    */
   constructor(options = {}) {
     this.maxSize = options.maxSize || 1000;
@@ -53,7 +55,8 @@ class AutocompleteCache {
     };
 
     // Periodic cleanup
-    this.cleanupInterval = setInterval(() => this.cleanup(), 60000); // Every minute
+    /** @type {number | undefined} */
+    this.cleanupInterval = setInterval(() => { this.cleanup(); }, cd.g.msInMin);
   }
 
   /**
@@ -267,7 +270,7 @@ class AutocompleteCache {
   /**
    * Get cache statistics.
    *
-   * @returns {CacheStats} Current cache statistics
+   * @returns {CacheStats & { memoryUsage: number }} Current cache statistics
    */
   getStats() {
     return {
@@ -312,7 +315,7 @@ class AutocompleteCache {
   destroy() {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
+      this.cleanupInterval = undefined;
     }
     this.clear();
   }
@@ -358,11 +361,22 @@ class AutocompleteCache {
   }
 
   /**
+   * @typedef {object} CacheData
+   * @property {TypeByKey<CacheEntry>} entries
+   * @property {CacheStats} stats
+   * @property {object} config
+   * @property {number} config.maxSize
+   * @property {number} config.ttl
+   * @property {number} config.maxMemory
+   */
+
+  /**
    * Export cache data for persistence.
    *
-   * @returns {object} Serializable cache data
+   * @returns {CacheData} Serializable cache data
    */
   export() {
+    /** @type {TypeByKey<CacheEntry>} */
     const entries = {};
     for (const [key, entry] of this.cache) {
       if (!this.isExpired(entry)) {
@@ -375,7 +389,7 @@ class AutocompleteCache {
       }
     }
 
-    return {
+    const data = {
       entries,
       stats: this.stats,
       config: {
@@ -384,12 +398,14 @@ class AutocompleteCache {
         maxMemory: this.maxMemory,
       },
     };
+
+    return data;
   }
 
   /**
    * Import cache data from persistence.
    *
-   * @param {object} data Serialized cache data
+   * @param {Partial<CacheData>} data Serialized cache data
    */
   import(data) {
     this.clear();

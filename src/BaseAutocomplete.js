@@ -5,11 +5,11 @@ import { defined, removeDoubleSpaces, sleep, unique } from './shared/utils-gener
 import { handleApiReject } from './utils-api';
 
 /**
- * @typedef {import('./Autocomplete').AutocompleteType} AutocompleteType
+ * @typedef {import('./AutocompleteManager').AutocompleteType} AutocompleteType
  */
 
 /**
- * @typedef {import('./Autocomplete').AutocompleteConfigShared} AutocompleteConfigShared
+ * @typedef {import('./AutocompleteManager').AutocompleteConfigShared} AutocompleteConfigShared
  */
 
 /**
@@ -22,6 +22,15 @@ import { handleApiReject } from './utils-api';
  * @property {string} [key]
  * @property {T} item
  * @property {(() => import('./tribute/Tribute').InsertData) | undefined} [transform]
+ */
+
+/**
+ * @typedef {object} PerformanceMetrics
+ * @property {string} type
+ * @property {import('./AutocompleteCache').CacheStats & { memoryUsage: number }} cache
+ * @property {number} defaultItemsCount
+ * @property {number} lastResultsCount
+ * @property {string} lastQuery
  */
 
 /**
@@ -258,7 +267,7 @@ class BaseAutocomplete {
   /**
    * Process raw results into Value objects for Tribute.
    *
-   * @param {any[]} items Raw items to process
+   * @param {Item[]} items Raw items to process
    * @param {AutocompleteConfigShared} config Configuration object
    * @returns {Value[]} Processed values
    */
@@ -345,7 +354,7 @@ class BaseAutocomplete {
    * Get collection-specific properties for Tribute configuration.
    * Subclasses can override this to provide type-specific properties.
    *
-   * @returns {object} Collection properties
+   * @returns {Partial<import('./tribute/Tribute').TributeCollection>} Collection properties
    */
   getCollectionProperties() {
     return {};
@@ -367,13 +376,13 @@ class BaseAutocomplete {
   /**
    * Create a promise with delay and supersession checking.
    *
-   * @param {(resolve: any, reject: any) => Promise<void>} executor Promise executor function
+   * @param {AsyncPromiseExecutor<void>} executor Promise executor function
    * @returns {Promise<any>} Promise with delay and checking
    * @static
    */
   static createDelayedPromise(executor) {
     // eslint-disable-next-line no-async-promise-executor
-    const promise = new Promise(async (/** @type {any} */ resolve, /** @type {any} */ reject) => {
+    const promise = new Promise(async (resolve, reject) => {
       try {
         await sleep(this.delay);
         this.promiseIsNotSuperseded(promise);
@@ -390,7 +399,7 @@ class BaseAutocomplete {
   /**
    * Make an OpenSearch API request.
    *
-   * @param {object} params API parameters
+   * @param {import('types-mediawiki/api_params').UnknownApiParams} params API parameters
    * @returns {Promise<import('./Autocomplete').OpenSearchResults>} OpenSearch results
    * @static
    */
@@ -415,7 +424,7 @@ class BaseAutocomplete {
   /**
    * Get performance metrics for this autocomplete instance.
    *
-   * @returns {object} Performance metrics
+   * @returns {PerformanceMetrics} Performance metrics
    */
   getPerformanceMetrics() {
     const cacheStats = this.cache.getStats();
@@ -433,8 +442,8 @@ class BaseAutocomplete {
    * Optimize cache by removing least used entries.
    */
   optimizeCache() {
-    // The AutocompleteCache handles optimization automatically,
-    // but we can trigger manual cleanup if needed
+    // The AutocompleteCache handles optimization automatically, but we can trigger manual cleanup
+    // if needed
     this.cache.cleanup();
   }
 
@@ -458,9 +467,7 @@ class BaseAutocomplete {
    * Destroy the autocomplete instance and clean up resources.
    */
   destroy() {
-    if (this.cache && typeof this.cache.destroy === 'function') {
-      this.cache.destroy();
-    }
+    this.cache.destroy();
   }
 }
 

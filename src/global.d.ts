@@ -28,6 +28,10 @@ declare global {
 
   type ApiAnyResponse = ApiResponse | ApiRejectResponse;
 
+  /** See {@link https://github.com/microsoft/TypeScript/blob/837e3a1df996b505e1d376fa46166740b7ed5450/src/lib/es2015.promise.d.ts#L13} */
+  type PromiseExecutor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void;
+  type AsyncPromiseExecutor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => Promise<void>;
+
   interface ApiResponseQueryPage {
     title: string;
     pageid: number;

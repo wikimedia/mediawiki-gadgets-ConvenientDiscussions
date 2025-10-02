@@ -5,14 +5,14 @@ import userRegistry from './userRegistry';
 import { handleApiReject } from './utils-api';
 
 /**
- * Autocomplete class for user mentions. Handles @-triggered autocomplete for user names,
+ * Autocomplete class for user mentions. Handles `@`-triggered autocomplete for user names,
  * including both registered and unregistered users.
  */
 class MentionsAutocomplete extends BaseAutocomplete {
   /**
    * Create a mentions autocomplete instance.
    *
-   * @param {import('./Autocomplete').AutocompleteConfigShared} [config] Configuration options
+   * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
     // Set default configuration for mentions
@@ -29,7 +29,7 @@ class MentionsAutocomplete extends BaseAutocomplete {
   /**
    * Static configuration for mentions autocomplete.
    *
-   * @returns {import('./Autocomplete').AutocompleteConfigShared}
+   * @returns {import('./AutocompleteManager').AutocompleteConfigShared}
    * @static
    */
   static getConfig() {
@@ -105,7 +105,8 @@ class MentionsAutocomplete extends BaseAutocomplete {
   /**
    * Get collection-specific properties for Tribute configuration.
    *
-   * @returns {object} Collection properties
+   * @override
+   * @returns {Partial<import('./tribute/Tribute').TributeCollection>} Collection properties
    */
   getCollectionProperties() {
     return {
@@ -141,7 +142,7 @@ class MentionsAutocomplete extends BaseAutocomplete {
   async makeApiRequest(text) {
     text = ucFirst(text);
 
-    return BaseAutocomplete.createDelayedPromise(async (/** @type {Function} */ resolve) => {
+    return BaseAutocomplete.createDelayedPromise(async (resolve) => {
       // First, try to use the search to get only users that have talk pages. Most legitimate
       // users do, while spammers don't.
       const response = await BaseAutocomplete.makeOpenSearchRequest({

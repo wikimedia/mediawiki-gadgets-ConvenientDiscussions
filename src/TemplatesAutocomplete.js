@@ -14,7 +14,7 @@ class TemplatesAutocomplete extends BaseAutocomplete {
   /**
    * Create a TemplatesAutocomplete instance.
    *
-   * @param {import('./Autocomplete').AutocompleteConfigShared} [config] Configuration options
+   * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
     // Set default configuration for templates
@@ -30,7 +30,7 @@ class TemplatesAutocomplete extends BaseAutocomplete {
   /**
    * Static configuration for templates autocomplete.
    *
-   * @returns {import('./Autocomplete').AutocompleteConfigShared}
+   * @returns {import('./AutocompleteManager').AutocompleteConfigShared}
    * @static
    */
   static getConfig() {
@@ -139,7 +139,8 @@ class TemplatesAutocomplete extends BaseAutocomplete {
   /**
    * Get collection-specific properties for Tribute configuration.
    *
-   * @returns {object} Collection properties
+   * @override
+   * @returns {Partial<import('./tribute/Tribute').TributeCollection>} Collection properties
    */
   getCollectionProperties() {
     return {

@@ -11,14 +11,6 @@ import userRegistry from './userRegistry';
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
 /**
- * @template {any} [T=any]
- * @typedef {object} Value
- * @property {string} [key]
- * @property {T} item
- * @property {(() => import('./tribute/Tribute').InsertData) | undefined} [transform]
- */
-
-/**
  * @typedef {NonNullable<typeof Autocomplete.configs>} AutocompleteStaticConfig
  */
 
@@ -101,7 +93,7 @@ class Autocomplete extends AutocompleteManager {
         default: [],
 
         /**
-         * @this {Value<string>}
+         * @this {import('./BaseAutocomplete').Value<string>}
          * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
          */
         transformItemToInsertData() {
@@ -185,7 +177,7 @@ class Autocomplete extends AutocompleteManager {
         },
 
         /**
-         * @this {Value<CommentLinksItem>}
+         * @this {import('./BaseAutocomplete').Value<CommentLinksItem>}
          * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
          */
         transformItemToInsertData() {
@@ -208,7 +200,7 @@ class Autocomplete extends AutocompleteManager {
         lastResults: [],
 
         /**
-         * @this {Value<string>}
+         * @this {import('./BaseAutocomplete').Value<string>}
          * @returns {import('./tribute/Tribute').InsertData & { end: string }}
          */
         transformItemToInsertData() {
@@ -229,7 +221,7 @@ class Autocomplete extends AutocompleteManager {
         lastResults: [],
 
         /**
-         * @this {Value<string>}
+         * @this {import('./BaseAutocomplete').Value<string>}
          * @returns {import('./tribute/Tribute').InsertData & { end: string }}
          */
         transformItemToInsertData() {
@@ -261,7 +253,7 @@ class Autocomplete extends AutocompleteManager {
         default: undefined,
 
         /**
-         * @this {Value<TagsItem>}
+         * @this {import('./BaseAutocomplete').Value<TagsItem>}
          * @returns {import('./tribute/Tribute').InsertData}
          */
         transformItemToInsertData() {
@@ -426,7 +418,7 @@ Autocomplete.configs = /** @satisfies {AutocompleteConfigs} */ ({
     default: [],
 
     /**
-     * @this {Value<string>}
+     * @this {import('./BaseAutocomplete').Value<string>}
      * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
      */
     transformItemToInsertData() {
@@ -510,7 +502,7 @@ Autocomplete.configs = /** @satisfies {AutocompleteConfigs} */ ({
     },
 
     /**
-     * @this {Value<CommentLinksItem>}
+     * @this {import('./BaseAutocomplete').Value<CommentLinksItem>}
      * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
      */
     transformItemToInsertData() {
@@ -533,7 +525,7 @@ Autocomplete.configs = /** @satisfies {AutocompleteConfigs} */ ({
     lastResults: [],
 
     /**
-     * @this {Value<string>}
+     * @this {import('./BaseAutocomplete').Value<string>}
      * @returns {import('./tribute/Tribute').InsertData & { end: string }}
      */
     transformItemToInsertData() {
@@ -554,7 +546,7 @@ Autocomplete.configs = /** @satisfies {AutocompleteConfigs} */ ({
     lastResults: [],
 
     /**
-     * @this {Value<string>}
+     * @this {import('./BaseAutocomplete').Value<string>}
      * @returns {import('./tribute/Tribute').InsertData & { end: string }}
      */
     transformItemToInsertData() {
@@ -586,7 +578,7 @@ Autocomplete.configs = /** @satisfies {AutocompleteConfigs} */ ({
     default: undefined,
 
     /**
-     * @this {Value<TagsItem>}
+     * @this {import('./BaseAutocomplete').Value<TagsItem>}
      * @returns {import('./tribute/Tribute').InsertData}
      */
     transformItemToInsertData() {

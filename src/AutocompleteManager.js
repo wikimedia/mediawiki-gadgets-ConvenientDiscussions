@@ -84,7 +84,7 @@ class AutocompleteManager {
     /**
      * Performance monitor for tracking autocomplete performance.
      *
-     * @type {AutocompletePerformanceMonitor | null}
+     * @type {AutocompletePerformanceMonitor | undefined}
      * @private
      */
     this.performanceMonitor = enablePerformanceMonitoring
@@ -93,7 +93,7 @@ class AutocompleteManager {
         maxMetrics: 500,
         reportInterval: 0, // Disable automatic reporting
       })
-      : null;
+      : undefined;
 
     /**
      * Map of autocomplete type to autocomplete instance.
@@ -196,7 +196,7 @@ class AutocompleteManager {
     // Clean up performance monitor
     if (this.performanceMonitor) {
       this.performanceMonitor.destroy();
-      this.performanceMonitor = null;
+      this.performanceMonitor = undefined;
     }
   }
 
@@ -229,13 +229,9 @@ class AutocompleteManager {
 
           return '';
         },
-        values: async (/** @type {string} */ text, /** @type {Function} */ callback) => {
+        values: async (/** @type {string} */ text, /** @type {AnyFunction} */ callback) => {
           // Start performance monitoring if enabled
-          const perfContext = this.performanceMonitor?.startOperation(
-            'getValues',
-            type,
-            text
-          );
+          const perfContext = this.performanceMonitor?.startOperation('getValues', type, text);
 
           try {
             // Check if result will come from cache
@@ -567,19 +563,29 @@ class AutocompleteManager {
   }
 
   /**
+   * @typedef {object} CombinedPerformanceMetrics
+   * @property {object} manager
+   * @property {number} manager.instanceCount
+   * @property {AutocompleteType[]} manager.types
+   * @property {boolean} manager.monitoringEnabled
+   * @property {TypeByKey<import('./BaseAutocomplete').PerformanceMetrics>} instances
+   * @property {undefined} monitor
+   */
+
+  /**
    * Get performance metrics for all autocomplete instances.
    *
-   * @returns {object} Combined performance metrics
+   * @returns {CombinedPerformanceMetrics} Combined performance metrics
    */
   getPerformanceMetrics() {
     const metrics = {
       manager: {
         instanceCount: this.autocompleteInstances.size,
         types: Array.from(this.autocompleteInstances.keys()),
-        monitoringEnabled: this.performanceMonitor !== null,
+        monitoringEnabled: this.performanceMonitor !== undefined,
       },
-      instances: {},
-      monitor: null,
+      instances: (/** @type {TypeByKey<import('./BaseAutocomplete').PerformanceMetrics>} */ ({})),
+      monitor: undefined,
     };
 
     // Get metrics from each instance

@@ -1,11 +1,11 @@
 import CdError from './shared/CdError';
 
 /**
- * @typedef {import('./Autocomplete').AutocompleteType} AutocompleteType
+ * @typedef {import('./AutocompleteManager').AutocompleteType} AutocompleteType
  */
 
 /**
- * @typedef {import('./Autocomplete').AutocompleteConfigShared} AutocompleteConfigShared
+ * @typedef {import('./AutocompleteManager').AutocompleteConfigShared} AutocompleteConfigShared
  */
 
 /**

@@ -13,7 +13,7 @@ class WikilinksAutocomplete extends BaseAutocomplete {
   /**
    * Create a WikilinksAutocomplete instance.
    *
-   * @param {import('./Autocomplete').AutocompleteConfigShared} [config] Configuration options
+   * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
     // Set default configuration for wikilinks
@@ -29,7 +29,7 @@ class WikilinksAutocomplete extends BaseAutocomplete {
   /**
    * Static configuration for wikilinks autocomplete.
    *
-   * @returns {import('./Autocomplete').AutocompleteConfigShared}
+   * @returns {import('./AutocompleteManager').AutocompleteConfigShared}
    * @static
    */
   static getConfig() {
@@ -161,7 +161,8 @@ class WikilinksAutocomplete extends BaseAutocomplete {
   /**
    * Get collection-specific properties for Tribute configuration.
    *
-   * @returns {object} Collection properties
+   * @override
+   * @returns {Partial<import('./tribute/Tribute').TributeCollection>} Collection properties
    */
   getCollectionProperties() {
     return {

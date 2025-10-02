@@ -13,7 +13,7 @@ class TagsAutocomplete extends BaseAutocomplete {
   /**
    * Create a TagsAutocomplete instance.
    *
-   * @param {import('./Autocomplete').AutocompleteConfigShared} [config] Configuration options
+   * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
     // Set default configuration for tags
@@ -29,7 +29,7 @@ class TagsAutocomplete extends BaseAutocomplete {
   /**
    * Static configuration for tags autocomplete.
    *
-   * @returns {import('./Autocomplete').AutocompleteConfigShared}
+   * @returns {import('./AutocompleteManager').AutocompleteConfigShared}
    * @static
    */
   static getConfig() {
@@ -60,7 +60,7 @@ class TagsAutocomplete extends BaseAutocomplete {
    * @returns {TagsItem[]} The default tag items
    * @static
    */
-  static createDefaultLazy() {
+  static createDefaultLazy = () => {
     /** @type {TagsItem[]} */
     const tagAdditions = [
       // An element can be an array of a string to display and strings to insert before and after
@@ -93,7 +93,7 @@ class TagsAutocomplete extends BaseAutocomplete {
           ? 1
           : -1
       );
-  }
+  };
 
   /**
    * Get the display label for tags autocomplete.
@@ -116,8 +116,8 @@ class TagsAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a tag item into insert data for the Tribute library.
-   * This method can be called directly with an item parameter or as a bound method where `this.item` contains the tag item.
+   * Transform a tag item into insert data for the Tribute library. This method can be called
+   * directly with an item parameter or as a bound method where `this.item` contains the tag item.
    *
    * @override
    * @param {TagsItem} [item] The tag item to transform (optional if called as bound method)
@@ -149,8 +149,8 @@ class TagsAutocomplete extends BaseAutocomplete {
    * @param {string} _text The search text (unused)
    * @returns {Promise<string[]>} Empty array since no API requests are made
    */
-  async makeApiRequest(_text) {
-    return [];
+  makeApiRequest(_text) {
+    return Promise.resolve([]);
   }
 
   /**
@@ -161,7 +161,8 @@ class TagsAutocomplete extends BaseAutocomplete {
    * @param {(values: import('./BaseAutocomplete').Value[]) => void} callback Callback function to call with results
    * @returns {Promise<void>}
    */
-  getValues(text, callback) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getValues(text, callback) {
     // Initialize default items if not already done
     if ((!this.default || this.default.length === 0) && this.defaultLazy) {
       this.default = this.defaultLazy();
@@ -186,7 +187,8 @@ class TagsAutocomplete extends BaseAutocomplete {
   /**
    * Get collection-specific properties for Tribute configuration.
    *
-   * @returns {object} Collection properties
+   * @override
+   * @returns {Partial<import('./tribute/Tribute').TributeCollection>} Collection properties
    */
   getCollectionProperties() {
     return {

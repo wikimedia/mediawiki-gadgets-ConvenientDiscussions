@@ -65,18 +65,31 @@ class AutocompletePerformanceMonitor {
   }
 
   /**
+   * @typedef {object} Operation
+   * @property {(resultCount: number, cacheHit: boolean) => void} end\
+   *
+   * @typedef {object} OperationContext
+   * @property {string} operation
+   * @property {AutocompleteType} autocompleteType
+   * @property {string} query
+   * @property {number} startTime
+   * @property {number} memoryBefore
+   */
+
+  /**
    * Start monitoring an operation.
    *
    * @param {string} operation Operation name
-   * @param {string} autocompleteType Type of autocomplete
+   * @param {import('./AutocompleteManager').AutocompleteType} autocompleteType Type of autocomplete
    * @param {string} query Search query
-   * @returns {object} Operation context for ending the measurement
+   * @returns {Operation} Operation context for ending the measurement
    */
   startOperation(operation, autocompleteType, query) {
     if (!this.enabled) {
       return { end: () => {} };
     }
 
+    /** @type {OperationContext} */
     const context = {
       operation,
       autocompleteType,
@@ -95,7 +108,7 @@ class AutocompletePerformanceMonitor {
   /**
    * End monitoring an operation.
    *
-   * @param {object} context Operation context from startOperation
+   * @param {OperationContext} context Operation context from startOperation
    * @param {number} resultCount Number of results returned
    * @param {boolean} cacheHit Whether result came from cache
    */
@@ -255,28 +268,35 @@ class AutocompletePerformanceMonitor {
     const summary = this.generateSummary();
     const uptime = Date.now() - this.startTime;
 
-    let report = '\n=== Autocomplete Performance Report ===\n';
-    report += `Uptime: ${Math.round(uptime / 1000)}s\n`;
-    report += `Total Operations: ${summary.totalOperations}\n`;
-    report += `Average Response Time: ${summary.averageResponseTime.toFixed(2)}ms\n`;
-    report += `Median Response Time: ${summary.medianResponseTime.toFixed(2)}ms\n`;
-    report += `95th Percentile: ${summary.p95ResponseTime.toFixed(2)}ms\n`;
-    report += `Cache Hit Rate: ${summary.cacheHitRate.toFixed(1)}%\n`;
-    report += `Memory Usage: ${this.formatBytes(summary.totalMemoryUsage)}\n\n`;
+    let report = `
+=== Autocomplete Performance Report ===
+Uptime: ${Math.round(uptime / 1000)}s
+Total Operations: ${summary.totalOperations}
+Average Response Time: ${summary.averageResponseTime.toFixed(2)}ms
+Median Response Time: ${summary.medianResponseTime.toFixed(2)}ms
+95th Percentile: ${summary.p95ResponseTime.toFixed(2)}ms
+Cache Hit Rate: ${summary.cacheHitRate.toFixed(1)}%
+Memory Usage: ${this.formatBytes(summary.totalMemoryUsage)}
 
-    report += 'Performance by Type:\n';
+`;
+
+    report += `Performance by Type:
+`;
     for (const [type, metrics] of Object.entries(summary.byType)) {
-      report += `  ${type}:\n`;
-      report += `    Operations: ${metrics.operationCount}\n`;
-      report += `    Avg Response: ${metrics.averageResponseTime.toFixed(2)}ms\n`;
-      report += `    Cache Hit Rate: ${metrics.cacheHitRate.toFixed(1)}%\n`;
-      report += `    Total Results: ${metrics.totalResults}\n`;
+      report += `  ${type}:
+    Operations: ${metrics.operationCount}
+    Avg Response: ${metrics.averageResponseTime.toFixed(2)}ms
+    Cache Hit Rate: ${metrics.cacheHitRate.toFixed(1)}%
+    Total Results: ${metrics.totalResults}
+`;
     }
 
     // Add performance warnings
     const warnings = this.getPerformanceWarnings(summary);
     if (warnings.length > 0) {
-      report += '\nPerformance Warnings:\n';
+      report += `
+Performance Warnings:
+`;
       warnings.forEach((warning) => {
         report += `  ⚠️  ${warning}\n`;
       });
@@ -285,9 +305,12 @@ class AutocompletePerformanceMonitor {
     // Add optimization recommendations
     const recommendations = this.getOptimizationRecommendations(summary);
     if (recommendations.length > 0) {
-      report += '\nOptimization Recommendations:\n';
+      report += `
+Optimization Recommendations:
+`;
       recommendations.forEach((rec) => {
-        report += `  💡 ${rec}\n`;
+        report += `  💡 ${rec}
+`;
       });
     }
 
@@ -433,7 +456,7 @@ class AutocompletePerformanceMonitor {
     this.enabled = false;
     if (this.reportTimer) {
       clearInterval(this.reportTimer);
-      this.reportTimer = null;
+      this.reportTimer = undefined;
     }
   }
 
