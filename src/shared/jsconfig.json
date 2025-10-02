@@ -1,8 +1,7 @@
 {
   "extends": "../../jsconfig-base.json",
   "compilerOptions": {
-    "target": "es2020",
-    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"]
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
   },
-  "include": ["**/*"]
+  "include": ["./**/*"]
 }

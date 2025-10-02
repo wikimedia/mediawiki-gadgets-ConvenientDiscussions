@@ -1,8 +1,8 @@
 {
   "extends": "./jsconfig-base.json",
   "compilerOptions": {
-    "target": "esnext",
-    "types": []
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["oojs", "oojs-ui", "jquery", "jqueryui"]
   },
-  "include": ["*"]
+  "include": ["*", "src/**/*", "config/**/*", "data/**/*", "node_modules/types-mediawiki"]
 }
