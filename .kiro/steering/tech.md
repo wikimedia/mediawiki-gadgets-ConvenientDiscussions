@@ -3,8 +3,8 @@
 ## Core Technologies
 
 - **JavaScript (ES2020)**: Main development language with modern syntax support
-- **TypeScript**: Type checking via JSDoc comments and .d.ts files (no compilation)
-- **Webpack 4**: Module bundling and build system
+- **TypeScript**: Strict type checking via JSDoc comments and .d.ts files (no compilation)
+- **Webpack 5**: Module bundling and build system
 - **Babel**: JavaScript transpilation with modern feature support
 - **Less**: CSS preprocessing for styling
 
@@ -18,10 +18,9 @@
 
 ### Development Dependencies
 
-- **ESLint**: Code linting with TypeScript, JSDoc, and Unicorn plugins
+- **ESLint**: Code linting with TypeScript, JSDoc, and Unicorn, and Stylistic plugins
 - **Jest**: Testing framework
 - **CodeMirror 6**: Rich text editing capabilities
-- **JSDoc**: Documentation generation
 
 ## Build System
 
