@@ -443,14 +443,14 @@ describe('Autocomplete End-to-End Workflows', () => {
                 opensearch: ['test', ['Template:Test'], ['Test template'], ['/wiki/Template:Test']],
               },
             });
-          } else {
-            // Wikilinks
-            return Promise.resolve({
-              query: {
-                opensearch: ['test', ['Test page'], ['Test page description'], ['/wiki/Test_page']],
-              },
-            });
           }
+
+          // Wikilinks
+          return Promise.resolve({
+            query: {
+              opensearch: ['test', ['Test page'], ['Test page description'], ['/wiki/Test_page']],
+            },
+          });
         }
 
         return Promise.resolve({});
@@ -499,13 +499,13 @@ describe('Autocomplete End-to-End Workflows', () => {
               allusers: [{ name: 'MentionUser' }],
             },
           });
-        } else {
-          return Promise.resolve({
-            query: {
-              opensearch: ['test', ['WikiPage'], ['Description'], ['/wiki/WikiPage']],
-            },
-          });
         }
+
+        return Promise.resolve({
+          query: {
+            opensearch: ['test', ['WikiPage'], ['Description'], ['/wiki/WikiPage']],
+          },
+        });
       });
 
       jest.spyOn(mentionsInstance, 'getApi').mockReturnValue(mockApi);
@@ -573,13 +573,13 @@ describe('Autocomplete End-to-End Workflows', () => {
       mockApi.get.mockImplementation((params) => {
         if (params.list === 'allusers') {
           return Promise.reject(new Error('Mentions API down'));
-        } else {
-          return Promise.resolve({
-            query: {
-              opensearch: ['test', ['WorkingPage'], ['Description'], ['/wiki/WorkingPage']],
-            },
-          });
         }
+
+        return Promise.resolve({
+          query: {
+            opensearch: ['test', ['WorkingPage'], ['Description'], ['/wiki/WorkingPage']],
+          },
+        });
       });
 
       jest.spyOn(mentionsInstance, 'getApi').mockReturnValue(mockApi);
@@ -608,8 +608,8 @@ describe('Autocomplete End-to-End Workflows', () => {
       const mentionsInstance = autocompleteManager.autocompleteInstances.get('mentions');
 
       // Mock API with realistic delay
-      mockApi.get.mockImplementation((params) => {
-        return new Promise((resolve) => {
+      mockApi.get.mockImplementation((params) =>
+        new Promise((resolve) => {
           setTimeout(() => {
             resolve({
               query: {
@@ -617,8 +617,8 @@ describe('Autocomplete End-to-End Workflows', () => {
               },
             });
           }, 50);
-        });
-      });
+        })
+      );
 
       jest.spyOn(mentionsInstance, 'getApi').mockReturnValue(mockApi);
 
@@ -657,13 +657,13 @@ describe('Autocomplete End-to-End Workflows', () => {
 
       const mentionsInstance = autocompleteManager.autocompleteInstances.get('mentions');
 
-      mockApi.get.mockImplementation((params) => {
-        return Promise.resolve({
+      mockApi.get.mockImplementation((params) =>
+        Promise.resolve({
           query: {
             allusers: [{ name: `${params.auprefix}User` }],
           },
-        });
-      });
+        })
+      );
 
       jest.spyOn(mentionsInstance, 'getApi').mockReturnValue(mockApi);
 
@@ -707,13 +707,13 @@ describe('Autocomplete End-to-End Workflows', () => {
               opensearch: ['reflist', ['Template:Reflist'], ['Reference list'], ['/wiki/Template:Reflist']],
             },
           });
-        } else {
-          return Promise.resolve({
-            query: {
-              opensearch: ['JavaScript', ['JavaScript'], ['Programming language'], ['/wiki/JavaScript']],
-            },
-          });
         }
+
+        return Promise.resolve({
+          query: {
+            opensearch: ['JavaScript', ['JavaScript'], ['Programming language'], ['/wiki/JavaScript']],
+          },
+        });
       });
 
       // Mock API for all instances

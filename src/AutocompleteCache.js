@@ -37,8 +37,8 @@ class AutocompleteCache {
    */
   constructor(options = {}) {
     this.maxSize = options.maxSize || 1000;
-    this.ttl = options.ttl || 5 * 60 * 1000; // 5 minutes
-    this.maxMemory = options.maxMemory || 10 * 1024 * 1024; // 10MB
+    this.ttl = options.ttl || 5 * cd.g.msInMin;
+    this.maxMemory = options.maxMemory || 10 * 1024 * 1024;  // 10MB
     this.enableStats = options.enableStats !== false;
 
     /** @type {Map<string, CacheEntry>} */
@@ -56,7 +56,9 @@ class AutocompleteCache {
 
     // Periodic cleanup
     /** @type {number | undefined} */
-    this.cleanupInterval = setInterval(() => { this.cleanup(); }, cd.g.msInMin);
+    this.cleanupInterval = setInterval(() => {
+      this.cleanup(); 
+    }, cd.g.msInMin);
   }
 
   /**
@@ -73,6 +75,7 @@ class AutocompleteCache {
         this.stats.misses++;
         this.updateHitRate();
       }
+
       return null;
     }
 
@@ -84,6 +87,7 @@ class AutocompleteCache {
         this.stats.size--;
         this.updateHitRate();
       }
+
       return null;
     }
 
@@ -117,6 +121,7 @@ class AutocompleteCache {
     // If key already exists, update it
     if (this.cache.has(key)) {
       this.cache.set(key, entry);
+
       return;
     }
 
@@ -210,7 +215,7 @@ class AutocompleteCache {
       }
     }
 
-    toDelete.forEach(key => {
+    toDelete.forEach((key) => {
       this.cache.delete(key);
       if (this.enableStats) {
         this.stats.size--;
@@ -297,6 +302,7 @@ class AutocompleteCache {
    */
   has(key) {
     const entry = this.cache.get(key);
+
     return entry !== undefined && !this.isExpired(entry);
   }
 
@@ -328,7 +334,7 @@ class AutocompleteCache {
    * @returns {Promise<void>}
    */
   async prefetch(keys, fetchFn) {
-    const missingKeys = keys.filter(key => !this.has(key));
+    const missingKeys = keys.filter((key) => !this.has(key));
 
     if (missingKeys.length === 0) {
       return;

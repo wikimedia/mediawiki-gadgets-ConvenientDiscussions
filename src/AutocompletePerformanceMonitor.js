@@ -175,6 +175,7 @@ class AutocompletePerformanceMonitor {
     if (typeof performance !== 'undefined' && 'memory' in performance) {
       /** @type {any} */
       const perfMemory = performance;
+
       return perfMemory.memory.usedJSHeapSize;
     }
 

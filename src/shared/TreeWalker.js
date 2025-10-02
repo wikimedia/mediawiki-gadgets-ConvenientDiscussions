@@ -171,7 +171,11 @@ class TreeWalker {
       if (node[/** @type {keyof node} */ (this.firstChildProp)]) {
         node = node[/** @type {keyof node} */ (this.firstChildProp)];
       } else {
-        while (node && !node[/** @type {keyof node} */ (this.nextSiblingProp)] && node.parentNode !== this.root) {
+        while (
+          node &&
+          !node[/** @type {keyof node} */ (this.nextSiblingProp)] &&
+          node.parentNode !== this.root
+        ) {
           node = node.parentNode;
         }
         node &&= node[/** @type {keyof node} */ (this.nextSiblingProp)];
