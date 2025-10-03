@@ -58,18 +58,18 @@ import TributeSearch from "./TributeSearch";
 /**
  * Properties unique to individual collections.
  *
- * @template {any} [I=any]
+ * @template {any} [Value=any]
  * @typedef {object} TributeCollectionSpecific
  * @property {string} label Collection identifier/label
- * @property {I[] | ((text: string, callback: (arr: I[]) => void) => void)} values Array of objects
- *   to search across or a function that takes that array
+ * @property {Value[] | ((text: string, callback: (arr: Value[]) => void) => void)} values Array of
+ *   objects to search across or a function that takes that array
  * @property {RegExp} [keepAsEnd] Custom regex for end matching behavior
- * @property {(item: TributeSearchResults<I>) => string} [menuItemTemplate] Template for displaying
- *   item in menu
+ * @property {(item: TributeSearchResults<Value>) => string} [menuItemTemplate] Template for
+ *   displaying item in menu
  * @property {boolean} [replaceEnd] Whether to replace text at the end
  * @property {boolean} [requireLeadingSpace] Specify whether a space is required before the trigger
  *   string
- * @property {(item: TributeSearchResults<I> | undefined, event: KeyboardEvent | MouseEvent) =>
+ * @property {(item: TributeSearchResults<Value> | undefined, event: KeyboardEvent | MouseEvent) =>
  * string | InsertData} [selectTemplate] Function called on select that returns the content to
  * insert
  */
@@ -116,12 +116,12 @@ import TributeSearch from "./TributeSearch";
 /**
  * Array items in the return value of {@link TributeSearch#filter}.
  *
- * @template {any} I
+ * @template {any} Value
  * @typedef {object} TributeSearchResults
  * @property {string} string Matched string value
  * @property {number} score Match score
  * @property {number} index Index of the matched item
- * @property {I} original Original data object
+ * @property {Value} original Original value object
  */
 
 /**

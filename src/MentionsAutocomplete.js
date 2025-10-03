@@ -5,6 +5,10 @@ import userRegistry from './userRegistry';
 import { handleApiReject } from './utils-api';
 
 /**
+ * @typedef {string} MentionItem
+ */
+
+/**
  * Autocomplete class for user mentions. Handles `@`-triggered autocomplete for user names,
  * including both registered and unregistered users.
  */
@@ -185,7 +189,8 @@ class MentionsAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} text The search text
-   * @param {(values: import('./BaseAutocomplete').Result[]) => void} callback Callback function to call with results
+   * @param {import('./AutocompleteManager').ProcessResults<string>} callback Callback function to
+   *   call with results
    * @returns {Promise<void>}
    */
   async getValues(text, callback) {

@@ -78,7 +78,7 @@ class AutocompletePerformanceMonitor {
    *
    * @typedef {object} OperationContext
    * @property {string} operation
-   * @property {import('./AutocompleteManager').AutocompleteType} autocompleteType
+   * @property {import('./AutocompleteFactory').AutocompleteType} autocompleteType
    * @property {string} query
    * @property {number} startTime
    * @property {number} memoryBefore
@@ -88,7 +88,7 @@ class AutocompletePerformanceMonitor {
    * Start monitoring an operation.
    *
    * @param {string} operation Operation name
-   * @param {import('./AutocompleteManager').AutocompleteType} autocompleteType Type of autocomplete
+   * @param {import('./AutocompleteFactory').AutocompleteType} autocompleteType Type of autocomplete
    * @param {string} query Search query
    * @returns {Operation} Operation context for ending the measurement
    */

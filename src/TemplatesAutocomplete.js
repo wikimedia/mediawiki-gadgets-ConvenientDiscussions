@@ -1,8 +1,12 @@
 import BaseAutocomplete from './BaseAutocomplete';
 import cd from './cd';
 import CdError from './shared/CdError';
-import { charAt, phpCharToUpper, removeDoubleSpaces } from './shared/utils-general';
+import { charAt, phpCharToUpper } from './shared/utils-general';
 import { handleApiReject } from './utils-api';
+
+/**
+ * @typedef {string} TemplateItem
+ */
 
 /**
  * Autocomplete class for templates. Handles template name validation, TemplateData API integration,

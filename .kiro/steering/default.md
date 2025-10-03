@@ -28,7 +28,7 @@ This is a JavaScript project with type checking supplied by TypeScript through t
 ## JavaScript & TypeScript code style
 
 * When using a method in a callback, turn it into an arrow function to avoid the need to bind them to `this` using `.bind()`.
-* Don't introduce new `null` values. Use `undefined` instead, but don't assign any values to variables that don't have a value yet so that they stay `undefined`.
+* Don't introduce new `null` values. Use `undefined` instead, but don't assign any values to variables that don't have a value yet so that they stay `undefined`. Avoid returning `null` from functions instead of `undefined`.
 * Introduce class properties using class field syntax rather than inside the constructor.
 * Use optional chaining (`?.`) and nullish coalescing (`??`) operators, as well as logical OR assignment (`||=`) and other assignment operators.
 * Use trailing commas in objects and arrays.

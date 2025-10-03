@@ -1,10 +1,10 @@
 import BaseAutocomplete from './BaseAutocomplete';
 import cd from './cd';
 import sectionRegistry from './sectionRegistry';
-import { defined, removeDoubleSpaces, underlinesToSpaces, unique } from './shared/utils-general';
+import { removeDoubleSpaces, underlinesToSpaces } from './shared/utils-general';
 
 /**
- * @typedef {object} CommentLinksItem
+ * @typedef {object} CommentLinkItem
  * @property {string} key
  * @property {string} urlFragment
  * @property {string} [authorName]
@@ -49,7 +49,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   /**
    * Transform a comment links item into insert data for Tribute.
    *
-   * @param {CommentLinksItem} item The comment links item to transform
+   * @param {CommentLinkItem} item The comment links item to transform
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    * @static
    */
@@ -89,7 +89,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    * This method can be called directly with an item parameter or as a bound method where `this.item` contains the comment links item.
    *
    * @override
-   * @param {CommentLinksItem} [item] The comment links item to transform (optional if called as bound method)
+   * @param {CommentLinkItem} [item] The comment links item to transform (optional if called as bound method)
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    */
   transformItemToInsertData(item) {
@@ -125,13 +125,13 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Get autocomplete values for comment links. Overrides the base implementation
-   * to use Tribute's search functionality for filtering.
+   * Get autocomplete values for comment links. Overrides the base implementation to use Tribute's
+   * search functionality for filtering.
    *
    * @override
    * @param {string} text The search text
-   * @param {(value: import('./BaseAutocomplete').Result[]) => void} callback Callback function to
-   *   call with results
+   * @param {import('./AutocompleteManager').ProcessResults<CommentLinkItem>} callback Callback
+   *   function to call with results
    * @returns {Promise<void>}
    */
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -174,8 +174,8 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    * This replicates the original Tribute search behavior.
    *
    * @param {string} text Search text
-   * @param {CommentLinksItem[]} items Items to search through
-   * @returns {CommentLinksItem[]} Filtered results
+   * @param {CommentLinkItem[]} items Items to search through
+   * @returns {CommentLinkItem[]} Filtered results
    * @private
    */
   filterCommentLinks(text, items) {
@@ -194,7 +194,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    * Generate comment links data from comments and sections.
    * This replicates the original defaultLazy functionality.
    *
-   * @returns {CommentLinksItem[]} Array of comment and section link items
+   * @returns {CommentLinkItem[]} Array of comment and section link items
    * @private
    */
   generateCommentLinksData() {
@@ -243,7 +243,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
       });
 
       return acc;
-    }, /** @type {CommentLinksItem[]} */ ([]));
+    }, /** @type {CommentLinkItem[]} */ ([]));
 
     // Process sections into section link items
     const sectionItems = sectionRegistry.getAll().reduce((acc, section) => {
@@ -254,7 +254,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
       });
 
       return acc;
-    }, /** @type {CommentLinksItem[]} */ ([]));
+    }, /** @type {CommentLinkItem[]} */ ([]));
 
     return commentItems.concat(sectionItems);
   }

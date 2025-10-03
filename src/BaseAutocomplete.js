@@ -6,7 +6,7 @@ import { handleApiReject } from './utils-api';
 
 /**
  * @import {AutocompleteConfigShared} from './AutocompleteManager';
- * @import {Item} from './AutocompleteTypes';
+ * @import {Item} from './AutocompleteManager';
  */
 
 /**
@@ -257,11 +257,12 @@ class BaseAutocomplete {
   }
 
   /**
-   * Process raw results into Value objects for Tribute.
+   * Process raw items into {@link Result} objects for Tribute.
    *
-   * @param {Item[]} items Raw items to process
+   * @template {Item} I
+   * @param {I[]} items Raw items to process
    * @param {AutocompleteConfigShared} config Configuration object
-   * @returns {Result[]} Processed values
+   * @returns {Result<I>[]} Processed values
    */
   processResults(items, config) {
     return items
@@ -312,7 +313,7 @@ class BaseAutocomplete {
    * Check cache for existing results.
    *
    * @param {string} text Search text
-   * @returns {string[] | null} Cached results or null if not found
+   * @returns {string[] | undefined} Cached results or `undefined` if not found
    */
   handleCache(text) {
     return this.cache.get(text);

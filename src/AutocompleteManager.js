@@ -8,45 +8,31 @@ import Tribute from './tribute/Tribute';
 import { handleApiReject } from './utils-api';
 
 /**
- * @typedef {'mentions' | 'commentLinks' | 'wikilinks' | 'templates' | 'tags'} AutocompleteType
+ * @import {AutocompleteType} from './AutocompleteFactory';
+ * @import {MentionItem} from './MentionsAutocomplete';
+ * @import {CommentLinkItem} from './CommentLinksAutocomplete';
+ * @import {WikilinkItem} from './WikilinksAutocomplete';
+ * @import {TemplateItem} from './TemplatesAutocomplete';
+ * @import {TagItem} from './TagsAutocomplete';
+ */
+
+/**
+ * @typedef {MentionItem | CommentLinkItem | WikilinkItem | TemplateItem | TagItem} Item
  */
 
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
-/**
- * @typedef {object} ItemByCollection
- * @property {string} mentions
- * @property {CommentLinksItem} commentLinks
- * @property {string} wikilinks
- * @property {string} templates
- * @property {TagsItem} tags
- */
 
 /**
- * @typedef {object} CommentLinksItem
- * @property {string} key
- * @property {string} urlFragment
- * @property {string} [authorName]
- * @property {string} [snippet]
- * @property {string} [headline]
- */
-
-/**
- * @typedef {object} TagsItem
- * @property {string} name
- * @property {string} [attributes]
- */
-
-/**
- * @typedef {(results: import('./BaseAutocomplete').Result[]) => void} ProcessValues
+ * @template {Item} T
+ * @typedef {Parameters<Exclude<import('./tribute/Tribute').TributeCollectionSpecific<T>['values'], T[]>>[1]} ProcessResults
  */
 
 /**
  * @typedef {object} AutocompleteConfigShared
- * @property {import('./AutocompleteTypes').Item[]} [default] Default set of items to search across
- *   (may be more narrow than the list of all potential values, as in the case of user names)
- * @property {(() => import('./AutocompleteTypes').Item[])} [defaultLazy] Function for lazy loading
- *   of the defaults
+ * @property {Item[]} [default] Default set of items to search across (may be more narrow than the
+ *   list of all potential values, as in the case of user names)
+ * @property {(() => Item[])} [defaultLazy] Function for lazy loading of the defaults
  * @property {() => import('./tribute/Tribute').InsertData} [transformItemToInsertData] Function
  *   that transforms the item into the data that is actually inserted
  * @property {AnyByKey} [data] Any additional data to be used by methods
@@ -240,7 +226,7 @@ class AutocompleteManager {
 
             return '';
           },
-          values: async (/** @type {string} */ text, /** @type {ProcessValues} */ callback) => {
+          values: async (/** @type {string} */ text, /** @type {ProcessResults<any>} */ callback) => {
             // Start performance monitoring if enabled
             const perfContext = this.performanceMonitor?.startOperation('getValues', type, text);
 

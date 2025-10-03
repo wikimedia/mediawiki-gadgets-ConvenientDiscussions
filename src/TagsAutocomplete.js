@@ -1,8 +1,9 @@
 import BaseAutocomplete from './BaseAutocomplete';
 import cd from './cd';
+import { ensureArray } from './shared/utils-general';
 
 /**
- * @typedef {string | [string, string, string?]} TagsItem
+ * @typedef {string | [string, string, string?]} TagItem
  */
 
 /**
@@ -42,7 +43,7 @@ class TagsAutocomplete extends BaseAutocomplete {
   /**
    * Transform a tag item into insert data for the Tribute library.
    *
-   * @param {TagsItem} item The tag item to transform
+   * @param {TagItem} item The tag item to transform
    * @returns {import('./tribute/Tribute').InsertData}
    * @static
    */
@@ -57,16 +58,20 @@ class TagsAutocomplete extends BaseAutocomplete {
   /**
    * Create the default lazy loading function for tags.
    *
-   * @returns {TagsItem[]} The default tag items
+   * @returns {TagItem[]} The default tag items
    * @static
    */
   static createDefaultLazy = () => {
-    /** @type {TagsItem[]} */
+    /** @type {TagItem[]} */
     const tagAdditions = [
       // An element can be an array of a string to display and strings to insert before and after
       // the caret.
       ['br', '<br>'],
+
+      // Use .concat() because otherwise the closing </nowiki> would get onto the wiki page and have
+      // undesirable effects
       ['codenowiki', '<code><nowiki>', '</'.concat('nowiki></code>')],
+
       ['hr', '<hr>'],
       ['wbr', '<wbr>'],
       ['gallery', '<gallery>\n', '\n</gallery>'],
@@ -85,14 +90,7 @@ class TagsAutocomplete extends BaseAutocomplete {
     return /** @type {Array<TagsItem>} */ (cd.g.allowedTags)
       .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
       .concat(tagAdditions)
-      .sort((item1, item2) =>
-        (
-          (typeof item1 === 'string' ? item1 : item1[0]) >
-          (typeof item2 === 'string' ? item2 : item2[0])
-        )
-          ? 1
-          : -1
-      );
+      .sort((item1, item2) => ensureArray(item1)[0] > ensureArray(item2)[0] ? 1 : -1);
   };
 
   /**
@@ -120,7 +118,7 @@ class TagsAutocomplete extends BaseAutocomplete {
    * directly with an item parameter or as a bound method where `this.item` contains the tag item.
    *
    * @override
-   * @param {TagsItem} [item] The tag item to transform (optional if called as bound method)
+   * @param {TagItem} [item] The tag item to transform (optional if called as bound method)
    * @returns {import('./tribute/Tribute').InsertData}
    */
   transformItemToInsertData(item) {
@@ -204,7 +202,7 @@ class TagsAutocomplete extends BaseAutocomplete {
   /**
    * Create the default lazy loading function for tags (instance method for backward compatibility).
    *
-   * @returns {() => TagsItem[]} Function that returns the default tag items
+   * @returns {() => TagItem[]} Function that returns the default tag items
    */
   createDefaultLazy() {
     return TagsAutocomplete.createDefaultLazy;
