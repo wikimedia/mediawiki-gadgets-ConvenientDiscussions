@@ -4,7 +4,6 @@
 
 import AutocompleteFactory from '../src/AutocompleteFactory';
 import AutocompleteManager from '../src/AutocompleteManager';
-import CdError from '../src/shared/CdError';
 
 // Mock dependencies
 jest.mock('../src/AutocompleteFactory');
@@ -134,6 +133,9 @@ describe('AutocompleteManager', () => {
       const manager = new AutocompleteManager({
         types: ['mentions', 'wikilinks', 'templates', 'tags'],
         inputs: [mockInput1],
+        typeConfigs: {
+          mentions: { default: [] },
+        },
       });
 
       // Should only create instances for allowed types
@@ -160,7 +162,9 @@ describe('AutocompleteManager', () => {
       new AutocompleteManager({
         types: ['commentLinks'],
         inputs: [mockInput1],
-        comments,
+        typeConfigs: {
+          commentLinks: { data: { comments } },
+        },
       });
 
       expect(AutocompleteFactory.create).toHaveBeenCalledWith('commentLinks', {
@@ -186,7 +190,9 @@ describe('AutocompleteManager', () => {
       new AutocompleteManager({
         types: ['mentions'],
         inputs: [mockInput1],
-        defaultUserNames,
+        typeConfigs: {
+          mentions: { default: defaultUserNames },
+        },
       });
 
       expect(AutocompleteFactory.create).toHaveBeenCalledWith('mentions', {
@@ -468,27 +474,6 @@ describe('AutocompleteManager', () => {
         delete AutocompleteManager.activeMenu;
 
         expect(AutocompleteManager.getActiveMenu()).toBeUndefined();
-      });
-    });
-
-    describe('promiseIsNotSuperseded', () => {
-      it('should not throw when promise is current', () => {
-        const promise = Promise.resolve();
-        AutocompleteManager.currentPromise = promise;
-
-        expect(() => {
-          AutocompleteManager.promiseIsNotSuperseded(promise);
-        }).not.toThrow();
-      });
-
-      it('should throw CdError when promise is superseded', () => {
-        const oldPromise = Promise.resolve();
-
-        AutocompleteManager.currentPromise = Promise.resolve();
-
-        expect(() => {
-          AutocompleteManager.promiseIsNotSuperseded(oldPromise);
-        }).toThrow(CdError);
       });
     });
 

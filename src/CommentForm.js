@@ -2363,8 +2363,10 @@ class CommentForm extends EventEmitter {
     this.autocomplete = new AutocompleteManager({
       types: ['mentions', 'wikilinks', 'templates', 'tags', 'commentLinks'],
       inputs: [this.commentInput],
-      comments: commentsInSection,
-      defaultUserNames,
+      typeConfigs: {
+        mentions: { default: defaultUserNames },
+        commentLinks: { data: { comments: commentsInSection } },
+      },
     });
     this.autocomplete.init();
 
@@ -2372,8 +2374,9 @@ class CommentForm extends EventEmitter {
       this.headlineAutocomplete = new AutocompleteManager({
         types: ['mentions', 'wikilinks', 'tags'],
         inputs: [this.headlineInput],
-        comments: commentsInSection,
-        defaultUserNames,
+        typeConfigs: {
+          mentions: { default: defaultUserNames },
+        },
       });
       this.headlineAutocomplete.init();
     }
@@ -2381,8 +2384,9 @@ class CommentForm extends EventEmitter {
     this.summaryAutocomplete = new AutocompleteManager({
       types: ['mentions', 'wikilinks'],
       inputs: [this.summaryInput],
-      comments: commentsInSection,
-      defaultUserNames,
+      typeConfigs: {
+        mentions: { default: defaultUserNames },
+      },
     });
     this.summaryAutocomplete.init();
   }

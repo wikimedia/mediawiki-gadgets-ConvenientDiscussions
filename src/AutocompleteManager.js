@@ -69,13 +69,11 @@ class AutocompleteManager {
    *   {@link TextInputWidget#cdInsertContent} on the inputs here. This is not essential, so if you
    *   borrow the source code, you can replace it with native
    *   {@link OO.ui.TextInputWidget#insertContent OO.ui.TextInputWidget#insertContent}.
-   * @param {import('./Comment').default[]} [options.comments] List of comments in the section for
-   *   the mentions and comment links autocomplete.
-   * @param {string[]} [options.defaultUserNames] Default list of user names for the mentions
-   *   autocomplete.
+   * @param {Partial<Record<AutocompleteType, object>>} [options.typeConfigs] Configuration objects
+   *   for each autocomplete type, passed to the autocomplete factory when creating instances.
    * @param {boolean} [options.enablePerformanceMonitoring] Whether to enable performance monitoring
    */
-  constructor({ types, inputs, comments, defaultUserNames, enablePerformanceMonitoring = false }) {
+  constructor({ types, inputs, typeConfigs = {}, enablePerformanceMonitoring = false }) {
     this.types = settings.get('autocompleteTypes');
     this.useTemplateData = settings.get('useTemplateData');
 
@@ -104,7 +102,7 @@ class AutocompleteManager {
     this.autocompleteInstances = new Map();
 
     // Create type-specific autocomplete instances
-    this.createAutocompleteInstances(types, comments, defaultUserNames);
+    this.createAutocompleteInstances(types, typeConfigs);
 
     /**
      * {@link https://github.com/zurb/tribute Tribute} object.
@@ -134,22 +132,12 @@ class AutocompleteManager {
    * Create autocomplete instances for the specified types.
    *
    * @param {AutocompleteType[]} types Types to create instances for
-   * @param {import('./Comment').default[]} [comments] Comments for comment links autocomplete
-   * @param {string[]} [defaultUserNames] Default user names for mentions autocomplete
+   * @param {Partial<Record<AutocompleteType, object>>} typeConfigs Configuration objects for each type
    * @private
    */
-  createAutocompleteInstances(types, comments = [], defaultUserNames = []) {
+  createAutocompleteInstances(types, typeConfigs) {
     types.forEach((type) => {
-      /** @type {import('./AutocompleteManager').AutocompleteConfigShared} */
-      const config = {};
-
-      // Set type-specific configuration
-      if (type === 'mentions') {
-        config.default = defaultUserNames;
-      } else if (type === 'commentLinks') {
-        config.data = { comments };
-      }
-
+      const config = typeConfigs[type] || {};
       this.autocompleteInstances.set(type, AutocompleteFactory.create(type, config));
     });
   }
