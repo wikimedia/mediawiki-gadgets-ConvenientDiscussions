@@ -3380,8 +3380,11 @@ class CommentForm extends EventEmitter {
         // FIXME: fix behavior for sections added with no headline (that are, in fact, comments
         // added to the preceding section)
         this.isMode('addSection') ||
-        (!this.useTopicSubscription &&
-          (this.isMode('addSubsection') || this.isSectionOpeningCommentEdited()))
+
+        (
+          !this.useTopicSubscription &&
+          (this.isMode('addSubsection') || this.isSectionOpeningCommentEdited())
+        )
       ) {
         let rawHeadline = this.headlineInput?.getValue().trim();
         if (!rawHeadline && !this.isSectionOpeningCommentEdited()) {

@@ -35,6 +35,11 @@ declare global {
    * Adds 1 to a numeric type
    */
   type AddOne<N extends number> = [...StringTuple<N>, unknown]['length'];
+
+  type MixinType<Mixin extends Constructor> = {
+    new(...args: any[]): InstanceType<Mixin>;
+    prototype: InstanceType<Mixin>;
+  };
 }
 
 export {};

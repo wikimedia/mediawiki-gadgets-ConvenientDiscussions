@@ -95,7 +95,8 @@ let cachedUserInfoRequest;
  */
 export function handleApiReject(codeOrArr, response) {
   let code;
-  // Native promises support only one parameter when `reject()`ing, so when we throw them,
+
+  // Native promises support only one parameter when `reject()`ing, so when we throw it while
   // rethrowing MediaWiki API's error, we pass it as a 2-tuple.
   if (Array.isArray(codeOrArr)) {
     [code, response] = codeOrArr;

@@ -16,7 +16,8 @@ class MentionsAutocomplete extends BaseAutocomplete {
   /**
    * Create a mentions autocomplete instance.
    *
-   * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration options
+   * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration
+   *   options
    */
   constructor(config = {}) {
     super(config);

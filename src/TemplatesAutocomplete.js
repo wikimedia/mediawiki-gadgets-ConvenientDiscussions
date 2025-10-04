@@ -66,7 +66,7 @@ class TemplatesAutocomplete extends BaseAutocomplete {
    */
   async makeApiRequest(text) {
     return BaseAutocomplete.createDelayedPromise(async (resolve) => {
-      const response = await cd
+      const response = /** @type {import('./AutocompleteManager').OpenSearchResults} */ (await cd
         .getApi(BaseAutocomplete.apiConfig)
         .get({
           action: 'opensearch',
@@ -74,18 +74,20 @@ class TemplatesAutocomplete extends BaseAutocomplete {
           redirects: 'return',
           limit: 10,
         })
-        .catch(handleApiReject);
+        .catch(handleApiReject));
 
       BaseAutocomplete.promiseIsNotSuperseded(BaseAutocomplete.currentPromise);
 
-      resolve(response[1]
-        .filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
-        .map((name) => text.startsWith(':') ? name : name.slice(name.indexOf(':') + 1))
-        .map((name) => (
-          mw.config.get('wgCaseSensitiveNamespaces').includes(10)
-            ? name
-            : this.useOriginalFirstCharCase(name, text)
-        )));
+      resolve(
+        response[1]
+          .filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
+          .map((name) => text.startsWith(':') ? name : name.slice(name.indexOf(':') + 1))
+          .map((name) =>
+            mw.config.get('wgCaseSensitiveNamespaces').includes(10)
+              ? name
+              : this.useOriginalFirstCharCase(name, text)
+          )
+      );
     });
   }
 

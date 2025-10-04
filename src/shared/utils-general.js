@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/valid-types */
 /**
  * General utilities. Some of the utilities are parts of the
  * {@link convenientDiscussions.api convenientDiscussions.api} object.
@@ -19,7 +20,7 @@ import cd from './cd';
  * @param {string} [options.optionalText] Optional text added to the end of the summary if there is
  *   enough space. Ignored if there is not.
  * @param {string} [options.section] Section name.
- * @param {boolean} [options.addPostfix=true] Whether to add `cd.g.summaryPostfix` to the summary.
+ * @param {boolean} [options.addPostfix] Whether to add `cd.g.summaryPostfix` to the summary.
  * @returns {string}
  */
 export function buildEditSummary({ text, optionalText, section, addPostfix = true }) {
@@ -75,7 +76,7 @@ export function unique(el, i, arr) {
  * browser styles. Optionally, it can treat text nodes as such.
  *
  * @param {NodeLike} node
- * @param {boolean} [considerTextNodesAsInline=false]
+ * @param {boolean} [considerTextNodesAsInline]
  * @returns {?boolean}
  */
 export function isInline(node, considerTextNodesAsInline = false) {
@@ -166,22 +167,6 @@ export function isProbablyTalkPage(pageName, namespaceNumber) {
 }
 
 /**
- * Check by an edit summary if an edit is probably an edit of a comment.
- *
- * @param {string} summary
- * @returns {boolean}
- */
-export function isCommentEdit(summary) {
-  return Boolean(
-    summary &&
-    (
-      summary.includes(`${cd.s('es-edit')} ${cd.s('es-reply-genitive')}`) ||
-      summary.includes(`${cd.s('es-edit')} ${cd.s('es-addition-genitive')}`)
-    )
-  );
-}
-
-/**
  * Check by an edit summary if an edit is probably an undo.
  *
  * @param {string} summary
@@ -225,7 +210,7 @@ export function definedAndNotNull(el) {
  * @template T
  * @param {T[]} arr
  * @param {number} startIndex
- * @param {boolean} [reverse=false]
+ * @param {boolean} [reverse]
  * @returns {T[]}
  */
 export function reorderArray(arr, startIndex, reverse = false) {
@@ -279,7 +264,7 @@ export function removeDoubleSpaces(string) {
  *
  * @param {string} string
  * @param {number} offset
- * @param {boolean} [backwards=false]
+ * @param {boolean} [backwards]
  * @returns {string}
  * @author Bartosz Dziewoński <matma.rex@gmail.com>
  * @license MIT
@@ -311,14 +296,14 @@ export function phpCharToUpper(char) {
 
 /**
  * Transform the first letter of a string to upper case, for example: `'wikilink'` → `'Wikilink'`.
- * Do it in PHP, not JavaScript, fashion to match the MediaWiki behavior, see
+ * Do it in PHP fashion, not JavaScript, to match the MediaWiki behavior, see
  * {@link https://phabricator.wikimedia.org/T141723#2513800}.
  *
  * @param {string} string
  * @returns {string}
  */
 export function ucFirst(string) {
-  let firstChar = charAt(string, 0);
+  const firstChar = charAt(string, 0);
   return phpCharToUpper(firstChar) + string.slice(firstChar.length);
 }
 
@@ -359,6 +344,7 @@ export function mergeRegexps(arr) {
  */
 export async function getNativePromiseState(promise) {
   const obj = {};
+  // eslint-disable-next-line @typescript-eslint/await-thenable
   return Promise.race([promise, obj]).then(
     (value) => value === obj ? 'pending' : 'resolved',
     () => 'rejected'
@@ -434,7 +420,7 @@ export function areObjectsEqual(object1, object2) {
  * after →/← in edit summaries.
  *
  * @param {string} text Text to alter.
- * @param {boolean} [replaceWithSpace=false] Replace direction marks with a space instead of
+ * @param {boolean} [replaceWithSpace] Replace direction marks with a space instead of
  *   removing.
  * @returns {string}
  */
@@ -451,7 +437,7 @@ export function removeDirMarks(text, replaceWithSpace = false) {
  *
  * @template {{ [key: ValidKey]: any }} T
  * @param {T} obj
- * @param {string[]} [allowedFuncNames=[]] Names of the properties that should be passed to the
+ * @param {string[]} [allowedFuncNames] Names of the properties that should be passed to the
  *   worker despite their values are functions (they are passed in a stringified form).
  * @returns {T}
  */
@@ -516,7 +502,7 @@ function calculateArrayOverlap(arr1, arr2) {
  *
  * @param {string} s1
  * @param {string} s2
- * @param {boolean} [caseInsensitive=false]
+ * @param {boolean} [caseInsensitive]
  * @returns {number}
  */
 export function calculateWordOverlap(s1, s2, caseInsensitive = false) {
@@ -579,7 +565,7 @@ export function ensureArray(value) {
  * Check whether the provided node is a heading node (`.mw-heading` or `<h1>` - `<h6>`).
  *
  * @param {NodeLike} node
- * @param {boolean} [onlyHElements=false]
+ * @param {boolean} [onlyHElements]
  * @returns {boolean}
  */
 export function isHeadingNode(node, onlyHElements = false) {
@@ -714,26 +700,29 @@ export function isMetadataNode(node) {
  */
 export function decodeHtmlEntities(string) {
   // eslint-disable-next-line unicorn/prefer-includes
-  if (string.indexOf('&') === -1) {
+  if (!string.includes('&')) {
     return string;
-  } else {
+  }
     let result = string;
     // eslint-disable-next-line unicorn/prefer-includes
-    if (result.indexOf('&#38;amp;') !== -1) {
+    if (result.includes('&#38;amp;')) {
       result = result.replace(/&#38;amp;/g, '&amp;amp;')
     }
     // eslint-disable-next-line unicorn/prefer-includes
-    if (result.indexOf('&#') !== -1) {
+    if (result.includes('&#')) {
       // eslint-disable-next-line unicorn/prefer-code-point
-      result = result.replace(/&#(\d+);/g, (s, code) => String.fromCharCode(code));
+      result = result.replace(
+        /&#(\d+);/g,
+        /** @type {ReplaceCallback<1>} */ (_s, code) => String.fromCodePoint(Number(code))
+      );
     }
     // eslint-disable-next-line unicorn/prefer-includes
-    if (result.indexOf('&') !== -1) {
+    if (result.includes('&')) {
       result = /** @type {string} */ (html_entity_decode(result));
     }
 
     return result;
-  }
+
 }
 
 /**
@@ -879,7 +868,7 @@ export function parseWikiUrl(url) {
   let hostname = cd.g.serverName;
   let fragment;
   let pageName = url
-    .replace(/^(?:https?:)?\/\/([^/]+)/, (s, m1) => {
+    .replace(/^(?:https?:)?\/\/([^/]+)/, /** @type {ReplaceCallback<1>} */ (_s, m1) => {
       hostname = m1;
 
       return '';
@@ -891,7 +880,7 @@ export function parseWikiUrl(url) {
     .replace(cd.g.articlePathRegexp, '$1')
     .replace(cd.g.startsWithScriptTitleRegexp, '')
     .replace(/[&?]action=edit.*/, '')
-    .replace(/#(.*)/, (s, m1) => {
+    .replace(/#(.*)/, /** @type {ReplaceCallback<1>} */ (_s, m1) => {
       fragment = m1;
 
       return '';
@@ -996,6 +985,22 @@ export function typedKeysOf(obj) {
   // https://stackoverflow.com/questions/55012174/why-doesnt-object-keys-return-a-keyof-type-in-typescript
   return /** @type {(keyof T)[]} */ (Object.keys(obj));
 }
+
+/**
+ * Returns an array of key-value pairs from an object, preserving the specific
+ * types of the keys (e.g. string literal unions) instead of widening to string.
+ * Only includes properties that actually exist on the object (filters out optional/undefined properties).
+ *
+ * @template {object} T
+ * @param {T} obj The object to get entries from
+ * @returns {{ [K in keyof T]-?: [K, NonNullable<T[K]>] }[keyof T][]}
+ */
+export function typedEntries(obj) {
+  return /** @type {{ [K in keyof T]-?: [K, NonNullable<T[K]>] }[keyof T][]} */ (
+    Object.entries(obj)
+  );
+}
+
 
 /**
  * @template {AnyByKey} T

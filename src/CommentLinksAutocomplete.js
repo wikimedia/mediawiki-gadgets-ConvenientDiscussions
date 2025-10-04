@@ -13,6 +13,14 @@ import { removeDoubleSpaces, underlinesToSpaces } from './shared/utils-general';
  */
 
 /**
+ * @typedef {object} ConfigExtension
+ * @property {object} [config] Configuration object
+ * @property {object} [config.data] Configuration object
+ * @property {import('./Comment').default[]} [config.data.comments] List of comments for
+ *   autocomplete
+ */
+
+/**
  * Autocomplete class for comment and section links. Handles [[# trigger for linking to comments
  * and sections on the current page.
  */
@@ -20,8 +28,8 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   /**
    * Create a CommentLinksAutocomplete instance.
    *
-   * @param {object} [config] Configuration object
-   * @param {import('./Comment').default[]} [config.comments] List of comments for autocomplete
+   * @param {import('./AutocompleteManager').AutocompleteConfigShared & ConfigExtension} [config]
+   *   Configuration object
    */
   constructor(config = {}) {
     super(config);

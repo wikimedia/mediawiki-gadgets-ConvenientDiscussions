@@ -17,15 +17,11 @@ class WikilinksAutocomplete extends BaseAutocomplete {
   /**
    * Create a WikilinksAutocomplete instance.
    *
-   * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration options
+   * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration
+   *   options
    */
   constructor(config = {}) {
-    // Set default configuration for wikilinks
-    const defaultConfig = {
-      transformItemToInsertData: WikilinksAutocomplete.prototype.getInsertDataFromItem,
-    };
-
-    super({ ...defaultConfig, ...config });
+    super(config);
   }
 
   /**
@@ -102,7 +98,7 @@ class WikilinksAutocomplete extends BaseAutocomplete {
     }
 
     return BaseAutocomplete.createDelayedPromise(async (resolve) => {
-      const response = await cd
+      const response = /** @type {import('./AutocompleteManager').OpenSearchResults} */ (await cd
         .getApi(BaseAutocomplete.apiConfig)
         .get({
           action: 'opensearch',
@@ -110,25 +106,27 @@ class WikilinksAutocomplete extends BaseAutocomplete {
           redirects: 'return',
           limit: 10,
         })
-        .catch(handleApiReject);
+        .catch(handleApiReject));
 
       BaseAutocomplete.promiseIsNotSuperseded(BaseAutocomplete.currentPromise);
 
-      resolve(response[1].map((/** @type {string} */ name) => {
-        if (mw.config.get('wgCaseSensitiveNamespaces').length) {
-          const title = mw.Title.newFromText(name);
-          if (
-            !title ||
-            !mw.config.get('wgCaseSensitiveNamespaces').includes(title.getNamespaceId())
-          ) {
+      resolve(
+        response[1].map((/** @type {string} */ name) => {
+          if (mw.config.get('wgCaseSensitiveNamespaces').length) {
+            const title = mw.Title.newFromText(name);
+            if (
+              !title ||
+              !mw.config.get('wgCaseSensitiveNamespaces').includes(title.getNamespaceId())
+            ) {
+              name = this.useOriginalFirstCharCase(name, text);
+            }
+          } else {
             name = this.useOriginalFirstCharCase(name, text);
           }
-        } else {
-          name = this.useOriginalFirstCharCase(name, text);
-        }
 
-        return name.replace(/^/, colonPrefix ? ':' : '');
-      }));
+          return name.replace(/^/, colonPrefix ? ':' : '');
+        })
+      );
     });
   }
 

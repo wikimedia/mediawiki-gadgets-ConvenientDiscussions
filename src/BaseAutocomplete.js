@@ -409,14 +409,14 @@ class BaseAutocomplete {
    */
   static async makeOpenSearchRequest(params) {
     return this.createDelayedPromise(async (resolve) => {
-      const response = await cd
+      const response = /** @type {import('./AutocompleteManager').OpenSearchResults} */ (await cd
         .getApi(this.apiConfig)
         .get({
           action: 'opensearch',
           limit: 10,
           ...params,
         })
-        .catch(handleApiReject);
+        .catch(handleApiReject));
 
       if (this.currentPromise) {
         this.promiseIsNotSuperseded(this.currentPromise);

@@ -9,7 +9,7 @@ import bootController from './bootController';
 import cd from './cd';
 import pageRegistry from './pageRegistry';
 import settings from './settings';
-import { definedAndNotNull, generatePageNamePattern, isCommentEdit, isProbablyTalkPage, isUndo, removeDirMarks, spacesToUnderlines } from './shared/utils-general';
+import { definedAndNotNull, generatePageNamePattern, isProbablyTalkPage, isUndo, removeDirMarks, spacesToUnderlines } from './shared/utils-general';
 import { parseTimestamp } from './shared/utils-timestamp';
 import { initDayjs } from './utils-window';
 
@@ -456,6 +456,22 @@ function processWatchlist($content) {
 }
 
 /**
+ * Check by an edit summary if an edit is probably an edit of a comment.
+ *
+ * @param {string} summary
+ * @returns {boolean}
+ */
+function isCommentEdit(summary) {
+  return Boolean(
+    summary &&
+    (
+      summary.includes(`${cd.s('es-edit')} ${cd.s('es-reply-genitive')}`) ||
+      summary.includes(`${cd.s('es-edit')} ${cd.s('es-addition-genitive')}`)
+    )
+  );
+}
+
+/**
  * Add comment links to a contributions page.
  *
  * @param {JQuery} $content
@@ -468,7 +484,7 @@ function processContributions($content) {
   [
     ...$content[0].querySelectorAll('.mw-contributions-list > li:not(.mw-tag-mw-new-redirect)'),
   ].forEach((line) => {
-    const linkElement = /** @type {HTMLAnchorElement} */ (
+    const linkElement = /** @type {HTMLAnchorElement | null} */ (
       line.querySelector('.mw-contributions-title')
     );
     if (!linkElement || isWikidataItem(linkElement)) return;

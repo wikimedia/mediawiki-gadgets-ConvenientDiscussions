@@ -3,7 +3,7 @@ import AutocompletePerformanceMonitor from './AutocompletePerformanceMonitor';
 import cd from './cd';
 import settings from './settings';
 import CdError from './shared/CdError';
-import { defined, sleep, ucFirst } from './shared/utils-general';
+import { typedEntries } from './shared/utils-general';
 import Tribute from './tribute/Tribute';
 import { handleApiReject } from './utils-api';
 
@@ -140,6 +140,7 @@ class AutocompleteManager {
    */
   createAutocompleteInstances(types, comments = [], defaultUserNames = []) {
     types.forEach((type) => {
+      /** @type {import('./AutocompleteManager').AutocompleteConfigShared} */
       const config = {};
 
       // Set type-specific configuration
@@ -211,7 +212,7 @@ class AutocompleteManager {
 
     for (const [type, instance] of this.autocompleteInstances) {
       collections.push(
-        /** @type {import('./tribute/Tribute').TributeCollection<import('./BaseAutocomplete').Result>} */ ({
+        /** @type {import('./tribute/Tribute').TributeCollection<import('./BaseAutocomplete').Result>} */({
           lookup: 'label',
           label: instance.getLabel(),
           trigger: instance.getTrigger(),
@@ -327,7 +328,7 @@ class AutocompleteManager {
       .insertContent(paramsString)
 
       // `input.getRange().to` is the current caret index
-      .selectRange(/** @type {number} */ (input.getRange().to || 0) + firstValueIndex - 1)
+      .selectRange(/** @type {number} */(input.getRange().to || 0) + firstValueIndex - 1)
 
       .popPending();
   }
@@ -354,94 +355,6 @@ class AutocompleteManager {
   }
 
   /**
-   * Check if the specified promise is not the current promise in order to detect (pretty frequent)
-   * occasions when a new request was already made and we should abort this one.
-   *
-   * @param {Promise<any>} promise
-   * @throws {CdError}
-   */
-  static promiseIsNotSuperseded(promise) {
-    if (promise !== this.currentPromise) {
-      throw new CdError();
-    }
-  }
-
-  /**
-   * Get a list of 10 user names matching the specified search text. User names are sorted as
-   * {@link https://www.mediawiki.org/wiki/API:Opensearch OpenSearch} sorts them. Only users with a
-   * talk page existent are included. Redirects are resolved.
-   *
-   * Reuses the existing request if available.
-   *
-   * @param {string} text
-   * @returns {Promise.<string[]>}
-   * @throws {CdError}
-   */
-  static getRelevantUserNames(text) {
-    text = ucFirst(text);
-    // eslint-disable-next-line no-async-promise-executor
-    const promise = new Promise(async (resolve, reject) => {
-      try {
-        await sleep(this.delay);
-        AutocompleteManager.promiseIsNotSuperseded(promise);
-
-        // First, try to use the search to get only users that have talk pages. Most legitimate
-        // users do, while spammers don't.
-        const response = /** @type {OpenSearchResults} */ (
-          await cd
-            .getApi(AutocompleteManager.apiConfig)
-            .get({
-              action: 'opensearch',
-              search: text,
-              namespace: 3,
-              redirects: 'resolve',
-              limit: 10,
-            })
-            .catch(handleApiReject)
-        );
-        AutocompleteManager.promiseIsNotSuperseded(promise);
-
-        const users = response[1]
-          .map((name) => (name.match(cd.g.userNamespacesRegexp) || [])[1])
-          .filter(defined)
-          .filter((name) => !name.includes('/'));
-
-        if (users.length) {
-          resolve(users);
-
-          return;
-        }
-
-        // If we didn't succeed with search, try the entire users database.
-        const allUsersResponse =
-          /** @type {ApiResponseQuery<ApiResponseQueryContentAllUsers>} */ (
-            await cd
-              .getApi(AutocompleteManager.apiConfig)
-              .get({
-                action: 'query',
-                list: 'allusers',
-                auprefix: text,
-              })
-              .catch(handleApiReject)
-          );
-        AutocompleteManager.promiseIsNotSuperseded(promise);
-
-        if (!allUsersResponse.query) {
-          throw new CdError();
-        }
-
-        resolve(allUsersResponse.query.allusers.map((user) => user.name));
-      } catch (e) {
-        reject(e);
-      }
-    });
-
-    this.currentPromise = promise;
-
-    return promise;
-  }
-
-  /**
    * Use the original first character case if the result is not a redirect.
    *
    * @param {string} result
@@ -459,107 +372,6 @@ class AutocompleteManager {
     }
 
     return result;
-  }
-
-  /**
-   * Get a list of 10 page names matching the specified search text. Page names are sorted as
-   * {@link https://www.mediawiki.org/wiki/API:Opensearch OpenSearch} sorts them. Redirects are
-   * resolved.
-   *
-   * Reuses the existing request if available.
-   *
-   * @param {string} text
-   * @returns {Promise.<string[]>}
-   * @throws {CdError}
-   */
-  static getRelevantPageNames(text) {
-    let colonPrefix = false;
-    if (cd.g.colonNamespacesPrefixRegexp.test(text)) {
-      colonPrefix = true;
-      text = text.slice(1);
-    }
-
-    // eslint-disable-next-line no-async-promise-executor
-    const promise = new Promise(async (resolve, reject) => {
-      try {
-        await sleep(this.delay);
-        AutocompleteManager.promiseIsNotSuperseded(promise);
-
-        const response = /** @type {OpenSearchResults} */ (
-          await cd
-            .getApi(AutocompleteManager.apiConfig)
-            .get({
-              action: 'opensearch',
-              search: text,
-              redirects: 'resolve',
-              limit: 10,
-            })
-            .catch(handleApiReject)
-        );
-        AutocompleteManager.promiseIsNotSuperseded(promise);
-
-        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-        const results = response[1]
-          .map((result) => AutocompleteManager.useOriginalFirstCharCase(result, text))
-          .map((result) => (colonPrefix ? ':' + result : result));
-
-        resolve(results);
-      } catch (e) {
-        reject(e);
-      }
-    });
-
-    this.currentPromise = promise;
-
-    return promise;
-  }
-
-  /**
-   * Get a list of 10 template names matching the specified search text. Template names are sorted
-   * as {@link https://www.mediawiki.org/wiki/API:Opensearch OpenSearch} sorts them. Redirects are
-   * resolved.
-   *
-   * Reuses the existing request if available.
-   *
-   * @param {string} text
-   * @returns {Promise.<string[]>}
-   * @throws {CdError}
-   */
-  static getRelevantTemplateNames(text) {
-    // eslint-disable-next-line no-async-promise-executor
-    const promise = new Promise(async (resolve, reject) => {
-      try {
-        await sleep(this.delay);
-        AutocompleteManager.promiseIsNotSuperseded(promise);
-
-        const response = /** @type {OpenSearchResults} */ (
-          await cd
-            .getApi(AutocompleteManager.apiConfig)
-            .get({
-              action: 'opensearch',
-              search: text,
-              namespace: 10,
-              redirects: 'resolve',
-              limit: 10,
-            })
-            .catch(handleApiReject)
-        );
-        AutocompleteManager.promiseIsNotSuperseded(promise);
-
-        // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-        const results = response[1]
-          .map((result) => result.replace(/^Template:/, ''))
-          .map((result) => AutocompleteManager.useOriginalFirstCharCase(result, text));
-
-        resolve(results);
-      } catch (e) {
-        reject(e);
-      }
-    });
-
-    this.currentPromise = promise;
-
-    return promise;
   }
 
   /**
@@ -630,13 +442,14 @@ class AutocompleteManager {
   /**
    * Prefetch common queries for all instances.
    *
-   * @param {object} commonQueriesByType Object mapping type to array of common queries
+   * @param {Record<AutocompleteType, string[]>} commonQueriesByType Object mapping type to array of
+   *   common queries
    * @returns {Promise<void>}
    */
   async prefetchCommonQueries(commonQueriesByType) {
     const promises = [];
 
-    for (const [type, queries] of Object.entries(commonQueriesByType)) {
+    for (const [type, queries] of typedEntries(commonQueriesByType)) {
       const instance = this.autocompleteInstances.get(type);
       if (instance?.prefetchCommonQueries) {
         promises.push(instance.prefetchCommonQueries(queries));
