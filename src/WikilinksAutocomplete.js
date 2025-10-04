@@ -22,20 +22,10 @@ class WikilinksAutocomplete extends BaseAutocomplete {
   constructor(config = {}) {
     // Set default configuration for wikilinks
     const defaultConfig = {
-      transformItemToInsertData: WikilinksAutocomplete.prototype.transformItemToInsertData,
+      transformItemToInsertData: WikilinksAutocomplete.prototype.getInsertDataFromItem,
     };
 
     super({ ...defaultConfig, ...config });
-  }
-
-  /**
-   * Static configuration for wikilinks autocomplete.
-   *
-   * @returns {import('./AutocompleteManager').AutocompleteConfigShared}
-   * @static
-   */
-  static getConfig() {
-    return {};
   }
 
   /**
@@ -43,7 +33,6 @@ class WikilinksAutocomplete extends BaseAutocomplete {
    *
    * @param {string} item The page name to transform
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
-   * @static
    */
   static transformItemToInsertData(item) {
     return {
@@ -151,7 +140,7 @@ class WikilinksAutocomplete extends BaseAutocomplete {
    * @param {string} [item] The page name to transform (optional if called as bound method)
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
    */
-  transformItemToInsertData(item) {
+  getInsertDataFromItem(item) {
     // Support both direct calls (with parameter) and bound calls (using this.item)
 
     return WikilinksAutocomplete.transformItemToInsertData(item === undefined ? this.item : item);

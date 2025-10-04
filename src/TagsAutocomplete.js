@@ -17,27 +17,7 @@ class TagsAutocomplete extends BaseAutocomplete {
    * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
-    // Set default configuration for tags
-    const defaultConfig = {
-      default: undefined,
-      defaultLazy: TagsAutocomplete.createDefaultLazy,
-      transformItemToInsertData: TagsAutocomplete.prototype.transformItemToInsertData,
-    };
-
-    super({ ...defaultConfig, ...config });
-  }
-
-  /**
-   * Static configuration for tags autocomplete.
-   *
-   * @returns {import('./AutocompleteManager').AutocompleteConfigShared}
-   * @static
-   */
-  static getConfig() {
-    return {
-      default: undefined,
-      defaultLazy: TagsAutocomplete.createDefaultLazy,
-    };
+    super(config);
   }
 
   /**
@@ -45,7 +25,6 @@ class TagsAutocomplete extends BaseAutocomplete {
    *
    * @param {TagItem} item The tag item to transform
    * @returns {import('./tribute/Tribute').InsertData}
-   * @static
    */
   static transformItemToInsertData(item) {
     return {
@@ -59,9 +38,9 @@ class TagsAutocomplete extends BaseAutocomplete {
    * Create the default lazy loading function for tags.
    *
    * @returns {TagItem[]} The default tag items
-   * @static
+   * @override
    */
-  static createDefaultLazy = () => {
+  defaultLazy = () => {
     /** @type {TagItem[]} */
     const tagAdditions = [
       // An element can be an array of a string to display and strings to insert before and after
@@ -87,7 +66,7 @@ class TagsAutocomplete extends BaseAutocomplete {
       ['templatestyles', '<templatestyles src="', '" />'],
     ];
 
-    return /** @type {Array<TagsItem>} */ (cd.g.allowedTags)
+    return /** @type {Array<TagItem>} */ (cd.g.allowedTags)
       .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
       .concat(tagAdditions)
       .sort((item1, item2) => ensureArray(item1)[0] > ensureArray(item2)[0] ? 1 : -1);
@@ -111,21 +90,6 @@ class TagsAutocomplete extends BaseAutocomplete {
    */
   getTrigger() {
     return '<';
-  }
-
-  /**
-   * Transform a tag item into insert data for the Tribute library. This method can be called
-   * directly with an item parameter or as a bound method where `this.item` contains the tag item.
-   *
-   * @override
-   * @param {TagItem} [item] The tag item to transform (optional if called as bound method)
-   * @returns {import('./tribute/Tribute').InsertData}
-   */
-  transformItemToInsertData(item) {
-    // Support both direct calls (with parameter) and bound calls (using this.item)
-    const actualItem = item === undefined ? this.item : item;
-
-    return TagsAutocomplete.transformItemToInsertData(actualItem);
   }
 
   /**
@@ -179,9 +143,8 @@ class TagsAutocomplete extends BaseAutocomplete {
     const regexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
 
     callback(
-      this.processResults(
-        this.default.filter((tag) => regexp.test(Array.isArray(tag) ? tag[0] : tag)),
-        this
+      this.getResultsFromItems(
+        this.default.filter((tag) => regexp.test(Array.isArray(tag) ? tag[0] : tag))
       )
     );
   }
@@ -197,15 +160,6 @@ class TagsAutocomplete extends BaseAutocomplete {
       keepAsEnd: /^>/,
       replaceEnd: false,
     };
-  }
-
-  /**
-   * Create the default lazy loading function for tags (instance method for backward compatibility).
-   *
-   * @returns {() => TagItem[]} Function that returns the default tag items
-   */
-  createDefaultLazy() {
-    return TagsAutocomplete.createDefaultLazy;
   }
 }
 

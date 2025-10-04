@@ -36,13 +36,15 @@ This is a JavaScript project with type checking supplied by TypeScript through t
 * Use 2 spaces for indentation.
 * Use single quotes for strings.
 * Code comments should have one empty line before them.
-* When using inline code comments, place 2 spaces before them.
+* Max line length is 100.
+* When adding inline comments, place 2 spaces before them: `expression;  // Comment`.
 
 ## JSDoc code style
 
 * Refrain from fixing type errors by changing types to `any`. Better leave the problem unresolved than resort to `any`.
 * Don't use `Function` as a type. Indicate the function signature or use `AnyFunction` to indicate a generic function (`(...args: any) => any`).
 * Don't use the `object` type when you know a more precise type is known. If that type is now defined, define it with `@typedef` and use it.
+* Don't use the `@static` tag.
 * Instead of defining JSDoc types in each file independently, aim to reuse types by importing them with `import('path').Type` from one file deemed the most appropriate to hold it.
 * Don't put "-" between the property name and its description.
 * Use `Type[]`, not `Array<Type>`.

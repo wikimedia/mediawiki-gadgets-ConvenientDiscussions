@@ -65,7 +65,7 @@ class AutocompleteCache {
    * Get an item from the cache.
    *
    * @param {string} key Cache key
-   * @returns {any[] | null} Cached data or null if not found
+   * @returns {any[] | undefined} Cached data or null if not found
    */
   get(key) {
     const entry = this.cache.get(key);
@@ -76,7 +76,7 @@ class AutocompleteCache {
         this.updateHitRate();
       }
 
-      return null;
+      return;
     }
 
     // Check if entry has expired
@@ -88,7 +88,7 @@ class AutocompleteCache {
         this.updateHitRate();
       }
 
-      return null;
+      return;
     }
 
     // Update access information

@@ -1,8 +1,11 @@
 import CdError from './shared/CdError';
 
 /**
+ * @typedef {'mentions' | 'commentLinks' | 'wikilinks' | 'templates' | 'tags'} AutocompleteType
+ */
+
+/**
  * @import {AutocompleteConfigShared} from './AutocompleteManager';
- * @import {AutocompleteType} from './AutocompleteManager';
  */
 
 /**

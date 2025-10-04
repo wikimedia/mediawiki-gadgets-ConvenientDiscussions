@@ -25,7 +25,12 @@ import { handleApiReject } from './utils-api';
 
 /**
  * @template {Item} T
- * @typedef {Parameters<Exclude<import('./tribute/Tribute').TributeCollectionSpecific<T>['values'], T[]>>[1]} ProcessResults
+ * @typedef {Parameters<
+ *   Exclude<
+ *     import('./tribute/Tribute').TributeCollectionSpecific<import('./BaseAutocomplete').Result<T>>['values'],
+ *     import('./BaseAutocomplete').Result<T>[]
+ *   >
+ * >[1]} ProcessResults
  */
 
 /**
@@ -42,11 +47,16 @@ import { handleApiReject } from './utils-api';
  */
 
 /**
- * Autocomplete manager class that coordinates type-specific autocomplete instances.
- * This class replaces the monolithic Autocomplete class with a cleaner architecture
- * that delegates to specialized autocomplete classes for each type.
+ * Autocomplete manager class that coordinates type-specific autocomplete instances. This class
+ * replaces the monolithic Autocomplete class with a cleaner architecture that delegates to
+ * specialized autocomplete classes for each type.
  */
 class AutocompleteManager {
+  /**
+   * Maximum number of displayed autocomplete items.
+   */
+  itemLimit = 10;
+
   /**
    * Create an autocomplete manager instance. An instance is a set of settings and inputs to which
    * these settings apply.
@@ -104,7 +114,7 @@ class AutocompleteManager {
     this.tribute = new Tribute({
       collection: this.getCollections(),
       allowSpaces: true,
-      menuItemLimit: 10,
+      menuItemLimit: this.itemLimit,
       noMatchTemplate: () => null,
       containerClass: 'tribute-container cd-autocompleteContainer',
       replaceTextSuffix: '',
@@ -201,27 +211,22 @@ class AutocompleteManager {
 
     for (const [type, instance] of this.autocompleteInstances) {
       collections.push(
-        /** @type {import('./tribute/Tribute').TributeCollection} */ ({
+        /** @type {import('./tribute/Tribute').TributeCollection<import('./BaseAutocomplete').Result>} */ ({
           lookup: 'label',
           label: instance.getLabel(),
           trigger: instance.getTrigger(),
           searchOpts: { skip: true },
-          selectTemplate: (/** @type {any} */ item, /** @type {any} */ event) => {
-            if (item) {
+          selectTemplate: (result, event) => {
+            if (result) {
               // Handle special template data insertion for templates
-              if (
-                type === 'templates' &&
-                this.useTemplateData &&
-                event?.shiftKey &&
-                !event?.altKey
-              ) {
+              if (type === 'templates' && this.useTemplateData && event.shiftKey && !event.altKey) {
                 const input = /** @type {import('./TextInputWidget').default} */ (
                   /** @type {HTMLElement} */ (this.tribute.current.element).cdInput
                 );
-                setTimeout(() => this.insertTemplateData(item, input));
+                setTimeout(() => this.insertTemplateData(result, input));
               }
 
-              return item.original.transform?.() || '';
+              return result.original.transform?.(result.original) || '';
             }
 
             return '';
@@ -232,7 +237,7 @@ class AutocompleteManager {
 
             try {
               // Check if result will come from cache
-              const cacheHit = instance.handleCache(text) !== null;
+              const cacheHit = instance.handleCache(text) !== undefined;
 
               await instance.getValues(text, (/** @type {any[]} */ results) => {
                 // End performance monitoring
@@ -262,11 +267,11 @@ class AutocompleteManager {
   /**
    * Get autocomplete data for a template.
    *
-   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Result<string>>} item
+   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Result<string>>} result
    * @param {import('./TextInputWidget').default} input
    * @returns {Promise<void>}
    */
-  async insertTemplateData(item, input) {
+  async insertTemplateData(result, input) {
     input
       .setDisabled(true)
       .pushPending();
@@ -276,7 +281,7 @@ class AutocompleteManager {
     try {
       response = await cd.getApi(AutocompleteManager.apiConfig).get({
         action: 'templatedata',
-        titles: `Template:${item.original.label}`,
+        titles: `Template:${result.original.label}`,
         redirects: true,
       }).catch(handleApiReject);
       if (!Object.keys(response.pages).length) {
@@ -564,7 +569,7 @@ class AutocompleteManager {
    * @property {AutocompleteType[]} manager.types
    * @property {boolean} manager.monitoringEnabled
    * @property {TypeByKey<import('./BaseAutocomplete').PerformanceMetrics>} instances
-   * @property {undefined} monitor
+   * @property {import('./AutocompletePerformanceMonitor').PerformanceSummary} [monitor]
    */
 
   /**
@@ -573,7 +578,7 @@ class AutocompleteManager {
    * @returns {CombinedPerformanceMetrics} Combined performance metrics
    */
   getPerformanceMetrics() {
-    const metrics = {
+    const metrics = /** @type {CombinedPerformanceMetrics} */ ({
       manager: {
         instanceCount: this.autocompleteInstances.size,
         types: Array.from(this.autocompleteInstances.keys()),
@@ -581,7 +586,7 @@ class AutocompleteManager {
       },
       instances: (/** @type {TypeByKey<import('./BaseAutocomplete').PerformanceMetrics>} */ ({})),
       monitor: undefined,
-    };
+    });
 
     // Get metrics from each instance
     for (const [type, instance] of this.autocompleteInstances) {
@@ -633,7 +638,7 @@ class AutocompleteManager {
 
     for (const [type, queries] of Object.entries(commonQueriesByType)) {
       const instance = this.autocompleteInstances.get(type);
-      if (instance && typeof instance.prefetchCommonQueries === 'function') {
+      if (instance?.prefetchCommonQueries) {
         promises.push(instance.prefetchCommonQueries(queries));
       }
     }

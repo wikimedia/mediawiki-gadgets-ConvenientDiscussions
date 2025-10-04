@@ -14,7 +14,7 @@ import { handleApiReject } from './utils-api';
  * @typedef {object} Result
  * @property {string} [label] Text searched against and displayed
  * @property {T} item
- * @property {(() => import('./tribute/Tribute').InsertData) | undefined} [transform]
+ * @property {((result: Result) => import('./tribute/Tribute').InsertData) | undefined} [transform]
  */
 
 /**
@@ -45,7 +45,7 @@ class BaseAutocomplete {
    *
    * @type {string[]}
    */
-  lastResults = [];
+  lastApiResults = [];
 
   /**
    * The last query text that was processed.
@@ -79,7 +79,6 @@ class BaseAutocomplete {
    * API configuration for requests.
    *
    * @type {{ ajax: { timeout: number } }}
-   * @static
    */
   static apiConfig = { ajax: { timeout: 1000 * 5 } };
 
@@ -87,7 +86,6 @@ class BaseAutocomplete {
    * Delay before making API requests to avoid excessive requests.
    *
    * @type {number}
-   * @static
    */
   static delay = 100;
 
@@ -95,7 +93,6 @@ class BaseAutocomplete {
    * Current promise for tracking superseded requests.
    *
    * @type {Promise<any> | undefined}
-   * @static
    */
   static currentPromise;
 
@@ -148,7 +145,7 @@ class BaseAutocomplete {
    * @param {any} _item The item to transform
    * @returns {import('./tribute/Tribute').InsertData}
    */
-  transformItemToInsertData(_item) {
+  getInsertDataFromItem(_item) {
     throw new CdError({
       type: 'internal',
       message: 'transformItemToInsertData() must be implemented by subclass',
@@ -188,7 +185,8 @@ class BaseAutocomplete {
    * Get autocomplete values for the given text. This is the main method called by Tribute.
    *
    * @param {string} text The search text
-   * @param {(values: any[]) => void} callback Callback function to call with results
+   * @param {import('./AutocompleteManager').ProcessResults<any>} callback Callback function to
+   *   call with results
    * @returns {Promise<void>}
    */
   async getValues(text, callback) {
@@ -196,14 +194,20 @@ class BaseAutocomplete {
 
     // Reset results if query doesn't start with last query
     if (this.lastQuery && !text.startsWith(this.lastQuery)) {
-      this.lastResults = [];
+      this.lastApiResults = [];
     }
     this.lastQuery = text;
+
+    if (!this.validateInput(text)) {
+      callback(this.getResultsFromItems([]));
+
+      return;
+    }
 
     // Check cache first
     const cachedResults = this.handleCache(text);
     if (cachedResults) {
-      callback(this.processResults(cachedResults, /** @type {any} */ (this)));
+      callback(this.getResultsFromItems(cachedResults));
 
       return;
     }
@@ -212,43 +216,37 @@ class BaseAutocomplete {
     const localMatches = this.searchLocal(text, this.getDefaultItems());
     let values = localMatches.slice();
 
-    // Determine if we should make an API request
-    const shouldMakeRequest = this.validateInput(text);
+    // If no local matches, include previous results
+    if (!localMatches.length) {
+      values.push(...this.lastApiResults);
+    }
+    values = this.searchLocal(text, values);
 
-    if (shouldMakeRequest) {
-      // If no local matches, include previous results
-      if (!localMatches.length) {
-        values.push(...this.lastResults);
-      }
-      values = this.searchLocal(text, values);
-
-      // Add user-typed text as last option
-      const trimmedText = text.trim();
-      if (trimmedText) {
-        values.push(trimmedText);
-      }
+    // Add user-typed text as last option
+    const trimmedText = text.trim();
+    if (trimmedText) {
+      values.push(trimmedText);
     }
 
-    callback(this.processResults(values, /** @type {any} */ (this)));
+    callback(this.getResultsFromItems(values));
 
     // Make API request if needed
-    if (shouldMakeRequest && !localMatches.length) {
+    if (!localMatches.length) {
       try {
         const apiResults = await this.makeApiRequest(text);
 
         // Check if request is still current
         if (this.lastQuery !== text) return;
 
-        this.lastResults = apiResults.slice();
+        this.lastApiResults = apiResults.slice();
 
         // Add user-typed text as last option
-        const trimmedText = text.trim();
         if (trimmedText) {
           apiResults.push(trimmedText);
         }
 
         this.updateCache(text, apiResults);
-        callback(this.processResults(apiResults, /** @type {any} */ (this)));
+        callback(this.getResultsFromItems(apiResults));
       } catch (error) {
         // Silently handle API errors to avoid disrupting user experience
         console.warn('Autocomplete API request failed:', error);
@@ -261,10 +259,9 @@ class BaseAutocomplete {
    *
    * @template {Item} I
    * @param {I[]} items Raw items to process
-   * @param {AutocompleteConfigShared} config Configuration object
    * @returns {Result<I>[]} Processed values
    */
-  processResults(items, config) {
+  getResultsFromItems(items) {
     return items
       .filter(defined)
       .filter(unique)
@@ -283,10 +280,10 @@ class BaseAutocomplete {
         }
 
         /** @type {Result} */
-        const value = { label, item };
-        value.transform = config.transformItemToInsertData?.bind(value);
+        const result = { label, item };
+        result.transform = this.getInsertDataFromItem.bind(result);
 
-        return value;
+        return result;
       });
   }
 
@@ -294,10 +291,18 @@ class BaseAutocomplete {
    * Search for text in a local list of items.
    *
    * @param {string} text Search text
-   * @param {string[]} list List to search in
-   * @returns {string[]} Matching results
+   * @param {any[]} list List to search in
+   * @returns {any[]} Matching results
+   * @protected
    */
   searchLocal(text, list) {
+    if (!this.isStringList(list)) {
+      throw new CdError({
+        type: 'internal',
+        message: 'Item types other than string are not supported. searchLocal() must be implemented by subclass',
+      });
+    }
+
     const containsRegexp = new RegExp(mw.util.escapeRegExp(text), 'i');
     const startsWithRegexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
 
@@ -307,6 +312,16 @@ class BaseAutocomplete {
         (item1, item2) =>
           Number(startsWithRegexp.test(item2)) - Number(startsWithRegexp.test(item1))
       );
+  }
+
+  /**
+   * Check if the list is a string list.
+   *
+   * @param {any[]} list
+   * @returns {list is string[]}
+   */
+  isStringList(list) {
+    return typeof list[0] === 'string';
   }
 
   /**
@@ -357,7 +372,6 @@ class BaseAutocomplete {
    *
    * @param {Promise<any>} promise Promise to check
    * @throws {CdError} If promise is superseded
-   * @static
    */
   static promiseIsNotSuperseded(promise) {
     if (promise !== this.currentPromise) {
@@ -368,9 +382,8 @@ class BaseAutocomplete {
   /**
    * Create a promise with delay and supersession checking.
    *
-   * @param {AsyncPromiseExecutor<void>} executor Promise executor function
+   * @param {AsyncPromiseExecutor<any>} executor Promise executor function
    * @returns {Promise<any>} Promise with delay and checking
-   * @static
    */
   static createDelayedPromise(executor) {
     // eslint-disable-next-line no-async-promise-executor
@@ -393,7 +406,6 @@ class BaseAutocomplete {
    *
    * @param {import('types-mediawiki/api_params').UnknownApiParams} params API parameters
    * @returns {Promise<import('./Autocomplete').OpenSearchResults>} OpenSearch results
-   * @static
    */
   static async makeOpenSearchRequest(params) {
     return this.createDelayedPromise(async (resolve) => {
@@ -425,7 +437,7 @@ class BaseAutocomplete {
       type: this.constructor.name,
       cache: cacheStats,
       defaultItemsCount: this.getDefaultItems().length,
-      lastResultsCount: this.lastResults.length,
+      lastResultsCount: this.lastApiResults.length,
       lastQuery: this.lastQuery,
     };
   }

@@ -21,38 +21,7 @@ class TemplatesAutocomplete extends BaseAutocomplete {
    * @param {import('./AutocompleteManager').AutocompleteConfigShared} [config] Configuration options
    */
   constructor(config = {}) {
-    const defaultConfig = {
-      transformItemToInsertData: TemplatesAutocomplete.prototype.transformItemToInsertData,
-    };
-
-    super({ ...defaultConfig, ...config });
-  }
-
-  /**
-   * Static configuration for templates autocomplete.
-   *
-   * @returns {import('./AutocompleteManager').AutocompleteConfigShared}
-   * @static
-   */
-  static getConfig() {
-    return {};
-  }
-
-  /**
-   * Transform a template name item into insert data for the Tribute library.
-   *
-   * @param {string} item The template name to transform
-   * @returns {import('./tribute/Tribute').InsertData & { end: string }}
-   * @static
-   */
-  static transformItemToInsertData(item) {
-    return {
-      start: '{{' + item.trim(),
-      end: '}}',
-      shiftModify() {
-        this.start += '|';
-      },
-    };
+    super(config);
   }
 
   /**
@@ -122,16 +91,19 @@ class TemplatesAutocomplete extends BaseAutocomplete {
 
   /**
    * Transform a template name item into insert data for the Tribute library.
-   * This method can be called directly with an item parameter or as a bound method where `this.item` contains the template name.
    *
    * @override
-   * @param {string} [item] The template name to transform (optional if called as bound method)
+   * @param {string} item The template name to transform
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
    */
-  transformItemToInsertData(item) {
-    // Support both direct calls (with parameter) and bound calls (using this.item)
-
-    return TemplatesAutocomplete.transformItemToInsertData(item === undefined ? this.item : item);
+  getInsertDataFromItem(item) {
+    return {
+      start: '{{' + item.trim(),
+      end: '}}',
+      shiftModify() {
+        this.start += '|';
+      },
+    };
   }
 
   /**

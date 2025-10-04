@@ -5,7 +5,7 @@ import { removeDoubleSpaces, underlinesToSpaces } from './shared/utils-general';
 
 /**
  * @typedef {object} CommentLinkItem
- * @property {string} key
+ * @property {string} label
  * @property {string} urlFragment
  * @property {string} [authorName]
  * @property {string} [timestamp]
@@ -24,26 +24,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    * @param {import('./Comment').default[]} [config.comments] List of comments for autocomplete
    */
   constructor(config = {}) {
-    // Set default configuration for comment links
-    const defaultConfig = {
-      default: undefined,
-      defaultLazy: () => this.generateCommentLinksData(),
-      transformItemToInsertData: CommentLinksAutocomplete.prototype.transformItemToInsertData,
-    };
-
-    super({ ...defaultConfig, ...config });
-  }
-
-  /**
-   * Static configuration for comment links autocomplete.
-   *
-   * @returns {import('./AutocompleteManager').AutocompleteConfigShared}
-   * @static
-   */
-  static getConfig() {
-    return {
-      default: undefined,
-    };
+    super(config);
   }
 
   /**
@@ -51,9 +32,8 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    *
    * @param {CommentLinkItem} item The comment links item to transform
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
-   * @static
    */
-  static transformItemToInsertData(item) {
+  static getInsertDataFromItem(item) {
     return {
       start: `[[#${item.urlFragment}|`,
       end: ']]',
@@ -82,33 +62,6 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    */
   getTrigger() {
     return '[[#';
-  }
-
-  /**
-   * Transform a comment links item into insert data for Tribute.
-   * This method can be called directly with an item parameter or as a bound method where `this.item` contains the comment links item.
-   *
-   * @override
-   * @param {CommentLinkItem} [item] The comment links item to transform (optional if called as bound method)
-   * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
-   */
-  transformItemToInsertData(item) {
-    // Support both direct calls (with parameter) and bound calls (using this.item)
-    const actualItem = item === undefined ? this.item : item;
-
-    return CommentLinksAutocomplete.transformItemToInsertData(actualItem);
-  }
-
-  /**
-   * Validate input text for comment links autocomplete.
-   *
-   * @override
-   * @param {string} _text The input text to validate
-   * @returns {boolean} Whether the input is valid
-   */
-  validateInput(_text) {
-    // Comment links don't use API requests, so always return false
-    return false;
   }
 
   /**
@@ -144,7 +97,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
     text = removeDoubleSpaces(text);
 
     // Validate input - reject if contains forbidden characters
-    if (/[#<>[\]|{}]/.test(text)) {
+    if (this.validateInput(text)) {
       callback([]);
 
       return;
@@ -152,11 +105,10 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
 
     // Use Tribute's built-in search functionality to filter results
     // This mimics the original implementation's behavior
-    const matches = this.filterCommentLinks(text, this.default);
+    const matches = this.searchLocal(text, this.default);
 
-    callback(this.processResults(matches, this));
+    callback(this.getResultsFromItems(matches));
   }
-
   /**
    * Get collection-specific properties for Tribute configuration.
    *
@@ -170,29 +122,29 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Filter comment links using Tribute's search algorithm.
-   * This replicates the original Tribute search behavior.
+   * Filter comment links using Tribute's search algorithm. This replicates the original Tribute
+   * search behavior.
    *
+   * @override
    * @param {string} text Search text
    * @param {CommentLinkItem[]} items Items to search through
    * @returns {CommentLinkItem[]} Filtered results
-   * @private
+   * @protected
    */
-  filterCommentLinks(text, items) {
-    if (!text) {
-      return items.slice(0, 10); // Limit to 10 results like original
-    }
-
+  searchLocal(text, items) {
     const searchRegex = new RegExp(mw.util.escapeRegExp(text), 'i');
 
     return items
-      .filter((item) => searchRegex.test(item.key))
-      .slice(0, 10); // Limit to 10 results
+      .filter((item) => searchRegex.test(item.label));
   }
 
   /**
+   * @override
+   */
+  defaultLazy = () => this.generateCommentLinksData();
+
+  /**
    * Generate comment links data from comments and sections.
-   * This replicates the original defaultLazy functionality.
    *
    * @returns {CommentLinkItem[]} Array of comment and section link items
    * @private
@@ -236,7 +188,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
       }
 
       acc.push({
-        key: authorTimestamp + cd.mws('colon-separator', { language: 'content' }) + snippet,
+        label: authorTimestamp + cd.mws('colon-separator', { language: 'content' }) + snippet,
         urlFragment,
         authorName,
         timestamp,
@@ -248,7 +200,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
     // Process sections into section link items
     const sectionItems = sectionRegistry.getAll().reduce((acc, section) => {
       acc.push({
-        key: underlinesToSpaces(section.id),
+        label: underlinesToSpaces(section.id),
         urlFragment: underlinesToSpaces(section.id),
         headline: section.headline,
       });

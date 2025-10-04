@@ -92,16 +92,16 @@ import TributeSearch from "./TributeSearch";
 /**
  * A collection object.
  *
- * @template {any} [I=any]
- * @typedef {TributeSharedOptions<I> & TributeCollectionSpecific<I>} TributeCollection
+ * @template {any} [Value=any]
+ * @typedef {TributeSharedOptions<Value> & TributeCollectionSpecific<Value>} TributeCollection
  */
 
 /**
  * A config object supplied to the constructor. It has some properties intended to be defaults for
  * all collections.
  *
- * @template {any} [I=any]
- * @typedef {TributeSharedOptions<I> & TributeConfigSpecific} TributeConfig
+ * @template {any} [Value=any]
+ * @typedef {TributeSharedOptions<Value> & TributeConfigSpecific} TributeConfig
  */
 
 /**
