@@ -65,30 +65,19 @@ class TemplatesAutocomplete extends BaseAutocomplete {
    * @returns {Promise<string[]>} Promise resolving to array of template suggestions
    */
   async makeApiRequest(text) {
-    return BaseAutocomplete.createDelayedPromise(async (resolve) => {
-      const response = /** @type {import('./AutocompleteManager').OpenSearchResults} */ (await cd
-        .getApi(BaseAutocomplete.apiConfig)
-        .get({
-          action: 'opensearch',
-          search: text.startsWith(':') ? text.slice(1) : 'Template:' + text,
-          redirects: 'return',
-          limit: 10,
-        })
-        .catch(handleApiReject));
-
-      BaseAutocomplete.promiseIsNotSuperseded(BaseAutocomplete.currentPromise);
-
-      resolve(
-        response[1]
-          .filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
-          .map((name) => text.startsWith(':') ? name : name.slice(name.indexOf(':') + 1))
-          .map((name) =>
-            mw.config.get('wgCaseSensitiveNamespaces').includes(10)
-              ? name
-              : this.useOriginalFirstCharCase(name, text)
-          )
-      );
+    const response = await BaseAutocomplete.makeOpenSearchRequest({
+      search: text.startsWith(':') ? text.slice(1) : 'Template:' + text,
+      redirects: 'return',
     });
+
+    return response[1]
+      .filter((name) => !/(\/doc(?:umentation)?|\.css)$/.test(name))
+      .map((name) => text.startsWith(':') ? name : name.slice(name.indexOf(':') + 1))
+      .map((name) =>
+        mw.config.get('wgCaseSensitiveNamespaces').includes(10)
+          ? name
+          : this.useOriginalFirstCharCase(name, text)
+      );
   }
 
   /**

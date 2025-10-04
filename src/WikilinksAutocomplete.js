@@ -1,7 +1,6 @@
 import BaseAutocomplete from './BaseAutocomplete';
 import cd from './cd';
 import { charAt, phpCharToUpper } from './shared/utils-general';
-import { handleApiReject } from './utils-api';
 
 /**
  * @typedef {string} WikilinkItem
@@ -97,36 +96,25 @@ class WikilinksAutocomplete extends BaseAutocomplete {
       colonPrefix = true;
     }
 
-    return BaseAutocomplete.createDelayedPromise(async (resolve) => {
-      const response = /** @type {import('./AutocompleteManager').OpenSearchResults} */ (await cd
-        .getApi(BaseAutocomplete.apiConfig)
-        .get({
-          action: 'opensearch',
-          search: text,
-          redirects: 'return',
-          limit: 10,
-        })
-        .catch(handleApiReject));
+    const response = await BaseAutocomplete.makeOpenSearchRequest({
+      search: text,
+      redirects: 'return',
+    });
 
-      BaseAutocomplete.promiseIsNotSuperseded(BaseAutocomplete.currentPromise);
+    return response[1].map((/** @type {string} */ name) => {
+      if (mw.config.get('wgCaseSensitiveNamespaces').length) {
+        const title = mw.Title.newFromText(name);
+        if (
+          !title ||
+          !mw.config.get('wgCaseSensitiveNamespaces').includes(title.getNamespaceId())
+        ) {
+          name = this.useOriginalFirstCharCase(name, text);
+        }
+      } else {
+        name = this.useOriginalFirstCharCase(name, text);
+      }
 
-      resolve(
-        response[1].map((/** @type {string} */ name) => {
-          if (mw.config.get('wgCaseSensitiveNamespaces').length) {
-            const title = mw.Title.newFromText(name);
-            if (
-              !title ||
-              !mw.config.get('wgCaseSensitiveNamespaces').includes(title.getNamespaceId())
-            ) {
-              name = this.useOriginalFirstCharCase(name, text);
-            }
-          } else {
-            name = this.useOriginalFirstCharCase(name, text);
-          }
-
-          return name.replace(/^/, colonPrefix ? ':' : '');
-        })
-      );
+      return name.replace(/^/, colonPrefix ? ':' : '');
     });
   }
 
