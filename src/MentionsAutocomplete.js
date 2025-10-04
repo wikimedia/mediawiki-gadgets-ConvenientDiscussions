@@ -114,47 +114,43 @@ class MentionsAutocomplete extends BaseAutocomplete {
   async makeApiRequest(text) {
     text = ucFirst(text);
 
-    return BaseAutocomplete.createDelayedPromise(async (resolve) => {
-      // First, try to use the search to get only users that have talk pages. Most legitimate
-      // users do, while spammers don't.
-      const response = await BaseAutocomplete.makeOpenSearchRequest({
-        search: text,
-        namespace: 3,
-        redirects: 'resolve',
-      });
-
-      const users = response[1]
-        .map((name) => (name.match(cd.g.userNamespacesRegexp) || [])[1])
-        .filter(defined)
-        .filter((name) => !name.includes('/'));
-
-      if (users.length) {
-        resolve(users);
-      } else {
-        // If we didn't succeed with search, try the entire users database.
-        /** @type {ApiResponseQuery<ApiResponseQueryContentAllUsers>} */
-        const allUsersResponse = await cd
-          .getApi(BaseAutocomplete.apiConfig)
-          .get({
-            action: 'query',
-            list: 'allusers',
-            auprefix: text,
-          })
-          .catch(handleApiReject);
-
-        if (BaseAutocomplete.currentPromise) {
-          BaseAutocomplete.promiseIsNotSuperseded(BaseAutocomplete.currentPromise);
-        }
-
-        if (!allUsersResponse.query) {
-          throw new Error('No query data in response');
-        }
-
-        resolve(
-          allUsersResponse.query.allusers.map((/** @type {{ name: string }} */ user) => user.name)
-        );
-      }
+    // First, try to use the search to get only users that have talk pages. Most legitimate
+    // users do, while spammers don't.
+    const response = await BaseAutocomplete.makeOpenSearchRequest({
+      search: text,
+      namespace: 3,
+      redirects: 'resolve',
     });
+
+    const users = response[1]
+      .map((name) => (name.match(cd.g.userNamespacesRegexp) || [])[1])
+      .filter(defined)
+      .filter((name) => !name.includes('/'));
+
+    if (users.length) {
+      return users;
+    }
+
+    // If we didn't succeed with search, try the entire users database.
+    /** @type {ApiResponseQuery<ApiResponseQueryContentAllUsers>} */
+    const allUsersResponse = await cd
+      .getApi(BaseAutocomplete.apiConfig)
+      .get({
+        action: 'query',
+        list: 'allusers',
+        auprefix: text,
+      })
+      .catch(handleApiReject);
+
+    if (BaseAutocomplete.currentPromise) {
+      BaseAutocomplete.promiseIsNotSuperseded(BaseAutocomplete.currentPromise);
+    }
+
+    if (!allUsersResponse.query) {
+      throw new Error('No query data in response');
+    }
+
+    return allUsersResponse.query.allusers.map((/** @type {{ name: string }} */ user) => user.name);
   }
 }
 
