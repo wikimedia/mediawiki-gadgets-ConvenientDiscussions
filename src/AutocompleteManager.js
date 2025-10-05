@@ -200,7 +200,7 @@ class AutocompleteManager {
 
     for (const [type, instance] of this.autocompleteInstances) {
       collections.push(
-        /** @type {import('./tribute/Tribute').TributeCollection<import('./BaseAutocomplete').Result>} */({
+        /** @type {import('./tribute/Tribute').TributeCollection<import('./BaseAutocomplete').Result>} */ ({
           lookup: 'label',
           label: instance.getLabel(),
           trigger: instance.getTrigger(),
@@ -220,7 +220,10 @@ class AutocompleteManager {
 
             return '';
           },
-          values: async (/** @type {string} */ text, /** @type {ProcessResults<any>} */ callback) => {
+          values: async (
+            /** @type {string} */ text,
+            /** @type {ProcessResults<any>} */ callback
+          ) => {
             // Start performance monitoring if enabled
             const perfContext = this.performanceMonitor?.startOperation('getValues', type, text);
 
@@ -228,7 +231,7 @@ class AutocompleteManager {
               // Check if result will come from cache
               const cacheHit = instance.handleCache(text) !== undefined;
 
-              await instance.getValues(text, (/** @type {any[]} */ results) => {
+              await instance.getValues(text, (results) => {
                 // End performance monitoring
                 if (perfContext) {
                   perfContext.end(results.length, cacheHit);

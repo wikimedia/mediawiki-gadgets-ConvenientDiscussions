@@ -62,7 +62,8 @@ import TributeSearch from "./TributeSearch";
  * @typedef {object} TributeCollectionSpecific
  * @property {string} label Collection identifier/label
  * @property {Value[] | ((text: string, callback: (arr: Value[]) => void) => void)} values Array of
- *   objects to search across or a function that takes that array
+ *   objects to search across or a function that takes a query text and calls a callback provided to
+ *   it with that array
  * @property {RegExp} [keepAsEnd] Custom regex for end matching behavior
  * @property {(item: TributeSearchResults<Value>) => string} [menuItemTemplate] Template for
  *   displaying item in menu

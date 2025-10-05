@@ -117,6 +117,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
 
     callback(this.getResultsFromItems(matches));
   }
+
   /**
    * Get collection-specific properties for Tribute configuration.
    *
