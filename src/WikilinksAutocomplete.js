@@ -3,7 +3,7 @@ import cd from './cd';
 import { charAt, phpCharToUpper } from './shared/utils-general';
 
 /**
- * @typedef {string} WikilinkItem
+ * @typedef {string} WikilinkEntry
  */
 
 /**
@@ -24,14 +24,14 @@ class WikilinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a page name item into insert data for the Tribute library.
+   * Transform a page name entry into insertion data for the Tribute library.
    *
-   * @param {string} item The page name to transform
+   * @param {string} entry The page name to transform
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
    */
-  static transformItemToInsertData(item) {
+  static getInsertionFromEntry(entry) {
     return {
-      start: '[[' + item.trim(),
+      start: '[[' + entry.trim(),
       end: ']]',
       shiftModify() {
         this.content = this.start.slice(2);
@@ -54,6 +54,17 @@ class WikilinksAutocomplete extends BaseAutocomplete {
    */
   getTrigger() {
     return '[[';
+  }
+
+  /**
+   * Transform a page name entry into insertion data for the Tribute library.
+   *
+   * @override
+   * @param {string} entry The page name to transform
+   * @returns {import('./tribute/Tribute').InsertData & { end: string }}
+   */
+  getInsertionFromEntry(entry) {
+    return WikilinksAutocomplete.getInsertionFromEntry(entry);
   }
 
   /**
@@ -118,19 +129,7 @@ class WikilinksAutocomplete extends BaseAutocomplete {
     });
   }
 
-  /**
-   * Transform a page name item into insert data for the Tribute library.
-   * This method can be called directly with an item parameter or as a bound method where `this.item` contains the page name.
-   *
-   * @override
-   * @param {string} [item] The page name to transform (optional if called as bound method)
-   * @returns {import('./tribute/Tribute').InsertData & { end: string }}
-   */
-  getInsertDataFromItem(item) {
-    // Support both direct calls (with parameter) and bound calls (using this.item)
 
-    return WikilinksAutocomplete.transformItemToInsertData(item === undefined ? this.item : item);
-  }
 
   /**
    * Get collection-specific properties for Tribute configuration.

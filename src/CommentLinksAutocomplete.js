@@ -4,7 +4,7 @@ import sectionRegistry from './sectionRegistry';
 import { removeDoubleSpaces, underlinesToSpaces } from './shared/utils-general';
 
 /**
- * @typedef {object} CommentLinkItem
+ * @typedef {object} CommentLinkEntry
  * @property {string} label
  * @property {string} urlFragment
  * @property {string} [authorName]
@@ -36,19 +36,19 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a comment links item into insert data for Tribute.
+   * Transform a comment links entry into insertion data for Tribute.
    *
-   * @param {CommentLinkItem} item The comment links item to transform
+   * @param {CommentLinkEntry} entry The comment links entry to transform
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    */
-  static getInsertDataFromItem(item) {
+  static getInsertionFromEntry(entry) {
     return {
-      start: `[[#${item.urlFragment}|`,
+      start: `[[#${entry.urlFragment}|`,
       end: ']]',
       content:
-        'timestamp' in item
-          ? cd.s('cf-autocomplete-commentlinks-text', item.authorName, item.timestamp)
-          : /** @type {string} */ (item.headline),
+        'timestamp' in entry
+          ? cd.s('cf-autocomplete-commentlinks-text', entry.authorName, entry.timestamp)
+          : /** @type {string} */ (entry.headline),
     };
   }
 
@@ -73,6 +73,17 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
+   * Transform a comment links entry into insertion data for Tribute.
+   *
+   * @override
+   * @param {CommentLinkEntry} entry The comment links entry to transform
+   * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
+   */
+  getInsertionFromEntry(entry) {
+    return CommentLinksAutocomplete.getInsertionFromEntry(entry);
+  }
+
+  /**
    * Make an API request for comment links. This is not used since comment links
    * are generated from local data only.
    *
@@ -91,15 +102,15 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} text The search text
-   * @param {import('./AutocompleteManager').ProcessResults<CommentLinkItem>} callback Callback
+   * @param {import('./AutocompleteManager').ProcessOptions<CommentLinkEntry>} callback Callback
    *   function to call with results
    * @returns {Promise<void>}
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   async getValues(text, callback) {
-    // Initialize default items if not already done
+    // Initialize default entries if not already done
     if (this.default.length === 0) {
-      this.default = this.getDefaultItems();
+      this.default = this.getDefaultEntries();
     }
 
     text = removeDoubleSpaces(text);
@@ -115,7 +126,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
     // This mimics the original implementation's behavior
     const matches = this.searchLocal(text, this.default);
 
-    callback(this.getResultsFromItems(matches));
+    callback(this.getOptionsFromEntries(matches));
   }
 
   /**
@@ -136,15 +147,15 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} text Search text
-   * @param {CommentLinkItem[]} items Items to search through
-   * @returns {CommentLinkItem[]} Filtered results
+   * @param {CommentLinkEntry[]} entries Entries to search through
+   * @returns {CommentLinkEntry[]} Filtered results
    * @protected
    */
-  searchLocal(text, items) {
+  searchLocal(text, entries) {
     const searchRegex = new RegExp(mw.util.escapeRegExp(text), 'i');
 
-    return items
-      .filter((item) => searchRegex.test(item.label));
+    return entries
+      .filter((entry) => searchRegex.test(entry.label));
   }
 
   /**
@@ -155,7 +166,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   /**
    * Generate comment links data from comments and sections.
    *
-   * @returns {CommentLinkItem[]} Array of comment and section link items
+   * @returns {CommentLinkEntry[]} Array of comment and section link entries
    * @private
    */
   generateCommentLinksData() {
@@ -204,9 +215,9 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
       });
 
       return acc;
-    }, /** @type {CommentLinkItem[]} */ ([]));
+    }, /** @type {CommentLinkEntry[]} */ ([]));
 
-    // Process sections into section link items
+    // Process sections into section link entries
     const sectionItems = sectionRegistry.getAll().reduce((acc, section) => {
       acc.push({
         label: underlinesToSpaces(section.id),
@@ -215,7 +226,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
       });
 
       return acc;
-    }, /** @type {CommentLinkItem[]} */ ([]));
+    }, /** @type {CommentLinkEntry[]} */ ([]));
 
     return commentItems.concat(sectionItems);
   }

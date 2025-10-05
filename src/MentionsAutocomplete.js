@@ -5,7 +5,7 @@ import userRegistry from './userRegistry';
 import { handleApiReject } from './utils-api';
 
 /**
- * @typedef {string} MentionItem
+ * @typedef {string} MentionEntry
  */
 
 /**
@@ -24,13 +24,13 @@ class MentionsAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a user name item into insert data for the Tribute library.
+   * Transform a user name entry into insertion data for the Tribute library.
    *
-   * @param {string} item The user name to transform
+   * @param {string} entry The user name to transform
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    */
-  static transformItemToInsertData(item) {
-    const name = item.trim();
+  static getInsertionFromEntry(entry) {
+    const name = entry.trim();
     const user = userRegistry.get(name);
     const userNamespace = user.getNamespaceAlias();
     const pageName = user.isRegistered()
@@ -68,6 +68,17 @@ class MentionsAutocomplete extends BaseAutocomplete {
    */
   getTrigger() {
     return cd.config.mentionCharacter;
+  }
+
+  /**
+   * Transform a user name entry into insertion data for the Tribute library.
+   *
+   * @override
+   * @param {string} entry The user name to transform
+   * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
+   */
+  getInsertionFromEntry(entry) {
+    return MentionsAutocomplete.getInsertionFromEntry(entry);
   }
 
   /**

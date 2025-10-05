@@ -3,7 +3,7 @@ import cd from './cd';
 import { ensureArray } from './shared/utils-general';
 
 /**
- * @typedef {string | [string, string, string?]} TagItem
+ * @typedef {string | [string, string, string?]} TagEntry
  */
 
 /**
@@ -22,15 +22,15 @@ class TagsAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a tag item into insert data for the Tribute library.
+   * Transform a tag entry into insertion data for the Tribute library.
    *
-   * @param {TagItem} item The tag item to transform
+   * @param {TagEntry} entry The tag entry to transform
    * @returns {import('./tribute/Tribute').InsertData}
    */
-  static transformItemToInsertData(item) {
+  static getInsertionFromEntry(entry) {
     return {
-      start: Array.isArray(item) ? item[1] : `<${item}>`,
-      end: Array.isArray(item) ? item[2] : `</${item}>`,
+      start: Array.isArray(entry) ? entry[1] : `<${entry}>`,
+      end: Array.isArray(entry) ? entry[2] : `</${entry}>`,
       selectContent: true,
     };
   }
@@ -38,11 +38,11 @@ class TagsAutocomplete extends BaseAutocomplete {
   /**
    * Create the default lazy loading function for tags.
    *
-   * @returns {TagItem[]} The default tag items
+   * @returns {TagEntry[]} The default tag entries
    * @override
    */
   defaultLazy = () => {
-    /** @type {TagItem[]} */
+    /** @type {TagEntry[]} */
     const tagAdditions = [
       // An element can be an array of a string to display and strings to insert before and after
       // the caret.
@@ -67,7 +67,7 @@ class TagsAutocomplete extends BaseAutocomplete {
       ['templatestyles', '<templatestyles src="', '" />'],
     ];
 
-    return /** @type {Array<TagItem>} */ (cd.g.allowedTags)
+    return /** @type {Array<TagEntry>} */ (cd.g.allowedTags)
       .filter((tagString) => !tagAdditions.some((tagArray) => tagArray[0] === tagString))
       .concat(tagAdditions)
       .sort((item1, item2) => ensureArray(item1)[0] > ensureArray(item2)[0] ? 1 : -1);
@@ -91,6 +91,17 @@ class TagsAutocomplete extends BaseAutocomplete {
    */
   getTrigger() {
     return '<';
+  }
+
+  /**
+   * Transform a tag entry into insertion data for the Tribute library.
+   *
+   * @override
+   * @param {TagEntry} entry The tag entry to transform
+   * @returns {import('./tribute/Tribute').InsertData}
+   */
+  getInsertionFromEntry(entry) {
+    return TagsAutocomplete.getInsertionFromEntry(entry);
   }
 
   /**
@@ -122,15 +133,15 @@ class TagsAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} text The search text
-   * @param {(values: import('./BaseAutocomplete').Result[]) => void} callback Callback function to
-   *   call with results
+   * @param {(values: import('./BaseAutocomplete').Option[]) => void} callback Callback function to
+   *   call with options
    * @returns {Promise<void>}
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   async getValues(text, callback) {
-    // Initialize default items if not already done
+    // Initialize default entries if not already done
     if (this.default.length === 0) {
-      this.default = this.getDefaultItems();
+      this.default = this.getDefaultEntries();
     }
 
     // Validate input
@@ -144,7 +155,7 @@ class TagsAutocomplete extends BaseAutocomplete {
     const regexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
 
     callback(
-      this.getResultsFromItems(
+      this.getOptionsFromEntries(
         this.default.filter((tag) => regexp.test(Array.isArray(tag) ? tag[0] : tag))
       )
     );

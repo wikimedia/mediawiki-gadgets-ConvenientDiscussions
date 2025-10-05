@@ -6,23 +6,23 @@ import { handleApiReject } from './utils-api';
 
 /**
  * @import {AutocompleteConfigShared} from './AutocompleteManager';
- * @import {Item} from './AutocompleteManager';
+ * @import {Entry} from './AutocompleteManager';
  */
 
 /**
  * @template {any} [T=any]
- * @typedef {object} Result
+ * @typedef {object} Option
  * @property {string} [label] Text searched against and displayed
- * @property {T} item
- * @property {((result: Result) => import('./tribute/Tribute').InsertData) | undefined} [transform]
+ * @property {T} entry
+ * @property {((option: Option) => import('./tribute/Tribute').InsertData) | undefined} [transform]
  */
 
 /**
  * @typedef {object} PerformanceMetrics
  * @property {string} type
  * @property {import('./AutocompleteCache').CacheStats & { memoryUsage: number }} cache
- * @property {number} defaultItemsCount
- * @property {number} lastResultsCount
+ * @property {number} defaultEntriesCount
+ * @property {number} lastEntriesCount
  * @property {string} lastQuery
  */
 
@@ -41,11 +41,11 @@ class BaseAutocomplete {
   cache;
 
   /**
-   * Results from the last API request.
+   * Entries from the last API request.
    *
    * @type {string[]}
    */
-  lastApiResults = [];
+  lastApiEntries = [];
 
   /**
    * The last query text that was processed.
@@ -55,14 +55,14 @@ class BaseAutocomplete {
   lastQuery = '';
 
   /**
-   * Default items to search across (may be more narrow than all potential values).
+   * Default entries to search across (may be more narrow than all potential values).
    *
    * @type {any[]}
    */
   default = [];
 
   /**
-   * Function for lazy loading of default items.
+   * Function for lazy loading of default entries.
    *
    * @type {(() => any[]) | undefined}
    */
@@ -139,16 +139,16 @@ class BaseAutocomplete {
   }
 
   /**
-   * Transform an item into insert data for the Tribute library.
+   * Transform an entry into insertion data for the Tribute library.
    *
    * @abstract
-   * @param {any} _item The item to transform
+   * @param {any} _entry The entry to transform
    * @returns {import('./tribute/Tribute').InsertData}
    */
-  getInsertDataFromItem(_item) {
+  getInsertionFromEntry(_entry) {
     throw new CdError({
       type: 'internal',
-      message: 'transformItemToInsertData() must be implemented by subclass',
+      message: 'getInsertionFromEntry() must be implemented by subclass',
     });
   }
 
@@ -185,40 +185,40 @@ class BaseAutocomplete {
    * Get autocomplete values for the given text. This is the main method called by Tribute.
    *
    * @param {string} text The search text
-   * @param {import('./AutocompleteManager').ProcessResults<any>} callback Callback function to
-   *   call with results
+   * @param {import('./AutocompleteManager').ProcessOptions<any>} callback Callback function to
+   *   call with options
    * @returns {Promise<void>}
    */
   async getValues(text, callback) {
     text = removeDoubleSpaces(text);
 
-    // Reset results if query doesn't start with last query
+    // Reset entries if query doesn't start with last query
     if (this.lastQuery && !text.startsWith(this.lastQuery)) {
-      this.lastApiResults = [];
+      this.lastApiEntries = [];
     }
     this.lastQuery = text;
 
     if (!this.validateInput(text)) {
-      callback(this.getResultsFromItems([]));
+      callback(this.getOptionsFromEntries([]));
 
       return;
     }
 
     // Check cache first
-    const cachedResults = this.handleCache(text);
-    if (cachedResults) {
-      callback(this.getResultsFromItems(cachedResults));
+    const cachedEntries = this.handleCache(text);
+    if (cachedEntries) {
+      callback(this.getOptionsFromEntries(cachedEntries));
 
       return;
     }
 
     // Get local matches
-    const localMatches = this.searchLocal(text, this.getDefaultItems());
+    const localMatches = this.searchLocal(text, this.getDefaultEntries());
     let values = localMatches.slice();
 
-    // If no local matches, include previous results
+    // If no local matches, include previous entries
     if (!localMatches.length) {
-      values.push(...this.lastApiResults);
+      values.push(...this.lastApiEntries);
     }
     values = this.searchLocal(text, values);
 
@@ -228,25 +228,25 @@ class BaseAutocomplete {
       values.push(trimmedText);
     }
 
-    callback(this.getResultsFromItems(values));
+    callback(this.getOptionsFromEntries(values));
 
     // Make API request if needed
     if (!localMatches.length) {
       try {
-        const apiResults = await this.makeApiRequest(text);
+        const apiEntries = await this.makeApiRequest(text);
 
         // Check if request is still current
         if (this.lastQuery !== text) return;
 
-        this.lastApiResults = apiResults.slice();
+        this.lastApiEntries = apiEntries.slice();
 
         // Add user-typed text as last option
         if (trimmedText) {
-          apiResults.push(trimmedText);
+          apiEntries.push(trimmedText);
         }
 
-        this.updateCache(text, apiResults);
-        callback(this.getResultsFromItems(apiResults));
+        this.updateCache(text, apiEntries);
+        callback(this.getOptionsFromEntries(apiEntries));
       } catch (error) {
         // Silently handle API errors to avoid disrupting user experience
         console.warn('Autocomplete API request failed:', error);
@@ -255,51 +255,51 @@ class BaseAutocomplete {
   }
 
   /**
-   * Process raw items into {@link Result} objects for Tribute.
+   * Process raw entries into {@link Option} objects for Tribute.
    *
-   * @template {Item} I
-   * @param {I[]} items Raw items to process
-   * @returns {Result<I>[]} Processed values
+   * @template {Entry} E
+   * @param {E[]} entries Raw entries to process
+   * @returns {Option<E>[]} Processed options
    */
-  getResultsFromItems(items) {
-    return items
+  getOptionsFromEntries(entries) {
+    return entries
       .filter(defined)
       .filter(unique)
-      .map((item) => {
+      .map((entry) => {
         /** @type {string} */
         let label;
-        if (Array.isArray(item)) {
+        if (Array.isArray(entry)) {
           // Tags
-          label = item[0];
-        } else if (typeof item === 'object' && 'label' in item) {
+          label = entry[0];
+        } else if (typeof entry === 'object' && 'label' in entry) {
           // Comment links
-          label = item.label;
+          label = entry.label;
         } else {
           // The rest
-          label = item;
+          label = entry;
         }
 
-        /** @type {Result} */
-        const result = { label, item };
-        result.transform = this.getInsertDataFromItem.bind(result);
+        /** @type {Option} */
+        const option = { label, entry };
+        option.transform = this.getInsertionFromEntry.bind(option);
 
-        return result;
+        return option;
       });
   }
 
   /**
-   * Search for text in a local list of items.
+   * Search for text in a local list of entries.
    *
    * @param {string} text Search text
    * @param {any[]} list List to search in
-   * @returns {any[]} Matching results
+   * @returns {any[]} Matching entries
    * @protected
    */
   searchLocal(text, list) {
     if (!this.isStringList(list)) {
       throw new CdError({
         type: 'internal',
-        message: 'Item types other than string are not supported. searchLocal() must be implemented by subclass',
+        message: 'Entry types other than string are not supported. searchLocal() must be implemented by subclass',
       });
     }
 
@@ -307,10 +307,10 @@ class BaseAutocomplete {
     const startsWithRegexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
 
     return list
-      .filter((item) => containsRegexp.test(item))
+      .filter((entry) => containsRegexp.test(entry))
       .sort(
-        (item1, item2) =>
-          Number(startsWithRegexp.test(item2)) - Number(startsWithRegexp.test(item1))
+        (entry1, entry2) =>
+          Number(startsWithRegexp.test(entry2)) - Number(startsWithRegexp.test(entry1))
       );
   }
 
@@ -325,31 +325,31 @@ class BaseAutocomplete {
   }
 
   /**
-   * Check cache for existing results.
+   * Check cache for existing entries.
    *
    * @param {string} text Search text
-   * @returns {string[] | undefined} Cached results or `undefined` if not found
+   * @returns {string[] | undefined} Cached entries or `undefined` if not found
    */
   handleCache(text) {
     return this.cache.get(text);
   }
 
   /**
-   * Update cache with new results.
+   * Update cache with new entries.
    *
    * @param {string} text Search text
-   * @param {string[]} results Results to cache
+   * @param {string[]} entries Entries to cache
    */
-  updateCache(text, results) {
-    this.cache.set(text, results);
+  updateCache(text, entries) {
+    this.cache.set(text, entries);
   }
 
   /**
-   * Get default items, using lazy loading if available.
+   * Get default entries, using lazy loading if available.
    *
-   * @returns {any[]} Default items
+   * @returns {any[]} Default entries
    */
-  getDefaultItems() {
+  getDefaultEntries() {
     if (this.default.length === 0 && this.defaultLazy) {
       this.default = this.defaultLazy();
     }
@@ -436,8 +436,8 @@ class BaseAutocomplete {
     return {
       type: this.constructor.name,
       cache: cacheStats,
-      defaultItemsCount: this.getDefaultItems().length,
-      lastResultsCount: this.lastApiResults.length,
+      defaultEntriesCount: this.getDefaultEntries().length,
+      lastEntriesCount: this.lastApiEntries.length,
       lastQuery: this.lastQuery,
     };
   }

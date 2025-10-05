@@ -3846,7 +3846,7 @@ class CommentForm extends EventEmitter {
     const range = this.commentInput.getRange();
 
     if (mentionAddressee && this.parentComment) {
-      const data = MentionsAutocomplete.transformItemToInsertData(this.parentComment.author.getName());
+      const data = MentionsAutocomplete.getInsertionFromEntry(this.parentComment.author.getName());
       if (/** @type {NonNullable<typeof data.omitContentCheck>} */ (data.omitContentCheck)()) {
         data.content = '';
       }
@@ -3869,7 +3869,7 @@ class CommentForm extends EventEmitter {
       // Valid username
       (mw.Title.newFromText(selection) && !selection.includes('/') && selection.length <= 85)
     ) {
-      const data = MentionsAutocomplete.transformItemToInsertData(selection);
+      const data = MentionsAutocomplete.getInsertionFromEntry(selection);
       if (/** @type {NonNullable<typeof data.omitContentCheck>} */ (data.omitContentCheck)()) {
         data.content = '';
       }

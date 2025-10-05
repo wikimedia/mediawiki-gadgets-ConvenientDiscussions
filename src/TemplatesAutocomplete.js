@@ -5,7 +5,7 @@ import { charAt, phpCharToUpper } from './shared/utils-general';
 import { handleApiReject } from './utils-api';
 
 /**
- * @typedef {string} TemplateItem
+ * @typedef {string} TemplateEntry
  */
 
 /**
@@ -81,15 +81,15 @@ class TemplatesAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a template name item into insert data for the Tribute library.
+   * Transform a template name entry into insertion data for the Tribute library.
    *
    * @override
-   * @param {string} item The template name to transform
+   * @param {string} entry The template name to transform
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
    */
-  getInsertDataFromItem(item) {
+  getInsertionFromEntry(entry) {
     return {
-      start: '{{' + item.trim(),
+      start: '{{' + entry.trim(),
       end: '}}',
       shiftModify() {
         this.start += '|';
@@ -142,11 +142,11 @@ class TemplatesAutocomplete extends BaseAutocomplete {
    * Get autocomplete data for a template and insert template parameters.
    * This method handles the Shift+Enter functionality for template parameter insertion.
    *
-   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Result<string>>} item
+   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Option<string>>} option
    * @param {import('./TextInputWidget').default} input
    * @returns {Promise<void>}
    */
-  async insertTemplateData(item, input) {
+  async insertTemplateData(option, input) {
     input
       .setDisabled(true)
       .pushPending();
@@ -156,7 +156,7 @@ class TemplatesAutocomplete extends BaseAutocomplete {
     try {
       response = await cd.getApi(BaseAutocomplete.apiConfig).get({
         action: 'templatedata',
-        titles: `Template:${item.original.label}`,
+        titles: `Template:${option.original.label}`,
         redirects: true,
       }).catch(handleApiReject);
       if (!Object.keys(response.pages).length) {

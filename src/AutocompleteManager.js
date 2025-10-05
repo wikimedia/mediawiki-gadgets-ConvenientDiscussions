@@ -9,37 +9,37 @@ import { handleApiReject } from './utils-api';
 
 /**
  * @import {AutocompleteType} from './AutocompleteFactory';
- * @import {MentionItem} from './MentionsAutocomplete';
- * @import {CommentLinkItem} from './CommentLinksAutocomplete';
- * @import {WikilinkItem} from './WikilinksAutocomplete';
- * @import {TemplateItem} from './TemplatesAutocomplete';
- * @import {TagItem} from './TagsAutocomplete';
+ * @import {MentionEntry} from './MentionsAutocomplete';
+ * @import {CommentLinkEntry} from './CommentLinksAutocomplete';
+ * @import {WikilinkEntry} from './WikilinksAutocomplete';
+ * @import {TemplateEntry} from './TemplatesAutocomplete';
+ * @import {TagEntry} from './TagsAutocomplete';
  */
 
 /**
- * @typedef {MentionItem | CommentLinkItem | WikilinkItem | TemplateItem | TagItem} Item
+ * @typedef {MentionEntry | CommentLinkEntry | WikilinkEntry | TemplateEntry | TagEntry} Entry
  */
 
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
 
 /**
- * @template {Item} T
+ * @template {Entry} T
  * @typedef {Parameters<
  *   Exclude<
- *     import('./tribute/Tribute').TributeCollectionSpecific<import('./BaseAutocomplete').Result<T>>['values'],
- *     import('./BaseAutocomplete').Result<T>[]
+ *     import('./tribute/Tribute').TributeCollectionSpecific<import('./BaseAutocomplete').Option<T>>['values'],
+ *     import('./BaseAutocomplete').Option<T>[]
  *   >
- * >[1]} ProcessResults
+ * >[1]} ProcessOptions
  */
 
 /**
  * @typedef {object} AutocompleteConfigShared
- * @property {Item[]} [default] Default set of items to search across (may be more narrow than the
+ * @property {Entry[]} [default] Default set of entries to search across (may be more narrow than the
  *   list of all potential values, as in the case of user names)
- * @property {(() => Item[])} [defaultLazy] Function for lazy loading of the defaults
- * @property {() => import('./tribute/Tribute').InsertData} [transformItemToInsertData] Function
- *   that transforms the item into the data that is actually inserted
+ * @property {(() => Entry[])} [defaultLazy] Function for lazy loading of the defaults
+ * @property {() => import('./tribute/Tribute').InsertData} [getInsertionFromEntry] Function
+ *   that transforms the entry into the insertion data that is actually inserted
  * @property {AnyByKey} [data] Any additional data to be used by methods
  * @property {number} [cacheMaxSize]
  * @property {number} [cacheTtl]
@@ -200,29 +200,29 @@ class AutocompleteManager {
 
     for (const [type, instance] of this.autocompleteInstances) {
       collections.push(
-        /** @type {import('./tribute/Tribute').TributeCollection<import('./BaseAutocomplete').Result>} */ ({
+        /** @type {import('./tribute/Tribute').TributeCollection<import('./BaseAutocomplete').Option>} */ ({
           lookup: 'label',
           label: instance.getLabel(),
           trigger: instance.getTrigger(),
           searchOpts: { skip: true },
-          selectTemplate: (result, event) => {
-            if (result) {
+          selectTemplate: (option, event) => {
+            if (option) {
               // Handle special template data insertion for templates
               if (type === 'templates' && this.useTemplateData && event.shiftKey && !event.altKey) {
                 const input = /** @type {import('./TextInputWidget').default} */ (
                   /** @type {HTMLElement} */ (this.tribute.current.element).cdInput
                 );
-                setTimeout(() => this.insertTemplateData(result, input));
+                setTimeout(() => this.insertTemplateData(option, input));
               }
 
-              return result.original.transform?.(result.original) || '';
+              return option.original.transform?.(option.original) || '';
             }
 
             return '';
           },
           values: async (
             /** @type {string} */ text,
-            /** @type {ProcessResults<any>} */ callback
+            /** @type {ProcessOptions<any>} */ callback
           ) => {
             // Start performance monitoring if enabled
             const perfContext = this.performanceMonitor?.startOperation('getValues', type, text);
@@ -259,11 +259,11 @@ class AutocompleteManager {
   /**
    * Get autocomplete data for a template.
    *
-   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Result<string>>} result
+   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Option<string>>} option
    * @param {import('./TextInputWidget').default} input
    * @returns {Promise<void>}
    */
-  async insertTemplateData(result, input) {
+  async insertTemplateData(option, input) {
     input
       .setDisabled(true)
       .pushPending();
@@ -273,7 +273,7 @@ class AutocompleteManager {
     try {
       response = await cd.getApi(AutocompleteManager.apiConfig).get({
         action: 'templatedata',
-        titles: `Template:${result.original.label}`,
+        titles: `Template:${option.original.label}`,
         redirects: true,
       }).catch(handleApiReject);
       if (!Object.keys(response.pages).length) {
