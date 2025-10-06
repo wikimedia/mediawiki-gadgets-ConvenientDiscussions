@@ -106,6 +106,24 @@ class TemplatesAutocomplete extends BaseAutocomplete {
   getCollectionProperties() {
     return {
       keepAsEnd: /^(?:\||\}\})/,
+      selectTemplate: (option, event) => {
+        if (option) {
+          const autocomplete = option.original.autocomplete;
+          if (autocomplete) {
+            // Handle special template data insertion for templates
+            if (this.manager?.useTemplateData && event.shiftKey && !event.altKey) {
+              const input = /** @type {import('./TextInputWidget').default} */ (
+                /** @type {HTMLElement} */ (this.manager.tribute.current.element).cdInput
+              );
+              setTimeout(() => this.insertTemplateData(option, input));
+            }
+
+            return autocomplete.getInsertionFromEntry(option.original.entry);
+          }
+        }
+
+        return '';
+      },
     };
   }
 
