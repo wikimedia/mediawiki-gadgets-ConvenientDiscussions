@@ -22,20 +22,6 @@ class TagsAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a tag entry into insertion data for the Tribute library.
-   *
-   * @param {TagEntry} entry The tag entry to transform
-   * @returns {import('./tribute/Tribute').InsertData}
-   */
-  static getInsertionFromEntry(entry) {
-    return {
-      start: Array.isArray(entry) ? entry[1] : `<${entry}>`,
-      end: Array.isArray(entry) ? entry[2] : `</${entry}>`,
-      selectContent: true,
-    };
-  }
-
-  /**
    * Create the default lazy loading function for tags.
    *
    * @returns {TagEntry[]} The default tag entries
@@ -101,7 +87,11 @@ class TagsAutocomplete extends BaseAutocomplete {
    * @returns {import('./tribute/Tribute').InsertData}
    */
   getInsertionFromEntry(entry) {
-    return TagsAutocomplete.getInsertionFromEntry(entry);
+    return {
+      start: Array.isArray(entry) ? entry[1] : `<${entry}>`,
+      end: Array.isArray(entry) ? entry[2] : `</${entry}>`,
+      selectContent: true,
+    };
   }
 
   /**

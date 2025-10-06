@@ -24,23 +24,6 @@ class WikilinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a page name entry into insertion data for the Tribute library.
-   *
-   * @param {string} entry The page name to transform
-   * @returns {import('./tribute/Tribute').InsertData & { end: string }}
-   */
-  static getInsertionFromEntry(entry) {
-    return {
-      start: '[[' + entry.trim(),
-      end: ']]',
-      shiftModify() {
-        this.content = this.start.slice(2);
-        this.start += '|';
-      },
-    };
-  }
-
-  /**
    * @override
    * @returns {string}
    */
@@ -64,7 +47,14 @@ class WikilinksAutocomplete extends BaseAutocomplete {
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
    */
   getInsertionFromEntry(entry) {
-    return WikilinksAutocomplete.getInsertionFromEntry(entry);
+    return {
+      start: '[[' + entry.trim(),
+      end: ']]',
+      shiftModify() {
+        this.content = this.start.slice(2);
+        this.start += '|';
+      },
+    };
   }
 
   /**

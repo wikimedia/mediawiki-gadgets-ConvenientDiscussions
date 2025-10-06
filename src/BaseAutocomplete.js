@@ -45,7 +45,7 @@ class BaseAutocomplete {
    *
    * @type {string[]}
    */
-  lastApiEntries = [];
+  lastApiResults = [];
 
   /**
    * The last query text that was processed.
@@ -194,7 +194,7 @@ class BaseAutocomplete {
 
     // Reset entries if query doesn't start with last query
     if (this.lastQuery && !text.startsWith(this.lastQuery)) {
-      this.lastApiEntries = [];
+      this.lastApiResults = [];
     }
     this.lastQuery = text;
 
@@ -218,7 +218,7 @@ class BaseAutocomplete {
 
     // If no local matches, include previous entries
     if (!localMatches.length) {
-      values.push(...this.lastApiEntries);
+      values.push(...this.lastApiResults);
     }
     values = this.searchLocal(text, values);
 
@@ -233,20 +233,20 @@ class BaseAutocomplete {
     // Make API request if needed
     if (!localMatches.length) {
       try {
-        const apiEntries = await this.makeApiRequest(text);
+        const apiResults = await this.makeApiRequest(text);
 
         // Check if request is still current
         if (this.lastQuery !== text) return;
 
-        this.lastApiEntries = apiEntries.slice();
+        this.lastApiResults = apiResults.slice();
 
         // Add user-typed text as last option
         if (trimmedText) {
-          apiEntries.push(trimmedText);
+          apiResults.push(trimmedText);
         }
 
-        this.updateCache(text, apiEntries);
-        callback(this.getOptionsFromEntries(apiEntries));
+        this.updateCache(text, apiResults);
+        callback(this.getOptionsFromEntries(apiResults));
       } catch (error) {
         // Silently handle API errors to avoid disrupting user experience
         console.warn('Autocomplete API request failed:', error);
@@ -281,7 +281,7 @@ class BaseAutocomplete {
 
         /** @type {Option} */
         const option = { label, entry };
-        option.transform = this.getInsertionFromEntry.bind(option);
+        option.transform = this.getInsertionFromEntry.bind(this);
 
         return option;
       });
@@ -291,8 +291,8 @@ class BaseAutocomplete {
    * Search for text in a local list of entries.
    *
    * @param {string} text Search text
-   * @param {any[]} list List to search in
-   * @returns {any[]} Matching entries
+   * @param {string[]} list List to search in
+   * @returns {string[]} Matching entries
    * @protected
    */
   searchLocal(text, list) {
@@ -437,7 +437,7 @@ class BaseAutocomplete {
       type: this.constructor.name,
       cache: cacheStats,
       defaultEntriesCount: this.getDefaultEntries().length,
-      lastEntriesCount: this.lastApiEntries.length,
+      lastEntriesCount: this.lastApiResults.length,
       lastQuery: this.lastQuery,
     };
   }

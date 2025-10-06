@@ -36,23 +36,6 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a comment links entry into insertion data for Tribute.
-   *
-   * @param {CommentLinkEntry} entry The comment links entry to transform
-   * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
-   */
-  static getInsertionFromEntry(entry) {
-    return {
-      start: `[[#${entry.urlFragment}|`,
-      end: ']]',
-      content:
-        'timestamp' in entry
-          ? cd.s('cf-autocomplete-commentlinks-text', entry.authorName, entry.timestamp)
-          : /** @type {string} */ (entry.headline),
-    };
-  }
-
-  /**
    * Get the display label for comment links autocomplete.
    *
    * @override
@@ -80,7 +63,14 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    */
   getInsertionFromEntry(entry) {
-    return CommentLinksAutocomplete.getInsertionFromEntry(entry);
+    return {
+      start: `[[#${entry.urlFragment}|`,
+      end: ']]',
+      content:
+        'timestamp' in entry
+          ? cd.s('cf-autocomplete-commentlinks-text', entry.authorName, entry.timestamp)
+          : /** @type {string} */ (entry.headline),
+    };
   }
 
   /**

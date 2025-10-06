@@ -36,8 +36,10 @@ This is a JavaScript project with type checking supplied by TypeScript through t
 * Use 2 spaces for indentation.
 * Use single quotes for strings.
 * Code comments should have one empty line before them.
-* Max line length is 100.
+* Maximum line length is 100.
 * When adding inline comments, place 2 spaces before them: `expression;  // Comment`.
+* Files should end with a single newline.
+* Put a space between inline JSDoc comments and the following expression: `/** @type {string} */ (variable)`, not `/** @type {string} */(variable)`.
 
 ## JSDoc code style
 

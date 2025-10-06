@@ -24,33 +24,6 @@ class MentionsAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Transform a user name entry into insertion data for the Tribute library.
-   *
-   * @param {string} entry The user name to transform
-   * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
-   */
-  static getInsertionFromEntry(entry) {
-    const name = entry.trim();
-    const user = userRegistry.get(name);
-    const userNamespace = user.getNamespaceAlias();
-    const pageName = user.isRegistered()
-      ? `${userNamespace}:${name}`
-      : `${cd.g.contribsPages[0]}/${name}`;
-
-    return {
-      start: `@[[${pageName}|`,
-      end: name.match(/[(,]/) ? `${name}]]` : ']]',
-      content: name,
-      omitContentCheck() {
-        return !this.start.includes('/');
-      },
-      cmdModify() {
-        this.end += cd.mws('colon-separator', { language: 'content' });
-      },
-    };
-  }
-
-  /**
    * Get the display label for mentions autocomplete.
    *
    * @override
@@ -78,7 +51,24 @@ class MentionsAutocomplete extends BaseAutocomplete {
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    */
   getInsertionFromEntry(entry) {
-    return MentionsAutocomplete.getInsertionFromEntry(entry);
+    const name = entry.trim();
+    const user = userRegistry.get(name);
+    const userNamespace = user.getNamespaceAlias();
+    const pageName = user.isRegistered()
+      ? `${userNamespace}:${name}`
+      : `${cd.g.contribsPages[0]}/${name}`;
+
+    return {
+      start: `@[[${pageName}|`,
+      end: name.match(/[(,]/) ? `${name}]]` : ']]',
+      content: name,
+      omitContentCheck() {
+        return !this.start.includes('/');
+      },
+      cmdModify() {
+        this.end += cd.mws('colon-separator', { language: 'content' });
+      },
+    };
   }
 
   /**

@@ -139,8 +139,8 @@ class TemplatesAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Get autocomplete data for a template and insert template parameters.
-   * This method handles the Shift+Enter functionality for template parameter insertion.
+   * Get autocomplete data for a template and insert template parameters. This method handles the
+   * Shift+Enter functionality for template parameter insertion.
    *
    * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Option<string>>} option
    * @param {import('./TextInputWidget').default} input

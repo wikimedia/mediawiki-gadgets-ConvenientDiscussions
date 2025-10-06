@@ -63,7 +63,7 @@ class BootController {
   contentColumnOffsets;
 
   /**
-   * @type {JQuery}
+   * @type {JQuery | undefined}
    * @private
    */
   $loadingPopup;
@@ -1515,7 +1515,7 @@ class BootController {
 
         require('./logPages.less');
       },
-      (error) => {
+      (/** @type {unknown} */ error) => {
         mw.notify(cd.s('error-loaddata'), { type: 'error' });
         console.error(error);
       }
