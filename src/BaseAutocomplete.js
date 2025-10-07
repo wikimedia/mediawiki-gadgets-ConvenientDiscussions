@@ -15,7 +15,6 @@ import { handleApiReject } from './utils-api';
  * @property {string} [label] Text searched against and displayed
  * @property {T} entry
  * @property {import('./BaseAutocomplete').default} [autocomplete] Reference to the autocomplete instance
- * @property {((option: Option) => import('./tribute/Tribute').InsertData) | undefined} [transform]
  */
 
 /**

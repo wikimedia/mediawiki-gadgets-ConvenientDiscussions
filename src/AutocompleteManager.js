@@ -201,25 +201,14 @@ class AutocompleteManager {
     const collections = [];
 
     for (const [type, instance] of this.autocompleteInstances) {
-      const collectionProperties = instance.getCollectionProperties();
-      const defaultSelectTemplate = (/** @type {any} */ option, /** @type {any} */ _event) => {
-        if (option) {
-          const autocomplete = option.original.autocomplete;
-          if (autocomplete) {
-            return autocomplete.getInsertionFromEntry(option.original.entry);
-          }
-        }
-
-        return '';
-      };
-
       collections.push(
-        /** @type {import('./tribute/Tribute').TributeCollection<import('./BaseAutocomplete').Option>} */ ({
+        /** @type {import('./tribute/Tribute').TributeCollection<import('./BaseAutocomplete').Option>} */({
           lookup: 'label',
           label: instance.getLabel(),
           trigger: instance.getTrigger(),
           searchOpts: { skip: true },
-          selectTemplate: collectionProperties.selectTemplate || defaultSelectTemplate,
+          selectTemplate: (option, _event) =>
+            option?.original.autocomplete?.getInsertionFromEntry(option.original.entry) || '',
           values: async (
             /** @type {string} */ text,
             /** @type {ProcessOptions<any>} */ callback
@@ -247,10 +236,8 @@ class AutocompleteManager {
             }
           },
 
-          // Add type-specific properties from the instance (excluding selectTemplate)
-          ...Object.fromEntries(
-            Object.entries(collectionProperties).filter(([key]) => key !== 'selectTemplate')
-          ),
+          // Add type-specific properties from the instance
+          ...instance.getCollectionProperties(),
         })
       );
     }
