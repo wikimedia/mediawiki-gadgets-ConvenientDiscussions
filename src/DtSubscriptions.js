@@ -2,7 +2,6 @@ import Button from './Button';
 import Subscriptions from './Subscriptions';
 import cd from './cd';
 import sectionRegistry from './sectionRegistry';
-import CdError from './shared/CdError';
 import { definedAndNotNull, spacesToUnderlines, unique } from './shared/utils-general';
 import { handleApiReject, splitIntoBatches } from './utils-api';
 
@@ -97,7 +96,7 @@ class DtSubscriptions extends Subscriptions {
    *
    * @private
    */
-  async addPageSubscribeButton() {
+  addPageSubscribeButton() {
     if (!cd.user.isRegistered() || cd.page.isArchive() || $('#ca-dt-page-subscribe').length) return;
 
     const portletLink = mw.util.addPortletLink(
@@ -140,10 +139,6 @@ class DtSubscriptions extends Subscriptions {
    * @private
    */
   async changeSubscription(subscribeId, id, subscribe) {
-    if (subscribeId === undefined) {
-      throw new CdError();
-    }
-
     try {
       await cd.getApi().postWithEditToken({
         action: 'discussiontoolssubscribe',

@@ -900,7 +900,7 @@ const defaultConfig = {
    * string normally ends with `\n`. If `null`, the section is just removed from the page.
    *
    * @type {(targetPageWikilink: string, signature: string, timestamp?: string) => string}
-   * @default
+   * @default function (targetPageWikilink, signature, timestamp) {
    *   return (
    *     convenientDiscussions.s('move-sourcepagecode', targetPageWikilink, signature, timestamp) +
    *     '\n'
@@ -921,7 +921,7 @@ const defaultConfig = {
    * respectively. The strings normally end with `\n`. If `null`, no code will be added.
    *
    * @type {(targetPageWikilink: string, signature: string) => string | string[]}
-   * @default
+   * @default function (targetPageWikilink, signature) {
    *   return convenientDiscussions.s('move-targetpagecode', targetPageWikilink, signature) + '\n';
    * }
    */
@@ -937,7 +937,7 @@ const defaultConfig = {
    * Code that creates an anchor on the page.
    *
    * @type {(id: string) => string}
-   * @default
+   * @default function (id) {
    *   return '&lt;span id="' + id + '"&gt;&lt;/span&gt;';
    * }
    */

@@ -34,31 +34,38 @@ const config = defineConfig(
       }],
       'jsdoc/check-tag-names': 'off',
       'jsdoc/check-types': 'off',
-      'jsdoc/require-property-description': 'off',
-      'jsdoc/require-returns-description': 'off',
+      'jsdoc/no-defaults': ['warn', {
+        contexts: [
+          {
+            comment: 'JsdocBlock:not(:has(JsdocTag[tag=default]))',
+          },
+        ],
+      }],
+      'jsdoc/reject-any-type': 'off',
       'jsdoc/require-jsdoc': ['warn', {
+        enableFixer: false,
         require: {
           ClassDeclaration: true,
           ClassExpression: true,
           FunctionDeclaration: true,
           MethodDefinition: true,
         },
-        enableFixer: false,
       }],
       'jsdoc/require-param-description': 'off',
+      'jsdoc/require-property-description': 'off',
+      'jsdoc/require-returns-description': 'off',
       'jsdoc/tag-lines': ['warn', 'any', {
         startLines: 1,
       }],
-      'jsdoc/reject-any-type': 'off',
     },
   }),
   importPlugin.flatConfigs.recommended,
   importPlugin.flatConfigs.typescript,
-  // stylistic.configs.customize({
-  //   semi: true,
-  //   arrowParens: true,
-  //   severity: 'warn',
-  // }),
+  stylistic.configs.customize({
+    semi: true,
+    arrowParens: true,
+    severity: 'warn',
+  }),
 
   // Main configuration
   {
@@ -69,14 +76,16 @@ const config = defineConfig(
       // parserOptions: {
       //   requireConfigFile: false,
       // },
-      parserOptions: {
+      parserOptions: /** @type {import('@typescript-eslint/parser').ParserOptions} */ ({
         projectService: {
           defaultProject: 'jsconfig.json',
-          // allowDefaultProject: ['*.js', '*.mjs'],
+
+          // See `includes` in src/jsconfig.json
+          allowDefaultProject: ['config/*'],
         },
         tsconfigRootDir: import.meta.dirname,
         // jsDocParsingMode: 'all',
-      },
+      }),
       globals: {
         CONFIG_FILE_NAME: 'readonly',
         IS_DEV: 'readonly',
@@ -327,79 +336,79 @@ const config = defineConfig(
       ],
       'import/no-named-as-default-member': 'off',
 
-      // '@stylistic/no-multi-spaces': ['warn', {
-      //   ignoreEOLComments: true,
-      // }],
-      // '@stylistic/comma-dangle': ['warn', {
-      //   arrays: 'always-multiline',
-      //   objects: 'always-multiline',
-      //   functions: 'only-multiline',
-      // }],
-      // '@stylistic/brace-style': ['warn', '1tbs'],
-      // '@stylistic/arrow-parens': 'warn',
-      // '@stylistic/lines-between-class-members': ['warn', {
-      //   enforce: [
-      //     {
-      //       blankLine: 'always',
-      //       prev: 'method',
-      //       next: 'method',
-      //     },
-      //   ],
-      // }],
-      // '@stylistic/array-bracket-newline': ['warn', 'consistent'],
-      // '@stylistic/array-element-newline': ['warn', 'consistent'],
-      // '@stylistic/object-property-newline': ['warn', {
-      //   allowAllPropertiesOnSameLine: true,
-      // }],
-      // '@stylistic/object-curly-newline': ['warn', {
-      //   consistent: true,
-      //   multiline: true,
-      // }],
-      // '@stylistic/max-len': ['warn', {
-      //   code: 110,  // Non-rigid 100; it doesn't autofix anyway
-      //   tabWidth: 2,
-      //   ignoreComments: true,
-      //   ignoreUrls: true,
-      //   ignoreStrings: true,
-      //   ignoreTemplateLiterals: true,
-      //   ignoreRegExpLiterals: true,
-      // }],
-      // '@stylistic/operator-linebreak': ['warn', 'after', {
-      //   overrides: {
-      //     '?': 'before',
-      //     ':': 'before',
-      //   },
-      // }],
-      // '@stylistic/newline-per-chained-call': ['warn', {
-      //   ignoreChainWithDepth: 3,
-      // }],
-      // '@stylistic/padding-line-between-statements': [
-      //   'warn',
-      //   // Always require a blank line before any return
-      //   {
-      //     blankLine: 'always',
-      //     prev: '*',
-      //     next: 'return',
-      //   },
-      // ],
+      '@stylistic/no-multi-spaces': ['warn', {
+        ignoreEOLComments: true,
+      }],
+      '@stylistic/comma-dangle': ['warn', {
+        arrays: 'always-multiline',
+        objects: 'always-multiline',
+        functions: 'only-multiline',
+      }],
+      '@stylistic/brace-style': ['warn', '1tbs'],
+      '@stylistic/arrow-parens': 'warn',
+      '@stylistic/lines-between-class-members': ['warn', {
+        enforce: [
+          {
+            blankLine: 'always',
+            prev: 'method',
+            next: 'method',
+          },
+        ],
+      }],
+      '@stylistic/array-bracket-newline': ['warn', 'consistent'],
+      '@stylistic/array-element-newline': ['warn', 'consistent'],
+      '@stylistic/object-property-newline': ['warn', {
+        allowAllPropertiesOnSameLine: true,
+      }],
+      '@stylistic/object-curly-newline': ['warn', {
+        consistent: true,
+        multiline: true,
+      }],
+      '@stylistic/max-len': ['warn', {
+        code: 110,  // Non-rigid 100; it doesn't autofix anyway
+        tabWidth: 2,
+        ignoreComments: true,
+        ignoreUrls: true,
+        ignoreStrings: true,
+        ignoreTemplateLiterals: true,
+        ignoreRegExpLiterals: true,
+      }],
+      '@stylistic/operator-linebreak': ['warn', 'after', {
+        overrides: {
+          '?': 'before',
+          ':': 'before',
+        },
+      }],
+      '@stylistic/newline-per-chained-call': ['warn', {
+        ignoreChainWithDepth: 3,
+      }],
+      '@stylistic/padding-line-between-statements': [
+        'warn',
+        // Always require a blank line before any return
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: 'return',
+        },
+      ],
 
-      // // Trimmed on save by IDE
-      // '@stylistic/no-trailing-spaces': 'off',
+      // Trimmed on save by IDE
+      '@stylistic/no-trailing-spaces': 'off',
 
-      // '@stylistic/indent': ['warn', 2, {
-      //   SwitchCase: 1,
-      //   offsetTernaryExpressions: true,
-      // }],
+      '@stylistic/indent': ['warn', 2, {
+        SwitchCase: 1,
+        offsetTernaryExpressions: true,
+      }],
 
-      // // Attacks JSDoc comments like `.../** @type {string} */ (smth)`
-      // '@stylistic/rest-spread-spacing': 'off',
-      // '@stylistic/space-unary-ops': 'off',
-      // '@stylistic/array-bracket-spacing': 'off',
+      // Attacks JSDoc comments like `.../** @type {string} */ (smth)`
+      '@stylistic/rest-spread-spacing': 'off',
+      '@stylistic/space-unary-ops': 'off',
+      '@stylistic/array-bracket-spacing': 'off',
 
-      // '@stylistic/quotes': ['warn', 'single', {
-      //   avoidEscape: true,
-      //   allowTemplateLiterals: 'always',
-      // }],
+      '@stylistic/quotes': ['warn', 'single', {
+        avoidEscape: true,
+        allowTemplateLiterals: 'always',
+      }],
 
       'no-one-time-vars/no-one-time-vars': 'off',
       // No one-time vars plugin rules
