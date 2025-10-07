@@ -59,7 +59,7 @@ class BaseAutocomplete {
    *
    * @type {any[]}
    */
-  default = [];
+  defaultEntries = [];
 
   /**
    * Function for lazy loading of default entries.
@@ -114,7 +114,7 @@ class BaseAutocomplete {
     // Initialize advanced cache if not provided
     this.cache = new AutocompleteCache({
       maxSize: config.cacheMaxSize || 500,
-      ttl: config.cacheTtl || 5 * cd.g.msInMin,
+      ttl: config.cacheTtl || 5 * 60_000,
       maxMemory: config.cacheMaxMemory || 5 * 1024 * 1024,  // 5MB
     });
   }
@@ -197,19 +197,78 @@ class BaseAutocomplete {
    * @returns {Promise<void>}
    */
   async getValues(text, callback) {
-    text = removeDoubleSpaces(text);
-
-    // Reset entries if query doesn't start with last query
-    if (this.lastQuery && !text.startsWith(this.lastQuery)) {
-      this.lastApiResults = [];
+    // Initialize default entries if not already done
+    if (this.defaultEntries.length === 0) {
+      this.defaultEntries = this.getDefaultEntries();
     }
-    this.lastQuery = text;
+
+    text = this.preprocessText(text);
 
     if (!this.validateInput(text)) {
       callback(this.getOptionsFromEntries([]));
 
       return;
     }
+
+    // Check if this is a simple local-only autocomplete
+    if (this.isLocalOnly()) {
+      const matches = this.getLocalMatches(text);
+      callback(this.getOptionsFromEntries(matches));
+
+      return;
+    }
+
+    // Complex autocomplete with caching and API requests
+    await this.getValuesWithApiSupport(text, callback);
+  }
+
+  /**
+   * Preprocess the input text. Subclasses can override for custom preprocessing.
+   *
+   * @param {string} text The input text
+   * @returns {string} Preprocessed text
+   * @protected
+   */
+  preprocessText(text) {
+    return removeDoubleSpaces(text);
+  }
+
+  /**
+   * Check if this autocomplete type only uses local data (no API requests).
+   * Subclasses should override this to return true for local-only types.
+   *
+   * @returns {boolean} Whether this is a local-only autocomplete
+   * @protected
+   */
+  isLocalOnly() {
+    return false;
+  }
+
+  /**
+   * Get local matches for the given text. Subclasses can override for custom matching logic.
+   *
+   * @param {string} text The search text
+   * @returns {any[]} Matching entries
+   * @protected
+   */
+  getLocalMatches(text) {
+    return this.searchLocal(text, this.defaultEntries);
+  }
+
+  /**
+   * Handle autocomplete with API support, caching, and fallbacks.
+   *
+   * @param {string} text The search text
+   * @param {import('./AutocompleteManager').ProcessOptions<any>} callback Callback function
+   * @returns {Promise<void>}
+   * @private
+   */
+  async getValuesWithApiSupport(text, callback) {
+    // Reset entries if query doesn't start with last query
+    if (this.lastQuery && !text.startsWith(this.lastQuery)) {
+      this.lastApiResults = [];
+    }
+    this.lastQuery = text;
 
     // Check cache first
     const cachedEntries = this.handleCache(text);
@@ -220,7 +279,7 @@ class BaseAutocomplete {
     }
 
     // Get local matches
-    const localMatches = this.searchLocal(text, this.getDefaultEntries());
+    const localMatches = this.getLocalMatches(text);
     let values = localMatches.slice();
 
     // If no local matches, include previous entries
@@ -297,18 +356,41 @@ class BaseAutocomplete {
    * Search for text in a local list of entries.
    *
    * @param {string} text Search text
+   * @param {any[]} list List to search in
+   * @returns {any[]} Matching entries
+   * @protected
+   */
+  searchLocal(text, list) {
+    // Handle empty lists
+    if (list.length === 0) {
+      return [];
+    }
+
+    if (this.isStringList(list)) {
+      return this.searchStringList(text, list);
+    }
+
+    // For non-string lists, subclasses should override this method
+    // But we can provide a basic implementation for objects with 'label' property
+    if (typeof list[0] === 'object' && 'label' in list[0]) {
+      return this.searchLabeledEntries(text, list);
+    }
+
+    throw new CdError({
+      type: 'internal',
+      message: 'Entry types other than string or labeled objects are not supported. searchLocal() must be implemented by subclass',
+    });
+  }
+
+  /**
+   * Search for text in a list of strings.
+   *
+   * @param {string} text Search text
    * @param {string[]} list List to search in
    * @returns {string[]} Matching entries
    * @protected
    */
-  searchLocal(text, list) {
-    if (!this.isStringList(list)) {
-      throw new CdError({
-        type: 'internal',
-        message: 'Entry types other than string are not supported. searchLocal() must be implemented by subclass',
-      });
-    }
-
+  searchStringList(text, list) {
     const containsRegexp = new RegExp(mw.util.escapeRegExp(text), 'i');
     const startsWithRegexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
 
@@ -318,6 +400,20 @@ class BaseAutocomplete {
         (entry1, entry2) =>
           Number(startsWithRegexp.test(entry2)) - Number(startsWithRegexp.test(entry1))
       );
+  }
+
+  /**
+   * Search for text in a list of entries with 'label' property.
+   *
+   * @param {string} text Search text
+   * @param {Array<{label: string}>} list List to search in
+   * @returns {Array<{label: string}>} Matching entries
+   * @protected
+   */
+  searchLabeledEntries(text, list) {
+    const searchRegex = new RegExp(mw.util.escapeRegExp(text), 'i');
+
+    return list.filter((entry) => searchRegex.test(entry.label));
   }
 
   /**
@@ -356,11 +452,11 @@ class BaseAutocomplete {
    * @returns {any[]} Default entries
    */
   getDefaultEntries() {
-    if (this.default.length === 0 && this.defaultLazy) {
-      this.default = this.defaultLazy();
+    if (this.defaultEntries.length === 0 && this.defaultLazy) {
+      this.defaultEntries = this.defaultLazy();
     }
 
-    return this.default;
+    return this.defaultEntries;
   }
 
   /**

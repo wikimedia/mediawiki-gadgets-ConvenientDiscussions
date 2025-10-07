@@ -44,7 +44,7 @@ describe('BaseAutocomplete', () => {
 
       expect(instance.cache).toBeDefined();
       expect(instance.cache.constructor.name).toBe('AutocompleteCache');
-      expect(instance.default).toEqual(config.default);
+      expect(instance.defaultEntries).toEqual(config.default);
       expect(instance.data).toEqual(config.data);
     });
   });

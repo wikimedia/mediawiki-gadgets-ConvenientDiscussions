@@ -119,36 +119,29 @@ class TagsAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Get autocomplete values for the given text.
+   * Check if this is a local-only autocomplete (no API requests).
+   *
+   * @override
+   * @returns {boolean}
+   * @protected
+   */
+  isLocalOnly() {
+    return true;
+  }
+
+  /**
+   * Get local matches for tags using custom regex matching.
    *
    * @override
    * @param {string} text The search text
-   * @param {(values: import('./BaseAutocomplete').Option[]) => void} callback Callback function to
-   *   call with options
-   * @returns {Promise<void>}
+   * @returns {TagEntry[]} Matching tag entries
+   * @protected
    */
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async getValues(text, callback) {
-    // Initialize default entries if not already done
-    if (this.default.length === 0) {
-      this.default = this.getDefaultEntries();
-    }
-
-    // Validate input
-    if (!this.validateInput(text)) {
-      callback([]);
-
-      return;
-    }
-
+  getLocalMatches(text) {
     // Filter tags that start with the input text
     const regexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
 
-    callback(
-      this.getOptionsFromEntries(
-        this.default.filter((tag) => regexp.test(Array.isArray(tag) ? tag[0] : tag))
-      )
-    );
+    return this.defaultEntries.filter((tag) => regexp.test(Array.isArray(tag) ? tag[0] : tag));
   }
 
   /**

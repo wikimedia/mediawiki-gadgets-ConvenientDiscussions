@@ -231,7 +231,7 @@ async function benchmarkMentionsAutocomplete() {
 
 async function benchmarkWikilinksAutocomplete() {
   const wikilinks = new WikilinksAutocomplete();
-  wikilinks.default = ['Test page', 'Test article', 'Another test'];
+  wikilinks.defaultEntries = ['Test page', 'Test article', 'Another test'];
 
   const callback = () => {};
   await wikilinks.getValues('test', callback);
@@ -239,7 +239,7 @@ async function benchmarkWikilinksAutocomplete() {
 
 async function benchmarkTemplatesAutocomplete() {
   const templates = new TemplatesAutocomplete();
-  templates.default = Array.from({ length: 100 }, (_, i) => `Template${i}`);
+  templates.defaultEntries = Array.from({ length: 100 }, (_, i) => `Template${i}`);
 
   const callback = () => {};
   await templates.getValues('temp', callback);
@@ -288,7 +288,7 @@ async function benchmarkAutocompleteManager() {
 
 async function benchmarkLargeDataset() {
   const mentions = new MentionsAutocomplete();
-  mentions.default = Array.from({ length: 1000 }, (_, i) => `User${i}`);
+  mentions.defaultEntries = Array.from({ length: 1000 }, (_, i) => `User${i}`);
 
   const callback = () => {};
   await mentions.getValues('User1', callback);
@@ -383,7 +383,7 @@ function checkPerformanceThresholds(results) {
 }
 
 // Export for use in tests
-export { PerformanceBenchmark, runAllBenchmarks, checkPerformanceThresholds, PERFORMANCE_THRESHOLDS };
+export { PERFORMANCE_THRESHOLDS, PerformanceBenchmark, checkPerformanceThresholds, runAllBenchmarks };
 
 // Run benchmarks if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {

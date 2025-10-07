@@ -179,7 +179,7 @@ describe('Autocomplete Performance Tests', () => {
 
     test('wikilinks autocomplete response time should be under 200ms for local search', async () => {
       const wikilinks = new WikilinksAutocomplete();
-      wikilinks.default = ['Test page', 'Test article', 'Another test'];
+      wikilinks.defaultEntries = ['Test page', 'Test article', 'Another test'];
       const callback = jest.fn();
 
       const measurement = tracker.startMeasurement('wikilinks-local');
@@ -193,7 +193,7 @@ describe('Autocomplete Performance Tests', () => {
     test('templates autocomplete should handle large template lists efficiently', async () => {
       const templates = new TemplatesAutocomplete();
       // Simulate large template list
-      templates.default = Array.from({ length: 1000 }, (_, i) => `Template${i}`);
+      templates.defaultEntries = Array.from({ length: 1000 }, (_, i) => `Template${i}`);
       const callback = jest.fn();
 
       const measurement = tracker.startMeasurement('templates-large-list');
@@ -431,7 +431,7 @@ describe('Autocomplete Performance Tests', () => {
 
       // Simulate large user list
       const largeUserList = Array.from({ length: 10_000 }, (_, i) => `User${i}`);
-      mentions.default = largeUserList;
+      mentions.defaultEntries = largeUserList;
 
       const callback = jest.fn();
 
@@ -448,7 +448,7 @@ describe('Autocomplete Performance Tests', () => {
 
       // Simulate large template list
       const largeTemplateList = Array.from({ length: 5000 }, (_, i) => `Template${i}`);
-      templates.default = largeTemplateList;
+      templates.defaultEntries = largeTemplateList;
 
       const callback = jest.fn();
 
@@ -463,7 +463,7 @@ describe('Autocomplete Performance Tests', () => {
     test('should handle concurrent requests with large datasets', async () => {
       const mentions = new MentionsAutocomplete();
       const largeUserList = Array.from({ length: 5000 }, (_, i) => `User${i}`);
-      mentions.default = largeUserList;
+      mentions.defaultEntries = largeUserList;
 
       const callback = jest.fn();
 

@@ -1,7 +1,7 @@
 import BaseAutocomplete from './BaseAutocomplete';
 import cd from './cd';
 import sectionRegistry from './sectionRegistry';
-import { removeDoubleSpaces, underlinesToSpaces } from './shared/utils-general';
+import { underlinesToSpaces } from './shared/utils-general';
 
 /**
  * @typedef {object} CommentLinkEntry
@@ -87,36 +87,26 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
-   * Get autocomplete values for comment links. Overrides the base implementation to use Tribute's
-   * search functionality for filtering.
+   * Check if this is a local-only autocomplete (no API requests).
    *
    * @override
-   * @param {string} text The search text
-   * @param {import('./AutocompleteManager').ProcessOptions<CommentLinkEntry>} callback Callback
-   *   function to call with results
-   * @returns {Promise<void>}
+   * @returns {boolean}
+   * @protected
    */
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async getValues(text, callback) {
-    // Initialize default entries if not already done
-    if (this.default.length === 0) {
-      this.default = this.getDefaultEntries();
-    }
+  isLocalOnly() {
+    return true;
+  }
 
-    text = removeDoubleSpaces(text);
-
-    // Validate input - reject if contains forbidden characters
-    if (this.validateInput(text)) {
-      callback([]);
-
-      return;
-    }
-
-    // Use Tribute's built-in search functionality to filter results
-    // This mimics the original implementation's behavior
-    const matches = this.searchLocal(text, this.default);
-
-    callback(this.getOptionsFromEntries(matches));
+  /**
+   * Validate input text for comment links autocomplete.
+   *
+   * @override
+   * @param {string} text The input text to validate
+   * @returns {boolean} Whether the input is valid
+   */
+  validateInput(text) {
+    // Comment links autocomplete rejects input with forbidden characters
+    return !(/[#<>[\]|{}]/.test(text));
   }
 
   /**
@@ -131,22 +121,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
     };
   }
 
-  /**
-   * Filter comment links using Tribute's search algorithm. This replicates the original Tribute
-   * search behavior.
-   *
-   * @override
-   * @param {string} text Search text
-   * @param {CommentLinkEntry[]} entries Entries to search through
-   * @returns {CommentLinkEntry[]} Filtered results
-   * @protected
-   */
-  searchLocal(text, entries) {
-    const searchRegex = new RegExp(mw.util.escapeRegExp(text), 'i');
 
-    return entries
-      .filter((entry) => searchRegex.test(entry.label));
-  }
 
   /**
    * @override
