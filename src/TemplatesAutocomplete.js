@@ -12,7 +12,7 @@ import { handleApiReject } from './utils-api';
  * Autocomplete class for templates. Handles template name validation, TemplateData API integration,
  * and template parameter insertion with Shift+Enter functionality.
  *
- * @extends BaseAutocomplete
+ * @augments BaseAutocomplete
  */
 class TemplatesAutocomplete extends BaseAutocomplete {
   /**
@@ -95,6 +95,17 @@ class TemplatesAutocomplete extends BaseAutocomplete {
         this.start += '|';
       },
     };
+  }
+
+  /**
+   * Extract the display label from a template entry.
+   *
+   * @override
+   * @param {string} entry The template entry to extract label from
+   * @returns {string} The display label
+   */
+  getLabelFromEntry(entry) {
+    return entry;
   }
 
   /**

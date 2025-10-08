@@ -5,6 +5,7 @@ jest.mock('../src/cd', () => ({
   s: jest.fn((key) => `mocked-${key}`),
   g: {
     allowedTags: ['div', 'span', 'p', 'strong', 'em', 'code', 'pre', 'blockquote'],
+    msInMin: 60_000,
   },
 }));
 
@@ -55,9 +56,9 @@ describe('TagsAutocomplete', () => {
     });
   });
 
-  describe('transformItemToInsertData', () => {
+  describe('getInsertionFromEntry', () => {
     it('should transform simple string tags correctly', () => {
-      expect(tagsAutocomplete.transformItemToInsertData.call({ item: 'div' })).toEqual({
+      expect(tagsAutocomplete.getInsertionFromEntry('div')).toEqual({
         start: '<div>',
         end: '</div>',
         selectContent: true,
@@ -65,7 +66,7 @@ describe('TagsAutocomplete', () => {
     });
 
     it('should transform array tags correctly', () => {
-      expect(tagsAutocomplete.transformItemToInsertData.call({ item: ['br', '<br>'] })).toEqual({
+      expect(tagsAutocomplete.getInsertionFromEntry(['br', '<br>'])).toEqual({
         start: '<br>',
         end: undefined,
         selectContent: true,
@@ -73,9 +74,7 @@ describe('TagsAutocomplete', () => {
     });
 
     it('should transform complex array tags correctly', () => {
-      const mockValue = { item: ['gallery', '<gallery>\n', '\n</gallery>'] };
-
-      expect(tagsAutocomplete.transformItemToInsertData.call(mockValue)).toEqual({
+      expect(tagsAutocomplete.getInsertionFromEntry(['gallery', '<gallery>\n', '\n</gallery>'])).toEqual({
         start: '<gallery>\n',
         end: '\n</gallery>',
         selectContent: true,
@@ -115,9 +114,9 @@ describe('TagsAutocomplete', () => {
       expect(results.length).toBeGreaterThan(0);
 
       // Check that results contain div
-      const divResult = results.find((result) => result.key === 'div');
+      const divResult = results.find((result) => result.label === 'div');
       expect(divResult).toBeDefined();
-      expect(divResult.item).toBe('div');
+      expect(divResult.entry).toBe('div');
     });
 
     it('should return case-insensitive matches', async () => {
@@ -130,7 +129,7 @@ describe('TagsAutocomplete', () => {
 
       // Check that results contain div
 
-      expect(results.find((result) => result.key === 'div')).toBeDefined();
+      expect(results.find((result) => result.label === 'div')).toBeDefined();
     });
 
     it('should include custom tag additions in results', async () => {
@@ -140,9 +139,9 @@ describe('TagsAutocomplete', () => {
       expect(callback).toHaveBeenCalled();
 
       // Check that results contain br tag from additions
-      const brResult = callback.mock.calls[0][0].find((result) => result.key === 'br');
+      const brResult = callback.mock.calls[0][0].find((result) => result.label === 'br');
       expect(brResult).toBeDefined();
-      expect(brResult.item).toEqual(['br', '<br>']);
+      expect(brResult.entry).toEqual(['br', '<br>']);
     });
 
     it('should filter results based on starting characters', async () => {
@@ -154,17 +153,14 @@ describe('TagsAutocomplete', () => {
 
       // Should include span but not div
 
-      expect(results.find((result) => result.key === 'span')).toBeDefined();
-      expect(results.find((result) => result.key === 'div')).toBeUndefined();
+      expect(results.find((result) => result.label === 'span')).toBeDefined();
+      expect(results.find((result) => result.label === 'div')).toBeUndefined();
     });
   });
 
-  describe('createDefaultLazy', () => {
+  describe('defaultLazy', () => {
     it('should create a function that returns sorted tag list', () => {
-      const lazyFn = tagsAutocomplete.createDefaultLazy();
-      expect(typeof lazyFn).toBe('function');
-
-      const tags = lazyFn();
+      const tags = tagsAutocomplete.defaultLazy();
       expect(Array.isArray(tags)).toBe(true);
       expect(tags.length).toBeGreaterThan(0);
 
@@ -176,10 +172,9 @@ describe('TagsAutocomplete', () => {
     });
 
     it('should sort tags alphabetically', () => {
-      const tagNames = tagsAutocomplete.createDefaultLazy()().map((tag) => (Array.isArray(tag) ? tag[0] : tag));
+      const tagNames = tagsAutocomplete.defaultLazy().map((tag) => (Array.isArray(tag) ? tag[0] : tag));
 
       // Check that tags are sorted
-
       expect(tagNames).toEqual([...tagNames].sort());
     });
 
@@ -188,7 +183,7 @@ describe('TagsAutocomplete', () => {
       cd.g.allowedTags.push('br');
 
       // Count occurrences of 'br'
-      const brCount = tagsAutocomplete.createDefaultLazy()().map((tag) => (Array.isArray(tag) ? tag[0] : tag)).filter((name) => name === 'br').length;
+      const brCount = tagsAutocomplete.defaultLazy().map((tag) => (Array.isArray(tag) ? tag[0] : tag)).filter((name) => name === 'br').length;
       expect(brCount).toBe(1);
 
       // Clean up

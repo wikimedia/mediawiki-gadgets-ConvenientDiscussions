@@ -110,6 +110,17 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
   }
 
   /**
+   * Extract the display label from a comment links entry.
+   *
+   * @override
+   * @param {CommentLinkEntry} entry The comment links entry to extract label from
+   * @returns {string} The display label
+   */
+  getLabelFromEntry(entry) {
+    return entry.label;
+  }
+
+  /**
    * Get collection-specific properties for Tribute configuration.
    *
    * @override
@@ -120,8 +131,6 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
       keepAsEnd: /^\]\]/,
     };
   }
-
-
 
   /**
    * @override

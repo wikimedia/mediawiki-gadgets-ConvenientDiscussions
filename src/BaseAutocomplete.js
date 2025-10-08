@@ -1,7 +1,7 @@
 import AutocompleteCache from './AutocompleteCache';
 import cd from './cd';
 import CdError from './shared/CdError';
-import { defined, removeDoubleSpaces, sleep, unique } from './shared/utils-general';
+import { definedAndNotNull, removeDoubleSpaces, sleep, unique } from './shared/utils-general';
 import { handleApiReject } from './utils-api';
 
 /**
@@ -156,6 +156,20 @@ class BaseAutocomplete {
     throw new CdError({
       type: 'internal',
       message: 'getInsertionFromEntry() must be implemented by subclass',
+    });
+  }
+
+  /**
+   * Extract the display label from an entry.
+   *
+   * @abstract
+   * @param {any} _entry The entry to extract label from
+   * @returns {string} The display label
+   */
+  getLabelFromEntry(_entry) {
+    throw new CdError({
+      type: 'internal',
+      message: 'getLabelFromEntry() must be implemented by subclass',
     });
   }
 
@@ -329,21 +343,10 @@ class BaseAutocomplete {
    */
   getOptionsFromEntries(entries) {
     return entries
-      .filter(defined)
+      .filter(definedAndNotNull)
       .filter(unique)
       .map((entry) => {
-        /** @type {string} */
-        let label;
-        if (Array.isArray(entry)) {
-          // Tags
-          label = entry[0];
-        } else if (typeof entry === 'object' && 'label' in entry) {
-          // Comment links
-          label = entry.label;
-        } else {
-          // The rest
-          label = entry;
-        }
+        const label = this.getLabelFromEntry(entry);
 
         /** @type {Option} */
         const option = { label, entry, autocomplete: this };

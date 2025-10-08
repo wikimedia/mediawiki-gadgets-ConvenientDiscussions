@@ -10,7 +10,7 @@ import { charAt, phpCharToUpper } from './shared/utils-general';
  * Autocomplete class for wikilinks (page links). Handles page name validation, OpenSearch API
  * integration, colon prefixes, namespace logic, and case sensitivity.
  *
- * @extends BaseAutocomplete
+ * @augments BaseAutocomplete
  */
 class WikilinksAutocomplete extends BaseAutocomplete {
   /**
@@ -119,7 +119,16 @@ class WikilinksAutocomplete extends BaseAutocomplete {
     });
   }
 
-
+  /**
+   * Extract the display label from a wikilink entry.
+   *
+   * @override
+   * @param {string} entry The wikilink entry to extract label from
+   * @returns {string} The display label
+   */
+  getLabelFromEntry(entry) {
+    return entry;
+  }
 
   /**
    * Get collection-specific properties for Tribute configuration.

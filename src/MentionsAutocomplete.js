@@ -72,6 +72,17 @@ class MentionsAutocomplete extends BaseAutocomplete {
   }
 
   /**
+   * Extract the display label from a mention entry.
+   *
+   * @override
+   * @param {string} entry The mention entry to extract label from
+   * @returns {string} The display label
+   */
+  getLabelFromEntry(entry) {
+    return entry;
+  }
+
+  /**
    * Get collection-specific properties for Tribute configuration.
    *
    * @override

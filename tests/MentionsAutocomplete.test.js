@@ -11,6 +11,7 @@ jest.mock('../src/cd', () => ({
   g: {
     userNamespacesRegexp: /^User:(.+)$/,
     contribsPages: ['Special:Contributions'],
+    msInMin: 60_000,
   },
   getApi: jest.fn(() => ({
     get: jest.fn(),
@@ -70,9 +71,9 @@ describe('MentionsAutocomplete', () => {
     });
   });
 
-  describe('transformItemToInsertData', () => {
+  describe('getInsertionFromEntry', () => {
     it('should transform registered user correctly', () => {
-      const result = mentionsAutocomplete.transformItemToInsertData('TestUser');
+      const result = mentionsAutocomplete.getInsertionFromEntry('TestUser');
 
       expect(result.start).toBe('@[[User:TestUser|');
       expect(result.end).toBe(']]');
@@ -80,7 +81,7 @@ describe('MentionsAutocomplete', () => {
     });
 
     it('should handle user names with special characters', () => {
-      const result = mentionsAutocomplete.transformItemToInsertData('Test(User)');
+      const result = mentionsAutocomplete.getInsertionFromEntry('Test(User)');
 
       expect(result.start).toBe('@[[User:Test(User)|');
       expect(result.end).toBe('Test(User)]]'); // Special characters cause name to be included in end
@@ -88,7 +89,7 @@ describe('MentionsAutocomplete', () => {
     });
 
     it('should handle user names with spaces', () => {
-      const result = mentionsAutocomplete.transformItemToInsertData('Test User');
+      const result = mentionsAutocomplete.getInsertionFromEntry('Test User');
 
       expect(result.start).toBe('@[[User:Test User|');
       expect(result.end).toBe(']]');
@@ -96,7 +97,7 @@ describe('MentionsAutocomplete', () => {
     });
 
     it('should handle empty user name', () => {
-      const result = mentionsAutocomplete.transformItemToInsertData('');
+      const result = mentionsAutocomplete.getInsertionFromEntry('');
 
       expect(result.start).toBe('@[[User:|');
       expect(result.end).toBe(']]');
@@ -104,7 +105,7 @@ describe('MentionsAutocomplete', () => {
     });
 
     it('should trim whitespace from user name', () => {
-      const result = mentionsAutocomplete.transformItemToInsertData('  TestUser  ');
+      const result = mentionsAutocomplete.getInsertionFromEntry('  TestUser  ');
 
       expect(result.start).toBe('@[[User:TestUser|');
       expect(result.content).toBe('TestUser');

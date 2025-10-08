@@ -4,6 +4,9 @@ import TemplatesAutocomplete from '../src/TemplatesAutocomplete';
 jest.mock('../src/cd', () => ({
   s: jest.fn((key) => `mocked-${key}`),
   mws: jest.fn((key) => ' '),
+  g: {
+    msInMin: 60_000,
+  },
   getApi: jest.fn(() => ({
     get: jest.fn(),
   })),
@@ -92,20 +95,20 @@ describe('TemplatesAutocomplete', () => {
     });
   });
 
-  describe('transformItemToInsertData', () => {
+  describe('getInsertionFromEntry', () => {
     it('should transform template name to insert data', () => {
-      const result = templatesAutocomplete.transformItemToInsertData('Infobox');
+      const result = templatesAutocomplete.getInsertionFromEntry('Infobox');
       expect(result.start).toBe('{{Infobox');
       expect(result.end).toBe('}}');
       expect(typeof result.shiftModify).toBe('function');
     });
 
     it('should trim whitespace from template name', () => {
-      expect(templatesAutocomplete.transformItemToInsertData('  Infobox  ').start).toBe('{{Infobox');
+      expect(templatesAutocomplete.getInsertionFromEntry('  Infobox  ').start).toBe('{{Infobox');
     });
 
     it('should modify start when shiftModify is called', () => {
-      const result = templatesAutocomplete.transformItemToInsertData('Infobox');
+      const result = templatesAutocomplete.getInsertionFromEntry('Infobox');
       result.shiftModify();
       expect(result.start).toBe('{{Infobox|');
     });

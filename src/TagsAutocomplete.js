@@ -145,6 +145,17 @@ class TagsAutocomplete extends BaseAutocomplete {
   }
 
   /**
+   * Extract the display label from a tag entry.
+   *
+   * @override
+   * @param {TagEntry} entry The tag entry to extract label from
+   * @returns {string} The display label
+   */
+  getLabelFromEntry(entry) {
+    return Array.isArray(entry) ? entry[0] : entry;
+  }
+
+  /**
    * Get collection-specific properties for Tribute configuration.
    *
    * @override

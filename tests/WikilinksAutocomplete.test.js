@@ -4,40 +4,22 @@ jest.mock('../src/cd', () => ({
   mws: jest.fn((key) => ' '),
   g: {
     colonNamespacesPrefixRegexp: /^:/,
+    msInMin: 60_000,
   },
   getApi: jest.fn(() => ({
     get: jest.fn(),
   })),
 }));
 
-jest.mock('../src/BaseAutocomplete', () => class MockBaseAutocomplete {
-  cache = {};
-  lastResults = [];
-  lastQuery = '';
-  default = [];
-  data = {};
-
-  static apiConfig = { ajax: { timeout: 5000 } };
-  static delay = 100;
-  static currentPromise;
-
-  constructor(config = {}) {
-    Object.assign(this, config);
-  }
-
-  static createDelayedPromise(executor) {
-    return new Promise(executor);
-  }
-
-  static promiseIsNotSuperseded() {
-    // Mock implementation
-  }
-});
-
 jest.mock('../src/shared/utils-general', () => ({
   charAt: jest.fn((str, index) => str.charAt(index)),
   phpCharToUpper: jest.fn((char) => char.toUpperCase()),
   removeDoubleSpaces: jest.fn((str) => str.replace(/\s+/g, ' ')),
+  definedAndNotNull: (item) => item !== undefined && item !== null,
+  unique: (item, index, array) => array.indexOf(item) === index,
+  sleep: (ms) => new Promise((resolve) => {
+    setTimeout(resolve, ms); 
+  }),
 }));
 
 jest.mock('../src/utils-api', () => ({
@@ -131,9 +113,9 @@ describe('WikilinksAutocomplete', () => {
     });
   });
 
-  describe('transformItemToInsertData', () => {
+  describe('getInsertionFromEntry', () => {
     it('should transform item correctly', () => {
-      const result = autocomplete.transformItemToInsertData('Test page');
+      const result = autocomplete.getInsertionFromEntry('Test page');
 
       expect(result.start).toBe('[[Test page');
       expect(result.end).toBe(']]');
@@ -141,7 +123,7 @@ describe('WikilinksAutocomplete', () => {
     });
 
     it('should handle shiftModify correctly', () => {
-      const result = autocomplete.transformItemToInsertData('Test page');
+      const result = autocomplete.getInsertionFromEntry('Test page');
 
       // Simulate shiftModify behavior
       result.shiftModify.call(result);
@@ -151,7 +133,7 @@ describe('WikilinksAutocomplete', () => {
     });
 
     it('should trim whitespace from item', () => {
-      expect(autocomplete.transformItemToInsertData('  Test page  ').start).toBe('[[Test page');
+      expect(autocomplete.getInsertionFromEntry('  Test page  ').start).toBe('[[Test page');
     });
   });
 

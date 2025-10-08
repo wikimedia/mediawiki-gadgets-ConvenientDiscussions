@@ -20,6 +20,9 @@ jest.mock('../src/cd', () => ({
     'comma-separator': ', ',
     'colon-separator': ': ',
   }[key] || key)),
+  g: {
+    msInMin: 60_000,
+  },
 }));
 
 jest.mock('../src/sectionRegistry', () => ({
@@ -36,10 +39,17 @@ jest.mock('../src/sectionRegistry', () => ({
 }));
 
 jest.mock('../src/shared/utils-general', () => ({
-  defined: jest.fn((item) => item !== undefined && item !== null),
-  removeDoubleSpaces: jest.fn((text) => text.replace(/\s+/g, ' ')),
+  definedAndNotNull: (item) => item !== undefined && item !== null,
+  removeDoubleSpaces: (text) => text.replace(/\s+/g, ' '),
+  unique: (item, index, array) => array.indexOf(item) === index,
+  sleep: (ms) => new Promise((resolve) => {
+    setTimeout(resolve, ms); 
+  }),
+  underlinesToSpaces: (text) => text.replace(/_/g, ' '),
+}));
+
+jest.mock('../src/addCommentLinks', () => ({
   underlinesToSpaces: jest.fn((text) => text.replace(/_/g, ' ')),
-  unique: jest.fn((item, index, array) => array.indexOf(item) === index),
 }));
 
 // Mock mw global
@@ -99,10 +109,12 @@ describe('CommentLinksAutocomplete', () => {
   });
 
   describe('validateInput', () => {
-    it('should always return false since comment links do not use API requests', () => {
-      expect(autocomplete.validateInput('test')).toBe(false);
-      expect(autocomplete.validateInput('')).toBe(false);
-      expect(autocomplete.validateInput('any text')).toBe(false);
+    it('should validate input correctly', () => {
+      expect(autocomplete.validateInput('test')).toBe(true);
+      expect(autocomplete.validateInput('')).toBe(true);
+      expect(autocomplete.validateInput('valid text')).toBe(true);
+      expect(autocomplete.validateInput('invalid#text')).toBe(false);
+      expect(autocomplete.validateInput('invalid[text]')).toBe(false);
     });
   });
 
@@ -113,16 +125,16 @@ describe('CommentLinksAutocomplete', () => {
     });
   });
 
-  describe('transformItemToInsertData', () => {
+  describe('getInsertionFromEntry', () => {
     it('should transform comment item correctly', () => {
       const commentItem = {
-        key: 'User1, 12:00, 1 January 2024: This is a test comment',
+        label: 'User1, 12:00, 1 January 2024: This is a test comment',
         urlFragment: 'c-User1-20240101120000',
         authorName: 'User1',
         timestamp: '12:00, 1 January 2024',
       };
 
-      expect(autocomplete.transformItemToInsertData(commentItem)).toEqual({
+      expect(autocomplete.getInsertionFromEntry(commentItem)).toEqual({
         start: '[[#c-User1-20240101120000|',
         end: ']]',
         content: 'User1, 12:00, 1 January 2024',
@@ -130,8 +142,8 @@ describe('CommentLinksAutocomplete', () => {
     });
 
     it('should transform section item correctly', () => {
-      const result = autocomplete.transformItemToInsertData({
-        key: 'Test Section 1',
+      const result = autocomplete.getInsertionFromEntry({
+        label: 'Test Section 1',
         urlFragment: 'Test Section 1',
         headline: 'Test Section 1',
       });
@@ -153,25 +165,25 @@ describe('CommentLinksAutocomplete', () => {
 
       // Check comment items
       expect(data[0]).toEqual({
-        key: 'User1, 12:00, 1 January 2024: This is a test comment with some content',
+        label: 'User1, 12:00, 1 January 2024: This is a test comment with some content',
         urlFragment: 'c-User1-20240101120000',
         authorName: 'User1',
         timestamp: '12:00, 1 January 2024',
       });
 
       // Check that long comment is truncated
-      expect(data[1].key).toContain('User2, 13:00, 1 January 2024: This is a very long comment that should be truncated');
-      expect(data[1].key).toContain('…');
+      expect(data[1].label).toContain('User2, 13:00, 1 January 2024: This is a very long comment that should be truncated');
+      expect(data[1].label).toContain('…');
 
       // Check section items
       expect(data[2]).toEqual({
-        key: 'Test Section 1',
+        label: 'Test Section 1',
         urlFragment: 'Test Section 1',
         headline: 'Test Section 1',
       });
 
       expect(data[3]).toEqual({
-        key: 'Another Section',
+        label: 'Another Section',
         urlFragment: 'Another Section',
         headline: 'Another Section',
       });
@@ -189,7 +201,7 @@ describe('CommentLinksAutocomplete', () => {
         },
       ];
 
-      expect(autocomplete.generateCommentLinksData()[0].key).toBe('User1: Comment without timestamp');
+      expect(autocomplete.generateCommentLinksData()[0].label).toBe('User1: Comment without timestamp');
     });
 
     it('should handle empty comments array', () => {
@@ -226,15 +238,15 @@ describe('CommentLinksAutocomplete', () => {
       const callback = jest.fn();
 
       // Mock the default items
-      autocomplete.default = [
+      autocomplete.defaultEntries = [
         {
-          key: 'User1, 12:00, 1 January 2024: This is a test comment',
+          label: 'User1, 12:00, 1 January 2024: This is a test comment',
           urlFragment: 'c-User1-20240101120000',
           authorName: 'User1',
           timestamp: '12:00, 1 January 2024',
         },
         {
-          key: 'Test Section 1',
+          label: 'Test Section 1',
           urlFragment: 'Test Section 1',
           headline: 'Test Section 1',
         },
@@ -245,42 +257,13 @@ describe('CommentLinksAutocomplete', () => {
       expect(callback).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
-            key: 'User1, 12:00, 1 January 2024: This is a test comment',
-            item: expect.objectContaining({
+            label: 'User1, 12:00, 1 January 2024: This is a test comment',
+            entry: expect.objectContaining({
               authorName: 'User1',
             }),
           }),
         ])
       );
-    });
-  });
-
-  describe('filterCommentLinks', () => {
-    it('should return all items when no search text', () => {
-      const items = [
-        { key: 'Item 1' },
-        { key: 'Item 2' },
-      ];
-
-      expect(autocomplete.filterCommentLinks('', items)).toEqual(items);
-    });
-
-    it('should filter items based on search text', () => {
-      const result = autocomplete.filterCommentLinks('User1', [
-        { key: 'User1 comment' },
-        { key: 'User2 comment' },
-        { key: 'Section about User1' },
-      ]);
-
-      expect(result).toHaveLength(2);
-      expect(result[0].key).toBe('User1 comment');
-      expect(result[1].key).toBe('Section about User1');
-    });
-
-    it('should limit results to 10 items', () => {
-      const result = autocomplete.filterCommentLinks('Item', Array.from({ length: 15 }, (_, i) => ({ key: `Item ${i}` })));
-
-      expect(result).toHaveLength(10);
     });
   });
 });

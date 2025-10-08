@@ -72,14 +72,14 @@ declare global {
          * based on the target wiki’s configuration.
          *
          * @inheritdoc
-         * @return {JQuery.Promise<any>} A promise resolved when initialization is complete.
+         * @returns {JQuery.Promise<any>} A promise resolved when initialization is complete.
          */
         initialize(): JQuery.Promise<any>;
 
         /**
          * Returns a {@link mw.ForeignStructuredUpload} instance with the target specified in config.
          *
-         * @return {mw.Upload} The upload model.
+         * @returns {mw.Upload} The upload model.
          */
         protected createUpload(): mw.Upload;
 
@@ -89,7 +89,7 @@ declare global {
          * Sets up elements for file selection and "own work" confirmation.
          *
          * @inheritdoc
-         * @return {OO.ui.FormLayout} The upload form layout.
+         * @returns {OO.ui.FormLayout} The upload form layout.
          */
         protected renderUploadForm(): OO.ui.FormLayout;
 
@@ -109,7 +109,7 @@ declare global {
          * Sets up fields for filename, description, categories, and date.
          *
          * @inheritdoc
-         * @return {OO.ui.FormLayout} The information form layout.
+         * @returns {OO.ui.FormLayout} The information form layout.
          */
         protected renderInfoForm(): OO.ui.FormLayout;
 
@@ -126,7 +126,7 @@ declare global {
          * Validates the given filename by checking if a file page already exists.
          *
          * @param {mw.Title} filename The title object representing the filename.
-         * @return {JQuery.Promise<any>} A promise that resolves on success or rejects with an OO.ui.Error.
+         * @returns {JQuery.Promise<any>} A promise that resolves on success or rejects with an OO.ui.Error.
          */
         protected validateFilename(filename: mw.Title): JQuery.Promise<any>;
 
@@ -136,7 +136,7 @@ declare global {
          * This method validates the filename before delegating to the parent saveFile method.
          *
          * @inheritdoc
-         * @return {JQuery.Promise<any>} A promise that resolves if the file is saved successfully.
+         * @returns {JQuery.Promise<any>} A promise that resolves if the file is saved successfully.
          */
         protected saveFile(): JQuery.Promise<any>;
 
@@ -147,7 +147,7 @@ declare global {
          * returns the complete file page text.
          *
          * @inheritdoc
-         * @return {string} The wikitext for the file page.
+         * @returns {string} The wikitext for the file page.
          */
         protected getText(): string;
 
@@ -155,7 +155,7 @@ declare global {
          * Extracts the original date from EXIF data of the given file.
          *
          * @param {File} file The file from which to extract EXIF data.
-         * @return {JQuery.Promise<string>} A promise resolved with the date string in 'YYYY-MM-DD' format.
+         * @returns {JQuery.Promise<string>} A promise resolved with the date string in 'YYYY-MM-DD' format.
          */
         protected getDateFromExif(file: File): JQuery.Promise<string>;
 
@@ -163,7 +163,7 @@ declare global {
          * Gets the last modified date from the file.
          *
          * @param {File} file The file from which to retrieve the last modified date.
-         * @return {string | undefined} The formatted date string in 'YYYY-MM-DD' format, or undefined.
+         * @returns {string | undefined} The formatted date string in 'YYYY-MM-DD' format, or undefined.
          */
         protected getDateFromLastModified(file: File): string | undefined;
 
@@ -183,7 +183,7 @@ declare global {
          * Configuration options for a ForeignStructuredUpload BookletLayout.
          *
          * @interface
-         * @extends mw.Upload.BookletLayoutConfig
+         * @augments mw.Upload.BookletLayoutConfig
          */
         interface ConfigOptions extends mw.Upload.BookletLayout.ConfigOptions {
           /**

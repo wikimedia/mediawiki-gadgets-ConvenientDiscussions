@@ -30,6 +30,10 @@ This is a JavaScript project with type checking supplied by TypeScript through t
 
 ## JavaScript & TypeScript code style
 
+* Don't introduce one-time variables. A variable should either be used at least twice or not exist. Exceptions:
+  * Variables used in template strings. Those are OK to be used only once.
+  * Cases where the use of the variable is in a loop or function while the assignment is not.
+  * Cases where the assignment and the use of the variable are separated by a function with a side effect affecting that variable.
 * When using a method in a callback, turn it into an arrow function to avoid the need to bind them to `this` using `.bind()`.
 * Don't introduce new `null` values. Use `undefined` instead, but don't assign any values to variables that don't have a value yet so that they stay `undefined`. Avoid returning `null` from functions instead of `undefined`.
 * Introduce class properties using class field syntax rather than inside the constructor.

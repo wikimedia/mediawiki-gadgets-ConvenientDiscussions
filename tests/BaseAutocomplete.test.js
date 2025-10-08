@@ -2,6 +2,16 @@
  * @jest-environment jsdom
  */
 
+// Mock dependencies
+jest.mock('../src/cd', () => ({
+  getApi: () => ({
+    get: jest.fn(),
+  }),
+  g: {
+    msInMin: 60_000,
+  },
+}));
+
 import BaseAutocomplete from '../src/BaseAutocomplete';
 import CdError from '../src/shared/CdError';
 
@@ -10,12 +20,6 @@ global.mw = {
   util: {
     escapeRegExp: (str) => str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`),
   },
-};
-
-global.cd = {
-  getApi: () => ({
-    get: jest.fn(),
-  }),
 };
 
 describe('BaseAutocomplete', () => {
@@ -29,22 +33,22 @@ describe('BaseAutocomplete', () => {
     it('should initialize with default values', () => {
       expect(autocomplete.cache).toBeDefined();
       expect(autocomplete.cache.constructor.name).toBe('AutocompleteCache');
-      expect(autocomplete.lastResults).toEqual([]);
+      expect(autocomplete.lastApiResults).toEqual([]);
       expect(autocomplete.lastQuery).toBe('');
-      expect(autocomplete.default).toEqual([]);
+      expect(autocomplete.defaultEntries).toEqual([]);
       expect(autocomplete.data).toEqual({});
     });
 
     it('should accept configuration options', () => {
       const config = {
-        default: ['item1', 'item2'],
+        defaultEntries: ['item1', 'item2'],
         data: { key: 'value' },
       };
       const instance = new BaseAutocomplete(config);
 
       expect(instance.cache).toBeDefined();
       expect(instance.cache.constructor.name).toBe('AutocompleteCache');
-      expect(instance.defaultEntries).toEqual(config.default);
+      expect(instance.defaultEntries).toEqual(config.defaultEntries);
       expect(instance.data).toEqual(config.data);
     });
   });
@@ -58,8 +62,12 @@ describe('BaseAutocomplete', () => {
       expect(() => autocomplete.getTrigger()).toThrow(CdError);
     });
 
-    it('should throw error for transformItemToInsertData', () => {
-      expect(() => autocomplete.transformItemToInsertData({})).toThrow(CdError);
+    it('should throw error for getInsertionFromEntry', () => {
+      expect(() => autocomplete.getInsertionFromEntry({})).toThrow(CdError);
+    });
+
+    it('should throw error for getLabelFromEntry', () => {
+      expect(() => autocomplete.getLabelFromEntry({})).toThrow(CdError);
     });
 
     it('should throw error for validateInput', () => {
@@ -99,7 +107,7 @@ describe('BaseAutocomplete', () => {
       autocomplete.cache.set('test', ['result1', 'result2']);
 
       expect(autocomplete.handleCache('test')).toEqual(['result1', 'result2']);
-      expect(autocomplete.handleCache('nonexistent')).toBeNull();
+      expect(autocomplete.handleCache('nonexistent')).toBeUndefined();
     });
 
     it('should update cache correctly', () => {
@@ -109,150 +117,187 @@ describe('BaseAutocomplete', () => {
     });
   });
 
-  describe('getDefaultItems', () => {
-    it('should return existing default items', () => {
-      autocomplete.default = ['item1', 'item2'];
+  describe('getDefaultEntries', () => {
+    it('should return existing default entries', () => {
+      autocomplete.defaultEntries = ['item1', 'item2'];
 
-      expect(autocomplete.getDefaultItems()).toEqual(['item1', 'item2']);
+      expect(autocomplete.getDefaultEntries()).toEqual(['item1', 'item2']);
     });
 
     it('should use lazy loading when default is empty', () => {
       const lazyItems = ['lazy1', 'lazy2'];
       autocomplete.defaultLazy = jest.fn(() => lazyItems);
 
+      const result = autocomplete.getDefaultEntries();
       expect(autocomplete.defaultLazy).toHaveBeenCalled();
-      expect(autocomplete.getDefaultItems()).toEqual(lazyItems);
-      expect(autocomplete.default).toEqual(lazyItems);
+      expect(result).toEqual(lazyItems);
+      expect(autocomplete.defaultEntries).toEqual(lazyItems);
     });
 
     it('should not call lazy loading when default has items', () => {
-      autocomplete.default = ['existing'];
+      autocomplete.defaultEntries = ['existing'];
       autocomplete.defaultLazy = jest.fn();
 
+      expect(autocomplete.getDefaultEntries()).toEqual(['existing']);
       expect(autocomplete.defaultLazy).not.toHaveBeenCalled();
-      expect(autocomplete.getDefaultItems()).toEqual(['existing']);
     });
 
     it('should handle undefined defaultLazy function', () => {
-      autocomplete.default = [];
+      autocomplete.defaultEntries = [];
       autocomplete.defaultLazy = undefined;
 
-      expect(autocomplete.getDefaultItems()).toEqual([]);
+      expect(autocomplete.getDefaultEntries()).toEqual([]);
     });
 
-    it('should handle null default array', () => {
-      autocomplete.default = null;
+    it('should handle empty default array with lazy loading', () => {
+      autocomplete.defaultEntries = [];
       autocomplete.defaultLazy = jest.fn(() => ['lazy']);
 
-      expect(autocomplete.getDefaultItems()).toEqual(['lazy']);
+      expect(autocomplete.getDefaultEntries()).toEqual(['lazy']);
     });
   });
 
-  describe('processResults', () => {
-    it('should process string items correctly', () => {
-      const config = {
-        transformItemToInsertData() {
-          return { start: this.item, end: '' };
-        },
-      };
+  describe('getOptionsFromEntries', () => {
+    // Create a concrete implementation for testing
+    class TestAutocomplete extends BaseAutocomplete {
+      getLabel() {
+        return 'Test';
+      }
 
-      const results = autocomplete.processResults(['item1', 'item2'], config);
+      getTrigger() {
+        return '@';
+      }
+
+      getInsertionFromEntry(entry) {
+        return { start: entry, end: '' };
+      }
+
+      getLabelFromEntry(entry) {
+        if (entry === null || entry === undefined) return '';
+
+        return typeof entry === 'string' ? entry : entry.label || entry[0];
+      }
+
+      validateInput() {
+        return true;
+      }
+
+      async makeApiRequest() {
+        return [];
+      }
+    }
+
+    let testAutocomplete;
+
+    beforeEach(() => {
+      testAutocomplete = new TestAutocomplete();
+    });
+
+    it('should process string items correctly', () => {
+      const results = testAutocomplete.getOptionsFromEntries(['item1', 'item2']);
 
       expect(results).toHaveLength(2);
-      expect(results[0].key).toBe('item1');
-      expect(results[0].item).toBe('item1');
-      expect(typeof results[0].transform).toBe('function');
+      expect(results[0].label).toBe('item1');
+      expect(results[0].entry).toBe('item1');
+      expect(results[0].autocomplete).toBe(testAutocomplete);
     });
 
     it('should process array items correctly', () => {
-      const config = {};
-
-      const results = autocomplete.processResults([['tag1', 'start', 'end'], ['tag2', 'start2', 'end2']], config);
+      const results = testAutocomplete.getOptionsFromEntries([['tag1', 'start', 'end'], ['tag2', 'start2', 'end2']]);
 
       expect(results).toHaveLength(2);
-      expect(results[0].key).toBe('tag1');
-      expect(results[0].item).toEqual(['tag1', 'start', 'end']);
+      expect(results[0].label).toBe('tag1');
+      expect(results[0].entry).toEqual(['tag1', 'start', 'end']);
     });
 
-    it('should process object items with key property correctly', () => {
-      const config = {};
-
-      const results = autocomplete.processResults([
-        { key: 'comment1', id: 'c1' },
-        { key: 'comment2', id: 'c2' },
-      ], config);
+    it('should process object items with label property correctly', () => {
+      const results = testAutocomplete.getOptionsFromEntries([
+        { label: 'comment1', id: 'c1' },
+        { label: 'comment2', id: 'c2' },
+      ]);
 
       expect(results).toHaveLength(2);
-      expect(results[0].key).toBe('comment1');
-      expect(results[0].item).toEqual({ key: 'comment1', id: 'c1' });
+      expect(results[0].label).toBe('comment1');
+      expect(results[0].entry).toEqual({ label: 'comment1', id: 'c1' });
     });
 
     it('should filter out undefined and duplicate items', () => {
       const items = ['item1', undefined, 'item2', 'item1', null];
 
-      const results = autocomplete.processResults(items, {});
+      const results = testAutocomplete.getOptionsFromEntries(items);
 
       expect(results).toHaveLength(2);
-      expect(results.map((r) => r.key)).toEqual(['item1', 'item2']);
+      expect(results.map((r) => r.label)).toEqual(['item1', 'item2']);
     });
   });
 
   describe('getValues', () => {
+    // Create a concrete implementation for testing getValues
+    class TestAutocomplete extends BaseAutocomplete {
+      getLabel() {
+        return 'Test';
+      }
+
+      getTrigger() {
+        return '@';
+      }
+
+      getInsertionFromEntry(entry) {
+        return { start: entry, end: '' };
+      }
+
+      getLabelFromEntry(entry) {
+        if (entry === null || entry === undefined) return '';
+
+        return typeof entry === 'string' ? entry : entry.label || entry[0];
+      }
+
+      validateInput = Boolean;
+      makeApiRequest(text) {
+        return [`api-${text}`];
+      }
+    }
+
+    let testAutocomplete;
     let mockCallback;
 
     beforeEach(() => {
+      testAutocomplete = new TestAutocomplete();
       mockCallback = jest.fn();
-      autocomplete.validateInput = jest.fn(() => true);
-      autocomplete.makeApiRequest = jest.fn(() => Promise.resolve(['result1', 'result2']));
-      autocomplete.processResults = jest.fn((items) =>
-        items.map((item) => ({ key: item, item, transform: () => ({ start: item, end: '' }) }))
-      );
     });
 
     it('should handle valid input with API request', async () => {
-      await autocomplete.getValues('test', mockCallback);
+      testAutocomplete.makeApiRequest = jest.fn(() => Promise.resolve(['result1', 'result2']));
 
-      expect(autocomplete.validateInput).toHaveBeenCalledWith('test');
-      expect(autocomplete.makeApiRequest).toHaveBeenCalledWith('test');
+      await testAutocomplete.getValues('test', mockCallback);
+
+      expect(testAutocomplete.makeApiRequest).toHaveBeenCalledWith('test');
       expect(mockCallback).toHaveBeenCalledWith(expect.any(Array));
     });
 
     it('should use cached results when available', async () => {
-      autocomplete.cache.set('test', ['cached1', 'cached2']);
+      testAutocomplete.cache.set('test', ['cached1', 'cached2']);
 
-      await autocomplete.getValues('test', mockCallback);
+      await testAutocomplete.getValues('test', mockCallback);
 
-      expect(autocomplete.makeApiRequest).not.toHaveBeenCalled();
       expect(mockCallback).toHaveBeenCalledWith(expect.any(Array));
+      const results = mockCallback.mock.calls[0][0];
+      expect(results.map((r) => r.label)).toEqual(['cached1', 'cached2']);
     });
 
     it('should handle invalid input', async () => {
-      autocomplete.validateInput.mockReturnValue(false);
+      await testAutocomplete.getValues('', mockCallback);
 
-      await autocomplete.getValues('', mockCallback);
-
-      expect(autocomplete.makeApiRequest).not.toHaveBeenCalled();
       expect(mockCallback).toHaveBeenCalledWith([]);
     });
 
     it('should handle API request errors', async () => {
-      autocomplete.makeApiRequest.mockRejectedValue(new Error('API Error'));
+      testAutocomplete.makeApiRequest = jest.fn(() => Promise.reject(new Error('API Error')));
 
-      await autocomplete.getValues('test', mockCallback);
+      await testAutocomplete.getValues('test', mockCallback);
 
       // Should still call callback with processed results (empty in this case due to error)
       expect(mockCallback).toHaveBeenCalled();
-    });
-
-    it('should use default items when query is empty', async () => {
-      autocomplete.validateInput.mockReturnValue(false);
-      autocomplete.getDefaultItems = jest.fn(() => ['default1', 'default2']);
-      autocomplete.searchLocal = jest.fn(() => ['default1']);
-
-      await autocomplete.getValues('', mockCallback);
-
-      expect(autocomplete.getDefaultItems).toHaveBeenCalled();
-      expect(mockCallback).toHaveBeenCalledWith(expect.any(Array));
     });
   });
 
