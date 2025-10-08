@@ -1,6 +1,7 @@
 {
   "extends": "../jsconfig-base.json",
   "compilerOptions": {
-    "lib": ["ESNext"],
+    "target": "es2021",
+    "lib": ["ES2021"],
   },
 }

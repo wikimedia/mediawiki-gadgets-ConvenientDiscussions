@@ -1,8 +1,9 @@
 {
   "extends": "./jsconfig-base.json",
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2021",
     "module": "nodenext",
+    "lib": ["ES2021"],
     "types": [
       // For typescript-eslint
       "prompts"
