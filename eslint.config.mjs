@@ -77,7 +77,7 @@ const config = defineConfig(
   {
     languageOptions: {
       sourceType: 'module',
-      ecmaVersion: 2021,
+      ecmaVersion: 2020,
       // parser: '@typescript-eslint/parser',
       // parserOptions: {
       //   requireConfigFile: false,

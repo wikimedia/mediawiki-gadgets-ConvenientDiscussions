@@ -1,12 +1,12 @@
 {
   "extends": "../jsconfig-base.json",
   "compilerOptions": {
-    "target": "es2021",
+    "target": "es2020",
 
     // We mix `import`s and `require()` calls
     "module": "preserve",
 
-    "lib": ["ES2021", "DOM"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["oojs", "oojs-ui", "jquery", "jqueryui"]
   },
   "include": ["**/*", "../config/**/*", "../data/**/*", "../node_modules/types-mediawiki"]
