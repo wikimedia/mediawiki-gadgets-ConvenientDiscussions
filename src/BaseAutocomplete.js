@@ -6,7 +6,6 @@ import { handleApiReject } from './utils-api';
 
 /**
  * @import {AutocompleteConfigShared} from './AutocompleteManager';
- * @import {Entry} from './AutocompleteManager';
  */
 
 /**
@@ -206,8 +205,8 @@ class BaseAutocomplete {
    * Get autocomplete values for the given text. This is the main method called by Tribute.
    *
    * @param {string} text The search text
-   * @param {import('./AutocompleteManager').ProcessOptions<any>} callback Callback function to
-   *   call with options
+   * @param {import('./AutocompleteManager').ProcessOptions} callback Callback function to call with
+   *   options
    * @returns {Promise<void>}
    */
   async getValues(text, callback) {
@@ -273,7 +272,7 @@ class BaseAutocomplete {
    * Handle autocomplete with API support, caching, and fallbacks.
    *
    * @param {string} text The search text
-   * @param {import('./AutocompleteManager').ProcessOptions<any>} callback Callback function
+   * @param {import('./AutocompleteManager').ProcessOptions} callback Callback function
    * @returns {Promise<void>}
    * @private
    */
@@ -337,22 +336,18 @@ class BaseAutocomplete {
   /**
    * Process raw entries into {@link Option} objects for Tribute.
    *
-   * @template {Entry} E
-   * @param {E[]} entries Raw entries to process
-   * @returns {Option<E>[]} Processed options
+   * @param {any[]} entries Raw entries to process
+   * @returns {Option[]} Processed options
    */
   getOptionsFromEntries(entries) {
     return entries
       .filter(definedAndNotNull)
       .filter(unique)
-      .map((entry) => {
-        const label = this.getLabelFromEntry(entry);
-
-        /** @type {Option} */
-        const option = { label, entry, autocomplete: this };
-
-        return option;
-      });
+      .map((entry) => /** @type {Option} */ ({
+        label: this.getLabelFromEntry(entry),
+        entry,
+        autocomplete: this,
+      }));
   }
 
   /**

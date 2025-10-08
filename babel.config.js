@@ -2,8 +2,8 @@
 module.exports = {
   presets: [
     ['@babel/preset-env', {
-      bugfixes: true
-    }]
+      bugfixes: true,
+    }],
   ],
   plugins: [
     '@babel/plugin-transform-numeric-separator',
@@ -15,5 +15,5 @@ module.exports = {
     '@babel/plugin-transform-optional-chaining',
     '@babel/plugin-transform-runtime',
     '@babel/plugin-transform-typescript',
-  ]
+  ],
 };

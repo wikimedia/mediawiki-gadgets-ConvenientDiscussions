@@ -16,27 +16,22 @@ import { handleApiReject } from './utils-api';
  * @import {TagEntry} from './TagsAutocomplete';
  */
 
-/**
- * @typedef {MentionEntry | CommentLinkEntry | WikilinkEntry | TemplateEntry | TagEntry} Entry
- */
-
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
 /**
- * @template {Entry} T
  * @typedef {Parameters<
  *   Exclude<
- *     import('./tribute/Tribute').TributeCollectionSpecific<import('./BaseAutocomplete').Option<T>>['values'],
- *     import('./BaseAutocomplete').Option<T>[]
+ *     import('./tribute/Tribute').TributeCollectionSpecific<import('./BaseAutocomplete').Option>['values'],
+ *     import('./BaseAutocomplete').Option[]
  *   >
  * >[1]} ProcessOptions
  */
 
 /**
  * @typedef {object} AutocompleteConfigShared
- * @property {Entry[]} [default] Default set of entries to search across (may be more narrow than the
+ * @property {any[]} [default] Default set of entries to search across (may be more narrow than the
  *   list of all potential values, as in the case of user names)
- * @property {(() => Entry[])} [defaultLazy] Function for lazy loading of the defaults
+ * @property {(() => any[])} [defaultLazy] Function for lazy loading of the defaults
  * @property {() => import('./tribute/Tribute').InsertData} [getInsertionFromEntry] Function
  *   that transforms the entry into the insertion data that is actually inserted
  * @property {AnyByKey} [data] Any additional data to be used by methods
@@ -210,7 +205,7 @@ class AutocompleteManager {
             option?.original.autocomplete?.getInsertionFromEntry(option.original.entry) || '',
           values: async (
             /** @type {string} */ text,
-            /** @type {ProcessOptions<any>} */ callback
+            /** @type {ProcessOptions} */ callback
           ) => {
             // Start performance monitoring if enabled
             const perfContext = this.performanceMonitor?.startOperation('getValues', type, text);

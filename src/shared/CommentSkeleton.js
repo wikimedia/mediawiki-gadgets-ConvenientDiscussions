@@ -1512,9 +1512,8 @@ class CommentSkeleton {
       // Group indexes
       .reduce((acc, ancestors, i) => {
         if (!ancestors.length) {
-          const lastGroup = acc[acc.length - 1];
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          if (!lastGroup || lastGroup[lastGroup.length - 1] !== i) {
+          const lastGroup = acc.at(-1);
+          if (!lastGroup || lastGroup.at(-1) !== i) {
             acc.push([]);
           }
           acc[acc.length - 1].push(i + 1);
