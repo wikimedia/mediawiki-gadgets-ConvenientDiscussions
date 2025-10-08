@@ -39,12 +39,12 @@ import TributeSearch from "./TributeSearch";
  * Properties that are shared between global config and individual collections. Global config
  * properties serve as defaults that can be overridden at the collection level.
  *
- * @template {any} [I=any]
+ * @template {any} [Value=any]
  * @typedef {object} TributeSharedOptions
  * @property {string} [containerClass='tribute-container'] Class added to the menu container
  * @property {string} [fillAttr='value'] Column that contains the content to insert by default
  * @property {string} [itemClass=''] Class added to each list item
- * @property {string | ((item: I, mentionText: string) => string)} [lookup='key'] Column to search
+ * @property {string | ((item: Value, mentionText: string) => string)} [lookup='key'] Column to search
  *   against in the object
  * @property {number | null} [menuItemLimit=null] Limits the number of items in the menu
  * @property {number} [menuShowMinLength=0] Minimum number of characters that must be typed before
@@ -65,7 +65,7 @@ import TributeSearch from "./TributeSearch";
  *   objects to search across or a function that takes a query text and calls a callback provided to
  *   it with that array
  * @property {RegExp} [keepAsEnd] Custom regex for end matching behavior
- * @property {(item: TributeSearchResults<Value>) => string} [menuItemTemplate] Template for
+ * @property {(searchResults: TributeSearchResults<Value>) => string} [menuItemTemplate] Template for
  *   displaying item in menu
  * @property {boolean} [replaceEnd] Whether to replace text at the end
  * @property {boolean} [requireLeadingSpace] Specify whether a space is required before the trigger

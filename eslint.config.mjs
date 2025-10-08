@@ -32,7 +32,12 @@ const config = defineConfig(
       'jsdoc/check-line-alignment': ['warn', 'any', {
         wrapIndent: '  ',
       }],
-      'jsdoc/check-tag-names': 'off',
+      'jsdoc/check-tag-names': [
+        'warn',
+        {
+          definedTags: ['property'],
+        },
+      ],
       'jsdoc/check-types': 'off',
       'jsdoc/no-defaults': ['warn', {
         contexts: [
@@ -52,6 +57,7 @@ const config = defineConfig(
         },
       }],
       'jsdoc/require-param-description': 'off',
+      'jsdoc/require-property': 'off',
       'jsdoc/require-property-description': 'off',
       'jsdoc/require-returns-description': 'off',
       'jsdoc/tag-lines': ['warn', 'any', {
@@ -77,12 +83,13 @@ const config = defineConfig(
       //   requireConfigFile: false,
       // },
       parserOptions: /** @type {import('@typescript-eslint/parser').ParserOptions} */ ({
-        projectService: {
-          defaultProject: 'jsconfig.json',
-
-          // See `includes` in src/jsconfig.json
-          allowDefaultProject: ['config/*'],
-        },
+        project: [
+          './jsconfig.json',
+          './src/jsconfig.json',
+          './src/worker/jsconfig.json',
+          './src/shared/jsconfig.json',
+          './tests/jsconfig.json',
+        ],
         tsconfigRootDir: import.meta.dirname,
         // jsDocParsingMode: 'all',
       }),
@@ -176,7 +183,12 @@ const config = defineConfig(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/restrict-template-expressions': ['error', {
+        allowAny: false,
+        allowBoolean: false,
+        allowNever: false,
+        allowNullish: false,
         allowNumber: true,
+        allowRegExp: false,
       }],
       '@typescript-eslint/no-dynamic-delete': 'off',
 

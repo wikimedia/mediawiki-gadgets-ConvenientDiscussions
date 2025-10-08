@@ -2,15 +2,28 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import TerserPlugin from 'terser-webpack-plugin';
+// eslint-disable-next-line import/no-named-as-default
 import webpack from 'webpack';
 import WebpackBuildNotifierPlugin from 'webpack-build-notifier';
-import config from './config.mjs';
 
+import nonNullableConfig from './config.mjs';
 import { getUrl } from './misc/utils.mjs';
+
+/** @type {DeepPartial<typeof nonNullableConfig>} */
+const config = nonNullableConfig;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const webpack_ = (env) => {
+/**
+ * @typedef {object} Environment
+ * @property {boolean} dev
+ * @property {boolean} test
+ * @property {boolean} single
+ * @property {string} project
+ * @property {string} lang
+ */
+
+const webpack_ = (/** @type {Environment} */ env) => {
   /*
     Production builds are created by running
       npm run build
@@ -67,6 +80,65 @@ const webpack_ = (env) => {
     devtool = false;
   }
 
+  /** @type {import('webpack').WebpackPluginInstance[]} */
+  const plugins = [
+    new webpack.DefinePlugin({
+      IS_TEST: test,
+      IS_DEV: dev,
+      IS_SINGLE: single,
+      CONFIG_FILE_NAME: single ? JSON.stringify(wiki) : null,
+      LANG_CODE: single ? JSON.stringify(lang) : null,
+    }),
+    new WebpackBuildNotifierPlugin({
+      suppressSuccess: true,
+      suppressWarning: true,
+    }),
+  ];
+
+  if (single) {
+    plugins.push(new webpack.BannerPlugin({
+      banner: '<nowiki>',
+
+      // Don't add the banner to the inline worker, otherwise the source maps for it won't
+      // work (I think).
+      test: bundleFilename,
+    }),
+
+    // Use a custom plugin to append the closing nowiki tag
+    {
+      apply(compiler) {
+        compiler.hooks.compilation.tap('AppendBannerPlugin', (compilation) => {
+          compilation.hooks.processAssets.tap(
+            {
+              name: 'AppendBannerPlugin',
+              stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
+            },
+            (assets) => {
+              Object.keys(assets).forEach((filename) => {
+                if (filename === filename.replace('.map.json', '') && filename.endsWith('.js')) {
+                  assets[filename] = new compiler.webpack.sources.RawSource(
+                    assets[filename].source().toString() + '\n/*! </nowiki> */'
+                  );
+                }
+              });
+            }
+          );
+        });
+      },
+    });
+  }
+
+  if (dev && config.sourceMapsBaseUrl) {
+    plugins.push(new webpack.SourceMapDevToolPlugin({
+      filename: '[file].map.json',
+      append: `\n//# sourceMappingURL=${config.sourceMapsBaseUrl}[url]`,
+    }));
+  }
+
+  if (process.env.CI) {
+    plugins.push(new webpack.ProgressPlugin());
+  }
+
   return /** @type {import('webpack').Configuration} */ ({
     mode: dev || single ? 'development' : 'production',
     entry: './src/app.js',
@@ -98,7 +170,7 @@ const webpack_ = (env) => {
               options: {
                 url: {
                   // Don't process URLs starting with /w/
-                  filter: (url) => !url.startsWith('/w/'),
+                  filter: (/** @type {string} */ url) => !url.startsWith('/w/'),
                 },
               },
             },
@@ -150,83 +222,27 @@ const webpack_ = (env) => {
             // Removed "\**!|" at the beginning to not extract the <nowiki> comment.
             condition: /@preserve|@license|@cc_on/i,
 
-            filename: (pathData) => `${pathData.filename}.LICENSE.js`,
+            filename: (/** @type {{ filename: string }} */ pathData) =>
+              `${pathData.filename}.LICENSE.js`,
 
-            banner: (licenseFile) =>
-              licenseFile.includes('worker')
-                ? // A really messed up hack to include source maps for a web worker (works with
-              // .map.json extension for webpack.SourceMapDevToolPlugin's `filename` property,
-              // doesn't work with .map for some reason).
-                `//# sourceMappingURL=${config.sourceMapsBaseUrl}convenientDiscussions.worker.js.map.json`
-                : `
+            banner: (licenseFile) => licenseFile.includes('worker')
+            // A really messed up hack to include source maps for a web worker (works with
+            // .map.json extension for webpack.SourceMapDevToolPlugin's `filename` property,
+            // doesn't work with .map for some reason).
+              ? `//# sourceMappingURL=${nonNullableConfig.sourceMapsBaseUrl}convenientDiscussions.worker.js.map.json`
+
+              : `
 * For documentation and feedback, see the script's homepage:
 * https://commons.wikimedia.org/wiki/User:Jack_who_built_the_house/Convenient_Discussions
 *
 * For license information, see
-* ${getUrl(config.main.server, config.main.rootPath + '/' + licenseFile)}
+* ${getUrl(nonNullableConfig.main.server, nonNullableConfig.main.rootPath + '/' + licenseFile)}
 `,
           },
         }),
       ],
     },
-    plugins: [
-      new webpack.DefinePlugin({
-        IS_TEST: test,
-        IS_DEV: dev,
-        IS_SINGLE: single,
-        CONFIG_FILE_NAME: single ? JSON.stringify(wiki) : null,
-        LANG_CODE: single ? JSON.stringify(lang) : null,
-      }),
-      new WebpackBuildNotifierPlugin({
-        suppressSuccess: true,
-        suppressWarning: true,
-      }),
-    ].concat(
-      single
-        ? []
-        : [
-            new webpack.BannerPlugin({
-              banner: '<nowiki>',
-
-              // Don't add the banner to the inline worker, otherwise the source maps for it won't
-              // work (I think).
-              test: bundleFilename,
-            }),
-
-            // Use a custom plugin to append the closing nowiki tag
-            {
-              apply(compiler) {
-                compiler.hooks.compilation.tap('AppendBannerPlugin', (compilation) => {
-                  compilation.hooks.processAssets.tap(
-                    {
-                      name: 'AppendBannerPlugin',
-                      stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
-                    },
-                    (assets) => {
-                      Object.keys(assets).forEach((filename) => {
-                        if (
-                          filename === filename.replace('.map.json', '') &&
-                          filename.endsWith('.js')
-                        ) {
-                          assets[filename] = new compiler.webpack.sources.RawSource(
-                            assets[filename].source().toString() + '\n/*! </nowiki> */'
-                          );
-                        }
-                      });
-                    }
-                  );
-                });
-              },
-            },
-          ],
-      dev
-        ? []
-        : new webpack.SourceMapDevToolPlugin({
-          filename: '[file].map.json',
-          append: `\n//# sourceMappingURL=${config.sourceMapsBaseUrl}[url]`,
-        }),
-      process.env.CI ? [] : new webpack.ProgressPlugin()
-    ),
+    plugins,
     devServer: {
       static: {
         directory: path.join(__dirname, 'dist'),

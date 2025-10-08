@@ -22,7 +22,6 @@ import { handleApiReject } from './utils-api';
 
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
 
-
 /**
  * @template {Entry} T
  * @typedef {Parameters<

@@ -12,7 +12,7 @@ import { handleApiReject } from './utils-api';
 /**
  * @template {any} [T=any]
  * @typedef {object} Option
- * @property {string} [label] Text searched against and displayed
+ * @property {string} label Text searched against and displayed
  * @property {T} entry
  * @property {import('./BaseAutocomplete').default} [autocomplete] Reference to the autocomplete instance
  */

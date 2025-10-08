@@ -24,6 +24,14 @@ declare global {
    * Adds 1 to a numeric type
    */
   type AddOne<N extends number> = [...StringTuple<N>, unknown]['length'];
+
+  type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object
+      ? DeepPartial<T[P]>
+      : T[P];
+  };
+
+  type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 }
 
 export {};
