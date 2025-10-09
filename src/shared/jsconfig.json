@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "preserve",
-    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"]
+    "lib": ["ESNext", "DOM", "WebWorker"]
   },
   "include": ["**/*"]
 }
