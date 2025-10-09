@@ -449,20 +449,22 @@ const config = defineConfig(
 
   // Overrides for specific files
   {
-    files: ['./*', 'src/tribute/**', 'jsdoc/**', '**/*.test.js'],
+    files: ['*', 'src/tribute/**', 'jsdoc/**', '**/*.test.js'],
     rules: {
       'jsdoc/require-jsdoc': 'off',
     },
   },
 
   // ES2022 compatibility for src/ folder (matching src/jsconfig.json scope)
-  // Enforces ES2022 compatibility by disallowing ES2023+ features like .at(), .findLast(), etc.
+  // Enforces ES2022 compatibility by disallowing ES2022+ features using no-restricted-syntax
   {
     files: ['src/**/*', 'config/**/*', 'data/**/*'],
     ignores: ['src/tribute/**', 'src/**/*.test.js'],
     rules: {
-      // Disallow ES2023+ features - turn off conflicting unicorn rule
+      // Disallow ES2022+ features - turn off conflicting unicorn rule
       'unicorn/prefer-at': 'off',
+
+      // Use no-restricted-syntax for now until we can get eslint-plugin-es-x working
       'no-restricted-syntax': [
         'error',
         {

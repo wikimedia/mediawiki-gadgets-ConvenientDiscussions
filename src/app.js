@@ -4,6 +4,9 @@
  * @module app
  */
 
+// Import polyfills for ES2022+ features
+import './polyfills';
+
 import defaultConfig from '../config/default';
 import configUrls from '../config/urls.json';
 import i18nList from '../data/i18nList.json';
