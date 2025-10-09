@@ -33,25 +33,25 @@ export default {
    * @memberof JQuery.fn
    * @this {JQuery}
    */
-  cdRemoveNonElementNodes: function () {
+  cdRemoveNonElementNodes() {
     return this.filter((_, el) => Boolean(el.tagName && !isMetadataNode(el)));
   },
 
   /**
    * Scroll to the element.
    *
-   * @param {'top'|'center'|'bottom'} [alignment='top'] Where should the element be positioned
+   * @param {'top'|'center'|'bottom'} [alignment] Where should the element be positioned
    *   relative to the viewport.
-   * @param {boolean} [smooth=true] Whether to use a smooth animation.
+   * @param {boolean} [smooth] Whether to use a smooth animation.
    * @param {(() => void)} [callback] Callback to run after the animation has
    *   completed.
    * @returns {JQuery}
    * @memberof JQuery.fn
    * @this {JQuery}
    */
-  cdScrollTo(alignment = 'top', smooth = true, /** @type {() => void} */ callback) {
+  cdScrollTo(alignment = 'top', smooth = true, /** @type {() => void | undefined} */ callback = undefined) {
     const defaultScrollPaddingTop = 7;
-    let $elements = this.cdRemoveNonElementNodes();
+    const $elements = this.cdRemoveNonElementNodes();
 
     // Filter out elements like .mw-empty-elt
     const findFirstVisibleElementOffset = (
@@ -70,13 +70,13 @@ export default {
       }
     };
 
-    let offsetFirst = findFirstVisibleElementOffset($elements);
+    let offsetFirst = findFirstVisibleElementOffset($elements, 'forward');
     let offsetLast = findFirstVisibleElementOffset($elements, 'backward');
     if (!offsetFirst || !offsetLast) {
       // Find closest visible ancestor
       const $firstVisibleAncestor = $elements.first().closest(':visible');
       if ($firstVisibleAncestor.length && !$firstVisibleAncestor.is(bootController.$root)) {
-        offsetFirst = findFirstVisibleElementOffset($firstVisibleAncestor);
+        offsetFirst = findFirstVisibleElementOffset($firstVisibleAncestor, 'forward');
         offsetLast = offsetFirst;
         mw.notify(cd.s('error-elementhidden-container'), {
           tag: 'cd-elementhidden-container',
@@ -93,6 +93,7 @@ export default {
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const offsetBottom = offsetLast.top + /** @type {number} */ ($elements.last().outerHeight());
 
     let top;
@@ -100,13 +101,13 @@ export default {
       top = Math.min(
         offsetFirst.top,
         offsetFirst.top +
-          (offsetBottom - offsetFirst.top) * 0.5 -
-          /** @type {number} */ ($(window).height()) * 0.5
+        (offsetBottom - offsetFirst.top) * 0.5 -
+        /** @type {number} */ ($(window).height()) * 0.5
       );
     } else if (alignment === 'bottom') {
       top = offsetBottom - /** @type {number} */ ($(window).height()) + defaultScrollPaddingTop;
     } else {
-      top = offsetFirst.top - (cd.g.bodyScrollPaddingTop || defaultScrollPaddingTop);
+      top = offsetFirst.top - (talkPageController.getBodyScrollPaddingTop() || defaultScrollPaddingTop);
     }
 
     talkPageController.toggleAutoScrolling(true);
@@ -143,6 +144,7 @@ export default {
     const elementTop = /** @type {JQuery.Coordinates} */ ($elements.first().offset()).top;
     const elementBottom =
       /** @type {JQuery.Coordinates} */ ($elements.last().offset()).top +
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       /** @type {number} */ ($elements.last().height());
 
     // The element is hidden.
@@ -155,37 +157,36 @@ export default {
     }
 
     const scrollTop = /** @type {number} */ ($(window).scrollTop());
-    const viewportTop = scrollTop + cd.g.bodyScrollPaddingTop;
+    const viewportTop = scrollTop + talkPageController.getBodyScrollPaddingTop();
+    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const viewportBottom = scrollTop + /** @type {number} */ ($(window).height());
 
-    return partially ?
-      elementBottom > viewportTop && elementTop < viewportBottom :
-      elementTop >= viewportTop && elementBottom <= viewportBottom;
+    return partially
+      ? elementBottom > viewportTop && elementTop < viewportBottom
+      : elementTop >= viewportTop && elementBottom <= viewportBottom;
   },
 
   /**
    * Scroll to the element if it is not in the viewport.
    *
-   * @param {'top'|'center'|'bottom'} [alignment='top'] Where should the element be positioned
+   * @param {'top'|'center'|'bottom'} [alignment] Where should the element be positioned
    *   relative to the viewport.
-   * @param {boolean} [smooth=true] Whether to use a smooth animation.
+   * @param {boolean} [smooth] Whether to use a smooth animation.
    * @param {() => void} [callback] Callback to run after the animation has completed.
    * @returns {JQuery}
    * @memberof JQuery.fn
    * @this {JQuery}
    */
-  cdScrollIntoView(alignment = 'top', smooth = true, callback) {
+  cdScrollIntoView(alignment = 'top', smooth = true, callback = undefined) {
     if (this.cdIsInViewport()) {
       callback?.();
-    } else {
-      if (callback) {
-        // Add sleep() for a more smooth animation in case there is .focus() in the callback.
-        sleep().then(() => {
-          this.cdScrollTo(alignment, smooth, callback);
-        });
-      } else {
+    } else if (callback) {
+      // Add sleep() for a more smooth animation in case there is .focus() in the callback.
+      sleep().then(() => {
         this.cdScrollTo(alignment, smooth, callback);
-      }
+      });
+    } else {
+      this.cdScrollTo(alignment, smooth, callback);
     }
 
     return /** @type {JQuery} */ (/** @type {unknown} */ (this));
@@ -200,14 +201,14 @@ export default {
    * @this {JQuery}
    */
   cdGetText() {
-    let text;
     const dummyElement = document.createElement('div');
     [...this[0].childNodes].forEach((node) => {
       dummyElement.append(node.cloneNode(true));
     });
     document.body.append(dummyElement);
-    text = dummyElement.innerText;
+    const text = dummyElement.innerText;
     dummyElement.remove();
+
     return text;
   },
 
@@ -222,7 +223,6 @@ export default {
     if (this.find('.cd-closeButton').length) {
       return /** @type {JQuery} */ (/** @type {unknown} */ (this));
     }
-
 
     this.prepend(
       // Close button

@@ -16,7 +16,7 @@ import Parser from './shared/Parser';
 import { defined, definedAndNotNull, getLastArrayElementOrSelf, isHeadingNode, isInline, sleep } from './shared/utils-general';
 import toc from './toc';
 import updateChecker from './updateChecker';
-import { copyText, getVisibilityByRects, wrapHtml } from './utils-window';
+import { copyText, getVisibilityByRects, transparentize, wrapHtml } from './utils-window';
 
 /**
  * @typedef {object} EventMap
@@ -159,6 +159,12 @@ class TalkPageController extends EventEmitter {
   isObstructingElementHoveredCached = false;
 
   /**
+   * @type {number | undefined}
+   * @private
+   */
+  bodyScrollPaddingTop;
+
+  /**
    * Get the popup overlay used for OOUI components.
    *
    * @returns {JQuery}
@@ -203,7 +209,7 @@ class TalkPageController extends EventEmitter {
         this.scrollData.touchesBottom = true;
       } else if (
         scrollY !== 0 &&
-        bootController.rootElement.getBoundingClientRect().top <= cd.g.bodyScrollPaddingTop
+        bootController.rootElement.getBoundingClientRect().top <= this.getBodyScrollPaddingTop()
       ) {
         const treeWalker = new ElementsTreeWalker(
           bootController.rootElement,
@@ -226,14 +232,14 @@ class TalkPageController extends EventEmitter {
             // without a convenient reference element. To compensate for this, we use an offset of
             // cd.g.contentFontSize (we're unlikely to see a bigger gap between elements).
             if (
-              rect.top > cd.g.bodyScrollPaddingTop + cd.g.contentFontSize &&
+              rect.top > this.getBodyScrollPaddingTop() + cd.g.contentFontSize &&
               this.scrollData.element &&
               !isHeadingNode(el)
             ) {
               break;
             }
 
-            if (rect.height !== 0 && rect.bottom >= cd.g.bodyScrollPaddingTop) {
+            if (rect.height !== 0 && rect.bottom >= this.getBodyScrollPaddingTop()) {
               this.scrollData.element = el;
               this.scrollData.elementTop = rect.top;
               if (treeWalker.firstChild()) {
@@ -1570,6 +1576,30 @@ class TalkPageController extends EventEmitter {
       cd.page.isOwnTalkPage() &&
       !['all', 'toMe'].includes(settings.get('desktopNotifications'))
     );
+  }
+
+  /**
+   * Get the page's `scroll-padding-top` property as number.
+   *
+   * @returns {number}
+   */
+  getBodyScrollPaddingTop() {
+    if (this.bodyScrollPaddingTop === undefined) {
+      let bodyScrollPaddingTop = Number.parseFloat($('html, body').css('scroll-padding-top')) || 0;
+
+      if (cd.g.skin === 'timeless') {
+        bodyScrollPaddingTop -= 5;
+      }
+      if (cd.g.skin === 'vector-2022') {
+        // When jumping to the parent comment that is opening a section, the active section shown in
+        // the TOC is wrong. Probably some mechanisms in the scripts or the browser are out of sync.
+        bodyScrollPaddingTop -= 1;
+      }
+
+      this.bodyScrollPaddingTop = bodyScrollPaddingTop;
+    }
+
+    return this.bodyScrollPaddingTop || 0;
   }
 }
 

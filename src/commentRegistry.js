@@ -410,7 +410,7 @@ class CommentRegistry extends EventEmitter {
       comment.roughOffset = undefined;
     });
 
-    const viewportTop = window.scrollY + cd.g.bodyScrollPaddingTop;
+    const viewportTop = window.scrollY + talkPageController.getBodyScrollPaddingTop();
     const viewportBottom = window.scrollY + window.innerHeight;
 
     // Visibility is checked in the sense that an element is visible on the page, not necessarily in

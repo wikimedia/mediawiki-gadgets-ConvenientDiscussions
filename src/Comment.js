@@ -3712,7 +3712,7 @@ class Comment extends CommentSkeleton {
     }
 
     const scrollY = window.scrollY;
-    const viewportTop = scrollY + cd.g.bodyScrollPaddingTop;
+    const viewportTop = scrollY + talkPageController.getBodyScrollPaddingTop();
     const viewportBottom = scrollY + window.innerHeight;
 
     return partially

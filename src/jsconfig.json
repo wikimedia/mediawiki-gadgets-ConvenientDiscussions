@@ -6,7 +6,7 @@
     // We mix `import`s and `require()` calls
     "module": "preserve",
 
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["oojs", "oojs-ui", "jquery", "jqueryui"]
   },
   "include": ["**/*", "../config/**/*", "../data/**/*", "../node_modules/types-mediawiki"]

@@ -1,11 +1,3 @@
-/**
- * Singleton related to the block displaying the current section tree according to the scroll
- * position, along with the page top and table of contents links. It is not mounted in Vector 2022,
- * because Vector 2022 has sticky TOC. The bottom block also displays the page bottom link.
- *
- * @module pageNav
- */
-
 import Button from './Button';
 import bootController from './bootController';
 import cd from './cd';
@@ -15,7 +7,9 @@ import toc from './toc';
 import { getVisibilityByRects } from './utils-window';
 
 /**
- *
+ * Singleton related to the block displaying the current section tree according to the scroll
+ * position, along with the page top and table of contents links. It is not mounted in Vector 2022,
+ * because Vector 2022 has sticky TOC. The bottom block also displays the page bottom link.
  */
 class PageNav {
   /**
@@ -84,6 +78,8 @@ class PageNav {
    */
   backLinkLocation;
 
+  bodyScrollPaddingTop = talkPageController.getBodyScrollPaddingTop();
+
   /**
    * _For internal use._ Setup the page navigation block (mount or update).
    */
@@ -107,8 +103,8 @@ class PageNav {
       .attr('id', 'cd-pageNav-top')
       .addClass('cd-pageNav')
       .appendTo(document.body);
-    if (cd.g.bodyScrollPaddingTop) {
-      this.$topElement.css('margin-top', `${cd.g.bodyScrollPaddingTop}px`);
+    if (this.bodyScrollPaddingTop) {
+      this.$topElement.css('margin-top', `${this.bodyScrollPaddingTop}px`);
     }
     this.$bottomElement = $('<ul>')
       .attr('id', 'cd-pageNav-bottom')
@@ -151,6 +147,7 @@ class PageNav {
     let width = cd.g.userDirection === 'ltr'
       ? left - deductable
       : /** @type {number} */ ($(window).width()) -
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         (left + /** @type {number} */ (bootController.$contentColumn.outerWidth())) -
         deductable;
     if (cd.g.skin === 'minerva') {
@@ -210,7 +207,7 @@ class PageNav {
    */
   createOrUpdateSkeleton(afterLeadOffset, scrollY) {
     if (
-      (afterLeadOffset !== undefined && afterLeadOffset < cd.g.bodyScrollPaddingTop + 1) ||
+      (afterLeadOffset !== undefined && afterLeadOffset < this.bodyScrollPaddingTop + 1) ||
       this.backLinkLocation === 'top'
     ) {
       if (!this.$linksOnTop) {
@@ -304,7 +301,7 @@ class PageNav {
     // `1` as a threshold (also below, in `extendedRect.outerTop < BODY_SCROLL_PADDING_TOP + 1`)
     // works better for Monobook for some reason (scroll to the first section using the page
     // navigation to see the difference).
-    if (firstSectionTop === undefined || firstSectionTop >= cd.g.bodyScrollPaddingTop + 1) {
+    if (firstSectionTop === undefined || firstSectionTop >= this.bodyScrollPaddingTop + 1) {
       if (this.currentSection) {
         this.resetSections();
       }
@@ -411,7 +408,7 @@ class PageNav {
   jump($elementOrOffset, $item, isBackLink = false) {
     const offset = typeof $elementOrOffset === 'number'
       ? $elementOrOffset
-      /** @type {JQuery.Coordinates} */ : ($elementOrOffset.offset()).top - cd.g.bodyScrollPaddingTop;
+      : /** @type {JQuery.Coordinates} */ ($elementOrOffset.offset()).top - this.bodyScrollPaddingTop;
     if (!isBackLink && Math.abs(offset - window.scrollY) < 1) return;
 
     if (this.backLinkLocation) {

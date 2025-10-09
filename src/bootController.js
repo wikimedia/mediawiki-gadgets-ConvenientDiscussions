@@ -343,7 +343,7 @@ class BootController {
       acc[key] = typeof value === 'string' ? [value] : value;
 
       return acc;
-    }, /** @type {import('../config/default').default['specialPageAliases']} */ ({}));
+    }, /** @type {import('../config/default').default['specialPageAliases']} */({}));
 
     cd.g.contentTimezone = cd.config.timezone;
 
@@ -601,7 +601,7 @@ class BootController {
       }
 
       if (['xg', 'D', 'l', 'F', 'M'].includes(code)) {
-        tokens.push(/** @type {DateToken} */ (code));
+        tokens.push(/** @type {DateToken} */(code));
       } else if (code === '\\' && p < format.length - 1) {
         ++p;
       }
@@ -618,30 +618,6 @@ class BootController {
     cd.g.contentLineHeight = Number.parseFloat(this.$content.css('line-height'));
     cd.g.contentFontSize = Number.parseFloat(this.$content.css('font-size'));
     cd.g.defaultFontSize = Number.parseFloat($(document.documentElement).css('font-size'));
-
-    // For Timeless, Vector-2022 skins
-    this.initBodyScrollPaddingTop();
-  }
-
-  /**
-   * Initialize the {@link cd.g.bodyScrollPaddingTop} property. The initialization may fail at first if CD loads when some other native scripts haven't (e.g. in Chrome, if you load the page in an unfocused tab). So this runs twice.
-   */
-  initBodyScrollPaddingTop() {
-    if (!('bodyScrollPaddingTop' in cd.g)) return;
-
-    let bodyScrollPaddingTop = Number.parseFloat($('html, body').css('scroll-padding-top'));
-    if (Number.isNaN(bodyScrollPaddingTop)) return;
-
-    if (cd.g.skin === 'timeless') {
-      bodyScrollPaddingTop -= 5;
-    }
-    if (cd.g.skin === 'vector-2022') {
-      // When jumping to the parent comment that is opening a section, the active section shown in
-      // the TOC is wrong. Probably some mechanisms in the scripts or the browser are out of sync.
-      bodyScrollPaddingTop -= 1;
-    }
-
-    cd.g.bodyScrollPaddingTop = bodyScrollPaddingTop;
   }
 
   /**

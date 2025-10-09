@@ -291,7 +291,7 @@ class SectionRegistry {
    * @returns {number | undefined}
    */
   getFirstSectionRelativeTopOffset(scrollY = window.scrollY, tocOffset = undefined) {
-    if (scrollY <= cd.g.bodyScrollPaddingTop) return;
+    if (scrollY <= talkPageController.getBodyScrollPaddingTop()) return;
 
     return this.items.reduce((result, section) => {
       if (result !== undefined) {
@@ -319,7 +319,7 @@ class SectionRegistry {
     return (
       (
         firstSectionTop !== undefined &&
-        firstSectionTop < cd.g.bodyScrollPaddingTop + 1 &&
+        firstSectionTop < talkPageController.getBodyScrollPaddingTop() + 1 &&
         this.items
           .slice()
           .reverse()
@@ -328,7 +328,7 @@ class SectionRegistry {
 
             return (
               getVisibilityByRects(extendedRect) &&
-              extendedRect.outerTop < cd.g.bodyScrollPaddingTop + 1
+              extendedRect.outerTop < talkPageController.getBodyScrollPaddingTop() + 1
             );
           })
       ) ||
