@@ -465,6 +465,7 @@ class BootProcess {
     bootController.initTimestampParsingTools('content');
     this.initPatterns();
     this.initPrototypes();
+    bootController.initBodyScrollPaddingTop();
     if (settings.get('useBackgroundHighlighting')) {
       require('./Comment.layers.optionalBackgroundHighlighting.less');
     }
