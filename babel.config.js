@@ -3,8 +3,7 @@ module.exports = {
   presets: [
     ['@babel/preset-env', {
       bugfixes: true,
-      useBuiltIns: 'entry',
-      corejs: 3,
+      // Don't use useBuiltIns since we're manually importing specific polyfills
     }],
   ],
   plugins: [

@@ -456,7 +456,7 @@ const config = defineConfig(
   },
 
   // ES2022 compatibility for src/ folder (matching src/jsconfig.json scope)
-  // Enforces ES2022 compatibility by disallowing ES2022+ features using no-restricted-syntax
+  // Allows .at() and .findLastIndex() (with polyfills) but restricts other ES2023+ features
   {
     files: ['src/**/*', 'config/**/*', 'data/**/*'],
     ignores: ['src/tribute/**', 'src/**/*.test.js'],
@@ -464,20 +464,12 @@ const config = defineConfig(
       // Disallow ES2022+ features - turn off conflicting unicorn rule
       'unicorn/prefer-at': 'off',
 
-      // Use no-restricted-syntax for now until we can get eslint-plugin-es-x working
+      // Allow .at() and .findLastIndex() since we have polyfills, but restrict other ES2023+ methods
       'no-restricted-syntax': [
         'error',
         {
-          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="at"]',
-          message: 'Array.prototype.at() is ES2022+. Use bracket notation or .slice(-1)[0] instead.',
-        },
-        {
           selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="findLast"]',
           message: 'Array.prototype.findLast() is ES2023+. Use .slice().reverse().find() or similar instead.',
-        },
-        {
-          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="findLastIndex"]',
-          message: 'Array.prototype.findLastIndex() is ES2023+. Use alternative implementation.',
         },
         {
           selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="toReversed"]',
