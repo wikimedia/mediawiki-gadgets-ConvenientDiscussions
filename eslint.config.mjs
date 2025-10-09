@@ -455,6 +455,48 @@ const config = defineConfig(
     },
   },
 
+  // ES2022 compatibility for src/ folder (matching src/jsconfig.json scope)
+  // Enforces ES2022 compatibility by disallowing ES2023+ features like .at(), .findLast(), etc.
+  {
+    files: ['src/**/*', 'config/**/*', 'data/**/*'],
+    ignores: ['src/tribute/**', 'src/**/*.test.js'],
+    rules: {
+      // Disallow ES2023+ features - turn off conflicting unicorn rule
+      'unicorn/prefer-at': 'off',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="at"]',
+          message: 'Array.prototype.at() is ES2022+. Use bracket notation or .slice(-1)[0] instead.',
+        },
+        {
+          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="findLast"]',
+          message: 'Array.prototype.findLast() is ES2023+. Use .slice().reverse().find() or similar instead.',
+        },
+        {
+          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="findLastIndex"]',
+          message: 'Array.prototype.findLastIndex() is ES2023+. Use alternative implementation.',
+        },
+        {
+          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="toReversed"]',
+          message: 'Array.prototype.toReversed() is ES2023+. Use .slice().reverse() instead.',
+        },
+        {
+          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="toSorted"]',
+          message: 'Array.prototype.toSorted() is ES2023+. Use .slice().sort() instead.',
+        },
+        {
+          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="toSpliced"]',
+          message: 'Array.prototype.toSpliced() is ES2023+. Use .slice() with manual splicing instead.',
+        },
+        {
+          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="with"]',
+          message: 'Array.prototype.with() is ES2023+. Use .slice() with index assignment instead.',
+        },
+      ],
+    },
+  },
+
   {
     files: ['src/shared/**', 'src/worker/**'],
     rules: {
