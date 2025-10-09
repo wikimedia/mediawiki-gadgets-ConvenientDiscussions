@@ -2,6 +2,7 @@
 import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
 import { defineConfig } from 'eslint/config';
+import esX from 'eslint-plugin-es-x';
 import importPlugin from 'eslint-plugin-import';
 import { jsdoc } from 'eslint-plugin-jsdoc';
 import noOneTimeVars from 'eslint-plugin-no-one-time-vars';
@@ -459,35 +460,17 @@ const config = defineConfig(
   // Allows .at() and .findLastIndex() (with polyfills) but restricts other ES2023+ features
   {
     files: ['src/**/*', 'config/**/*', 'data/**/*'],
-    ignores: ['src/tribute/**', 'src/**/*.test.js'],
+    ignores: ['src/tribute/**'],
+    plugins: {
+      // @ts-expect-error - Type definition mismatch with flat config
+      'es-x': esX,
+    },
     rules: {
-      // Disallow ES2022+ features - turn off conflicting unicorn rule
-      'unicorn/prefer-at': 'off',
-
-      // Allow .at() and .findLastIndex() since we have polyfills, but restrict other ES2023+ methods
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="findLast"]',
-          message: 'Array.prototype.findLast() is ES2023+. Use .slice().reverse().find() or similar instead.',
-        },
-        {
-          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="toReversed"]',
-          message: 'Array.prototype.toReversed() is ES2023+. Use .slice().reverse() instead.',
-        },
-        {
-          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="toSorted"]',
-          message: 'Array.prototype.toSorted() is ES2023+. Use .slice().sort() instead.',
-        },
-        {
-          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="toSpliced"]',
-          message: 'Array.prototype.toSpliced() is ES2023+. Use .slice() with manual splicing instead.',
-        },
-        {
-          selector: 'CallExpression[callee.type="MemberExpression"][callee.property.name="with"]',
-          message: 'Array.prototype.with() is ES2023+. Use .slice() with index assignment instead.',
-        },
-      ],
+      // Restrict to ES2022, but allow .at() and .findLastIndex() since we have polyfills
+      'es-x/no-array-prototype-toreversed': 'error',
+      'es-x/no-array-prototype-tosorted': 'error',
+      'es-x/no-array-prototype-tospliced': 'error',
+      'es-x/no-array-prototype-with': 'error',
     },
   },
 
