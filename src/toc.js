@@ -7,10 +7,10 @@
 import Comment from './Comment';
 import LiveTimestamp from './LiveTimestamp';
 import TocItem from './TocItem';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentRegistry from './commentRegistry';
-import sectionRegistry from './sectionRegistry';
+import commentManager from './commentManager';
+import sectionManager from './sectionManager';
 import settings from './settings';
 import CdError from './shared/CdError';
 import SectionSkeleton from './shared/SectionSkeleton';
@@ -67,12 +67,12 @@ class Toc {
         // otherwise the user can be confused, especially if there are few topics on an unpopular
         // page.)
         if (
-          commentRegistry.query((c) => c.isSeen === false || !c.date).length !==
-          commentRegistry.getCount()
+          commentManager.query((c) => c.isSeen === false || !c.date).length !==
+          commentManager.getCount()
         ) {
           this.addNewComments(
-            Comment.groupBySection(commentRegistry.query((c) => c.isSeen === false)),
-            bootController.getBootProcess()
+            Comment.groupBySection(commentManager.query((c) => c.isSeen === false)),
+            bootManager.getBootProcess()
           );
         }
         this.addCommentCount();
@@ -111,7 +111,7 @@ class Toc {
    * @param {boolean} [hideToc] Whether the TOC should be hidden.
    */
   setup(sections, hideToc) {
-    this.$element = this.isInSidebar() ? $('.vector-toc') : bootController.$root.find('.toc');
+    this.$element = this.isInSidebar() ? $('.vector-toc') : bootManager.$root.find('.toc');
     this.items = undefined;
     this.floating = undefined;
     this.visitsPromise = new Promise((resolve) => {
@@ -170,7 +170,7 @@ class Toc {
     // visits#process().
     await Promise.all([this.visitsPromise, this.updateTocSectionsPromise]);
 
-    sectionRegistry
+    sectionManager
       .query((section) => section.subscriptionState || this.isInSidebar())
       .forEach((section) => {
         section.updateTocLink();
@@ -187,7 +187,7 @@ class Toc {
     await this.updateTocSectionsPromise;
 
     let usedFullForm = false;
-    sectionRegistry.getAll().forEach((section) => {
+    sectionManager.getAll().forEach((section) => {
       const item = section.getTocItem();
       if (!item) return;
 
@@ -233,7 +233,7 @@ class Toc {
    */
   handleSectionClick(event) {
     event.preventDefault();
-    bootController.reboot({
+    bootManager.reboot({
       sectionId:
         getLinkedAnchor(/** @type {HTMLAnchorElement} */ (event.currentTarget)) || undefined,
       pushState: true,
@@ -510,14 +510,14 @@ class Toc {
       throw new CdError();
     }
 
-    const comment = commentRegistry.getByAnyId(id);
+    const comment = commentManager.getByAnyId(id);
     if (comment) {
       comment.scrollTo({
         smooth: false,
         pushState: true,
       });
     } else {
-      bootController.reboot({
+      bootManager.reboot({
         commentIds: [id],
         pushState: true,
       });

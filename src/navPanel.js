@@ -1,9 +1,9 @@
 import Button from './Button';
 import LiveTimestamp from './LiveTimestamp';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentFormRegistry from './commentFormRegistry';
-import commentRegistry from './commentRegistry';
+import commentFormManager from './commentFormManager';
+import commentManager from './commentManager';
 import settings from './settings';
 import { removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
@@ -86,37 +86,37 @@ class NavPanel {
 
             // W
             if (keyCombination(event, 87)) {
-              commentRegistry.goToPreviousNewComment();
+              commentManager.goToPreviousNewComment();
             }
 
             // S
             if (keyCombination(event, 83)) {
-              commentRegistry.goToNextNewComment();
+              commentManager.goToNextNewComment();
             }
 
             // F
             if (keyCombination(event, 70)) {
-              commentRegistry.goToFirstUnseenComment();
+              commentManager.goToFirstUnseenComment();
             }
 
             // C
             if (keyCombination(event, 67)) {
               event.preventDefault();
-              commentFormRegistry.goToNextCommentForm(true);
+              commentFormManager.goToNextCommentForm(true);
             }
           })
         updateChecker
           .on('commentsUpdate', ({ all, relevant, bySection }) => {
             this.updateRefreshButton(all.length, bySection, Boolean(relevant.length));
           });
-        commentFormRegistry
+        commentFormManager
           .on('add', this.updateCommentFormButton)
           .on('remove', this.updateCommentFormButton);
         LiveTimestamp
           .on('updateImproved', this.updateTimestampsInRefreshButtonTooltip);
         visits
           .on('process', this.fill);
-        commentRegistry
+        commentManager
           .on('registerSeen', this.updateFirstUnseenButton);
       }
     } else {
@@ -156,7 +156,7 @@ class NavPanel {
       id: 'cd-navPanel-previousButton',
       tooltip: `${cd.s('navpanel-previous')} ${cd.mws('parentheses', 'W')}`,
       action: () => {
-        commentRegistry.goToPreviousNewComment();
+        commentManager.goToPreviousNewComment();
       },
     }).hide();
     $(this.state.previousButton.element).append(
@@ -171,7 +171,7 @@ class NavPanel {
       id: 'cd-navPanel-nextButton',
       tooltip: `${cd.s('navpanel-next')} ${cd.mws('parentheses', 'S')}`,
       action: () => {
-        commentRegistry.goToNextNewComment();
+        commentManager.goToNextNewComment();
       },
     }).hide();
     $(this.state.nextButton.element).append(
@@ -186,7 +186,7 @@ class NavPanel {
       id: 'cd-navPanel-firstUnseenButton',
       tooltip: `${cd.s('navpanel-firstunseen')} ${cd.mws('parentheses', 'F')}`,
       action: () => {
-        commentRegistry.goToFirstUnseenComment();
+        commentManager.goToFirstUnseenComment();
       },
     }).hide();
 
@@ -196,7 +196,7 @@ class NavPanel {
       id: 'cd-navPanel-commentFormButton',
       tooltip: `${cd.s('navpanel-commentform')} ${cd.mws('parentheses', 'C')}`,
       action: () => {
-        commentFormRegistry.goToNextCommentForm();
+        commentFormManager.goToNextCommentForm();
       },
     }).hide();
     $(this.state.commentFormButton.element).append(
@@ -264,7 +264,7 @@ class NavPanel {
   fill = () => {
     if (!this.state) return;
 
-    if (commentRegistry.getAll().some((comment) => comment.isNew)) {
+    if (commentManager.getAll().some((comment) => comment.isNew)) {
       this.updateRefreshButtonTooltip(0);
       this.state.previousButton.show();
       this.state.nextButton.show();
@@ -279,7 +279,7 @@ class NavPanel {
    * @private
    */
   refreshClick(markAsRead = false) {
-    bootController.reboot({
+    bootManager.reboot({
       commentIds: talkPageController.getRelevantAddedCommentIds() || undefined,
       markAsRead,
     });
@@ -334,7 +334,7 @@ class NavPanel {
 
     /** @type {string | undefined} */
     let tooltipText;
-    const areThereNew = commentRegistry.getAll().some((comment) => comment.isNew);
+    const areThereNew = commentManager.getAll().some((comment) => comment.isNew);
     if (commentCount) {
       tooltipText =
         cd.s('navpanel-newcomments-count', String(commentCount)) +
@@ -417,7 +417,7 @@ class NavPanel {
   updateFirstUnseenButton = () => {
     if (!this.state) return;
 
-    const unseenCommentCount = commentRegistry.query((c) => c.isSeen === false).length;
+    const unseenCommentCount = commentManager.query((c) => c.isSeen === false).length;
     this.state.firstUnseenButton
       .toggle(Boolean(unseenCommentCount))
       .setLabel(String(unseenCommentCount));
@@ -433,7 +433,7 @@ class NavPanel {
     if (!this.state || talkPageController.isAutoScrolling()) return;
 
     this.state.commentFormButton
-      .toggle(commentFormRegistry.getAll().some((cf) => !cf.$element.cdIsInViewport(true)));
+      .toggle(commentFormManager.getAll().some((cf) => !cf.$element.cdIsInViewport(true)));
   };
 }
 

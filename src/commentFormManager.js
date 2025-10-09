@@ -1,10 +1,10 @@
 import CommentForm from './CommentForm';
 import EventEmitter from './EventEmitter';
 import StorageItemWithKeysAndSaveTime from './StorageItemWithKeysAndSaveTime';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentRegistry from './commentRegistry';
-import sectionRegistry from './sectionRegistry';
+import commentManager from './commentManager';
+import sectionManager from './sectionManager';
 import settings from './settings';
 import { defined, removeFromArrayIfPresent, subtractDaysFromNow } from './shared/utils-general';
 import talkPageController from './talkPageController';
@@ -24,7 +24,7 @@ import { isCmdModifierPressed, isInputFocused, keyCombination } from './utils-wi
  *
  * @augments EventEmitter<EventMap>
  */
-class CommentFormRegistry extends EventEmitter {
+class CommentFormManager extends EventEmitter {
   /**
    * List of comment forms.
    *
@@ -59,20 +59,18 @@ class CommentFormRegistry extends EventEmitter {
           (keyCombination(event, 81) && !isInputFocused())
         ) {
           const lastActiveCommentForm = this.getLastActive();
-          const comment = commentRegistry.getSelectedComment();
+          const comment = commentManager.getSelectedComment();
           if (lastActiveCommentForm) {
             event.preventDefault();
             lastActiveCommentForm.quote(isCmdModifierPressed(event), comment || undefined);
-          } else {
-            if (comment?.isActionable) {
-              event.preventDefault();
-              comment.reply();
-            }
+          } else if (comment?.isActionable) {
+            event.preventDefault();
+            comment.reply();
           }
         }
       })
       .on('resize', this.adjustLabels.bind(this));
-    commentRegistry
+    commentManager
       .on('select', this.toggleQuoteButtonsHighlighting.bind(this, true))
       .on('unselect', this.toggleQuoteButtonsHighlighting.bind(this, false));
 
@@ -172,6 +170,7 @@ class CommentFormRegistry extends EventEmitter {
     if (index < 0) {
       index = this.items.length + index;
     }
+
     return this.items[index] || null;
   }
 
@@ -213,7 +212,7 @@ class CommentFormRegistry extends EventEmitter {
       this.items
         .slice()
         .sort(this.lastFocused)[0] ||
-      null
+        null
     );
   }
 
@@ -229,7 +228,7 @@ class CommentFormRegistry extends EventEmitter {
         .slice()
         .sort(this.lastFocused)
         .find((commentForm) => commentForm.isAltered()) ||
-      null
+        null
     );
   }
 
@@ -243,9 +242,8 @@ class CommentFormRegistry extends EventEmitter {
    * @returns {number}
    * @private
    */
-  lastFocused(cf1, cf2) {
-    return (cf2.getLastFocused()?.getTime() || 0) - (cf1.getLastFocused()?.getTime() || 0);
-  }
+  lastFocused = (cf1, cf2) =>
+    (cf2.getLastFocused()?.getTime() || 0) - (cf1.getLastFocused()?.getTime() || 0);
 
   /**
    * Adjust the button labels of all comment forms according to the form width: if the form is too
@@ -267,7 +265,7 @@ class CommentFormRegistry extends EventEmitter {
   }
 
   /**
-   * The method that does the actual work for {@link module:commentFormRegistry.saveSession}.
+   * The method that does the actual work for {@link module:commentFormManager.saveSession}.
    *
    * @private
    */
@@ -285,11 +283,11 @@ class CommentFormRegistry extends EventEmitter {
   /**
    * _For internal use._ Save comment form data to the local storage.
    *
-   * @param {boolean} [force=true] Save session immediately, without regard for save frequency.
+   * @param {boolean} [force] Save session immediately, without regard for save frequency.
    */
   saveSession(force) {
     // A check in light of the existence of RevisionSlider, see the method
-    if (!bootController.isCurrentRevision()) return;
+    if (!bootManager.isCurrentRevision()) return;
 
     if (force) {
       this.actuallySaveSession();
@@ -305,13 +303,13 @@ class CommentFormRegistry extends EventEmitter {
 
   /**
    * Restore comment forms using the data saved in the local storage.
-   * {@link module:commentFormRegistry.maybeShowRescueDialog Rescue} forms that couldn't be
+   * {@link module:commentFormManager.maybeShowRescueDialog Rescue} forms that couldn't be
    * restored.
    *
    * @private
    */
   restoreSessionFromStorage() {
-    let haveRestored = false;
+    let haveRestored = /** @type {boolean} */ (false);
 
     this.maybeShowRescueDialog(
       /** @type {StorageItemWithKeysAndSaveTime<import('./CommentForm').CommentFormData[], 'commentForms'>} */ (
@@ -347,6 +345,7 @@ class CommentFormRegistry extends EventEmitter {
               haveRestored = true;
             } catch (error) {
               console.warn(error);
+
               return true;
             }
           } else {
@@ -377,7 +376,7 @@ class CommentFormRegistry extends EventEmitter {
   getTargetByData(targetData) {
     if (targetData?.headline) {
       // Section
-      return sectionRegistry.search({
+      return sectionManager.search({
         headline: targetData.headline,
         oldestCommentId: targetData.oldestCommentId,
         index: targetData.index,
@@ -386,11 +385,11 @@ class CommentFormRegistry extends EventEmitter {
       })?.section;
     } else if (targetData?.id) {
       // Comment
-      return commentRegistry.getById(targetData.id) || undefined;
-    } else {  // `data.mode === 'addSection'` or `targetData === null`
-      // Page
-      return cd.page;
-    }
+      return commentManager.getById(targetData.id) || undefined;
+    }   // `data.mode === 'addSection'` or `targetData === null`
+
+    // Page
+    return cd.page;
   }
 
   /**
@@ -475,7 +474,7 @@ class CommentFormRegistry extends EventEmitter {
    * @private
    */
   configureClosePageConfirmation() {
-    bootController.addPreventUnloadCondition('commentForms', () => {
+    bootManager.addPreventUnloadCondition('commentForms', () => {
       // Check for altered comment forms - if there are none, don't save the session to decrease the
       // chance of the situation where a user had two same pages in different tabs and lost a form
       // in other tab after saving nothing in this tab.
@@ -514,7 +513,7 @@ class CommentFormRegistry extends EventEmitter {
    * Go to the next comment form out of sight, or just the next comment form, if `inSight` is set to
    * `true`.
    *
-   * @param {boolean} [inSight=false]
+   * @param {boolean} [inSight]
    */
   goToNextCommentForm(inSight) {
     this
@@ -533,4 +532,4 @@ class CommentFormRegistry extends EventEmitter {
   }
 }
 
-export default new CommentFormRegistry();
+export default new CommentFormManager();

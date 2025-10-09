@@ -1,6 +1,6 @@
 import BaseAutocomplete from './BaseAutocomplete';
 import cd from './cd';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import { underlinesToSpaces } from './shared/utils-general';
 
 /**
@@ -192,7 +192,7 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
     }, /** @type {CommentLinkEntry[]} */ ([]));
 
     // Process sections into section link entries
-    const sectionItems = sectionRegistry.getAll().reduce((acc, section) => {
+    const sectionItems = sectionManager.getAll().reduce((acc, section) => {
       acc.push({
         label: underlinesToSpaces(section.id),
         urlFragment: underlinesToSpaces(section.id),

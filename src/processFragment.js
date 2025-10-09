@@ -8,8 +8,8 @@
 
 import Comment from './Comment';
 import cd from './cd';
-import commentRegistry from './commentRegistry';
-import sectionRegistry from './sectionRegistry';
+import commentManager from './commentManager';
+import sectionManager from './sectionManager';
 import { defined, sleep, underlinesToSpaces } from './shared/utils-general';
 import { removeWikiMarkup } from './shared/utils-wikitext';
 import { formatDateNative, isExistentAnchor, wrapHtml } from './utils-window';
@@ -61,9 +61,9 @@ export default async function processFragment() {
   let comment;
   if (commentId) {
     ({ date, author } = Comment.parseId(commentId) || {});
-    comment = commentRegistry.getById(commentId, true);
+    comment = commentManager.getById(commentId, true);
   } else if (decodedValue) {
-    ({ comment, date, author } = commentRegistry.getByDtId(decodedValue, true) || {});
+    ({ comment, date, author } = commentManager.getByDtId(decodedValue, true) || {});
   }
 
   if (comment) {
@@ -116,7 +116,7 @@ async function maybeNotifyNotFound() {
 
   if (date && author) {
     label = cd.sParse('deadanchor-comment-lead');
-    const priorComment = commentRegistry.findPriorComment(date, author);
+    const priorComment = commentManager.findPriorComment(date, author);
     if (priorComment) {
       guessedCommentText = (' ' + cd.sParse('deadanchor-comment-previous', '#' + priorComment.id))
         // Until https://phabricator.wikimedia.org/T288415 is online on most wikis.
@@ -130,7 +130,7 @@ async function maybeNotifyNotFound() {
       ' ' +
       cd.sParse('deadanchor-section-reason')
     );
-    const sectionMatch = sectionRegistry.findByHeadlineParts(sectionName);
+    const sectionMatch = sectionManager.findByHeadlineParts(sectionName);
     if (sectionMatch) {
       guessedSectionText = (
         ' ' +

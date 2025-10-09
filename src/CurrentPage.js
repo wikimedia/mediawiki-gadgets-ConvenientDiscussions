@@ -1,11 +1,11 @@
 import CommentForm from './CommentForm';
 import Page from './Page';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentFormRegistry from './commentFormRegistry';
-import commentRegistry from './commentRegistry';
+import commentFormManager from './commentFormManager';
+import commentManager from './commentManager';
 import pageRegistry from './pageRegistry';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import { areObjectsEqual } from './shared/utils-general';
 
 /**
@@ -122,7 +122,7 @@ export default class CurrentPage extends Page {
    * @returns {boolean}
    */
   isCommentable() {
-    return bootController.isPageOfType('talk') && (this.isActive() || !this.exists());
+    return bootManager.isPageOfType('talk') && (this.isActive() || !this.exists());
   }
 
   /**
@@ -148,9 +148,9 @@ export default class CurrentPage extends Page {
    */
   isActive() {
     return (
-      bootController.isPageOfType('talk') &&
+      bootManager.isPageOfType('talk') &&
       this.exists() &&
-      bootController.isCurrentRevision() &&
+      bootManager.isCurrentRevision() &&
       !this.isArchive()
     );
   }
@@ -161,7 +161,7 @@ export default class CurrentPage extends Page {
    * @returns {boolean}
    */
   isCurrentArchive() {
-    return bootController.isCurrentRevision() && this.isArchive();
+    return bootManager.isCurrentRevision() && this.isArchive();
   }
 
   /**
@@ -174,7 +174,7 @@ export default class CurrentPage extends Page {
     // This is not reevaluated after page reloads. Since archive settings we need rarely change, the
     // reevaluation is unlikely to make any difference. `$root?` because the $root can not be set
     // when it runs from the addCommentLinks module.
-    this.$archivingInfo ||= bootController.$root?.find('.cd-archivingInfo');
+    this.$archivingInfo ||= bootManager.$root?.find('.cd-archivingInfo');
 
     return this.$archivingInfo;
   }
@@ -204,9 +204,9 @@ export default class CurrentPage extends Page {
           this.addSection();
         }).$element
       )
-      // If appending to bootController.rootElement, it can land on a wrong place, like on 404 pages
+      // If appending to bootManager.rootElement, it can land on a wrong place, like on 404 pages
       // with New Topic Tool enabled.
-      .insertAfter(bootController.$root);
+      .insertAfter(bootManager.$root);
   }
 
   /**
@@ -258,7 +258,7 @@ export default class CurrentPage extends Page {
       // Headline input may be missing if the `nosummary` preload parameter is truthy.
       (this.addSectionForm.headlineInput || this.addSectionForm.commentInput).focus();
     } else {
-      this.addSectionForm = commentFormRegistry.setupCommentForm(
+      this.addSectionForm = commentFormManager.setupCommentForm(
         this,
         {
           mode: 'addSection',
@@ -271,7 +271,7 @@ export default class CurrentPage extends Page {
 
       this.$addSectionButtonContainer?.hide();
       if (!this.exists()) {
-        bootController.$content.children('.noarticletext, .warningbox').hide();
+        bootManager.$content.children('.noarticletext, .warningbox').hide();
       }
       $('#ca-addsection').addClass('selected');
       $('#ca-view').removeClass('selected');
@@ -291,11 +291,11 @@ export default class CurrentPage extends Page {
    * @param {import('./CommentForm').default} commentForm
    */
   addCommentFormToPage(_mode, commentForm) {
-    const firstSection = sectionRegistry.getByIndex(0);
+    const firstSection = sectionManager.getByIndex(0);
     if (firstSection && commentForm.isNewTopicOnTop()) {
       firstSection.$heading.before(commentForm.$element);
     } else {
-      bootController.$root.after(commentForm.$element);
+      bootManager.$root.after(commentForm.$element);
     }
   }
 
@@ -304,7 +304,7 @@ export default class CurrentPage extends Page {
    */
   cleanUpCommentFormTraces() {
     if (!this.exists()) {
-      bootController.$content
+      bootManager.$content
         // In case DT's new topic tool is enabled. This is responsible for correct styles being set.
         .removeClass('ext-discussiontools-init-replylink-open')
 
@@ -324,6 +324,6 @@ export default class CurrentPage extends Page {
    * @returns {?import('./Comment').default}
    */
   getCommentAboveCommentToBeAdded(commentForm) {
-    return commentForm.isNewTopicOnTop() ? null : commentRegistry.getByIndex(-1);
+    return commentForm.isNewTopicOnTop() ? null : commentManager.getByIndex(-1);
   }
 }

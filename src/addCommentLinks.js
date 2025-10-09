@@ -5,7 +5,7 @@
  */
 
 import PrototypeRegistry from './PrototypeRegistry';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
 import pageRegistry from './pageRegistry';
 import settings from './settings';
@@ -51,11 +51,11 @@ const prototypes = new PrototypeRegistry();
  */
 async function init() {
   // This could have been executed from init.talkPage() already.
-  bootController.initGlobals();
+  bootManager.initGlobals();
   await settings.init();
 
   /** @type {PromiseLike<any>[]} */
-  const requests = [...bootController.getSiteData()];
+  const requests = [...bootManager.getSiteData()];
   if (cd.user.isRegistered() && !settings.get('useTopicSubscription')) {
     // Loading the subscriptions is not critical, as opposed to messages, so we catch the possible
     // error, not letting it be caught by the try/catch block.
@@ -117,9 +117,9 @@ async function init() {
  */
 function switchRelevant() {
   // This is for many watchlist types at once.
-  const $collapsibles = bootController.$content
+  const $collapsibles = bootManager.$content
     .find('.mw-changeslist .mw-collapsible:not(.mw-changeslist-legend)');
-  const $lines = bootController.$content.find('.mw-changeslist-line:not(table)');
+  const $lines = bootManager.$content.find('.mw-changeslist-line:not(table)');
 
   if (switchRelevantButton.hasFlag('progressive')) {
     // Show all
@@ -142,17 +142,17 @@ function switchRelevant() {
     $collapsibles
       .not('.mw-collapsed')
       .find('.mw-enhancedchanges-arrow')
-      .click();
+      .trigger('click');
   } else {
     // Show relevant only
     $collapsibles
       .not('.mw-collapsed')
       .find('.mw-enhancedchanges-arrow')
-      .click();
+      .trigger('click');
     $collapsibles
       .has('.cd-commentLink-relevant')
       .find('.mw-enhancedchanges-arrow')
-      .click();
+      .trigger('click');
     $collapsibles
       .not(':has(.cd-commentLink-relevant)')
       .find('.mw-rcfilters-ui-highlights-enhanced-toplevel')
@@ -228,10 +228,10 @@ function addWatchlistMenu() {
   settingsButton.$element.appendTo($menu);
 
   // New watchlist
-  bootController.$content.find('.mw-rcfilters-ui-changesLimitAndDateButtonWidget').prepend($menu);
+  bootManager.$content.find('.mw-rcfilters-ui-changesLimitAndDateButtonWidget').prepend($menu);
 
   // Old watchlist
-  bootController.$content.find('#mw-watchlist-options .mw-changeslist-legend').after($menu);
+  bootManager.$content.find('#mw-watchlist-options .mw-changeslist-legend').after($menu);
 }
 
 /**
@@ -339,7 +339,7 @@ function isInSection(summary, name) {
 function processWatchlist($content) {
   if (
     mw.config.get('wgCanonicalSpecialPageName') === 'Watchlist' &&
-    !bootController.$content.find('.cd-watchlistMenu').length
+    !bootManager.$content.find('.cd-watchlistMenu').length
   ) {
     if (mw.user.options.get('wlenhancedfilters-disable')) {
       addWatchlistMenu();
@@ -478,7 +478,7 @@ function isCommentEdit(summary) {
  * @private
  */
 function processContributions($content) {
-  bootController.initTimestampParsingTools('user');
+  bootManager.initTimestampParsingTools('user');
   if (cd.g.uiTimezone === undefined) return;
 
   [
@@ -552,7 +552,7 @@ function processContributions($content) {
  * @private
  */
 function processHistory($content) {
-  bootController.initTimestampParsingTools('user');
+  bootManager.initTimestampParsingTools('user');
   if (cd.g.uiTimezone === undefined) return;
 
   const link = cd.page.getUrl();
@@ -630,14 +630,14 @@ function processDiff($diff) {
   // the page that is a diff page (unless only a diff, and no content, is displayed - if
   // mw.user.options.get('diffonly') or the `diffonly` URL parameter is true). We parse that diff on
   // convenientDiscussions.pageReady hook instead.
-  if ($diff?.parent().is(bootController.$content) && bootController.$root) return;
+  if ($diff?.parent().is(bootManager.$content) && bootManager.$root) return;
 
   if (!cd.g.uiTimestampRegexp) {
-    bootController.initTimestampParsingTools('user');
+    bootManager.initTimestampParsingTools('user');
   }
   if (cd.g.uiTimezone === undefined) return;
 
-  const $root = $diff || bootController.$content;
+  const $root = $diff || bootManager.$content;
   const root = $root[0];
   [root.querySelector('.diff-otitle'), root.querySelector('.diff-ntitle')]
     .filter(definedAndNotNull)
@@ -680,7 +680,7 @@ function processDiff($diff) {
         page = pageRegistry.get(title, true);
         if (!page) return;
       } else {
-        comment = require('./commentRegistry').default.getById(id, true) || undefined;
+        comment = require('./commentManager').default.getById(id, true) || undefined;
       }
       if (comment || page?.isProbablyTalkPage()) {
         let wrapper;
@@ -708,7 +708,7 @@ function processDiff($diff) {
           linkElement.href = page.getUrl() + '#' + id;
 
           // Non-diff pages that have a diff, like with Serhio Magpie's Instant Diffs.
-          if (bootController.isPageOfType('talk')) {
+          if (bootManager.isPageOfType('talk')) {
             linkElement.target = '_blank';
           }
         } else {
@@ -755,11 +755,11 @@ function processRevisionListPage($content) {
   // function).
   if (!$content.parent().length) return;
 
-  if (bootController.isPageOfType('watchlist')) {
+  if (bootManager.isPageOfType('watchlist')) {
     processWatchlist($content);
-  } else if (bootController.isPageOfType('contributions')) {
+  } else if (bootManager.isPageOfType('contributions')) {
     processContributions($content);
-  } else if (bootController.isPageOfType('history')) {
+  } else if (bootManager.isPageOfType('history')) {
     processHistory($content);
   }
 
@@ -778,7 +778,7 @@ export default async function addCommentLinks() {
     return;
   }
 
-  if (bootController.isPageOfType('diff')) {
+  if (bootManager.isPageOfType('diff')) {
     mw.hook('convenientDiscussions.pageReady').add(() => {
       processDiff();
     });
@@ -802,7 +802,7 @@ export function addCommentLinksToSpecialSearch() {
   if (commentId) {
     mw.loader.using('mediawiki.api').then(
       async () => {
-        await Promise.all(bootController.getSiteData());
+        await Promise.all(bootManager.getSiteData());
         $('.mw-search-result-heading').each((_, el) => {
           const originalHref = $(el)
             .find('a')

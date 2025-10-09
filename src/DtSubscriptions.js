@@ -1,7 +1,7 @@
 import Button from './Button';
 import Subscriptions from './Subscriptions';
 import cd from './cd';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import { definedAndNotNull, spacesToUnderlines, unique } from './shared/utils-general';
 import { handleApiReject, splitIntoBatches } from './utils-api';
 
@@ -26,7 +26,7 @@ class DtSubscriptions extends Subscriptions {
     const title = spacesToUnderlines(mw.config.get('wgTitle'));
     this.pageSubscribeId ||= `p-topics-${cd.g.namespaceNumber}:${title}`;
     this.data = await this.getSubscriptions(
-      sectionRegistry
+      sectionManager
         .getAll()
         .map((section) => section.subscribeId)
         .filter(definedAndNotNull)

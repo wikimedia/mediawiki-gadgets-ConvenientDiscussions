@@ -2,9 +2,9 @@ import Button from './Button';
 import EventEmitter from './EventEmitter';
 import PrototypeRegistry from './PrototypeRegistry';
 import StorageItemWithKeysAndSaveTime from './StorageItemWithKeysAndSaveTime';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentRegistry from './commentRegistry';
+import commentManager from './commentManager';
 import settings from './settings';
 import CdError from './shared/CdError';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
@@ -234,7 +234,7 @@ class Thread extends mixInObject(
     const highlightables = this.lastComment.highlightables;
     const visualHighlightables = this.visualLastComment.highlightables;
     const visualHighlightablesFallback = this.visualLastCommentFallback.highlightables;
-    const nextForeignElement = commentRegistry.getByIndex(this.lastComment.index + 1)?.elements[0];
+    const nextForeignElement = commentManager.getByIndex(this.lastComment.index + 1)?.elements[0];
 
     if (this.rootComment.level === 0) {
       startElement = firstNotHeadingElement;
@@ -271,7 +271,7 @@ class Thread extends mixInObject(
 
       const lastOutdentedComment = (
         this.hasOutdents &&
-        commentRegistry
+        commentManager
           .getAll()
           .slice(0, this.lastComment.index + 1)
           .reverse()
@@ -579,7 +579,7 @@ class Thread extends mixInObject(
           ? 'ceil'
           : 'floor'
       ](absoluteSteps);
-    const comments = commentRegistry.getAll();
+    const comments = commentManager.getAll();
     let target = this.rootComment;
     for (
       let i = this.rootComment.index + direction, step = 0;
@@ -676,7 +676,7 @@ class Thread extends mixInObject(
     if (this.endElement !== this.visualEndElement) {
       let areOutdentedCommentsShown = false;
       for (let i = this.rootComment.index; i <= this.lastComment.index; i++) {
-        const comment = /** @type {import('./Comment').default} */ (commentRegistry.getByIndex(i));
+        const comment = /** @type {import('./Comment').default} */ (commentManager.getByIndex(i));
         if (comment.isOutdented) {
           areOutdentedCommentsShown = true;
         }
@@ -884,10 +884,10 @@ class Thread extends mixInObject(
    */
   toggleAllOflevel() {
     if (this.isCollapsed) {
-      commentRegistry.expandAllThreadsOfLevel(this.rootComment.level);
+      commentManager.expandAllThreadsOfLevel(this.rootComment.level);
       this.comments[0].scrollTo();
     } else {
-      commentRegistry.collapseAllThreadsOfLevel(this.rootComment.level);
+      commentManager.collapseAllThreadsOfLevel(this.rootComment.level);
       Thread.emit('toggle');
     }
   }
@@ -946,7 +946,7 @@ class Thread extends mixInObject(
     this.collapsedRange = getRangeContents(
       this.getAdjustedStartElement(),
       this.getAdjustedEndElement(),
-      bootController.rootElement
+      bootManager.rootElement
     );
     if (!this.collapsedRange) return;
 
@@ -957,7 +957,7 @@ class Thread extends mixInObject(
 
     for (let i = this.rootComment.index; i <= this.lastComment.index; i++) {
       i =
-        /** @type {import('./Comment').default} */ (commentRegistry.getByIndex(i)).collapse(this) ??
+        /** @type {import('./Comment').default} */ (commentManager.getByIndex(i)).collapse(this) ??
         i;
     }
 
@@ -1026,7 +1026,7 @@ class Thread extends mixInObject(
     this.isCollapsed = false;
     let areOutdentedCommentsShown = false;
     for (let i = this.rootComment.index; i <= this.lastComment.index; i++) {
-      const comment = /** @type {import('./Comment').default} */ (commentRegistry.getByIndex(i));
+      const comment = /** @type {import('./Comment').default} */ (commentManager.getByIndex(i));
       i = comment.expand() ?? i;
       if (comment.isOutdented) {
         areOutdentedCommentsShown = true;
@@ -1353,7 +1353,7 @@ class Thread extends mixInObject(
    * @returns {import('./Comment').default[]}
    */
   getComments() {
-    return commentRegistry.getAll().slice(this.rootComment.index, this.lastComment.index + 1);
+    return commentManager.getAll().slice(this.rootComment.index, this.lastComment.index + 1);
   }
 
   /**
@@ -1460,8 +1460,8 @@ class Thread extends mixInObject(
     }
 
     this.collapseThreadsLevel = settings.get('collapseThreadsLevel');
-    this.treeWalker = new ElementsTreeWalker(bootController.rootElement);
-    commentRegistry.getAll().forEach((rootComment) => {
+    this.treeWalker = new ElementsTreeWalker(bootManager.rootElement);
+    commentManager.getAll().forEach((rootComment) => {
       try {
         rootComment.thread?.expand(true);
         rootComment.thread = new Thread(rootComment);
@@ -1521,7 +1521,7 @@ class Thread extends mixInObject(
     const threads = [];
 
     collapsedThreads?.forEach((threadItem) => {
-      const comment = commentRegistry.getById(threadItem.id);
+      const comment = commentManager.getById(threadItem.id);
       if (comment?.thread) {
         if (threadItem.collapsed) {
           threads.push(comment.thread);
@@ -1538,8 +1538,8 @@ class Thread extends mixInObject(
     // for example between the `this.collapseThreadsLevel - 1` level and the
     // `this.collapseThreadsLevel + 1` level (the user muse have replied to a comment at the
     // `this.collapseThreadsLevel - 1` level but inserted `::` instead of `:`).
-    for (let i = 0; i < commentRegistry.getCount(); i++) {
-      const thread = /** @type {import('./Comment').default} */ (commentRegistry.getByIndex(i))
+    for (let i = 0; i < commentManager.getCount(); i++) {
+      const thread = /** @type {import('./Comment').default} */ (commentManager.getByIndex(i))
         .thread;
       if (!thread) continue;
 
@@ -1570,7 +1570,7 @@ class Thread extends mixInObject(
       });
     this.emit('toggle');
 
-    if (bootController.isCurrentRevision() && collapsedThreads) {
+    if (bootManager.isCurrentRevision() && collapsedThreads) {
       collapsedThreadsStorageItem
         .setWithTime(mw.config.get('wgArticleId'), collapsedThreads)
         .save();
@@ -1668,7 +1668,7 @@ class Thread extends mixInObject(
     const scrollY = window.scrollY;
 
     const floatingRects = talkPageController.getFloatingElements().map(getExtendedRect);
-    commentRegistry.getAll()
+    commentManager.getAll()
       .slice()
       .reverse()
       .some((comment) => (
@@ -1698,12 +1698,12 @@ class Thread extends mixInObject(
    * @private
    */
   static saveCollapsedThreads() {
-    if (!bootController.isCurrentRevision()) return;
+    if (!bootManager.isCurrentRevision()) return;
 
     (new StorageItemWithKeysAndSaveTime('collapsedThreads'))
       .setWithTime(
         mw.config.get('wgArticleId'),
-        commentRegistry
+        commentManager
           .query((comment) => Boolean(
             comment.thread &&
             comment.thread.isCollapsed !== comment.thread.isAutocollapseTarget

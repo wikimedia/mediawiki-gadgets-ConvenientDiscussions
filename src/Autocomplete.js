@@ -1,6 +1,6 @@
 import AutocompleteManager from './AutocompleteManager';
 import cd from './cd';
-import sectionRegistry from './sectionRegistry';
+import sectionRegistry from './sectionManager';
 import { underlinesToSpaces } from './shared/utils-general';
 import userRegistry from './userRegistry';
 

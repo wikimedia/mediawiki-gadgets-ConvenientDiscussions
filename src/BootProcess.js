@@ -3,17 +3,17 @@ import CommentForm from './CommentForm';
 import CommentFormInputTransformer from './CommentFormInputTransformer';
 import Section from './Section';
 import Thread from './Thread';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentFormRegistry from './commentFormRegistry';
-import commentRegistry from './commentRegistry';
+import commentFormManager from './commentFormManager';
+import commentManager from './commentManager';
 import debug from './debug';
 import jqueryExtensions from './jqueryExtensions';
 import navPanel from './navPanel';
 import notifications from './notifications';
 import pageNav from './pageNav';
 import processFragment from './processFragment';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import settings from './settings';
 import Parser from './shared/Parser';
 import { defined, definedAndNotNull, generatePageNamePattern, isElement, sleep, unique } from './shared/utils-general';
@@ -33,7 +33,7 @@ import visits from './visits';
 function removeDtButtonHtmlComments() {
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
   const treeWalker = document.createNodeIterator(
-    bootController.rootElement,
+    bootManager.rootElement,
     NodeFilter.SHOW_COMMENT
   );
   let node;
@@ -62,25 +62,25 @@ function processAndRemoveDtElements(elements) {
   /** @type {HTMLSpanElement | undefined} */
   let dtMarkupHavenElement;
   if (moveNotRemove) {
-    if (!bootController.getBootProcess().isFirstRun()) {
-      dtMarkupHavenElement = bootController.$content.children('.cd-dtMarkupHaven')[0];
+    if (!bootManager.getBootProcess().isFirstRun()) {
+      dtMarkupHavenElement = bootManager.$content.children('.cd-dtMarkupHaven')[0];
     }
     if (dtMarkupHavenElement) {
       dtMarkupHavenElement.innerHTML = '';
     } else {
       dtMarkupHavenElement = document.createElement('span');
       dtMarkupHavenElement.className = 'cd-dtMarkupHaven cd-hidden';
-      bootController.$content.append(dtMarkupHavenElement);
+      bootManager.$content.append(dtMarkupHavenElement);
     }
   }
 
   /** @type {HTMLElement[]} */ (
     elements.concat([
-      ...bootController.rootElement.querySelectorAll('.ext-discussiontools-init-highlight'),
+      ...bootManager.rootElement.querySelectorAll('.ext-discussiontools-init-highlight'),
     ])
   ).forEach((el, i) => {
     if (Object.hasOwn(el.dataset, 'mwCommentStart') && Comment.isDtId(el.id)) {
-      bootController.getBootProcess().addDtCommentId(el.id);
+      bootManager.getBootProcess().addDtCommentId(el.id);
     }
     if (moveNotRemove) {
       // DT gets the DOM offset of each of these elements upon initialization which can take a lot
@@ -100,7 +100,7 @@ function processAndRemoveDtElements(elements) {
   if (!moveNotRemove) {
     [
       .../** @type {NodeListOf<HTMLSpanElement>} */ (
-        bootController.rootElement.querySelectorAll('span[data-mw-comment]')
+        bootManager.rootElement.querySelectorAll('span[data-mw-comment]')
       ),
     ].forEach((el) => {
       delete el.dataset.mwComment;
@@ -236,8 +236,8 @@ class BootProcess {
 
     if (
       this.firstRun &&
-      !bootController.isPageOfType('definitelyTalk') &&
-      !commentRegistry.getCount()
+      !bootManager.isPageOfType('definitelyTalk') &&
+      !commentManager.getCount()
     ) {
       this.retractTalkPageType();
 
@@ -269,14 +269,14 @@ class BootProcess {
     // This should be done on rendering stage (would have resulted in unnecessary reflows were it
     // done earlier). Should be above all code that deals with highlightable elements of comments
     // and comment levels as this may alter that.
-    commentRegistry.reviewHighlightables();
+    commentManager.reviewHighlightables();
 
-    commentRegistry.reformatComments();
+    commentManager.reformatComments();
 
     // This updates some styles, shifting the offsets.
-    bootController.$root.addClass('cd-parsed');
+    bootManager.$root.addClass('cd-parsed');
 
-    // Should be below navPanel.setup() as commentFormRegistry.restoreSession() indirectly calls
+    // Should be below navPanel.setup() as commentFormManager.restoreSession() indirectly calls
     // navPanel.updateCommentFormButton() which depends on the navigation panel being mounted.
     if (cd.page.isCommentable()) {
       if (this.firstRun) {
@@ -287,7 +287,7 @@ class BootProcess {
       // If the viewport position restoration relies on elements that are made hidden during this
       // (when editing a comment), it can't be restored properly, but this is relatively minor
       // detail.
-      commentFormRegistry.restoreSession(
+      commentFormManager.restoreSession(
         Boolean(this.firstRun || this.passedData.isPageReloadedExternally)
       );
 
@@ -300,13 +300,13 @@ class BootProcess {
       // viewport position restoration as it may shift the layout (if the viewport position
       // restoration relies on elements that are made hidden when threads are collapsed, the
       // algorithm finds the expand note). Should better be above comment highlighting
-      // (commentRegistry.configureAndAddLayers(), visits#process()) to avoid spending time on
+      // (commentManager.configureAndAddLayers(), visits#process()) to avoid spending time on
       // comments in collapsed threads.
       Thread.reset();
 
       // Should better be below the comment form restoration to avoid repositioning of layers
       // after the addition of comment forms.
-      commentRegistry.configureAndAddLayers((c) => (
+      commentManager.configureAndAddLayers((c) => (
         c.isOwn ||
 
         // Need to generate a gray line to close the gaps between adjacent list item elements. Do it
@@ -337,7 +337,7 @@ class BootProcess {
       // (e.g. RevisionSlider replaces it).
       talkPageController.setupMutationObserver();
 
-      if (settings.get('reformatComments') && commentRegistry.getCount() && this.isFirstRun()) {
+      if (settings.get('reformatComments') && commentManager.getCount() && this.isFirstRun()) {
         // Using the wikipage.content hook could theoretically disrupt code that needs to process
         // the whole page content (#mw-content-text), if it runs later than CD which would override
         // the hook's argument below. But typically CD runs relatively late.
@@ -372,11 +372,11 @@ class BootProcess {
       mw.hook('convenientDiscussions.pageReadyFirstTime').fire(cd);
     }
 
-    bootController.hideLoadingOverlay();
+    bootManager.hideLoadingOverlay();
 
     // This is needed to calculate the rendering time: it won't complete until everything gets
     // rendered.
-    bootController.rootElement.getBoundingClientRect();
+    bootManager.rootElement.getBoundingClientRect();
 
     debug.stopTimer('final code and rendering');
 
@@ -404,47 +404,47 @@ class BootProcess {
       // The order of the subsequent calls matters because the modules depend on others in a certain
       // way.
 
-      // A little dirty code here - sectionRegistry.init() is placed above toc.init() and
-      // commentRegistry.init(), to add event handlers for its methods quicker than
-      // `sectionRegistry` and `toc` do for theirs:
-      // 1. sectionRegistry.updateNewCommentsData() sets Section#newComments that is later used in
+      // A little dirty code here - sectionManager.init() is placed above toc.init() and
+      // commentManager.init(), to add event handlers for its methods quicker than
+      // `sectionManager` and `toc` do for theirs:
+      // 1. sectionManager.updateNewCommentsData() sets Section#newComments that is later used in
       //    toc.addCommentCount().
-      // 2. sectionRegistry.updateNewCommentsData() must set Section#newComments before
-      //    commentRegistry.registerSeen() registers them as seen (= not new, in section's
+      // 2. sectionManager.updateNewCommentsData() must set Section#newComments before
+      //    commentManager.registerSeen() registers them as seen (= not new, in section's
       //    terminology).
-      sectionRegistry.init(this.subscriptions);
+      sectionManager.init(this.subscriptions);
 
       updateChecker.init();
       toc.init(this.subscriptions);
-      commentFormRegistry.init();
-      commentRegistry.init();
+      commentFormManager.init();
+      commentManager.init();
       CommentForm.init();
       CommentFormInputTransformer.init();
       notifications.init();
       Parser.init();
     }
-    bootController.setupOnTalkPage(this.passedData.parseData?.text);
+    bootManager.setupOnTalkPage(this.passedData.parseData?.text);
     toc.setup(this.passedData.parseData?.sections, this.passedData.parseData?.hidetoc);
 
     /**
      * Collection of all comments on the page ordered the same way as in the DOM.
      *
-     * @see module:commentRegistry.getAll
+     * @see module:commentManager.getAll
      * @name comments
      * @type {Comment[]}
      * @memberof convenientDiscussions
      */
-    cd.comments = commentRegistry.getAll();
+    cd.comments = commentManager.getAll();
 
     /**
      * Collection of all sections on the page ordered the same way as in the DOM.
      *
-     * @see module:sectionRegistry.getAll
+     * @see module:sectionManager.getAll
      * @name sections
      * @type {Section[]}
      * @memberof convenientDiscussions
      */
-    cd.sections = sectionRegistry.getAll();
+    cd.sections = sectionManager.getAll();
   }
 
   /**
@@ -456,13 +456,13 @@ class BootProcess {
   async initTalkPage() {
     // In most cases the site data is already loaded after being requested in
     // BootController#initOnTalkPage().
-    await Promise.all(bootController.getSiteData());
+    await Promise.all(bootManager.getSiteData());
 
     // This could have been executed from addCommentLinks.prepare() already.
-    bootController.initGlobals();
+    bootManager.initGlobals();
     await settings.init();
 
-    bootController.initTimestampParsingTools('content');
+    bootManager.initTimestampParsingTools('content');
     this.initPatterns();
     this.initPrototypes();
     if (settings.get('useBackgroundHighlighting')) {
@@ -694,9 +694,9 @@ class BootProcess {
       childElementsProp: 'children',
       follows: (n1, n2) =>
         Boolean(n2.compareDocumentPosition(n1) & Node.DOCUMENT_POSITION_FOLLOWING),
-      getAllTextNodes: () => getAllTextNodes(bootController.rootElement),
+      getAllTextNodes: () => getAllTextNodes(bootManager.rootElement),
       getElementByClassName: (el, className) => el.querySelector(`.${className}`),
-      rootElement: bootController.rootElement,
+      rootElement: bootManager.rootElement,
       document,
       areThereOutdents: talkPageController.areThereOutdents.bind(talkPageController),
       processAndRemoveDtElements,
@@ -722,26 +722,26 @@ class BootProcess {
         .filter((target) => target.type === 'signature')
         .forEach((signature) => {
           try {
-            commentRegistry.add(this.parser.createComment(signature, this.targets));
+            commentManager.add(this.parser.createComment(signature, this.targets));
           } catch (error) {
             console.error(error);
           }
         });
 
-      commentRegistry.setup();
+      commentManager.setup();
     } catch (error) {
       console.error(error);
     }
 
     /**
      * The script has processed comments, except for reformatting them in
-     * {@link commentRegistry.reformatComments} if the user opted in for that.
+     * {@link commentManager.reformatComments} if the user opted in for that.
      *
      * @event commentsReady
      * @param {object} comments {@link convenientDiscussions.comments} object.
      * @param {object} cd {@link convenientDiscussions} object.
      */
-    mw.hook('convenientDiscussions.commentsReady').fire(commentRegistry.getAll(), cd);
+    mw.hook('convenientDiscussions.commentsReady').fire(commentManager.getAll(), cd);
   }
 
   /**
@@ -754,7 +754,7 @@ class BootProcess {
       .filter((target) => target.type === 'heading')
       .forEach((heading) => {
         try {
-          sectionRegistry.add(this.parser.createSection(heading, this.targets, this.subscriptions));
+          sectionManager.add(this.parser.createSection(heading, this.targets, this.subscriptions));
         } catch (error) {
           console.error(error);
         }
@@ -765,20 +765,20 @@ class BootProcess {
       this.subscriptions.loadToTalkPage(this);
     }
 
-    sectionRegistry.setup();
+    sectionManager.setup();
 
     // Dependent on sections being set
     Comment.processOutdents(this.parser);
 
     // Dependent on outdents being processed
-    commentRegistry.connectBrokenThreads();
+    commentManager.connectBrokenThreads();
 
     // This runs after extracting sections because Comment#getParent needs sections to be set on
     // comments.
-    commentRegistry.setDtIds(this.dtCommentIds);
+    commentManager.setDtIds(this.dtCommentIds);
 
     // Depends on DT IDs being set
-    sectionRegistry.addMetadataAndActions();
+    sectionManager.addMetadataAndActions();
 
     /**
      * The script has processed sections.
@@ -787,7 +787,7 @@ class BootProcess {
      * @param {object} sections {@link convenientDiscussions.sections} object.
      * @param {object} cd {@link convenientDiscussions} object.
      */
-    mw.hook('convenientDiscussions.sectionsReady').fire(sectionRegistry.getAll(), cd);
+    mw.hook('convenientDiscussions.sectionsReady').fire(sectionManager.getAll(), cd);
   }
 
   /**
@@ -798,14 +798,14 @@ class BootProcess {
   retractTalkPageType() {
     debug.stopTimer('main code');
 
-    bootController.setPageTypeTalk(false);
+    bootManager.setPageTypeTalk(false);
 
     const $disableLink = $('#footer-togglecd a');
     $disableLink
       .attr('href', /** @type {string} */ ($disableLink.attr('href')).replace(/0$/, '1'))
       .text(cd.s('footer-runcd'));
 
-    bootController.hideLoadingOverlay();
+    bootManager.hideLoadingOverlay();
     this.debugLog();
   }
 
@@ -879,7 +879,7 @@ class BootProcess {
           observer.disconnect();
         }
       });
-      observer.observe(bootController.$content[0], {
+      observer.observe(bootManager.$content[0], {
         childList: true,
         subtree: true,
       });
@@ -909,7 +909,7 @@ class BootProcess {
     const commentIds = this.passedData.commentIds;
     if (commentIds) {
       const comments = commentIds
-        .map((id) => commentRegistry.getById(id))
+        .map((id) => commentManager.getById(id))
         .filter(definedAndNotNull);
       if (comments.length) {
         // sleep() for Firefox, as above
@@ -921,7 +921,7 @@ class BootProcess {
         });
       }
     } else if (this.passedData.sectionId) {
-      const section = sectionRegistry.getById(this.passedData.sectionId);
+      const section = sectionManager.getById(this.passedData.sectionId);
       if (section) {
         if (this.passedData.pushState) {
           history.pushState(history.state, '', `#${section.id}`);
@@ -945,11 +945,11 @@ class BootProcess {
 
     const timePerComment = (
       (debug.getTimerTotal('main code') + debug.getTimerTotal('final code and rendering')) /
-      commentRegistry.getCount()
+      commentManager.getCount()
     ).toFixed(2);
 
     debug.logAndResetTimer('total time');
-    console.debug(`number of comments: ${commentRegistry.getCount()}`);
+    console.debug(`number of comments: ${commentManager.getCount()}`);
     console.debug(`per comment: ${timePerComment}`);
     debug.logAndResetEverything();
   }
@@ -965,7 +965,7 @@ class BootProcess {
     const didEnableCommentReformatting = await settings.maybeSuggestEnableCommentReformatting();
     await settings.maybeConfirmDesktopNotifications();
     if (didEnableCommentReformatting) {
-      bootController.reboot();
+      bootManager.reboot();
     }
   }
 

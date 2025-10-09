@@ -6,7 +6,7 @@
  */
 
 import Comment from './Comment';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
 import debug from './debug';
 import pageRegistry from './pageRegistry';
@@ -320,11 +320,11 @@ const convenientDiscussionsWindow = {
     buildEditSummary,
 
     /**
-     * @see module:bootController.isPageOverlayOn
+     * @see module:bootManager.isPageOverlayOn
      * @function isPageOverlayOn
      * @memberof convenientDiscussions.api
      */
-    isPageOverlayOn: bootController.isPageOverlayOn.bind(bootController),
+    isPageOverlayOn: bootManager.isPageOverlayOn.bind(bootManager),
 
     /**
      * @see module:util.wrapHtml

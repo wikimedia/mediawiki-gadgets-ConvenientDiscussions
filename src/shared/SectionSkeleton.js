@@ -195,7 +195,7 @@ class SectionSkeleton {
 
     /**
      * Section index. Same as the index in the array returned by
-     * {@link module:sectionRegistry.getAll}.
+     * {@link module:sectionManager.getAll}.
      *
      * @type {number}
      */

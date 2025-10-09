@@ -13,7 +13,7 @@ import i18nList from '../data/i18nList.json';
 import languageFallbacks from '../data/languageFallbacks.json';
 
 import { addCommentLinksToSpecialSearch } from './addCommentLinks';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
 import debug from './debug';
 import { mergeRegexps, typedKeysOf, unique } from './shared/utils-general';
@@ -98,7 +98,7 @@ function setStrings() {
 function maybeAddFooterSwitcher() {
   if (!mw.config.get('wgIsArticle')) return;
 
-  const enable = !bootController.isPageOfType('talk');
+  const enable = !bootManager.isPageOfType('talk');
   const url = new URL(location.href);
   url.searchParams.set('cdtalkpage', enable ? '1' : '0');
   const $li = $('<li>').attr('id', 'footer-togglecd');
@@ -135,7 +135,7 @@ function maybeTweakAddTopicButton() {
     cd.g.isDtNewTopicToolEnabled &&
     mw.user.options.get('discussiontools-newtopictool-createpage')
   );
-  if (!bootController.isArticlePageOfTalkType() || (cd.g.pageAction === 'view' && !dtCreatePage))
+  if (!bootManager.isArticlePageOfTalkType() || (cd.g.pageAction === 'view' && !dtCreatePage))
     return;
 
   const $button = $('#ca-addsection a');
@@ -182,12 +182,12 @@ function go() {
     setStrings();
   }
 
-  bootController.bootScript();
+  bootManager.bootScript();
   maybeAddFooterSwitcher();
   maybeTweakAddTopicButton();
   addCommentLinksToSpecialSearch();
 
-  if (!bootController.isBooting()) {
+  if (!bootManager.isBooting()) {
     debug.stopTimer('start');
   }
 

@@ -11,7 +11,7 @@ import { createSvg, formatDateImproved, formatDateNative, formatDateRelative, ge
  * @property {boolean} allowEditOthersComments
  * @property {boolean} alwaysExpandAdvanced
  * @property {'name'|'count'|'date'} authorsSort
- * @property {import('./AutocompleteManager').AutocompleteType[]} autocompleteTypes
+ * @property {import('./AutocompleteFactory').AutocompleteType[]} autocompleteTypes
  * @property {boolean} autopreview
  * @property {boolean} collapseThreads
  * @property {number} collapseThreadsLevel

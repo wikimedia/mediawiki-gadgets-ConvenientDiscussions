@@ -4,7 +4,7 @@
  * @module jqueryExtensions
  */
 
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
 import { isMetadataNode, sleep } from './shared/utils-general';
 import talkPageController from './talkPageController';
@@ -75,7 +75,7 @@ export default {
     if (!offsetFirst || !offsetLast) {
       // Find closest visible ancestor
       const $firstVisibleAncestor = $elements.first().closest(':visible');
-      if ($firstVisibleAncestor.length && !$firstVisibleAncestor.is(bootController.$root)) {
+      if ($firstVisibleAncestor.length && !$firstVisibleAncestor.is(bootManager.$root)) {
         offsetFirst = findFirstVisibleElementOffset($firstVisibleAncestor, 'forward');
         offsetLast = offsetFirst;
         mw.notify(cd.s('error-elementhidden-container'), {

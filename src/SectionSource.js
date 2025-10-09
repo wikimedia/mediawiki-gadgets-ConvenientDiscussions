@@ -1,5 +1,5 @@
 import cd from './cd';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import CdError from './shared/CdError';
 import { calculateWordOverlap, genericGetOldestOrNewestByDateProp } from './shared/utils-general';
 import { endWithTwoNewlines, normalizeCode, removeWikiMarkup } from './shared/utils-wikitext';
@@ -360,7 +360,7 @@ class SectionSource {
       const previousHeadlinesInCode = headlines
         .slice(-previousHeadlinesToCheckCount)
         .reverse();
-      doPreviousHeadlinesMatch = sectionRegistry.getAll()
+      doPreviousHeadlinesMatch = sectionManager.getAll()
         .slice(Math.max(0, this.section.index - previousHeadlinesToCheckCount), this.section.index)
         .reverse()
         .map((section) => section.headline)

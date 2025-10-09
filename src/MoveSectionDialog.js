@@ -2,7 +2,7 @@ import AutocompleteManager from './AutocompleteManager';
 import ProcessDialog from './ProcessDialog';
 import Pseudolink from './Pseudolink';
 import TextInputWidget from './TextInputWidget';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
 import pageRegistry from './pageRegistry';
 import CdError from './shared/CdError';
@@ -57,7 +57,8 @@ class MoveSectionDialog extends ProcessDialog {
   /** @type {[Promise<any>, JQuery.Promise<any>, Promise<ArchiveConfig | void>]} */
   initRequests;
 
-  /** @typedef {{
+  /**
+   * @typedef {{
    *   title: 'title';
    *   keepLink: 'checkbox';
    *   chronologicalOrder: 'checkbox';
@@ -356,7 +357,7 @@ class MoveSectionDialog extends ProcessDialog {
           wrapHtml(cd.sParse('msd-moved', target.sectionWikilink), { tagName: 'div' })
         );
 
-        bootController.reboot({
+        bootManager.reboot({
           sectionId: this.controls.keepLink.input.isSelected() ? this.section.id : undefined,
         });
 
@@ -668,7 +669,7 @@ class MoveSectionDialog extends ProcessDialog {
       callbacks: {
         'cd-message-reloadPage': () => {
           this.close();
-          bootController.reboot();
+          bootManager.reboot();
         },
       },
     }), { recoverable }));

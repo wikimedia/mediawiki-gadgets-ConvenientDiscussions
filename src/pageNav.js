@@ -1,7 +1,7 @@
 import Button from './Button';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import talkPageController from './talkPageController';
 import toc from './toc';
 import { getVisibilityByRects } from './utils-window';
@@ -135,10 +135,10 @@ class PageNav {
    * @private
    */
   updateWidth = () => {
-    if (!this.isMounted() || !bootController.$contentColumn.length) return;
+    if (!this.isMounted() || !bootManager.$contentColumn.length) return;
 
     const left =
-      /** @type {JQuery.Coordinates} */ (bootController.$contentColumn.offset()).left -
+      /** @type {JQuery.Coordinates} */ (bootManager.$contentColumn.offset()).left -
       /** @type {number} */ ($(window).scrollLeft());
 
     // 18px padding + 1px comment markers / thread lines
@@ -148,10 +148,10 @@ class PageNav {
       ? left - deductable
       : /** @type {number} */ ($(window).width()) -
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        (left + /** @type {number} */ (bootController.$contentColumn.outerWidth())) -
+        (left + /** @type {number} */ (bootManager.$contentColumn.outerWidth())) -
         deductable;
     if (cd.g.skin === 'minerva') {
-      width -= bootController.getContentColumnOffsets().startMargin;
+      width -= bootManager.getContentColumnOffsets().startMargin;
     }
 
     const $topElement = /** @type {JQuery} */ (this.$topElement);
@@ -189,7 +189,7 @@ class PageNav {
       }
     }
 
-    const firstSectionTop = sectionRegistry.getFirstSectionRelativeTopOffset(
+    const firstSectionTop = sectionManager.getFirstSectionRelativeTopOffset(
       scrollY,
       afterLeadOffset
     );
@@ -262,7 +262,7 @@ class PageNav {
 
     if (
       (
-        sectionRegistry.getCount() &&
+        sectionManager.getCount() &&
         scrollY + window.innerHeight < document.documentElement.scrollHeight
       ) ||
       this.backLinkLocation === 'bottom'
@@ -309,7 +309,7 @@ class PageNav {
       return;
     }
 
-    const updatedCurrentSection = sectionRegistry.getCurrentSection();
+    const updatedCurrentSection = sectionManager.getCurrentSection();
     if (!updatedCurrentSection || updatedCurrentSection === this.currentSection) return;
 
     this.currentSection = updatedCurrentSection;

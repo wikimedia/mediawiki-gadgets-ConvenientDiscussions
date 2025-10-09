@@ -3,11 +3,11 @@ import Comment from './Comment';
 import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
 import SectionSource from './SectionSource';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentFormRegistry from './commentFormRegistry';
+import commentFormManager from './commentFormManager';
 import pageRegistry from './pageRegistry';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import settings from './settings';
 import CdError from './shared/CdError';
 import SectionSkeleton from './shared/SectionSkeleton';
@@ -627,7 +627,7 @@ class Section extends SectionSkeleton {
    * }}
    */
   canBeReplied() {
-    const nextSection = sectionRegistry.getByIndex(this.index + 1);
+    const nextSection = sectionManager.getByIndex(this.index + 1);
 
     return (
       this.isActionable &&
@@ -660,7 +660,7 @@ class Section extends SectionSkeleton {
    * @returns {boolean}
    */
   canBeSubsectioned() {
-    const nextSameLevelSection = sectionRegistry.getAll()
+    const nextSameLevelSection = sectionManager.getAll()
       .slice(this.index + 1)
       .find((otherSection) => otherSection.level === this.level);
 
@@ -1394,7 +1394,7 @@ class Section extends SectionSkeleton {
        *
        * @type {import('./CommentForm').default | undefined}
        */
-      this.replyForm = commentFormRegistry.setupCommentForm(
+      this.replyForm = commentFormManager.setupCommentForm(
         this,
         {
           mode: 'replyInSection',
@@ -1436,7 +1436,7 @@ class Section extends SectionSkeleton {
        *
        * @type {import('./CommentForm').default | undefined}
        */
-      this.addSubsectionForm = commentFormRegistry.setupCommentForm(
+      this.addSubsectionForm = commentFormManager.setupCommentForm(
         this,
         {
           mode: 'addSubsection',
@@ -1512,7 +1512,7 @@ class Section extends SectionSkeleton {
    * Show a move section dialog.
    */
   move() {
-    if (bootController.isPageOverlayOn()) return;
+    if (bootManager.isPageOverlayOn()) return;
 
     const dialog = new (require('./MoveSectionDialog').default)(this);
     cd.getWindowManager().addWindows([dialog]);
@@ -1566,7 +1566,7 @@ class Section extends SectionSkeleton {
     // That's a mechanism mainly for legacy subscriptions but can be used for DT subscriptions as
     // well, for which `sections` will have more than one section when there is more than one
     // section created by a certain user at a certain moment in time.
-    const sections = sectionRegistry.getBySubscribeId(this.subscribeId);
+    const sections = sectionManager.getBySubscribeId(this.subscribeId);
     let finallyCallback;
     if (mode !== 'silent') {
       const buttons = sections.map((section) => section.actions.subscribeButton).filter(defined);
@@ -1585,7 +1585,7 @@ class Section extends SectionSkeleton {
       this.id,
       !!mode,
       // Unsubscribe from
-      renamedFrom && !sectionRegistry.getBySubscribeId(renamedFrom).length
+      renamedFrom && !sectionManager.getBySubscribeId(renamedFrom).length
         ? renamedFrom
         : undefined,
     )
@@ -1614,7 +1614,7 @@ class Section extends SectionSkeleton {
   unsubscribe(mode) {
     if (!this.subscribeId) return;
 
-    const sections = sectionRegistry.getBySubscribeId(this.subscribeId);
+    const sections = sectionManager.getBySubscribeId(this.subscribeId);
     let finallyCallback;
     if (mode !== 'silent') {
       const buttons = sections.map((section) => section.actions.subscribeButton).filter(defined);
@@ -1939,7 +1939,7 @@ class Section extends SectionSkeleton {
    * @returns {Section | null} The base section, or `null` if no level 2 section is found.
    *
    * @overload
-   * @param {false} [forceLevel2=false] Return the closest level 2 ancestor, or the section itself
+   * @param {false} [forceLevel2] Return the closest level 2 ancestor, or the section itself
    *   if no such ancestor exists or if it is already level 2.
    * @returns {Section} The base section.
    */
@@ -1958,7 +1958,7 @@ class Section extends SectionSkeleton {
     return this.level <= 2
       ? defaultValue
       : (
-          sectionRegistry.getAll()
+          sectionManager.getAll()
             .slice(0, this.index)
             .reverse()
             .find((section) => section.level === 2) ||
@@ -1977,7 +1977,7 @@ class Section extends SectionSkeleton {
     /** @type {Section[]} */
     const children = [];
     let haveMetDirect = false;
-    sectionRegistry.getAll()
+    sectionManager.getAll()
       .slice(this.index + 1)
       .some((section) => {
         if (section.level > this.level) {
@@ -2102,7 +2102,7 @@ class Section extends SectionSkeleton {
   ensureSubscribeIdPresent(editTimestamp) {
     if (!this.useTopicSubscription || this.subscribeId) return;
 
-    this.subscribeId = sectionRegistry.generateDtSubscriptionId(
+    this.subscribeId = sectionManager.generateDtSubscriptionId(
       cd.user.getName(),
       this.oldestComment?.date?.toISOString() || editTimestamp
     );
@@ -2154,7 +2154,7 @@ class Section extends SectionSkeleton {
     this.elements ||= /** @type {HTMLElement[]} */ (getRangeContents(
       this.headingElement,
       this.findRealLastElement(),
-      bootController.rootElement
+      bootManager.rootElement
     ));
     this.isHidden = !show;
     this.elements.forEach((el) => {
@@ -2169,7 +2169,7 @@ class Section extends SectionSkeleton {
    * @returns {?Comment}
    */
   getCommentAboveCommentToBeAdded(commentForm) {
-    return sectionRegistry.getAll()
+    return sectionManager.getAll()
       .slice(
         0,
 
@@ -2191,14 +2191,14 @@ class Section extends SectionSkeleton {
    */
   findNewSelf() {
     return (
-      sectionRegistry.search({
+      sectionManager.search({
         headline: this.headline,
         oldestCommentId: this.oldestComment?.id,
         index: this.index,
         id: this.id,
 
         // We cache ancestors when saving the session, so this call will return the right value,
-        // despite the fact that sectionRegistry.items has already changed.
+        // despite the fact that sectionManager.items has already changed.
         ancestors: this.getAncestors().map((section) => section.headline),
       })?.section ||
       null

@@ -5,10 +5,10 @@ import CommentSubitemList from './CommentSubitemList';
 import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
 import StorageItemWithKeys from './StorageItemWithKeys';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentFormRegistry from './commentFormRegistry';
-import commentRegistry from './commentRegistry';
+import commentFormManager from './commentFormManager';
+import commentManager from './commentManager';
 import settings from './settings';
 import CdError from './shared/CdError';
 import CommentSkeleton from './shared/CommentSkeleton';
@@ -492,7 +492,7 @@ class Comment extends CommentSkeleton {
      * @private
      */
     const getContainerListType = (el) => {
-      const treeWalker = new ElementsTreeWalker(bootController.rootElement, el);
+      const treeWalker = new ElementsTreeWalker(bootManager.rootElement, el);
       while (treeWalker.parentNode()) {
         if (treeWalker.currentNode.classList.contains('cd-commentLevel')) {
           return /** @type {ListType} */ (treeWalker.currentNode.tagName.toLowerCase());
@@ -547,7 +547,7 @@ class Comment extends CommentSkeleton {
         this.highlightables[this.highlightables.length - 1],
       ];
       firstAndLastHighlightable.forEach((highlightable, i) => {
-        const treeWalker = new ElementsTreeWalker(bootController.rootElement, highlightable);
+        const treeWalker = new ElementsTreeWalker(bootManager.rootElement, highlightable);
         nestingLevels[i] = 0;
         while (treeWalker.parentNode()) {
           nestingLevels[i]++;
@@ -917,7 +917,7 @@ class Comment extends CommentSkeleton {
     }
 
     if (
-      commentRegistry.getByIndex(this.index + 1)?.isOutdented &&
+      commentManager.getByIndex(this.index + 1)?.isOutdented &&
       (
         !this.section ||
 
@@ -981,7 +981,7 @@ class Comment extends CommentSkeleton {
   addThankButton() {
     if (!cd.user.isRegistered() || !this.author.isRegistered() || !this.date || this.isOwn) return;
 
-    const isThanked = Object.entries(commentRegistry.getThanksStorage().getData()).some(
+    const isThanked = Object.entries(commentManager.getThanksStorage().getData()).some(
       // TODO: Remove `|| this.dtId === thank.id || this.id === thank.id` part after migration is
       // complete on January 1, 2026
       ([id, thank]) =>
@@ -1214,7 +1214,7 @@ class Comment extends CommentSkeleton {
     return Boolean(
       this.toggleChildThreadsButton?.element.matches(':hover') &&
       !settings.get('toggleChildThreads-onboarded') &&
-      !commentRegistry.query((c) => Boolean(c.toggleChildThreadsPopup)).length
+      !commentManager.query((c) => Boolean(c.toggleChildThreadsPopup)).length
     );
   }
 
@@ -1716,7 +1716,7 @@ class Comment extends CommentSkeleton {
     if (!this.getLayersContainer().cdIsTopLayersContainer) return;
 
     if (this.level === 0) {
-      const offsets = bootController.getContentColumnOffsets();
+      const offsets = bootManager.getContentColumnOffsets();
 
       // 2 instead of 1 for Timeless
       const leftStretched = left - offsets.startMargin - 2;
@@ -1774,7 +1774,7 @@ class Comment extends CommentSkeleton {
           ? cd.g.contentFontSize * 3.2
           : cd.g.contentFontSize * 2.2 - 1;
     } else if (this.isStartStretched) {
-      startMargin = bootController.getContentColumnOffsets().startMargin;
+      startMargin = bootManager.getContentColumnOffsets().startMargin;
     } else {
       const marginElement = this.thread?.$expandNote?.[0] || this.marginHighlightable;
       if (marginElement.parentElement?.classList.contains('cd-commentLevel')) {
@@ -1792,7 +1792,7 @@ class Comment extends CommentSkeleton {
       }
     }
     const endMargin = this.isEndStretched
-      ? bootController.getContentColumnOffsets().startMargin
+      ? bootManager.getContentColumnOffsets().startMargin
       : cd.g.commentFallbackSideMargin;
 
     return {
@@ -1963,7 +1963,7 @@ class Comment extends CommentSkeleton {
         if (
           ['absolute', 'relative'].includes(style.position) ||
           (
-            node !== bootController.$content[0] &&
+            node !== bootManager.$content[0] &&
             (classList.has('mw-content-ltr') || classList.has('mw-content-rtl'))
           )
         ) {
@@ -1992,7 +1992,7 @@ class Comment extends CommentSkeleton {
       }
       this.layersContainer = container;
 
-      addToArrayIfAbsent(commentRegistry.layersContainers, container);
+      addToArrayIfAbsent(commentManager.layersContainers, container);
     }
 
     return this.layersContainer;
@@ -2006,7 +2006,7 @@ class Comment extends CommentSkeleton {
    */
   createLayers() {
     this.underlay = Comment.prototypes.get('underlay');
-    commentRegistry.underlays.push(this.underlay);
+    commentManager.underlays.push(this.underlay);
 
     this.overlay = Comment.prototypes.get('overlay');
     this.line = /** @type {HTMLElement} */ (this.overlay.firstChild);
@@ -2179,7 +2179,7 @@ class Comment extends CommentSkeleton {
    * layers.
    */
   updateLayersOffset() {
-    // The underlay can be absent if called from commentRegistry.maybeRedrawLayers() with redrawAll
+    // The underlay can be absent if called from commentManager.maybeRedrawLayers() with redrawAll
     // set to `true`. layersOffset can be absent in some rare cases when the comment became
     // invisible.
     if (!this.underlay || !this.layersOffset) return;
@@ -2202,8 +2202,8 @@ class Comment extends CommentSkeleton {
     this.$marker.stop(true, true);
     this.unhighlightHovered(true);
 
-    // TODO: add add/remove methods to commentRegistry.underlays
-    removeFromArrayIfPresent(commentRegistry.underlays, this.underlay);
+    // TODO: add add/remove methods to commentManager.underlays
+    removeFromArrayIfPresent(commentManager.underlays, this.underlay);
 
     this.underlay.remove();
     this.underlay = null;
@@ -2248,7 +2248,7 @@ class Comment extends CommentSkeleton {
    * @param {MouseEvent | TouchEvent} [event]
    */
   highlightHovered(event) {
-    if (this.isHovered || bootController.isPageOverlayOn() || this.isReformatted()) return;
+    if (this.isHovered || bootManager.isPageOverlayOn() || this.isReformatted()) return;
 
     if (event?.type === 'touchstart') {
       if (this.wasMenuHidden) {
@@ -2258,7 +2258,7 @@ class Comment extends CommentSkeleton {
       }
 
       // FIXME: decouple
-      commentRegistry
+      commentManager
         .query((comment) => comment.isHovered)
         .forEach((comment) => {
           comment.unhighlightHovered();
@@ -2683,7 +2683,7 @@ class Comment extends CommentSkeleton {
       : new Button({
         label: cd.s('comment-changed-refresh'),
         action: () => {
-          bootController.reboot(type === 'deleted' || !this.id ? {} : { commentIds: [this.id] });
+          bootManager.reboot(type === 'deleted' || !this.id ? {} : { commentIds: [this.id] });
         },
       });
 
@@ -2755,7 +2755,7 @@ class Comment extends CommentSkeleton {
     if (this.countEditsAsNewComments && (type === 'changed' || type === 'changedSince')) {
       this.isSeenBeforeChanged ??= this.isSeen;
       this.isSeen = false;
-      commentRegistry.registerSeen();
+      commentManager.registerSeen();
     }
 
     // Layers are supposed to be updated (deleted comments background, repositioning) separately,
@@ -2806,7 +2806,7 @@ class Comment extends CommentSkeleton {
       case 'deleted':
         this.isDeleted = false;
 
-        // commentRegistry.maybeRedrawLayers(), that is called on DOM updates, could circumvent
+        // commentManager.maybeRedrawLayers(), that is called on DOM updates, could circumvent
         // this comment if it has no property signalling that it should be highlighted, so we update
         // its styles manually.
         this.updateLayersStyles();
@@ -2824,7 +2824,7 @@ class Comment extends CommentSkeleton {
     ) {
       this.isSeen = true;
       this.isSeenBeforeChanged = null;
-      commentRegistry.emit('registerSeen');
+      commentManager.emit('registerSeen');
     }
 
     if (type === 'changed') {
@@ -2984,8 +2984,8 @@ class Comment extends CommentSkeleton {
             this.thread.getComments().forEach((comment) => {
               comment.isSeen = true;
             });
-            commentRegistry.emit('registerSeen');
-            commentRegistry.goToFirstUnseenComment();
+            commentManager.emit('registerSeen');
+            commentManager.goToFirstUnseenComment();
             notification.close();
           },
         },
@@ -3353,7 +3353,7 @@ class Comment extends CommentSkeleton {
       mw.notify(cd.s('thank-success'), { type: 'success' });
       this.setThanked();
 
-      commentRegistry
+      commentManager
         .getThanksStorage()
         .set(id, {
           thankTime: Date.now(),
@@ -3469,14 +3469,14 @@ class Comment extends CommentSkeleton {
 
     let isSelectionRelevant = false;
     if (!initialState && !commentForm) {
-      isSelectionRelevant = commentRegistry.getSelectedComment() === this;
+      isSelectionRelevant = commentManager.getSelectedComment() === this;
       if (isSelectionRelevant) {
         initialState = { focus: false };
         this.fixSelection();
       }
     }
 
-    if (commentRegistry.getByIndex(this.index + 1)?.isOutdented && this.section) {
+    if (commentManager.getByIndex(this.index + 1)?.isOutdented && this.section) {
       let replyForm = this.section.replyForm;
       if (replyForm && replyForm.targetWithOutdentedReplies === this) {
         replyForm.$element.cdScrollIntoView('center');
@@ -3512,7 +3512,7 @@ class Comment extends CommentSkeleton {
      *
      * @type {import('./CommentForm').default|undefined}
      */
-    this.replyForm = commentFormRegistry.setupCommentForm(
+    this.replyForm = commentFormManager.setupCommentForm(
       this,
       {
         mode: 'reply',
@@ -3570,7 +3570,7 @@ class Comment extends CommentSkeleton {
        *
        * @type {import('./CommentForm').default|undefined}
        */
-      this.editForm = commentFormRegistry.setupCommentForm(
+      this.editForm = commentFormManager.setupCommentForm(
         this,
         {
           mode: 'edit',
@@ -3743,11 +3743,11 @@ class Comment extends CommentSkeleton {
     if (
       registerAllInDirection &&
       // Makes sense to register further?
-      commentRegistry.getAll().some((comment) => comment.isSeen || comment.willFlashChangedOnSight)
+      commentManager.getAll().some((comment) => comment.isSeen || comment.willFlashChangedOnSight)
     ) {
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const change = registerAllInDirection === 'backward' ? -1 : 1;
-      const nextComment = commentRegistry.getByIndex(this.index + change);
+      const nextComment = commentManager.getByIndex(this.index + change);
       if (nextComment && nextComment.isInViewport() !== false) {
         nextComment.registerSeen(registerAllInDirection, flash);
       }
@@ -3901,7 +3901,7 @@ class Comment extends CommentSkeleton {
     } else {
       const comments = isInSectionContext
         ? /** @type {import('./Section').default} */ (this.section).comments
-        : commentRegistry.getAll();
+        : commentManager.getAll();
       const index = comments.indexOf(this);
       thisData = {
         index,
@@ -4356,7 +4356,7 @@ class Comment extends CommentSkeleton {
   maybeSplitParent() {
     if (this.index === 0) return;
 
-    const previousComment = /** @type {Comment} */ (commentRegistry.getByIndex(this.index - 1));
+    const previousComment = /** @type {Comment} */ (commentManager.getByIndex(this.index - 1));
     if (this.level !== previousComment.level) return;
 
     const previousCommentLastElement = previousComment.elements.slice(-1)[0];
@@ -4394,7 +4394,7 @@ class Comment extends CommentSkeleton {
       return null;
     }
 
-    return commentRegistry.getById(this.id);
+    return commentManager.getById(this.id);
   }
 
   /**
@@ -4491,7 +4491,7 @@ class Comment extends CommentSkeleton {
           ? this.section.commentsInFirstChunk.filter((comment) => !comment.getParent())
 
           // Parentless comments in the lead section
-          : commentRegistry.query((comment) => !comment.section && !comment.getParent())
+          : commentManager.query((comment) => !comment.section && !comment.getParent())
       )
     );
   }

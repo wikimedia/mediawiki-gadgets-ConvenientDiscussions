@@ -17,7 +17,7 @@ import visits from './visits';
 /**
  * Singleton storing data about sections on the page and managing them.
  */
-class SectionRegistry {
+class SectionManager {
   /**
    * List of sections.
    *
@@ -428,4 +428,4 @@ class SectionRegistry {
   }
 }
 
-export default new SectionRegistry();
+export default new SectionManager();

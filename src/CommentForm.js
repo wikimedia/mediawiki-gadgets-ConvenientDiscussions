@@ -6,13 +6,13 @@ import CommentFormOperationRegistry from './CommentFormOperationRegistry';
 import EventEmitter from './EventEmitter';
 import MentionsAutocomplete from './MentionsAutocomplete';
 import TextMasker from './TextMasker';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentFormRegistry from './commentFormRegistry';
-import commentRegistry from './commentRegistry';
+import commentFormManager from './commentFormManager';
+import commentManager from './commentManager';
 import notifications from './notifications';
 import pageRegistry from './pageRegistry';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import settings from './settings';
 import CdError from './shared/CdError';
 import Parser from './shared/Parser';
@@ -1214,7 +1214,7 @@ class CommentForm extends EventEmitter {
           action: {
             type: 'callback',
             execute: () => {
-              this.quote(true, commentRegistry.getSelectedComment() || undefined);
+              this.quote(true, commentManager.getSelectedComment() || undefined);
             },
           },
         },
@@ -2307,7 +2307,7 @@ class CommentForm extends EventEmitter {
       commentsInSection = this.targetSection.getBase().comments;
     } else if (!this.isMode('addSection')) {
       // Comments in the lead section
-      commentsInSection = commentRegistry.query((comment) => !comment.section);
+      commentsInSection = commentManager.query((comment) => !comment.section);
     }
     if (this.isMode('edit')) {
       commentsInSection = commentsInSection.filter((comment) => comment !== this.target);
@@ -2810,7 +2810,7 @@ class CommentForm extends EventEmitter {
   addAnchorsToComments(originalContextCode, commentIds) {
     let contextCode = originalContextCode;
     commentIds.forEach((id) => {
-      const comment = commentRegistry.getById(id);
+      const comment = commentManager.getById(id);
       if (comment) {
         const commentSource = comment.locateInCode(undefined, contextCode);
         const anchorCode = cd.config.getAnchorCode(id);
@@ -3202,7 +3202,7 @@ class CommentForm extends EventEmitter {
     }
 
     try {
-      await bootController.reboot(bootData);
+      await bootManager.reboot(bootData);
     } catch (error) {
       this.handleError({
         error,
@@ -3211,7 +3211,7 @@ class CommentForm extends EventEmitter {
         operation,
       });
 
-      bootController.hideLoadingOverlay();
+      bootManager.hideLoadingOverlay();
 
       return;
     }
@@ -3400,7 +3400,7 @@ class CommentForm extends EventEmitter {
         let originalHeadline;
         let isHeadlineAltered;
         if (this.useTopicSubscription) {
-          subscribeId = sectionRegistry.generateDtSubscriptionId(cd.user.getName(), editTimestamp);
+          subscribeId = sectionManager.generateDtSubscriptionId(cd.user.getName(), editTimestamp);
         } else {
           subscribeId = headline;
           if (this.isSectionOpeningCommentEdited()) {
@@ -3458,7 +3458,7 @@ class CommentForm extends EventEmitter {
         date,
         cd.user.getName(),
         commentAboveCommentToBeAddedIndex
-          ? commentRegistry
+          ? commentManager
               .getAll()
               .slice(0, commentAboveCommentToBeAddedIndex + 1)
               .filter(
@@ -3483,7 +3483,7 @@ class CommentForm extends EventEmitter {
       return;
     }
 
-    if (commentFormRegistry.getAll().some((commentForm) => commentForm.isBeingSubmitted())) {
+    if (commentFormManager.getAll().some((commentForm) => commentForm.isBeingSubmitted())) {
       this.handleError({
         error: new CdError({
           type: 'ui',
@@ -3560,7 +3560,7 @@ class CommentForm extends EventEmitter {
    */
   cancel(confirmClose = true) {
     // Why check for this.torndown: CodeMirror may emit an event of an Esc button press late
-    if (bootController.isPageOverlayOn() || this.isBeingSubmitted() || this.torndown) return;
+    if (bootManager.isPageOverlayOn() || this.isBeingSubmitted() || this.torndown) return;
 
     if (confirmClose && !this.confirmClose()) {
       this.commentInput.focus();
@@ -3972,7 +3972,7 @@ class CommentForm extends EventEmitter {
   insertCommentLink() {
     const range = this.commentInput.getRange();
     const selection = this.commentInput.getValue().substring(range.from, range.to);
-    if (selection && (commentRegistry.getByAnyId(selection) || isExistentAnchor(selection, true))) {
+    if (selection && (commentManager.getByAnyId(selection) || isExistentAnchor(selection, true))) {
       // Valid ID
 
       this.commentInput.insertContent(`[[#${selection}]]`);
@@ -4307,7 +4307,7 @@ class CommentForm extends EventEmitter {
       this.manyFormsOnboarded ||
       !cd.user.isRegistered() ||
       // This form will be the second
-      commentFormRegistry.getCount() !== 1 ||
+      commentFormManager.getCount() !== 1 ||
       // Left column hidden in Timeless
       (cd.g.skin === 'timeless' && window.innerWidth < 1100) ||
       (cd.g.skin === 'vector-2022' && window.innerWidth < 1000)
@@ -4334,7 +4334,7 @@ class CommentForm extends EventEmitter {
 
       // Not $root - add section form is outside it. Not $content either - it's the same as $root on
       // 404 pages.
-      $container: bootController.$root.parent(),
+      $container: bootManager.$root.parent(),
 
       position: $('#vector-main-menu-pinned-container, #vector-toc-pinned-container').is(':visible')
         ? 'before'
@@ -4385,7 +4385,7 @@ class CommentForm extends EventEmitter {
 
       // Not $root - add section form is outside it. Not $content either - it's the same as $root on
       // 404 pages.
-      $container: bootController.$root.parent(),
+      $container: bootManager.$root.parent(),
 
       position: $('#vector-main-menu-pinned-container, #vector-toc-pinned-container').is(':visible')
         ? 'before'

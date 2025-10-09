@@ -30,7 +30,7 @@ import { createSvg, skin$, transparentize } from './utils-window';
  *   unlike state) goes in the {@link convenientDiscussions.g} object, and global methods go in
  *   {@link convenientDiscussions} itself.
  */
-class BootController {
+class BootManager {
   /**
    * @type {JQuery}
    */
@@ -157,7 +157,7 @@ class BootController {
   };
 
   /**
-   * See {@link BootController#isArticlePageOfTalkType}.
+   * See {@link BootManager#isArticlePageOfTalkType}.
    *
    * @private
    */
@@ -166,7 +166,7 @@ class BootController {
   /**
    * Check if the current page is of a specific type.
    *
-   * @param {keyof BootController['pageTypes']} type
+   * @param {keyof BootManager['pageTypes']} type
    * @returns {boolean}
    */
   isPageOfType(type) {
@@ -785,19 +785,19 @@ class BootController {
     cd.settings = settings;
 
     const talkPageController = require('./talkPageController').default;
-    const commentRegistry = require('./commentRegistry').default;
-    const sectionRegistry = require('./sectionRegistry').default;
-    const commentFormRegistry = require('./commentFormRegistry').default;
+    const commentManager = require('./commentManager').default;
+    const sectionManager = require('./sectionManager').default;
+    const commentFormManager = require('./commentFormManager').default;
 
     /**
      * Collection of all comment forms on the page in the order of their creation.
      *
      * @name commentForms
      * @type {import('./CommentForm').default[]}
-     * @see module:commentFormRegistry.getAll
+     * @see module:commentFormManager.getAll
      * @memberof convenientDiscussions
      */
-    cd.commentForms = commentFormRegistry.getAll();
+    cd.commentForms = commentFormManager.getAll();
 
     cd.tests.controller = talkPageController;
     cd.tests.processPageInBackground = require('./updateChecker').processPage;
@@ -808,57 +808,57 @@ class BootController {
     /* Some static methods for external use */
 
     /**
-     * @see module:commentRegistry.getById
+     * @see module:commentManager.getById
      * @function getCommentById
      * @memberof convenientDiscussions.api
      */
-    cd.api.getCommentById = commentRegistry.getById.bind(commentRegistry);
+    cd.api.getCommentById = commentManager.getById.bind(commentManager);
 
     /**
-     * @see module:commentRegistry.getByDtId
+     * @see module:commentManager.getByDtId
      * @function getCommentByDtId
      * @memberof convenientDiscussions.api
      */
-    cd.api.getCommentByDtId = commentRegistry.getByDtId.bind(commentRegistry);
+    cd.api.getCommentByDtId = commentManager.getByDtId.bind(commentManager);
 
     /**
-     * @see module:sectionRegistry.getById
+     * @see module:sectionManager.getById
      * @function getSectionById
      * @memberof convenientDiscussions.api
      */
-    cd.api.getSectionById = sectionRegistry.getById.bind(sectionRegistry);
+    cd.api.getSectionById = sectionManager.getById.bind(sectionManager);
 
     /**
-     * @see module:sectionRegistry.getByHeadline
+     * @see module:sectionManager.getByHeadline
      * @function getSectionsByHeadline
      * @memberof convenientDiscussions.api
      */
-    cd.api.getSectionsByHeadline = sectionRegistry.getByHeadline.bind(sectionRegistry);
+    cd.api.getSectionsByHeadline = sectionManager.getByHeadline.bind(sectionManager);
 
     /**
-     * @see module:commentFormRegistry.getLastActive
+     * @see module:commentFormManager.getLastActive
      * @function getLastActiveCommentForm
      * @memberof convenientDiscussions.api
      */
-    cd.api.getLastActiveCommentForm = commentFormRegistry.getLastActive.bind(commentFormRegistry);
+    cd.api.getLastActiveCommentForm = commentFormManager.getLastActive.bind(commentFormManager);
 
     /**
-     * @see module:commentFormRegistry.getLastActiveAltered
+     * @see module:commentFormManager.getLastActiveAltered
      * @function getLastActiveAlteredCommentForm
      * @memberof convenientDiscussions.api
      */
-    cd.api.getLastActiveAlteredCommentForm = commentFormRegistry.getLastActiveAltered
-      .bind(commentFormRegistry);
+    cd.api.getLastActiveAlteredCommentForm = commentFormManager.getLastActiveAltered
+      .bind(commentFormManager);
 
     /**
-     * @see module:bootController.reload
+     * @see module:bootManager.reload
      * @function reloadPage
      * @memberof convenientDiscussions.api
      */
     cd.api.reloadPage = this.reboot.bind(this);
 
     /**
-     * @see module:bootController.getRootElement
+     * @see module:bootManager.getRootElement
      * @function getRootElement
      * @memberof convenientDiscussions.api
      */
@@ -1201,7 +1201,7 @@ class BootController {
   /**
    * Get the content root element (`.mw-parser-output` or `#mw-content-text`). Supposed to be used
    * via {@link convenientDiscussions.api.getRootElement}; inside the script, direct reference to
-   * `bootController.rootElement` is practiced.
+   * `bootManager.rootElement` is practiced.
    *
    * @returns {Element}
    */
@@ -1222,7 +1222,7 @@ class BootController {
 
     passedData.isRevisionSliderRunning = Boolean(history.state?.sliderPos);
 
-    // We need talkPageController here since bootController can't emit events. Use `require()`, not
+    // We need talkPageController here since bootManager can't emit events. Use `require()`, not
     // `import`, to avoid importing it before `oojs-ui` module is loaded.
     const talkPageController = require('./talkPageController').default;
 
@@ -1274,7 +1274,7 @@ class BootController {
 
     // Get IDs of unseen comments. This is used to arrange that they will still be there after
     // replying on or refreshing the page.
-    bootProcess.passedData.unseenComments = require('./commentRegistry').default
+    bootProcess.passedData.unseenComments = require('./commentManager').default
       .query((comment) => comment.isSeen === false);
 
     // At this point, the boot process can't be interrupted, so we can remove all traces of the
@@ -1313,7 +1313,7 @@ class BootController {
 
     const $root = $content.children('.mw-parser-output');
     if ($root.length && !$root.hasClass('cd-parse-started')) {
-      bootController.reboot({ isPageReloadedExternally: true });
+      bootManager.reboot({ isPageReloadedExternally: true });
     }
   }
 
@@ -1348,7 +1348,7 @@ class BootController {
     $('#firstHeading').text(cd.page.name);
     document.title = cd.mws('pagetitle', cd.page.name);
 
-    // We need talkPageController here since bootController can't emit events. Use `require()`, not
+    // We need talkPageController here since bootManager can't emit events. Use `require()`, not
     // `import`, to avoid importing it before `oojs-ui` module is loaded.
     require('./talkPageController').default.updateOriginalPageTitle(document.title);
   }
@@ -1586,5 +1586,5 @@ class BootController {
 }
 
 // Export a singleton instance
-const bootController = new BootController();
-export default bootController;
+const bootManager = new BootManager();
+export default bootManager;

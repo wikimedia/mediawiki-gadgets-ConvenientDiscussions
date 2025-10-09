@@ -100,7 +100,7 @@ class CommentSkeleton {
 
   /**
    * Comment index. Same as the index in the array returned by
-   * {@link module:commentRegistry.getAll}.
+   * {@link module:commentManager.getAll}.
    *
    * @type {number}
    */

@@ -17,7 +17,7 @@
 - **app.js**: Main application entry point
 - **cd.js**: Core Convenient Discussions object
 - **convenientDiscussions.js**: Main initialization script
-- **bootController.js**: Application bootstrap logic
+- **bootManager.js**: Application bootstrap logic
 - **BootProcess.js**: Boot process management
 - **talkPageController.js**: Main controller
 

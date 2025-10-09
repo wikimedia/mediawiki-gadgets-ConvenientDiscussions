@@ -2,9 +2,9 @@ import Comment from './Comment';
 import EventEmitter from './EventEmitter';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import Thread from './Thread';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentFormRegistry from './commentFormRegistry';
+import commentFormManager from './commentFormManager';
 import settings from './settings';
 import TreeWalker from './shared/TreeWalker';
 import { definedAndNotNull, reorderArray, sleep, subtractDaysFromNow, unique } from './shared/utils-general';
@@ -28,7 +28,7 @@ import visits from './visits';
  *
  * @augments EventEmitter<EventMap>
  */
-class CommentRegistry extends EventEmitter {
+class CommentManager extends EventEmitter {
   /**
    * List of comments.
    *
@@ -132,7 +132,7 @@ class CommentRegistry extends EventEmitter {
       .on('commentsUpdate', ({ all }) => {
         this.addNewCommentsNotes(all);
       });
-    commentFormRegistry
+    commentFormManager
       .on('teardown', this.registerSeen.bind(this));
     Thread
       .on('init', this.addToggleChildThreadsButtons.bind(this));
@@ -226,7 +226,7 @@ class CommentRegistry extends EventEmitter {
    */
   initNewAndSeen(currentPageData, currentTime, markAsReadRequested) {
     let timeConflict = false;
-    const unseenComments = bootController.getBootProcess().passedData.unseenComments;
+    const unseenComments = bootManager.getBootProcess().passedData.unseenComments;
     this.items.forEach((comment) => {
       // eslint-disable-next-line no-one-time-vars/no-one-time-vars
       const commentTimeConflict = comment.initNewAndSeen(
@@ -275,7 +275,7 @@ class CommentRegistry extends EventEmitter {
    * @param {boolean} [redrawAll] Whether to redraw all layers and not stop at first three unmoved.
    */
   maybeRedrawLayers(redrawAll = false) {
-    if (bootController.isBooting() || (document.hidden && !redrawAll)) return;
+    if (bootManager.isBooting() || (document.hidden && !redrawAll)) return;
 
     this.layersContainers.forEach((container) => {
       container.cdCouldHaveMoved = true;
@@ -284,7 +284,7 @@ class CommentRegistry extends EventEmitter {
     let floatingRects;
     /** @type {Comment[]} */
     const comments = [];
-    const rootBottom = bootController.$root[0].getBoundingClientRect().bottom + window.scrollY;
+    const rootBottom = bootManager.$root[0].getBoundingClientRect().bottom + window.scrollY;
     let notMovedCount = 0;
 
     // We go from the end and stop at the first _three_ comments that have not been misplaced. A
@@ -767,7 +767,7 @@ class CommentRegistry extends EventEmitter {
       classes: ['cd-button-ooui'],
     });
     button.on('click', () => {
-      bootController.reboot({
+      bootManager.reboot({
         commentIds: descendantComments.map((comment) => comment.id).filter(definedAndNotNull),
         pushState: true,
       });
@@ -889,7 +889,7 @@ class CommentRegistry extends EventEmitter {
         /** @type {import('./utils-window').HigherNodeAndOffsetInSelection} */ (
           getHigherNodeAndOffsetInSelection(selection)
         );
-      const treeWalker = new TreeWalker(bootController.rootElement, undefined, false, higherNode);
+      const treeWalker = new TreeWalker(bootManager.rootElement, undefined, false, higherNode);
       let commentIndex;
       do {
         commentIndex =
@@ -957,7 +957,7 @@ class CommentRegistry extends EventEmitter {
    */
   findAndUpdateTableComments() {
     // Faster than doing it for every individual comment.
-    bootController.rootElement
+    bootManager.rootElement
       .querySelectorAll('table.cd-comment-part .cd-signature, .cd-comment-part > table .cd-signature')
       .forEach((signature) => {
         const index = /** @type {HTMLElement} */ (signature.closest('.cd-comment-part')).dataset
@@ -996,7 +996,7 @@ class CommentRegistry extends EventEmitter {
     this.mergeAdjacentCommentLevels();
     this.mergeAdjacentCommentLevels();
     if (
-      bootController.rootElement.querySelector('.cd-commentLevel:not(ol) + .cd-commentLevel:not(ol)')
+      bootManager.rootElement.querySelector('.cd-commentLevel:not(ol) + .cd-commentLevel:not(ol)')
     ) {
       console.warn('.cd-commentLevel adjacencies have left.');
     }
@@ -1027,7 +1027,7 @@ class CommentRegistry extends EventEmitter {
    */
   mergeAdjacentCommentLevels() {
     /** @type {NodeListOf<HTMLElement>} */
-    const levels = bootController.rootElement.querySelectorAll(
+    const levels = bootManager.rootElement.querySelectorAll(
       '.cd-commentLevel:not(ol) + .cd-commentLevel:not(ol)'
     );
     if (!levels.length) return;
@@ -1154,7 +1154,7 @@ class CommentRegistry extends EventEmitter {
     /** @type {Element[]} */
     const items = [];
 
-    bootController.rootElement
+    bootManager.rootElement
       .querySelectorAll('dd.cd-comment-part-last + dd, li.cd-comment-part-last + li')
       .forEach((el) => {
         if (el.firstElementChild?.classList.contains('cd-commentLevel')) {
@@ -1163,14 +1163,14 @@ class CommentRegistry extends EventEmitter {
       });
 
     // When editing https://en.wikipedia.org/wiki/Wikipedia:Village_pump_(technical)/Archive_212#c-PrimeHunter-20240509091500-2605:A601:AAF7:3700:A1D7:26C1:E273:28CF-20240509055600
-    bootController.rootElement
+    bootManager.rootElement
       .querySelectorAll('dd.cd-comment-part:not(.cd-comment-part-last) + dd > .cd-comment-part:first-child, li.cd-comment-part:not(.cd-comment-part-last) + li > .cd-comment-part:first-child')
       .forEach((el) => {
         items.push(/** @type {HTMLElement} */ (el.parentElement));
       });
 
     // https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases#202009202110_Example
-    bootController.rootElement
+    bootManager.rootElement
       .querySelectorAll('.cd-comment-replacedPart.cd-comment-part-last')
       .forEach((el) => {
         const possibleItem = /** @type {HTMLElement} */ (el.parentElement).nextElementSibling;
@@ -1180,7 +1180,7 @@ class CommentRegistry extends EventEmitter {
       });
 
     // https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases#Image_breaking_a_thread
-    bootController.rootElement
+    bootManager.rootElement
       .querySelectorAll('.cd-commentLevel + .thumb + .cd-commentLevel > li')
       .forEach((el) => {
         items.push(el);
@@ -1190,12 +1190,12 @@ class CommentRegistry extends EventEmitter {
       // Outdent templates. We could instead merge adjacent <li>s, but if there is a {{outdent|0}}
       // template and the whole <li> of the parent is considered a comment part, then we can't do
       // that.
-      bootController.rootElement
+      bootManager.rootElement
         .querySelectorAll(`.cd-commentLevel > li + li > .${cd.config.outdentClass}, .cd-commentLevel > dd + dd > .${cd.config.outdentClass}`)
         .forEach((el) => {
           items.push(/** @type {HTMLElement} */ (el.parentElement));
         });
-      bootController.rootElement
+      bootManager.rootElement
         .querySelectorAll(`.cd-commentLevel > li + .cd-comment-outdented, .cd-commentLevel > dd + .cd-comment-outdented`)
         .forEach((el) => {
           items.push(el);
@@ -1271,7 +1271,7 @@ class CommentRegistry extends EventEmitter {
       commentInViewport.index,
       direction === 'backward'
     ).filter((comment) => comment.isNew && !comment.isInViewport());
-    const comment = candidates.find((c) => c.isInViewport() === false) || candidates[0];
+    const comment = candidates.find((c) => c.isInViewport() === false) || candidates.at(0);
     if (comment) {
       comment.scrollTo({
         flash: false,
@@ -1329,4 +1329,4 @@ class CommentRegistry extends EventEmitter {
   }
 }
 
-export default new CommentRegistry();
+export default new CommentManager();

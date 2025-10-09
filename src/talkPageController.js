@@ -2,14 +2,14 @@ import AutocompleteManager from './AutocompleteManager';
 import CommentForm from './CommentForm';
 import EventEmitter from './EventEmitter';
 import Thread from './Thread';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentFormRegistry from './commentFormRegistry';
-import commentRegistry from './commentRegistry';
+import commentFormManager from './commentFormManager';
+import commentManager from './commentManager';
 import navPanel from './navPanel';
 import notifications from './notifications';
 import pageRegistry from './pageRegistry';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import settings from './settings';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
 import Parser from './shared/Parser';
@@ -209,11 +209,11 @@ class TalkPageController extends EventEmitter {
         this.scrollData.touchesBottom = true;
       } else if (
         scrollY !== 0 &&
-        bootController.rootElement.getBoundingClientRect().top <= this.getBodyScrollPaddingTop()
+        bootManager.rootElement.getBoundingClientRect().top <= this.getBodyScrollPaddingTop()
       ) {
         const treeWalker = new ElementsTreeWalker(
-          bootController.rootElement,
-          bootController.rootElement.firstElementChild || undefined,
+          bootManager.rootElement,
+          bootManager.rootElement.firstElementChild || undefined,
         );
         while (true) {
           const el = treeWalker.currentNode;
@@ -285,7 +285,7 @@ class TalkPageController extends EventEmitter {
           this.scrollData.element.closest('.cd-hidden')
         );
         if (closestHidden) {
-          commentRegistry.getAll()
+          commentManager.getAll()
             .map((comment) => comment.thread)
             .filter(defined)
             .filter((thread) => thread.isCollapsed)
@@ -361,7 +361,7 @@ class TalkPageController extends EventEmitter {
    * @returns {HTMLElement[]}
    */
   getClosedDiscussions() {
-    this.content.closedDiscussions ||= bootController.$root
+    this.content.closedDiscussions ||= bootManager.$root
       .find(
         cd.config.closedDiscussionClasses
           .concat('mw-archivedtalk')
@@ -381,7 +381,7 @@ class TalkPageController extends EventEmitter {
    */
   areThereOutdents() {
     this.content.areThereOutdents ??= Boolean(
-      bootController.$root.find('.' + cd.config.outdentClass).length
+      bootManager.$root.find('.' + cd.config.outdentClass).length
     );
 
     return this.content.areThereOutdents;
@@ -417,7 +417,7 @@ class TalkPageController extends EventEmitter {
       // as .mw-parser-output, in selectors. Remove all known elements that never intersect comments
       // from the collection.
       this.content.floatingElements = /** @type {HTMLElement[]} */ (
-        [...bootController.rootElement.querySelectorAll(floatingElementSelector)].filter(
+        [...bootManager.rootElement.querySelectorAll(floatingElementSelector)].filter(
           (el) => !el.classList.contains('cd-ignoreFloating')
         )
       );
@@ -435,7 +435,7 @@ class TalkPageController extends EventEmitter {
     if (!this.hiddenElements) {
       const hiddenElementSelector = this.getTsHiddenElementSelectors().join(', ');
       this.hiddenElements = hiddenElementSelector
-        ? [...bootController.rootElement.querySelectorAll(hiddenElementSelector)]
+        ? [...bootManager.rootElement.querySelectorAll(hiddenElementSelector)]
         : [];
     }
 
@@ -500,7 +500,7 @@ class TalkPageController extends EventEmitter {
           // CSS rules on other domains can be inaccessible
         }
       });
-    [...bootController.rootElement.querySelectorAll('style')].forEach((el) => {
+    [...bootManager.rootElement.querySelectorAll('style')].forEach((el) => {
       [...(el.sheet?.cssRules || [])].forEach(extractSelectors);
     });
 
@@ -527,7 +527,7 @@ class TalkPageController extends EventEmitter {
    * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
    */
   handleMouseMove(event) {
-    if (this.mouseMoveBlocked || this.isAutoScrolling() || bootController.isPageOverlayOn()) return;
+    if (this.mouseMoveBlocked || this.isAutoScrolling() || bootManager.isPageOverlayOn()) return;
 
     // Don't throttle. Without throttling, performance is generally OK, while the "frame rate" is
     // about 50 (so, the reaction time is about 20ms). Lower values would be less comfortable.
@@ -563,7 +563,7 @@ class TalkPageController extends EventEmitter {
           ...document.body.querySelectorAll('.oo-ui-popupWidget:not(.oo-ui-element-hidden)'),
           $(document.body).children('dialog')[0],
           this.stickyHeader,
-          sectionRegistry.getAll()
+          sectionManager.getAll()
             .map((section) => section.actions.moreMenuSelect?.getMenu())
             .find((menu) => menu?.isVisible())
             ?.$element[0],
@@ -593,7 +593,7 @@ class TalkPageController extends EventEmitter {
     // The initial value is set in init.addTalkPageCss() through a style tag.
     $(document.documentElement).css(
       '--cd-content-start-margin',
-      String(bootController.getContentColumnOffsets(true).startMargin) + 'px'
+      String(bootManager.getContentColumnOffsets(true).startMargin) + 'px'
     );
 
     this.emit('resize');
@@ -607,7 +607,7 @@ class TalkPageController extends EventEmitter {
    * @private
    */
   handleGlobalKeyDown(event) {
-    if (bootController.isPageOverlayOn()) return;
+    if (bootManager.isPageOverlayOn()) return;
 
     this.emit('keyDown', event);
   }
@@ -688,7 +688,7 @@ class TalkPageController extends EventEmitter {
    * @private
    */
   handlePageMutate() {
-    if (bootController.isBooting()) return;
+    if (bootManager.isBooting()) return;
 
     this.emit('mutate');
 
@@ -783,7 +783,7 @@ class TalkPageController extends EventEmitter {
       $(document).on('keydown', this.handleGlobalKeyDown.bind(this));
     }
 
-    mw.hook('wikipage.content').add(bootController.handleWikipageContentHookFirings.bind(this));
+    mw.hook('wikipage.content').add(bootManager.handleWikipageContentHookFirings.bind(this));
 
     updateChecker
       .on('check', (revisionId) => {
@@ -819,12 +819,12 @@ class TalkPageController extends EventEmitter {
       .filter((_, el) =>
         Boolean(
           !el.classList.contains('cd-clickHandled') &&
-          commentRegistry.getByAnyId(extractCommentId(el), true)
+          commentManager.getByAnyId(extractCommentId(el), true)
         )
       )
       .on('click', function onCommentLinkClick(event) {
         event.preventDefault();
-        commentRegistry
+        commentManager
           .getByAnyId(extractCommentId(this), true)
           ?.scrollTo({
             expandThreads: true,
@@ -875,7 +875,7 @@ class TalkPageController extends EventEmitter {
    * @param {import('./utils-api').ApiResponseParseContent} parseData
    */
   updatePageContents(parseData) {
-    bootController.$content.children('.mw-parser-output').first().replaceWith(bootController.$root);
+    bootManager.$content.children('.mw-parser-output').first().replaceWith(bootManager.$root);
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     mw.util.clearSubtitle?.();
@@ -898,10 +898,10 @@ class TalkPageController extends EventEmitter {
    * Reset the controller data and state. (Executed between page loads.)
    */
   reset() {
-    bootController.cleanUpUrlAndDom();
+    bootManager.cleanUpUrlAndDom();
     this.mutationObserver?.disconnect();
-    commentRegistry.reset();
-    sectionRegistry.reset();
+    commentManager.reset();
+    sectionManager.reset();
     CommentForm.forgetOnTarget(cd.page, 'addSection');
     this.$emulatedAddTopicButton?.remove();
     delete this.$addTopicButtons;
@@ -933,7 +933,7 @@ class TalkPageController extends EventEmitter {
    */
   updatePageTitle() {
     let title = this.originalPageTitle;
-    const lastActiveCommentForm = commentFormRegistry.getLastActive();
+    const lastActiveCommentForm = commentFormManager.getLastActive();
     if (lastActiveCommentForm) {
       const ending = lastActiveCommentForm
         .getTarget()
@@ -972,7 +972,7 @@ class TalkPageController extends EventEmitter {
    * Show an edit subscriptions dialog.
    */
   showEditSubscriptionsDialog() {
-    if (bootController.isPageOverlayOn()) return;
+    if (bootManager.isPageOverlayOn()) return;
 
     const dialog = new (require('./EditSubscriptionsDialog').default)();
     cd.getWindowManager().addWindows([dialog]);
@@ -986,7 +986,7 @@ class TalkPageController extends EventEmitter {
    * @param {JQuery.TriggeredEvent | MouseEvent | KeyboardEvent} event
    */
   showCopyLinkDialog(object, event) {
-    if (bootController.isPageOverlayOn()) return;
+    if (bootManager.isPageOverlayOn()) return;
 
     event.preventDefault();
 
@@ -1132,7 +1132,7 @@ class TalkPageController extends EventEmitter {
 
       this.handlePageMutate();
     });
-    this.mutationObserver.observe(bootController.$content[0], {
+    this.mutationObserver.observe(bootManager.$content[0], {
       attributes: true,
       childList: true,
       subtree: true,
@@ -1173,7 +1173,7 @@ class TalkPageController extends EventEmitter {
         'notification-reload',
 
         // Note about the form data
-        commentFormRegistry.getAll().some((cf) => cf.isAltered())
+        commentFormManager.getAll().some((cf) => cf.isAltered())
           ? wordSeparator + cd.mws('parentheses', cd.s('notification-formdata'))
           : ''
       );
@@ -1249,7 +1249,7 @@ class TalkPageController extends EventEmitter {
         { comments: filteredComments }
       );
       notification.$notification.on('click', () => {
-        bootController.reboot({ commentIds: filteredComments.map((comment) => comment.id) });
+        bootManager.reboot({ commentIds: filteredComments.map((comment) => comment.id) });
       });
     }
   }
@@ -1352,7 +1352,7 @@ class TalkPageController extends EventEmitter {
 
       this.emit('desktopNotificationClick');
 
-      bootController.reboot({
+      bootManager.reboot({
         commentIds: [comment.id],
         closeNotificationsSmoothly: false,
       });
@@ -1399,7 +1399,7 @@ class TalkPageController extends EventEmitter {
   maybeMarkPageAsRead() {
     if (
       !this.addedCommentCount &&
-      commentRegistry.getAll().every((comment) => !comment.willFlashChangedOnSight) &&
+      commentManager.getAll().every((comment) => !comment.willFlashChangedOnSight) &&
       this.lastCheckedRevisionId
     ) {
       cd.page.markAsRead(this.lastCheckedRevisionId);
@@ -1471,7 +1471,7 @@ class TalkPageController extends EventEmitter {
         if (
           mw.util.getParamValue('section') === 'new' &&
           $button.parent().attr('id') !== 'ca-addsection' &&
-          !$button.closest(bootController.$root).length
+          !$button.closest(bootManager.$root).length
         ) {
           return false;
         }

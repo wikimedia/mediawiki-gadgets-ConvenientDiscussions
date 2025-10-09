@@ -1,6 +1,6 @@
 import ProcessDialog from './ProcessDialog';
 import StorageItem from './StorageItem';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
 import settings from './settings';
 import { areObjectsEqual } from './shared/utils-general';
@@ -196,7 +196,7 @@ class SettingsDialog extends ProcessDialog {
 
       this.popPending();
 
-      bootController.addPreventUnloadCondition('dialog', () => this.isUnsaved());
+      bootManager.addPreventUnloadCondition('dialog', () => this.isUnsaved());
     });
   }
 
@@ -223,7 +223,7 @@ class SettingsDialog extends ProcessDialog {
             return;
           }
 
-          bootController.removePreventUnloadCondition('dialog');
+          bootManager.removePreventUnloadCondition('dialog');
 
           this.stack.setItem(this.reloadPanel);
           this.actions.setMode('reboot');

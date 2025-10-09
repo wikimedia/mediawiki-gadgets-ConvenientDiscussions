@@ -2,7 +2,7 @@ import LZString from 'lz-string';
 
 import Subscriptions from './Subscriptions';
 import cd from './cd';
-import sectionRegistry from './sectionRegistry';
+import sectionManager from './sectionManager';
 import CdError from './shared/CdError';
 import { typedKeysOf } from './shared/utils-general';
 import talkPageController from './talkPageController';
@@ -290,7 +290,7 @@ class LegacySubscriptions extends Subscriptions {
     this.originalList = Object.keys(this.data);
     let updated = false;
     Object.keys(this.data)
-      .filter((headline) => sectionRegistry.getAll().every((s) => s.headline !== headline))
+      .filter((headline) => sectionManager.getAll().every((s) => s.headline !== headline))
       .forEach((headline) => {
         delete this.data[headline];
         updated = true;

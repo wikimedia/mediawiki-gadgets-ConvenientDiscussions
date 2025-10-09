@@ -1,6 +1,6 @@
 import MultilineTextInputWidget from './MultilineTextInputWidget';
 import ProcessDialog from './ProcessDialog';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
 import CdError from './shared/CdError';
 import { sleep, unique } from './shared/utils-general';
@@ -195,7 +195,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
       this.updateSize();
       this.popPending();
 
-      bootController.addPreventUnloadCondition('dialog', () => this.isUnsaved());
+      bootManager.addPreventUnloadCondition('dialog', () => this.isUnsaved());
     });
   }
 

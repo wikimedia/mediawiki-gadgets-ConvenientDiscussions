@@ -6,14 +6,14 @@ import cd from './shared/cd';
 
 /**
  * @typedef {object} ConvenientDiscussionsApi
- * @property {import('./commentRegistry').default['getById']} getCommentById
- * @property {import('./commentRegistry').default['getByDtId']} getCommentByDtId
- * @property {import('./sectionRegistry').default['getById']} getSectionById
- * @property {import('./sectionRegistry').default['getByHeadline']} getSectionsByHeadline
- * @property {import('./commentFormRegistry').default['getLastActive']} getLastActiveCommentForm
- * @property {import('./commentFormRegistry').default['getLastActiveAltered']} getLastActiveAlteredCommentForm
- * @property {import('./bootController').default['reboot']} reloadPage
- * @property {import('./bootController').default['getRootElement']} getRootElement
+ * @property {import('./commentManager').default['getById']} getCommentById
+ * @property {import('./commentManager').default['getByDtId']} getCommentByDtId
+ * @property {import('./sectionManager').default['getById']} getSectionById
+ * @property {import('./sectionManager').default['getByHeadline']} getSectionsByHeadline
+ * @property {import('./commentFormManager').default['getLastActive']} getLastActiveCommentForm
+ * @property {import('./commentFormManager').default['getLastActiveAltered']} getLastActiveAlteredCommentForm
+ * @property {import('./bootManager').default['reboot']} reloadPage
+ * @property {import('./bootManager').default['getRootElement']} getRootElement
  */
 
 /**

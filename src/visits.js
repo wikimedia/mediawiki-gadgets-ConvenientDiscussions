@@ -2,7 +2,7 @@ import LZString from 'lz-string';
 
 import EventEmitter from './EventEmitter';
 import cd from './cd';
-import commentRegistry from './commentRegistry';
+import commentManager from './commentManager';
 import settings from './settings';
 import CdError from './shared/CdError';
 import { subtractDaysFromNow, typedKeysOf } from './shared/utils-general';
@@ -72,7 +72,7 @@ class Visits extends EventEmitter {
     const shiftDueToTimeConflict =
       (
         this.currentPageData.length &&
-        commentRegistry.initNewAndSeen(this.currentPageData, currentTime, markAsReadRequested) &&
+        commentManager.initNewAndSeen(this.currentPageData, currentTime, markAsReadRequested) &&
         60
       ) ||
       0;

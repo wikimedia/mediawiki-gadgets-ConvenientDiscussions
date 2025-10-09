@@ -1,11 +1,11 @@
 import Comment from './Comment';
 import EventEmitter from './EventEmitter';
 import StorageItemWithKeys from './StorageItemWithKeys';
-import bootController from './bootController';
+import bootManager from './bootManager';
 import cd from './cd';
-import commentFormRegistry from './commentFormRegistry';
-import commentRegistry from './commentRegistry';
-import sectionRegistry from './sectionRegistry';
+import commentFormManager from './commentFormManager';
+import commentManager from './commentManager';
+import sectionManager from './sectionManager';
 import settings from './settings';
 import CdError from './shared/CdError';
 import { calculateWordOverlap, keepWorkerSafeValues, subtractDaysFromNow } from './shared/utils-general';
@@ -277,13 +277,13 @@ class UpdateChecker extends EventEmitter {
     }
 
     // Reset values set in the previous run.
-    sectionRegistry.getAll().forEach((section) => {
+    sectionManager.getAll().forEach((section) => {
       delete section.match;
       delete section.matchScore;
     });
 
     workerSections.forEach((workerSection) => {
-      const match = sectionRegistry.search(workerSection);
+      const match = sectionManager.search(workerSection);
       if (match) {
         const { section, score } = match;
         if ((section.matchScore === undefined || match.score > section.matchScore)) {
@@ -297,7 +297,7 @@ class UpdateChecker extends EventEmitter {
       }
     });
 
-    sectionRegistry.getAll().forEach((section) => {
+    sectionManager.getAll().forEach((section) => {
       section.updateLiveData(lastCheckedRevisionId);
     });
 
@@ -453,7 +453,7 @@ class UpdateChecker extends EventEmitter {
    * @private
    */
   async check() {
-    if (!cd.page.isActive() || bootController.isBooting()) return;
+    if (!cd.page.isActive() || bootManager.isBooting()) return;
 
     // We need a value that wouldn't change during `await`s.
     const documentHidden = document.hidden;
@@ -616,7 +616,7 @@ class UpdateChecker extends EventEmitter {
           seen?.[currentComment.id]?.htmlToCompare !== currentComment.htmlToCompare
         )
       ) {
-        const comment = commentRegistry.getById(currentComment.id);
+        const comment = commentManager.getById(currentComment.id);
         if (!comment) return;
 
         /** @type {CommentsData} */
@@ -689,7 +689,7 @@ class UpdateChecker extends EventEmitter {
       };
 
       if (newComment) {
-        comment = commentRegistry.getById(currentComment.id);
+        comment = commentManager.getById(currentComment.id);
         if (!comment) return;
 
         if (comment.isDeleted) {
@@ -714,7 +714,7 @@ class UpdateChecker extends EventEmitter {
           events.unchanged = true;
         }
       } else if (!currentComment.hasPoorMatch) {
-        comment = commentRegistry.getById(currentComment.id);
+        comment = commentManager.getById(currentComment.id);
         if (!comment || comment.isDeleted) return;
 
         comment.markAsChanged('deleted');
@@ -827,8 +827,8 @@ class UpdateChecker extends EventEmitter {
   isPageStillAtRevisionAndNotBlocked(revisionId) {
     return (
       revisionId === mw.config.get('wgRevisionId') &&
-      !bootController.isPageOverlayOn() &&
-      !commentFormRegistry.getAll().some((commentForm) => commentForm.isBeingSubmitted())
+      !bootManager.isPageOverlayOn() &&
+      !commentFormManager.getAll().some((commentForm) => commentForm.isBeingSubmitted())
     );
   }
 
@@ -857,7 +857,7 @@ class UpdateChecker extends EventEmitter {
         if (comment.parent) {
           const parentMatch = currentComments.find((mcc) => mcc.match === comment.parent);
           if (parentMatch?.id) {
-            newComment.parentMatch = commentRegistry.getById(parentMatch.id) || undefined;
+            newComment.parentMatch = commentManager.getById(parentMatch.id) || undefined;
           }
         }
 
@@ -934,7 +934,7 @@ class UpdateChecker extends EventEmitter {
   init() {
     visits
       .on('process', (/** @type {string[]} */ currentPageData) => {
-        const bootProcess = bootController.getBootProcess();
+        const bootProcess = bootManager.getBootProcess();
         this.setup(
           currentPageData.length >= 2 ?
             Number(currentPageData[currentPageData.length - 2]) :
