@@ -11,7 +11,9 @@ import tseslint from 'typescript-eslint';
 
 const config = defineConfig(
   {
-    ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js', '**/test.ts', '**/test.js'],
+    ignores: ['dist/**', 'misc/**', '*.json5', 'w-he.js', '**/test.ts', '**/test.js', 'src/tribute/**'],
+  },
+  {
     settings: {
       'import/resolver': {
         typescript: {

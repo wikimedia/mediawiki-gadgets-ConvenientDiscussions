@@ -20,6 +20,7 @@ class TextInputWidget extends OO.ui.TextInputWidget {
    */
   constructor(...args) {
     super(...args);
+
     this.$input.on('input', () => {
       this.emit('manualChange', this.getValue());
     });
@@ -34,6 +35,7 @@ class TextInputWidget extends OO.ui.TextInputWidget {
    */
   insertContent(content) {
     this.focus();
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (!document.execCommand('insertText', false, content)) {
       super.insertContent(content);
     }

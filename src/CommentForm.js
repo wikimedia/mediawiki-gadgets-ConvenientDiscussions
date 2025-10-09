@@ -2364,7 +2364,7 @@ class CommentForm extends EventEmitter {
       types: ['mentions', 'wikilinks', 'templates', 'tags', 'commentLinks'],
       inputs: [this.commentInput],
       typeConfigs: {
-        mentions: { default: defaultUserNames },
+        mentions: { defaultEntries: defaultUserNames },
         commentLinks: { data: { comments: commentsInSection } },
       },
     });
@@ -2375,7 +2375,7 @@ class CommentForm extends EventEmitter {
         types: ['mentions', 'wikilinks', 'tags'],
         inputs: [this.headlineInput],
         typeConfigs: {
-          mentions: { default: defaultUserNames },
+          mentions: { defaultEntries: defaultUserNames },
         },
       });
       this.headlineAutocomplete.init();
@@ -2385,7 +2385,7 @@ class CommentForm extends EventEmitter {
       types: ['mentions', 'wikilinks'],
       inputs: [this.summaryInput],
       typeConfigs: {
-        mentions: { default: defaultUserNames },
+        mentions: { defaultEntries: defaultUserNames },
       },
     });
     this.summaryAutocomplete.init();

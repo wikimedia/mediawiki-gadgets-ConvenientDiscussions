@@ -29,7 +29,7 @@ export class UploadDialog extends mixInClass(
   /**
    * Create an upload dialog.
    *
-   * @param {object} [config={}]
+   * @param {object} [config]
    */
   constructor(config = {}) {
     super(
@@ -103,6 +103,7 @@ export class UploadDialog extends mixInClass(
         this.uploadBooklet.upload.getApi().state() === 'rejected'
       ) {
         this.handleError(new CdError(), 'cf-error-uploadimage', false);
+
         return;
       }
 
@@ -159,11 +160,13 @@ export class UploadDialog extends mixInClass(
           return promise;
         });
       }
+
       return process;
     } else if (action === 'cancelupload') {
       // The upstream dialog calls .initialize() here which clears all inputs including the file.
       // We don't want that.
       this.uploadBooklet.cancelUpload();
+
       return new OO.ui.Process();
     }
 

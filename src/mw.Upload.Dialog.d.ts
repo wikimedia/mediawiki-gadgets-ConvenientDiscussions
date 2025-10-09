@@ -54,14 +54,14 @@ declare global {
          * Create an upload booklet.
          *
          * @protected
-         * @return {mw.Upload.BookletLayout} An upload booklet
+         * @returns {mw.Upload.BookletLayout} An upload booklet
          */
         createUploadBooklet(): BookletLayout;
 
         /**
          * Get the height of the dialog body.
          *
-         * @return {number}
+         * @returns {number}
          */
         getBodyHeight(): number;
 
@@ -94,7 +94,7 @@ declare global {
          *
          * @inheritdoc
          * @param {any} data
-         * @return {OO.ui.Process}
+         * @returns {OO.ui.Process}
          */
         getSetupProcess(data: any): OO.ui.Process;
 
@@ -103,7 +103,7 @@ declare global {
          *
          * @inheritdoc
          * @param {string} action
-         * @return {OO.ui.Process}
+         * @returns {OO.ui.Process}
          */
         getActionProcess(action: string): OO.ui.Process;
 
@@ -112,7 +112,7 @@ declare global {
          *
          * @inheritdoc
          * @param {any} data
-         * @return {OO.ui.Process}
+         * @returns {OO.ui.Process}
          */
         getTeardownProcess(data: any): OO.ui.Process;
 
@@ -125,19 +125,19 @@ declare global {
         static name: string;
         /**
          * @inheritdoc
-         * @property {Function|string} title
+         * @property {(() => string)|string} title
          */
         static title: string | (() => string);
         /**
          * @inheritdoc
          * @property {Object[]} actions
          */
-        static actions: Array<{
+        static actions: {
           flags: string | string[];
           action: string;
           label: string;
           modes: string | string[];
-        }>;
+        }[];
       }
 
       namespace Dialog {

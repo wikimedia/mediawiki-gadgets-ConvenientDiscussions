@@ -65,14 +65,13 @@ import TributeSearch from "./TributeSearch";
  *   objects to search across or a function that takes a query text and calls a callback provided to
  *   it with that array
  * @property {RegExp} [keepAsEnd] Custom regex for end matching behavior
- * @property {(searchResults: TributeSearchResults<Value>) => string} [menuItemTemplate] Template for
- *   displaying item in menu
+ * @property {(searchResults: TributeSearchResults<Value>) => string} [menuItemTemplate] Template
+ *   for displaying item in menu
  * @property {boolean} [replaceEnd] Whether to replace text at the end
  * @property {boolean} [requireLeadingSpace] Specify whether a space is required before the trigger
  *   string
- * @property {(item: TributeSearchResults<Value> | undefined, event: KeyboardEvent | MouseEvent) =>
- * string | InsertData} [selectTemplate] Function called on select that returns the content to
- * insert
+ * @property {(item: TributeSearchResults<Value> | undefined, event: KeyboardEvent | MouseEvent) => string | InsertData} [selectTemplate]
+ *   Function called on select that returns the content to insert
  */
 
 /**

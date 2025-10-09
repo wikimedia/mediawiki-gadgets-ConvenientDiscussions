@@ -56,9 +56,9 @@ class BaseAutocomplete {
   /**
    * Default entries to search across (may be more narrow than all potential values).
    *
-   * @type {any[]}
+   * @type {any[] | undefined}
    */
-  defaultEntries = [];
+  defaultEntries;
 
   /**
    * Function for lazy loading of default entries.
@@ -210,29 +210,19 @@ class BaseAutocomplete {
    * @returns {Promise<void>}
    */
   async getValues(text, callback) {
-    // Initialize default entries if not already done
-    if (this.defaultEntries.length === 0) {
-      this.defaultEntries = this.getDefaultEntries();
-    }
-
     text = this.preprocessText(text);
 
-    if (!this.validateInput(text)) {
-      callback(this.getOptionsFromEntries([]));
-
-      return;
-    }
-
     // Check if this is a simple local-only autocomplete
-    if (this.isLocalOnly()) {
-      const matches = this.getLocalMatches(text);
-      callback(this.getOptionsFromEntries(matches));
+    const localMatches = this.getLocalMatches(text);
+
+    if (this.isLocalOnly() || !this.validateInput(text)) {
+      callback(this.getOptionsFromEntries(localMatches));
 
       return;
     }
 
     // Complex autocomplete with caching and API requests
-    await this.getValuesWithApiSupport(text, callback);
+    await this.getValuesWithApiSupport(text, callback, localMatches);
   }
 
   /**
@@ -265,7 +255,7 @@ class BaseAutocomplete {
    * @protected
    */
   getLocalMatches(text) {
-    return this.searchLocal(text, this.defaultEntries);
+    return this.searchLocal(text, this.getDefaultEntries());
   }
 
   /**
@@ -273,10 +263,11 @@ class BaseAutocomplete {
    *
    * @param {string} text The search text
    * @param {import('./AutocompleteManager').ProcessOptions} callback Callback function
+   * @param {any[]} localMatches
    * @returns {Promise<void>}
    * @private
    */
-  async getValuesWithApiSupport(text, callback) {
+  async getValuesWithApiSupport(text, callback, localMatches) {
     // Reset entries if query doesn't start with last query
     if (this.lastQuery && !text.startsWith(this.lastQuery)) {
       this.lastApiResults = [];
@@ -291,8 +282,6 @@ class BaseAutocomplete {
       return;
     }
 
-    // Get local matches
-    const localMatches = this.getLocalMatches(text);
     let values = localMatches.slice();
 
     // If no local matches, include previous entries
@@ -450,9 +439,7 @@ class BaseAutocomplete {
    * @returns {any[]} Default entries
    */
   getDefaultEntries() {
-    if (this.defaultEntries.length === 0 && this.defaultLazy) {
-      this.defaultEntries = this.defaultLazy();
-    }
+    this.defaultEntries ||= this.defaultLazy?.() || [];
 
     return this.defaultEntries;
   }
@@ -505,7 +492,7 @@ class BaseAutocomplete {
    * Make an OpenSearch API request.
    *
    * @param {import('types-mediawiki/api_params').UnknownApiParams} params API parameters
-   * @returns {Promise<import('./Autocomplete').OpenSearchResults>} OpenSearch results
+   * @returns {Promise<import('./AutocompleteManager').OpenSearchResults>} OpenSearch results
    */
   static async makeOpenSearchRequest(params) {
     return this.createDelayedPromise(async (resolve) => {

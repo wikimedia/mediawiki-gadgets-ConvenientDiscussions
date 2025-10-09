@@ -9,11 +9,6 @@ import { handleApiReject } from './utils-api';
 
 /**
  * @import {AutocompleteType} from './AutocompleteFactory';
- * @import {MentionEntry} from './MentionsAutocomplete';
- * @import {CommentLinkEntry} from './CommentLinksAutocomplete';
- * @import {WikilinkEntry} from './WikilinksAutocomplete';
- * @import {TemplateEntry} from './TemplatesAutocomplete';
- * @import {TagEntry} from './TagsAutocomplete';
  */
 
 /** @typedef {[string, string[], string[], string[]]} OpenSearchResults */
@@ -201,8 +196,7 @@ class AutocompleteManager {
           label: instance.getLabel(),
           trigger: instance.getTrigger(),
           searchOpts: { skip: true },
-          selectTemplate: (option, _event) =>
-            option?.original.autocomplete?.getInsertionFromEntry(option.original.entry) || '',
+          selectTemplate: (_event) => this.onOptionChoose,
           values: async (
             /** @type {string} */ text,
             /** @type {ProcessOptions} */ callback
@@ -238,6 +232,14 @@ class AutocompleteManager {
 
     return collections;
   }
+
+  /**
+   * Handle the option choose event.
+   *
+   * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Option<any>> | undefined} option
+   * @returns {import('./tribute/Tribute').InsertData | string}
+   */
+  onOptionChoose = (option) => option?.original.autocomplete?.getInsertionFromEntry(option.original.entry) || '';
 
   /**
    * Get autocomplete data for a template.

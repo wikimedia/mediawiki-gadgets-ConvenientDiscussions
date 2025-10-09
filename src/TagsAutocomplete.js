@@ -141,7 +141,7 @@ class TagsAutocomplete extends BaseAutocomplete {
     // Filter tags that start with the input text
     const regexp = new RegExp('^' + mw.util.escapeRegExp(text), 'i');
 
-    return this.defaultEntries.filter((tag) => regexp.test(Array.isArray(tag) ? tag[0] : tag));
+    return this.getDefaultEntries().filter((tag) => regexp.test(Array.isArray(tag) ? tag[0] : tag));
   }
 
   /**

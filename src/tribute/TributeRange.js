@@ -116,8 +116,7 @@ class TributeRange {
             data.content = (
                 (
                     !(
-                        data.omitContentCheck?.() &&
-                        !(originalEvent.shiftKey || originalEvent.altKey)
+                        data.omitContentCheck?.() && !originalEvent.shiftKey
                     ) &&
                     data.content
                 ) ||
@@ -135,14 +134,8 @@ class TributeRange {
                 info.mentionTriggerChar.length
             let ending = myField.value.substring(endPos, myField.value.length)
 
-            if ((originalEvent.shiftKey || originalEvent.altKey) && data.shiftModify) {
+            if (originalEvent.shiftKey && data.shiftModify) {
                 data.shiftModify()
-            }
-
-            if (originalEvent.altKey) {
-                data.content = ending
-                endPos += ending.length
-                ending = ''
             }
 
             let startPos = info.mentionPosition
@@ -177,7 +170,7 @@ class TributeRange {
             // jwbth: Start offset is calculated from the start position of the inserted text.
             // Absent value means the selection start position should match with the end position
             // (i.e., no text should be selected).
-            if (originalEvent.shiftKey || (data.putCaretAtContent && !data.content)) {
+            if (originalEvent.shiftKey || (data.selectContent && !data.content)) {
                 myField.selectionEnd = startPos + text.length - data.end.length
                 myField.selectionStart = startPos + data.start.length
             } else {

@@ -21,7 +21,7 @@ declare global {
       /** The creation date for the upload. */
       date?: Date;
       /** Array of description objects. Each has a language code and text. */
-      descriptions: Array<{ language: string; text: string }>;
+      descriptions: { language: string; text: string }[];
       /** Array of category names for the upload. */
       categories: string[];
       /** Configuration for uploads (loaded from config.json or via loadConfig). */
@@ -33,7 +33,7 @@ declare global {
        * Get the configuration for the form and filepage from the foreign wiki, if any, and use it for
        * this upload.
        *
-       * @return {JQuery.Promise<any>} Promise returning config object.
+       * @returns {JQuery.Promise<any>} Promise returning config object.
        */
       loadConfig(): JQuery.Promise<any>;
 
@@ -73,7 +73,7 @@ declare global {
        * Get the text of the file page, to be created on upload. Brings together
        * several different pieces of information to create useful text.
        *
-       * @return {string}
+       * @returns {string}
        */
       getText(): string;
 
@@ -86,7 +86,7 @@ declare global {
        * Gets the wikitext for the creation date of this upload.
        *
        * @private
-       * @return {string}
+       * @returns {string}
        */
       getDate(): string;
 
@@ -94,7 +94,7 @@ declare global {
        * Fetches the wikitext for any descriptions that have been added to the upload.
        *
        * @private
-       * @return {string}
+       * @returns {string}
        */
       getDescriptions(): string;
 
@@ -102,7 +102,7 @@ declare global {
        * Fetches the wikitext for the categories to which the upload will be added.
        *
        * @private
-       * @return {string}
+       * @returns {string}
        */
       getCategories(): string;
 
@@ -110,7 +110,7 @@ declare global {
        * Gets the wikitext for the license of the upload.
        *
        * @private
-       * @return {string}
+       * @returns {string}
        */
       getLicense(): string;
 
@@ -118,7 +118,7 @@ declare global {
        * Get the source. This should be some sort of localized text for "Own work".
        *
        * @private
-       * @return {string}
+       * @returns {string}
        */
       getSource(): string;
 
@@ -126,7 +126,7 @@ declare global {
        * Get the username.
        *
        * @private
-       * @return {string}
+       * @returns {string}
        */
       getUser(): string;
     }
