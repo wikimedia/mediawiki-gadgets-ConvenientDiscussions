@@ -33,31 +33,23 @@ class TextInputWidget extends OO.ui.TextInputWidget {
      */
     this.selectedTextForAutocomplete = undefined;
 
+    /**
+     * Whether the autocomplete menu is currently active. When active, the selected text
+     * should be immutable.
+     *
+     * @type {boolean}
+     * @private
+     */
+    this.autocompleteMenuActive = false;
+
     this.$input.on('input', () => {
       this.emit('manualChange', this.getValue());
     });
 
-    // Track selection changes to capture selected text for autocomplete
-    // Only capture on mouseup to avoid clearing on every keystroke
-    this.$input.on('mouseup', () => {
-      this.updateSelectedTextForAutocomplete();
-    });
-
-    // Also track on keyup, but only for selection keys (Shift+Arrow, etc.)
-    this.$input.on('keyup', (event) => {
-      // Only update selection if shift key was involved (selection keys)
-      if (
-        event.shiftKey ||
-        event.key === 'ArrowLeft' ||
-        event.key === 'ArrowRight' ||
-        event.key === 'ArrowUp' ||
-        event.key === 'ArrowDown' ||
-        event.key === 'Home' ||
-        event.key === 'End'
-      ) {
-        this.updateSelectedTextForAutocomplete();
-      }
-    });
+    // Use selectionchange event to capture all selection changes properly
+    // This handles Ctrl+A, Ctrl+Z, and all other selection-changing operations
+    this.boundSelectionChangeHandler = this.handleSelectionChange.bind(this);
+    document.addEventListener('selectionchange', this.boundSelectionChangeHandler);
   }
 
   /**
@@ -128,6 +120,19 @@ class TextInputWidget extends OO.ui.TextInputWidget {
   }
 
   /**
+   * Handle selection changes in the document. Only updates the stored selection
+   * if the autocomplete menu is not active.
+   *
+   * @private
+   */
+  handleSelectionChange() {
+    // Only update selection if this input is focused and autocomplete menu is not active
+    if (document.activeElement === this.$input[0] && !this.autocompleteMenuActive) {
+      this.updateSelectedTextForAutocomplete();
+    }
+  }
+
+  /**
    * Update the selected text for autocomplete based on current selection.
    *
    * @private
@@ -141,6 +146,15 @@ class TextInputWidget extends OO.ui.TextInputWidget {
     this.selectedTextForAutocomplete = (start !== end && start !== null && end !== null)
       ? element.value.substring(start, end)
       : undefined;
+  }
+
+  /**
+   * Set the autocomplete menu active state. When active, the selected text becomes immutable.
+   *
+   * @param {boolean} active Whether the autocomplete menu is active
+   */
+  setAutocompleteMenuActive(active) {
+    this.autocompleteMenuActive = active;
   }
 
   /**
@@ -158,6 +172,20 @@ class TextInputWidget extends OO.ui.TextInputWidget {
    */
   clearSelectedTextForAutocomplete() {
     this.selectedTextForAutocomplete = undefined;
+  }
+
+  /**
+   * Clean up event listeners when the widget is destroyed.
+   */
+  destroy() {
+    if (this.boundSelectionChangeHandler) {
+      document.removeEventListener('selectionchange', this.boundSelectionChangeHandler);
+    }
+    // Call parent destroy if it exists
+    const parentProto = Object.getPrototypeOf(Object.getPrototypeOf(this));
+    if (parentProto.destroy) {
+      parentProto.destroy.call(this);
+    }
   }
 }
 
