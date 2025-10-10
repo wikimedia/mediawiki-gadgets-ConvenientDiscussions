@@ -1,5 +1,5 @@
 declare global {
-  type Constructor = new (...arguments_: any[]) => object;
+  type Constructor<T = any> = new (...arguments_: any[]) => T;
   type AtLeastOne<T> = [T, ...T[]];
   type MakeRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
   type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;

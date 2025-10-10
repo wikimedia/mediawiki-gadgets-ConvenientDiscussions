@@ -21,6 +21,10 @@ class TextInputWidget extends OO.ui.TextInputWidget {
   constructor(...args) {
     super(...args);
 
+    this.construct();
+  }
+
+  construct() {
     /**
      * Text that was selected before typing an autocomplete trigger.
      *

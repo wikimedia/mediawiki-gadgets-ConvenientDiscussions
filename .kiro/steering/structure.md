@@ -39,8 +39,8 @@
 
 ### Utilities
 
-- **utils-*.js**: Utility functions (API, OOJS, window operations)
-- **Storage*.js**: Local storage management
+- **utils-\*.js**: Utility functions (API, OOJS, window operations)
+- **Storage\*.js**: Local storage management
 - **registry files**: Object registries for comments, sections, users, pages
 - **CdError.js**: Custom error class
 
@@ -50,11 +50,11 @@
 - **pageNav.js**: Page navigation
 - **toc.js**: Table of contents enhancement
 - **AutocompleteManager.js**: Mention/link autocomplete
-- **CodeMirror*.js**: Rich text editor integration
+- **CodeMirror\*.js**: Rich text editor integration
 
 ### Styling
 
-- ***.less files**: Component-specific styles
+- **\*.less files**: Component-specific styles
 - **global.less**: Global styles
 - **variables.less**: Style variables
 
@@ -75,12 +75,12 @@
 ### Multi-Wiki Support
 
 - **config.json5**: Main deployment configuration
-- **config/*.js**: Wiki-specific configuration files
+- **config/\*.js**: Wiki-specific configuration files
 - **buildConfigs.js**: Configuration build script
 
 ### Internationalization
 
-- **i18n/*.json**: Translation files by language code
+- **i18n/\*.json**: Translation files by language code
 - **buildI18n.js**: i18n build script
 - **data/i18nList.json**: Supported languages list
 
@@ -96,6 +96,7 @@
   - **src/worker/jsconfig.json**: worker-related source files
   - **src/shared/jsconfig.json**: source files shared between web and worker
   - **tests/jsconfig.json**: test files
+
   The common part is stored in **jsconfig-base.json**.
 
 ## Development Tools

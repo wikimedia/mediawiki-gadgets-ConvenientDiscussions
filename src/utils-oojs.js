@@ -637,7 +637,23 @@ export function es6ClassToOoJsClass(TargetClass) {
  */
 export function mixInClass(Base, Mixin) {
   // eslint-disable-next-line jsdoc/require-jsdoc
-  class Class extends Base {}
+  class Class extends Base {
+    /**
+     * @param {any} args
+     */
+    constructor(...args) {
+      super(...args);
+
+      if ('construct' in Mixin.prototype) {
+        Mixin.prototype.construct.call(this);
+      } else {
+        // Use `{ ...new Mixin(), ...this }` instead of just `new Mixin()` so that updates made by the
+        // Mixin's constructor don't override those in the class's constructor.
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
+        Object.assign(this, { ...new Mixin(), ...this });
+      }
+    }
+  }
   OO.mixinClass(Class, Mixin);
 
   // for...in in OO.mixinClass doesn't catch prototype properties declared with the `class` syntax
