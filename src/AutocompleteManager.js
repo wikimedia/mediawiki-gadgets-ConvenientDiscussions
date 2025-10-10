@@ -196,7 +196,7 @@ class AutocompleteManager {
           label: instance.getLabel(),
           trigger: instance.getTrigger(),
           searchOpts: { skip: true },
-          selectTemplate: (_event) => this.onOptionChoose,
+          selectTemplate: this.onOptionChoose,
           values: async (
             /** @type {string} */ text,
             /** @type {ProcessOptions} */ callback
@@ -239,7 +239,20 @@ class AutocompleteManager {
    * @param {import('./tribute/Tribute').TributeSearchResults<import('./BaseAutocomplete').Option<any>> | undefined} option
    * @returns {import('./tribute/Tribute').InsertData | string}
    */
-  onOptionChoose = (option) => option?.original.autocomplete?.getInsertionFromEntry(option.original.entry) || '';
+  onOptionChoose = (option) => {
+    if (!option?.original.autocomplete) {
+      return '';
+    }
+
+    // Get the selected text from the input widget if available
+    const element = this.tribute.current.element;
+    let selectedText;
+    if (element?.cdInput && typeof element.cdInput.getSelectedTextForAutocomplete === 'function') {
+      selectedText = element.cdInput.getSelectedTextForAutocomplete();
+    }
+
+    return option.original.autocomplete.getInsertionFromEntry(option.original.entry, selectedText);
+  };
 
   /**
    * Get autocomplete data for a template.

@@ -48,9 +48,10 @@ class MentionsAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} entry The user name to transform
+   * @param {string} [selectedText] Text that was selected before typing the autocomplete trigger
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    */
-  getInsertionFromEntry(entry) {
+  getInsertionFromEntry(entry, selectedText) {
     const name = entry.trim();
     const user = userRegistry.get(name);
     const userNamespace = user.getNamespaceAlias();
@@ -58,10 +59,13 @@ class MentionsAutocomplete extends BaseAutocomplete {
       ? `${userNamespace}:${name}`
       : `${cd.g.contribsPages[0]}/${name}`;
 
+    // Use selected text as content if available, otherwise use the user name
+    const content = selectedText || name;
+
     return {
       start: `@[[${pageName}|`,
       end: name.match(/[(,]/) ? `${name}]]` : ']]',
-      content: name,
+      content,
       omitContentCheck() {
         return !this.start.includes('/');
       },

@@ -49,7 +49,7 @@
 - **navPanel.js**: Navigation panel
 - **pageNav.js**: Page navigation
 - **toc.js**: Table of contents enhancement
-- **Autocomplete.js**: Mention/link autocomplete
+- **AutocompleteManager.js**: Mention/link autocomplete
 - **CodeMirror*.js**: Rich text editor integration
 
 ### Styling

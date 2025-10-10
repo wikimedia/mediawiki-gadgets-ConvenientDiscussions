@@ -85,12 +85,14 @@ class TemplatesAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} entry The template name to transform
+   * @param {string} [selectedText] Text that was selected before typing the autocomplete trigger
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
    */
-  getInsertionFromEntry(entry) {
+  getInsertionFromEntry(entry, selectedText) {
     return {
       start: '{{' + entry.trim(),
       end: '}}',
+      content: selectedText,
       shiftModify() {
         this.start += '|';
       },
@@ -130,7 +132,14 @@ class TemplatesAutocomplete extends BaseAutocomplete {
           setTimeout(() => this.insertTemplateData(option, input));
         }
 
-        return this.getInsertionFromEntry(option.original.entry);
+        // Get selected text from the input widget if available
+        const element = this.manager?.tribute?.current.element;
+        let selectedText;
+        if (element?.cdInput && typeof element.cdInput.getSelectedTextForAutocomplete === 'function') {
+          selectedText = element.cdInput.getSelectedTextForAutocomplete();
+        }
+
+        return this.getInsertionFromEntry(option.original.entry, selectedText);
       },
     };
   }

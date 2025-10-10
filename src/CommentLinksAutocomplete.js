@@ -60,16 +60,19 @@ class CommentLinksAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {CommentLinkEntry} entry The comment links entry to transform
+   * @param {string} [selectedText] Text that was selected before typing the autocomplete trigger
    * @returns {import('./tribute/Tribute').InsertData & { end: string, content: string }}
    */
-  getInsertionFromEntry(entry) {
+  getInsertionFromEntry(entry, selectedText) {
+    // Use selected text if available, otherwise use the default content
+    const defaultContent = 'timestamp' in entry
+      ? cd.s('cf-autocomplete-commentlinks-text', entry.authorName, entry.timestamp)
+      : /** @type {string} */ (entry.headline);
+
     return {
       start: `[[#${entry.urlFragment}|`,
       end: ']]',
-      content:
-        'timestamp' in entry
-          ? cd.s('cf-autocomplete-commentlinks-text', entry.authorName, entry.timestamp)
-          : /** @type {string} */ (entry.headline),
+      content: selectedText || defaultContent,
     };
   }
 

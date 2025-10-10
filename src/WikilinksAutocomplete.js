@@ -44,14 +44,18 @@ class WikilinksAutocomplete extends BaseAutocomplete {
    *
    * @override
    * @param {string} entry The page name to transform
+   * @param {string} [selectedText] Text that was selected before typing the autocomplete trigger
    * @returns {import('./tribute/Tribute').InsertData & { end: string }}
    */
-  getInsertionFromEntry(entry) {
+  getInsertionFromEntry(entry, selectedText) {
+    const pageName = entry.trim();
+
     return {
-      start: '[[' + entry.trim(),
+      start: '[[' + pageName,
       end: ']]',
+      content: selectedText,
       shiftModify() {
-        this.content = this.start.slice(2);
+        this.content = this.content || this.start.slice(2);
         this.start += '|';
       },
     };

@@ -21,8 +21,38 @@ class TextInputWidget extends OO.ui.TextInputWidget {
   constructor(...args) {
     super(...args);
 
+    /**
+     * Text that was selected before typing an autocomplete trigger.
+     *
+     * @type {string | undefined}
+     * @private
+     */
+    this.selectedTextForAutocomplete = undefined;
+
     this.$input.on('input', () => {
       this.emit('manualChange', this.getValue());
+    });
+
+    // Track selection changes to capture selected text for autocomplete
+    // Only capture on mouseup to avoid clearing on every keystroke
+    this.$input.on('mouseup', () => {
+      this.updateSelectedTextForAutocomplete();
+    });
+
+    // Also track on keyup, but only for selection keys (Shift+Arrow, etc.)
+    this.$input.on('keyup', (event) => {
+      // Only update selection if shift key was involved (selection keys)
+      if (
+        event.shiftKey ||
+        event.key === 'ArrowLeft' ||
+        event.key === 'ArrowRight' ||
+        event.key === 'ArrowUp' ||
+        event.key === 'ArrowDown' ||
+        event.key === 'Home' ||
+        event.key === 'End'
+      ) {
+        this.updateSelectedTextForAutocomplete();
+      }
     });
   }
 
@@ -91,6 +121,39 @@ class TextInputWidget extends OO.ui.TextInputWidget {
     this.popPending().setDisabled(false);
 
     return wikitext ?? text;
+  }
+
+  /**
+   * Update the selected text for autocomplete based on current selection.
+   *
+   * @private
+   */
+  updateSelectedTextForAutocomplete() {
+    const element = /** @type {HTMLInputElement | HTMLTextAreaElement} */ (this.$input[0]);
+    const start = element.selectionStart;
+    const end = element.selectionEnd;
+
+    // Only capture selection if there's actually selected text
+    this.selectedTextForAutocomplete = (start !== end && start !== null && end !== null)
+      ? element.value.substring(start, end)
+      : undefined;
+  }
+
+  /**
+   * Get the text that was selected before typing an autocomplete trigger.
+   *
+   * @returns {string | undefined} The selected text, or undefined if none
+   */
+  getSelectedTextForAutocomplete() {
+    return this.selectedTextForAutocomplete;
+  }
+
+  /**
+   * Clear the selected text for autocomplete. This should be called when the user types
+   * something other than an autocomplete trigger.
+   */
+  clearSelectedTextForAutocomplete() {
+    this.selectedTextForAutocomplete = undefined;
   }
 }
 

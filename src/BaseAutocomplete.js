@@ -149,9 +149,10 @@ class BaseAutocomplete {
    *
    * @abstract
    * @param {any} _entry The entry to transform
+   * @param {string} [_selectedText] Text that was selected before typing the autocomplete trigger
    * @returns {import('./tribute/Tribute').InsertData}
    */
-  getInsertionFromEntry(_entry) {
+  getInsertionFromEntry(_entry, _selectedText) {
     throw new CdError({
       type: 'internal',
       message: 'getInsertionFromEntry() must be implemented by subclass',
