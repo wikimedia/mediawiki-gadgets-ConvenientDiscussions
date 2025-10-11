@@ -1,5 +1,5 @@
 import ForeignStructuredUploadBookletLayout from './ForeignStructuredUploadBookletLayout';
-import { ProcessDialogMixin } from './ProcessDialog';
+import ProcessDialogMixin from './ProcessDialogMixin';
 import cd from './cd';
 import CdError from './shared/CdError';
 import { es6ClassToOoJsClass, mixInClass } from './utils-oojs';
@@ -26,11 +26,6 @@ export class UploadDialog extends mixInClass(
   ),
   ProcessDialogMixin
 ) {
-  /**
-   * @type {string}
-   */
-  static cdKey = 'ud';
-
   /**
    * Create an upload dialog.
    *
