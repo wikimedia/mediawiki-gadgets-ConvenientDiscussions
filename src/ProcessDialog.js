@@ -1,29 +1,18 @@
 import bootManager from './bootManager';
 import cd from './cd';
 import CdError from './shared/CdError';
-import { es6ClassToOoJsClass } from './utils-oojs';
+import { es6ClassToOoJsClass, mixInClass } from './utils-oojs';
 
 /**
- * Our class that extends {@link OO.ui.ProcessDialog OO.ui.ProcessDialog}, adding a couple
- * of methods to it.
- *
- * @augments OO.ui.ProcessDialog
+ * Mixin that adds process dialog functionality.
  */
-class ProcessDialog extends OO.ui.ProcessDialog {
+class ProcessDialogMixin {
   /**
-   * @type {string}
-   * @abstract
-   */
-  static cdKey;
-
-  /**
-   * Create a process dialog.
+   * Initialize the mixin.
    *
-   * @param {OO.ui.ProcessDialog.ConfigOptions} [config]
+   * @this {ProcessDialogMixin & OO.ui.ProcessDialog}
    */
-  constructor(config) {
-    super(config);
-
+  construct() {
     // Workaround to make this.constructor in methods to be type-checked correctly
     /** @type {typeof ProcessDialog} */
     // eslint-disable-next-line no-self-assign
@@ -33,6 +22,7 @@ class ProcessDialog extends OO.ui.ProcessDialog {
   /**
    * Check if there are unsaved changes.
    *
+   * @this {ProcessDialogMixin & OO.ui.ProcessDialog}
    * @returns {boolean}
    */
   isUnsaved() {
@@ -43,9 +33,11 @@ class ProcessDialog extends OO.ui.ProcessDialog {
 
   /**
    * Confirm closing the dialog.
+   *
+   * @this {ProcessDialogMixin & OO.ui.ProcessDialog}
    */
   confirmClose() {
-    if (!this.isUnsaved() || confirm(cd.s(`${this.constructor.cdKey}-close-confirm`))) {
+    if (!this.isUnsaved() || confirm(cd.s(`${this.constructor.cdKey || 'dialog'}-close-confirm`))) {
       this.close({ action: 'close' });
       bootManager.removePreventUnloadCondition('dialog');
     }
@@ -55,6 +47,7 @@ class ProcessDialog extends OO.ui.ProcessDialog {
    * Handle a error, displaying a message with the provided name and popping the pending state. If
    * the error is not recoverable, the dialog is closed on "Dismiss".
    *
+   * @this {ProcessDialogMixin & OO.ui.ProcessDialog}
    * @param {unknown} error
    * @param {string} [messageName]
    * @param {boolean} [recoverable]
@@ -90,6 +83,21 @@ class ProcessDialog extends OO.ui.ProcessDialog {
   }
 }
 
+/**
+ * Our class that extends {@link OO.ui.ProcessDialog OO.ui.ProcessDialog}, adding a couple
+ * of methods to it.
+ *
+ * @augments OO.ui.ProcessDialog
+ */
+class ProcessDialog extends mixInClass(OO.ui.ProcessDialog, ProcessDialogMixin) {
+  /**
+   * @type {string}
+   * @abstract
+   */
+  static cdKey;
+}
+
 es6ClassToOoJsClass(ProcessDialog);
 
 export default ProcessDialog;
+export { ProcessDialogMixin };

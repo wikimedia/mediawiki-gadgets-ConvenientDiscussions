@@ -1,5 +1,5 @@
 import ForeignStructuredUploadBookletLayout from './ForeignStructuredUploadBookletLayout';
-import ProcessDialog from './ProcessDialog';
+import { ProcessDialogMixin } from './ProcessDialog';
 import cd from './cd';
 import CdError from './shared/CdError';
 import { es6ClassToOoJsClass, mixInClass } from './utils-oojs';
@@ -24,8 +24,13 @@ export class UploadDialog extends mixInClass(
   /** @type {typeof mw.Upload.Dialog<typeof ForeignStructuredUploadBookletLayout>} */ (
     mw.Upload.Dialog
   ),
-  ProcessDialog
+  ProcessDialogMixin
 ) {
+  /**
+   * @type {string}
+   */
+  static cdKey = 'ud';
+
   /**
    * Create an upload dialog.
    *
@@ -95,7 +100,7 @@ export class UploadDialog extends mixInClass(
         // Empty
       }
 
-      data.commentForm?.popPending();
+      data.commentForm.popPending();
 
       // For some reason there is no handling of network errors; the dialog just outputs "http".
       if (
@@ -167,7 +172,7 @@ export class UploadDialog extends mixInClass(
       // We don't want that.
       this.uploadBooklet.cancelUpload();
 
-      return new OO.ui.Process();
+      return new OO.ui.Process(() => {});
     }
 
     return super.getActionProcess(action);
