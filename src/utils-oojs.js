@@ -644,11 +644,6 @@ export function mixInClass(Base, Mixin) {
     constructor(...args) {
       super(...args);
 
-      // Use `{ ...new Mixin(), ...this }` instead of just `new Mixin()` so that updates made by
-      // the Mixin's constructor don't override those in the class's constructor.
-      // eslint-disable-next-line @typescript-eslint/no-misused-spread
-      Object.assign(this, { ...new Mixin(), ...this });
-
       if ('construct' in Mixin.prototype) {
         Mixin.prototype.construct.call(this);
       }

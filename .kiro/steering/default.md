@@ -34,7 +34,26 @@ This is a JavaScript project with type checking supplied by TypeScript through t
   * Variables used in template strings. Those are OK to be used only once.
   * Cases where the use of the variable is in a loop or function while the assignment is not.
   * Cases where the assignment and the use of the variable are separated by a function with a side effect affecting that variable.
-* When using a method in a callback, turn it into an arrow function to avoid the need to bind them to `this` using `.bind()`.
+* When using a method in a callback, turn it into an arrow function to avoid the need to bind them to `this` using `.bind()`. E.g. avoid this:
+
+  ```js
+  this.boundOnClick = this.onClick.bind(this);
+  document.addEventListener('click', this.boundOnClick)
+  ```
+
+  Instead, do this:
+
+  ```js
+  someMethod() {
+    document.addEventListener('click', this.onClick)
+  }
+
+  onClick = () => {
+    // ...
+  };
+  ```
+
+  When the class is a mixin (those have `Mixin` in their names), declare `onClick` inside the method itself, not via the class field initialization mechanism.
 * Don't introduce new `null` values. Use `undefined` instead, but don't assign any values to variables that don't have a value yet so that they stay `undefined`. Avoid returning `null` from functions instead of `undefined`.
 * Introduce class properties using class field syntax rather than inside the constructor.
 * Use optional chaining (`?.`) and nullish coalescing (`??`) operators, as well as logical OR assignment (`||=`) and other assignment operators.

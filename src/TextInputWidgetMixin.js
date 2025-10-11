@@ -16,7 +16,7 @@ class TextInputWidgetMixin {
   /**
    * Construct the instance. A separate method is used to allow the class to be used as a mixin.
    *
-   * @this {OO.ui.TextInputWidget & TextInputWidgetMixin}
+   * @this {TextInputWidgetMixin & OO.ui.TextInputWidget}
    */
   construct() {
     /**
@@ -62,8 +62,8 @@ class TextInputWidgetMixin {
    * Insert text while keeping the undo/redo functionality.
    *
    * @param {string} content
-   * @returns {OO.ui.TextInputWidget & TextInputWidgetMixin}
-   * @this {OO.ui.TextInputWidget & TextInputWidgetMixin}
+   * @returns {TextInputWidgetMixin & OO.ui.TextInputWidget}
+   * @this {TextInputWidgetMixin & OO.ui.TextInputWidget}
    */
   insertContent(content) {
     this.focus();
@@ -79,7 +79,7 @@ class TextInputWidgetMixin {
    * Given a selection, get its content as wikitext.
    *
    * @returns {Promise<string>}
-   * @this {OO.ui.TextInputWidget & TextInputWidgetMixin}
+   * @this {TextInputWidgetMixin & OO.ui.TextInputWidget}
    */
   async getWikitextFromSelection() {
     const div = document.createElement('div');
@@ -97,7 +97,7 @@ class TextInputWidgetMixin {
    *
    * @param {string} html Pasted HTML.
    * @returns {Promise<string>}
-   * @this {OO.ui.TextInputWidget & TextInputWidgetMixin}
+   * @this {TextInputWidgetMixin & OO.ui.TextInputWidget}
    */
   getWikitextFromPaste(html) {
     return this.maybeConvertElementToWikitext(
@@ -114,7 +114,7 @@ class TextInputWidgetMixin {
    * @param {string} data.text
    * @param {Array.<string|undefined>} data.syntaxHighlightLanguages
    * @returns {Promise<string>}
-   * @this {OO.ui.TextInputWidget & TextInputWidgetMixin}
+   * @this {TextInputWidgetMixin & OO.ui.TextInputWidget}
    */
   async maybeConvertElementToWikitext({ element, text, syntaxHighlightLanguages }) {
     if (!isElementConvertibleToWikitext(element)) {
@@ -132,7 +132,7 @@ class TextInputWidgetMixin {
    * Update the selected text for autocomplete based on current selection.
    *
    * @protected
-   * @this {OO.ui.TextInputWidget & TextInputWidgetMixin}
+   * @this {TextInputWidgetMixin & OO.ui.TextInputWidget}
    */
   updateSelectedTextForAutocomplete() {
     const element = /** @type {HTMLInputElement | HTMLTextAreaElement} */ (this.$input[0]);
@@ -149,7 +149,7 @@ class TextInputWidgetMixin {
    * Set the autocomplete menu active state. When active, the selected text becomes immutable.
    *
    * @param {boolean} active Whether the autocomplete menu is active
-   * @this {OO.ui.TextInputWidget & TextInputWidgetMixin}
+   * @this {TextInputWidgetMixin & OO.ui.TextInputWidget}
    */
   setAutocompleteMenuActive(active) {
     this.autocompleteMenuActive = active;
@@ -159,7 +159,7 @@ class TextInputWidgetMixin {
    * Get the text that was selected before typing an autocomplete trigger.
    *
    * @returns {string | undefined} The selected text, or undefined if none
-   * @this {OO.ui.TextInputWidget & TextInputWidgetMixin}
+   * @this {TextInputWidgetMixin & OO.ui.TextInputWidget}
    */
   getSelectedTextForAutocomplete() {
     return this.selectedTextForAutocomplete;
@@ -168,7 +168,7 @@ class TextInputWidgetMixin {
   /**
    * Clean up event listeners when the widget is destroyed.
    *
-   * @this {OO.ui.TextInputWidget & TextInputWidgetMixin}
+   * @this {TextInputWidgetMixin & OO.ui.TextInputWidget}
    */
   destroy() {
     document.removeEventListener(
