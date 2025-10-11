@@ -60,14 +60,13 @@ class MentionsAutocomplete extends BaseAutocomplete {
       : `${cd.g.contribsPages[0]}/${name}`;
 
     // Use selected text as content if available, otherwise use the user name
-    const content = selectedText || name;
 
     return {
       start: `@[[${pageName}|`,
       end: name.match(/[(,]/) ? `${name}]]` : ']]',
-      content,
+      content: selectedText || name,
       omitContentCheck() {
-        return !this.start.includes('/');
+        return !selectedText && !this.start.includes('/');
       },
       cmdModify() {
         this.end += cd.mws('colon-separator', { language: 'content' });

@@ -74,29 +74,6 @@ class TributeEvents {
   input(instance, event) {
     instance.inputEvent = true;
 
-    // Check if this input event is from typing an autocomplete trigger
-    const element = this;
-    const tribute = instance.tribute;
-    const triggers = tribute.triggers();
-
-    // Get the text before the current cursor position
-    const cursorPos = element.selectionStart;
-    const textBeforeCursor = element.value.substring(0, cursorPos);
-
-    // Check if any trigger was just typed
-    let triggerJustTyped = false;
-    for (const trigger of triggers) {
-      if (textBeforeCursor.endsWith(trigger)) {
-        triggerJustTyped = true;
-        break;
-      }
-    }
-
-    // If no trigger was typed and we have a TextInputWidget, clear selected text
-    if (!triggerJustTyped && element.cdInput && typeof element.cdInput.clearSelectedTextForAutocomplete === 'function') {
-      element.cdInput.clearSelectedTextForAutocomplete();
-    }
-
     instance.keyup.call(this, instance, event);
   }
 

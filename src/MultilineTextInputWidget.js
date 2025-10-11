@@ -1,4 +1,4 @@
-import TextInputWidget from './TextInputWidget';
+import TextInputWidgetMixin from './TextInputWidgetMixin';
 import { es6ClassToOoJsClass, mixInClass } from './utils-oojs';
 
 /**
@@ -16,7 +16,7 @@ import { es6ClassToOoJsClass, mixInClass } from './utils-oojs';
  */
 class MultilineTextInputWidget extends mixInClass(
   OO.ui.MultilineTextInputWidget,
-  TextInputWidget
+  TextInputWidgetMixin
 ) {
   /** @type {boolean} */
   codeMirrorEnabled;

@@ -146,12 +146,12 @@ class AutocompleteManager {
       element.addEventListener('tribute-active-true', () => {
         AutocompleteManager.activeMenu = this.tribute.menu;
         // Set the autocomplete menu as active to make selected text immutable
-        input.setAutocompleteMenuActive?.(true);
+        input.setAutocompleteMenuActive(true);
       });
       element.addEventListener('tribute-active-false', () => {
         delete AutocompleteManager.activeMenu;
         // Set the autocomplete menu as inactive to allow selection changes again
-        input.setAutocompleteMenuActive?.(false);
+        input.setAutocompleteMenuActive(false);
       });
       if (input instanceof OO.ui.MultilineTextInputWidget) {
         input.on('resize', () => {

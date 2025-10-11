@@ -316,9 +316,10 @@ class BaseAutocomplete {
 
         this.updateCache(text, apiResults);
         callback(this.getOptionsFromEntries(apiResults));
-      } catch (error) {
-        // Silently handle API errors to avoid disrupting user experience
-        console.warn('Autocomplete API request failed:', error);
+      } catch {
+        // Silently handle API errors to avoid disrupting user experience. This currently runs even
+        // when just overriding request promises with new ones, so it's not really an error
+        // console.warn('Autocomplete API request failed:', error);
       }
     }
   }
