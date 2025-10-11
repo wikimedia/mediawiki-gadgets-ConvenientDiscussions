@@ -107,6 +107,11 @@ ol > .cd-thread-button-container > .cd-thread-button {
   display: none !important;
 }
 
+// Support for hidden="until-found" - elements with this attribute should be hidden but searchable
+[hidden='until-found'] {
+  display: none !important;
+}
+
 // Allow headings to have the top pixel visible to make active section highlighting in the TOC
 // work
 .mw-heading.cd-hidden:not(#cd-dummyId) {
@@ -203,7 +208,9 @@ ol > .cd-thread-button-container > .cd-thread-button {
 
 .cd-dialog-copyLink {
   .oo-ui-actionFieldLayout.oo-ui-fieldLayout-align-top,
-  .oo-ui-fieldLayout.oo-ui-labelElement.oo-ui-fieldLayout-align-top > .oo-ui-fieldLayout-body > .oo-ui-fieldLayout-header,
+  .oo-ui-fieldLayout.oo-ui-labelElement.oo-ui-fieldLayout-align-top
+    > .oo-ui-fieldLayout-body
+    > .oo-ui-fieldLayout-header,
   .oo-ui-textInputWidget,
   .oo-ui-copyTextLayout > .oo-ui-fieldLayout-body > .oo-ui-fieldLayout-field {
     max-width: 60em;
@@ -243,7 +250,8 @@ ol > .cd-thread-button-container > .cd-thread-button {
 .darkTheme-talkPage() {
   --cd-current-user-link-color: #5c1a70;
 
-  .cd-button-expandNote.cd-button-expandNote.cd-button-expandNote.cd-button-expandNote > .oo-ui-iconElement-icon {
+  .cd-button-expandNote.cd-button-expandNote.cd-button-expandNote.cd-button-expandNote
+    > .oo-ui-iconElement-icon {
     background-image: url('data:image/svg+xml,%3Csvg width="7" height="12" viewBox="0 0 7 12" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M1.27273 -4.13261e-07L-4.66255e-07 1.33333L4.45455 6L-5.82819e-08 10.6667L1.27273 12L7 6L1.27273 -4.13261e-07Z" fill="%23f8f9fa" /%3E%3C/svg%3E');
   }
 }
@@ -279,12 +287,14 @@ ol > .cd-thread-button-container > .cd-thread-button {
 }
 
 // T295107
-.oo-ui-buttonSelectWidget.oo-ui-widget-enabled .oo-ui-buttonElement.oo-ui-widget-disabled.cd-dialog-copyLink-diffButton > .oo-ui-buttonElement-button {
+.oo-ui-buttonSelectWidget.oo-ui-widget-enabled
+  .oo-ui-buttonElement.oo-ui-widget-disabled.cd-dialog-copyLink-diffButton
+  > .oo-ui-buttonElement-button {
   z-index: 0;
 }
 
 // Increase the vertical margins a bit from 5px
-.cd-popupOverlay .oo-ui-popupWidget-body  {
+.cd-popupOverlay .oo-ui-popupWidget-body {
   margin-top: 7px;
   margin-bottom: 7px;
 }
@@ -357,7 +367,11 @@ ol > .cd-thread-button-container > .cd-thread-button {
       transition: opacity 0.2s ease-in;
 
       &-extended::after {
-        background-image: linear-gradient(to bottom, var(--border-color-interactive, #72777d), transparent);
+        background-image: linear-gradient(
+          to bottom,
+          var(--border-color-interactive, #72777d),
+          transparent
+        );
       }
     }
   }

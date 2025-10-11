@@ -214,7 +214,43 @@ class Thread extends mixInObject(
 
     this.navMode = false;
     this.blockClickEvent = false;
+
+    // Set up beforematch event listener for hidden="until-found" support
+    this.setupBeforeMatchListener();
   }
+
+  /**
+   * Set up beforematch event listeners for hidden="until-found" support.
+   *
+   * @private
+   */
+  setupBeforeMatchListener() {
+    // Only set up if the browser supports beforematch events
+    if (typeof window !== 'undefined' && 'onbeforematch' in document.createElement('div')) {
+      this.handleBeforeMatch = this.handleBeforeMatch.bind(this);
+    }
+  }
+
+  /**
+   * Handle the beforematch event to expand collapsed threads when text is found.
+   *
+   * @param {Event} event
+   * @private
+   */
+  handleBeforeMatch = (event) => {
+    // Check if the event target is within this thread's collapsed range
+    if (this.isCollapsed && this.collapsedRange) {
+      const target = /** @type {HTMLElement} */ (event.target);
+      const isInCollapsedRange = this.collapsedRange.some((element) =>
+        element === target || element.contains(target)
+      );
+
+      if (isInCollapsedRange) {
+        // Expand the thread to reveal the found text
+        this.expand();
+      }
+    }
+  };
 
   /**
    * Set the `startElement`, `endElement`, `visualEndElement`, and `visualEndElementFallback`
@@ -1069,6 +1105,16 @@ class Thread extends mixInObject(
     // beginning and should stay so when reshowing the comment.
     element.classList.add('cd-hidden');
 
+    // Use hidden="until-found" for better browser search support if available
+    if ('onbeforematch' in element) {
+      element.setAttribute('hidden', 'until-found');
+
+      // Add beforematch event listener if we have the handler
+      if (this.handleBeforeMatch) {
+        element.addEventListener('beforematch', this.handleBeforeMatch);
+      }
+    }
+
     // An element can be in more than one collapsed range. So, we need to show the element when
     // expanding a range only if no active collapsed ranges are left.
     const $el = $(element);
@@ -1090,6 +1136,12 @@ class Thread extends mixInObject(
     $element.data('cd-collapsed-thread-root-comments', roots);
     if (!roots.length && !$element.data('cd-comment-form')) {
       element.classList.remove('cd-hidden');
+      element.removeAttribute('hidden');
+
+      // Remove beforematch event listener if we have the handler
+      if (this.handleBeforeMatch) {
+        element.removeEventListener('beforematch', this.handleBeforeMatch);
+      }
     }
   }
 
@@ -1636,7 +1688,7 @@ class Thread extends mixInObject(
     let endElement = lastHighlightable;
     for (
       let n = endElement.parentElement;
-      n && n !== commonAncestor && !(nextForeignElement && n?.contains(nextForeignElement));
+      n && n !== commonAncestor && !(nextForeignElement && n.contains(nextForeignElement));
       n = n.parentElement
     ) {
       endElement = n;
