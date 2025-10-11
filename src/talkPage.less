@@ -337,3 +337,42 @@ ol > .cd-thread-button-container > .cd-thread-button {
 .cd-closeButton.cd-closeButton {
   color: var(--color-base, #202122);
 }
+
+.cd-thread-clickArea {
+  position: absolute;
+
+  // Above the page navigation (.cd-pageNav)
+  z-index: 2;
+
+  width: calc(var(--cd-comment-marker-width) / var(--cd-pixel-deviation-ratio));
+  padding-left: var(--cd-thread-line-side-padding);
+  padding-right: var(--cd-thread-line-side-padding);
+
+  &-hovered {
+    cursor: pointer;
+
+    .cd-thread-line {
+      background-color: var(--border-color-interactive, #72777d);
+      opacity: 1;
+      transition: opacity 0.2s ease-in;
+
+      &-extended::after {
+        background-image: linear-gradient(to bottom, var(--border-color-interactive, #72777d), transparent);
+      }
+    }
+  }
+}
+
+.cd-thread-line {
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+
+  &-extended::after {
+    display: block;
+    content: '';
+    height: 10px;
+    top: 100%;
+    position: relative;
+  }
+}
