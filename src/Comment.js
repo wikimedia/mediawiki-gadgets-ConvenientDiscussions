@@ -1520,7 +1520,7 @@ class Comment extends CommentSkeleton {
     let rectBottom = this.elements.length === 1 ? rectTop : Comment.getCommentPartRect(lastElement);
 
     if (!getVisibilityByRects(rectTop, rectBottom)) {
-      this.setOffset(undefined, options);
+      this.maybeSetOffset(undefined, options);
 
       return;
     }
@@ -1582,7 +1582,7 @@ class Comment extends CommentSkeleton {
         bottom - top > window.innerHeight - 250 ? top + (window.innerHeight - 250) : bottom,
       firstHighlightableWidth: firstElement.offsetWidth,
     };
-    this.setOffset(offset, options);
+    this.maybeSetOffset(offset, options);
 
     return options.set ? true : offset;
   }
@@ -1595,7 +1595,7 @@ class Comment extends CommentSkeleton {
    * @param {GetOffsetOptions<boolean>} options
    * @private
    */
-  setOffset(offset, options) {
+  maybeSetOffset(offset, options) {
     if (!options.set) return;
 
     if (options.considerFloating) {
@@ -1689,7 +1689,7 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Set the {@link Comment#isStartStretched isStartStretched} and
+   * Update the {@link Comment#isStartStretched isStartStretched} and
    * {@link Comment#isEndStretched isEndStretched} properties.
    *
    * @param {number} left Left offset.
