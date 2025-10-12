@@ -1197,39 +1197,6 @@ class Thread extends mixInObject(
    * @private
    */
   updateLine({ elementsToAdd, threadsToUpdate, scrollX, scrollY }) {
-    const getLeft = (
-      /** @type {DOMRect} */ rect,
-      /** @type {import('./Comment').CommentMargins=} */ commentMargins,
-      /** @type {'rtl'|'ltr'} */ dir
-    ) => {
-      let offset;
-
-      // This calculation is the same as in .cd-comment-overlay-marker, but without -1px - we don't
-      // need it. Don't round - we need a subpixel-precise value.
-      const centerOffset = -(
-        (cd.g.commentMarkerWidth / cd.g.pixelDeviationRatio - 1 / cd.g.pixelDeviationRatioFor1px) /
-        2
-      );
-
-      if (dir === 'ltr') {
-        offset = rect.left + centerOffset;
-        if (commentMargins) {
-          offset -= commentMargins.left + 1;
-        }
-      } else {
-        offset = (
-          rect.right -
-          (cd.g.commentMarkerWidth / cd.g.pixelDeviationRatio) -
-          centerOffset
-        );
-        if (commentMargins) {
-          offset += commentMargins.right + 1;
-        }
-      }
-
-      return offset + scrollX - cd.g.threadLineSidePadding;
-    };
-
     const comment = this.rootComment;
 
     try {
@@ -1266,18 +1233,14 @@ class Thread extends mixInObject(
       const commentMargins = needCalculateMargins ? comment.getMargins() : undefined;
 
       const dir = comment.getDirection();
-      const left = getLeft(rectTop, commentMargins, dir);
+      const left = this.getThreadLineLeft(rectTop, commentMargins, dir, scrollX);
 
       // FIXME: We use the first comment part's margins for the bottom rectangle which can lead to
       // errors (need to check).
-      const bottomLeft = getLeft(/** @type {DOMRect} */ (rectBottom), commentMargins, dir);
+      const bottomLeft = this.getThreadLineLeft(rectBottom, commentMargins, dir, scrollX);
 
       // Are top and bottom aligned?
-      if (
-        !(dir === 'ltr'
-          ? bottomLeft >= /** @type {number} */ (left)
-          : bottomLeft <= /** @type {number} */ (left))
-      ) {
+      if (dir === 'ltr' ? bottomLeft < left : bottomLeft > left) {
         throw new CdError();
       }
 
@@ -1299,7 +1262,7 @@ class Thread extends mixInObject(
 
       /** @type {ClickAreaOffset} */
       // eslint-disable-next-line object-shorthand
-      this.clickAreaOffset = { top, left: /** @type {number} */ (left), height };
+      this.clickAreaOffset = { top, left, height };
 
       if (!this.line) {
         this.createLine();
@@ -1315,6 +1278,41 @@ class Thread extends mixInObject(
     }
 
     return false;
+  }
+
+  /**
+   * Get the left offset of the thread line.
+   *
+   * @param {DOMRect} rect
+   * @param {import('./Comment').CommentMargins | undefined} commentMargins
+   * @param {'rtl' | 'ltr'} dir
+   * @param {number} scrollX
+   * @returns {number}
+   * @private
+   */
+  getThreadLineLeft(rect, commentMargins, dir, scrollX) {
+    let offset;
+
+    // This calculation is the same as in .cd-comment-overlay-marker, but without -1px - we don't
+    // need it. Don't round - we need a subpixel-precise value.
+    const centerOffset = -(
+      (cd.g.commentMarkerWidth / cd.g.pixelDeviationRatio - 1 / cd.g.pixelDeviationRatioFor1px) /
+      2
+    );
+
+    if (dir === 'ltr') {
+      offset = rect.left + centerOffset;
+      if (commentMargins) {
+        offset -= commentMargins.left + 1;
+      }
+    } else {
+      offset = rect.right - cd.g.commentMarkerWidth / cd.g.pixelDeviationRatio - centerOffset;
+      if (commentMargins) {
+        offset += commentMargins.right + 1;
+      }
+    }
+
+    return offset + scrollX - cd.g.threadLineSidePadding;
   }
 
   /**
