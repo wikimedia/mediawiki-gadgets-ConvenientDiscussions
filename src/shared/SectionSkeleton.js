@@ -214,7 +214,8 @@ class SectionSkeleton {
 
     // Find the next heading element
     const headingIndex = targets.indexOf(heading);
-    let /** @type {number|undefined} */ nextHeadingIndex = targets
+    /** @type {number | undefined} */
+    let nextHeadingIndex = targets
       .findIndex((target, i) => i > headingIndex && target.type === 'heading');
     let nextHeadingElement;
     if (nextHeadingIndex === -1) {
@@ -224,7 +225,8 @@ class SectionSkeleton {
     }
 
     // Find the next heading element whose section is not a descendant of this section
-    let /** @type {number|undefined} */ nndheIndex = targets.findIndex((target, i) => (
+    /** @type {number | undefined} */
+    let nndheIndex = targets.findIndex((target, i) => (
       i > headingIndex &&
       target.type === 'heading' &&
       /** @type {import('./Parser').HeadingTarget<N>} */ (target).level <= this.level
@@ -261,12 +263,10 @@ class SectionSkeleton {
 
     this.comments = targetsToComments(targets.slice(headingIndex, nndheIndex));
     this.commentsInFirstChunk = targetsToComments(targets.slice(headingIndex, nextHeadingIndex));
-    this.oldestComment = CommentSkeleton.getOldest(this.comments, true);
-    this.comments = [];
-    this.commentsInFirstChunk = this.comments;
     this.commentsInFirstChunk.forEach((comment) => {
       comment.section = this;
     });
+    this.oldestComment = CommentSkeleton.getOldest(this.comments, true);
   }
 
   /**

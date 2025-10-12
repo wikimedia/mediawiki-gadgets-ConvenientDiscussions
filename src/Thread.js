@@ -214,21 +214,6 @@ class Thread extends mixInObject(
 
     this.navMode = false;
     this.blockClickEvent = false;
-
-    // Set up beforematch event listener for hidden="until-found" support
-    this.setupBeforeMatchListener();
-  }
-
-  /**
-   * Set up beforematch event listeners for hidden="until-found" support.
-   *
-   * @private
-   */
-  setupBeforeMatchListener() {
-    // Only set up if the browser supports beforematch events
-    if (typeof window !== 'undefined' && 'onbeforematch' in document.createElement('div')) {
-      this.handleBeforeMatch = this.handleBeforeMatch.bind(this);
-    }
   }
 
   /**
@@ -680,10 +665,9 @@ class Thread extends mixInObject(
 
     [...new Map([['a', 'b']])].sort();
 
-    if (
-      !(this.clickArea).classList.contains('cd-thread-clickArea-hovered')
-    )
-      return;
+    if (!/** @type {HTMLElement} */ (
+      this.clickArea
+    ).classList.contains('cd-thread-clickArea-hovered')) return;
 
     this.onToggleClick(event);
   };
@@ -759,7 +743,7 @@ class Thread extends mixInObject(
       lastComment = this.visualLastComment;
       endElement = this.visualEndElement;
       if (
-        endElement.classList.contains('cd-hidden') &&
+        endElement.hidden &&
         endElement.previousElementSibling?.classList.contains('cd-thread-expandNote')
       ) {
         endElement = /** @type {HTMLElement} */ (endElement.previousElementSibling);
@@ -810,7 +794,7 @@ class Thread extends mixInObject(
       return /** @type {HTMLElement} */ (this.expandNote);
     }
 
-    if (this.startElement.classList.contains('cd-hidden') && this.rootComment.editForm) {
+    if (this.startElement.hidden && this.rootComment.editForm) {
       return this.rootComment.editForm.getOutermostElement();
     }
 
@@ -1101,19 +1085,12 @@ class Thread extends mixInObject(
    * @private
    */
   hideElement(element) {
-    // We use a class here because there can be elements in the comment that are hidden from the
-    // beginning and should stay so when reshowing the comment.
-    element.classList.add('cd-hidden');
+    // Use hidden="until-found" instead of .cd-hidden for better browser search support. If
+    // unsupported, this would gracefully degrade to simply hiding the element.
+    element.setAttribute('hidden', 'until-found');
 
-    // Use hidden="until-found" for better browser search support if available
-    if ('onbeforematch' in element) {
-      element.setAttribute('hidden', 'until-found');
-
-      // Add beforematch event listener if we have the handler
-      if (this.handleBeforeMatch) {
-        element.addEventListener('beforematch', this.handleBeforeMatch);
-      }
-    }
+    // Add beforematch event listener if we have the handler
+    element.addEventListener('beforematch', this.handleBeforeMatch);
 
     // An element can be in more than one collapsed range. So, we need to show the element when
     // expanding a range only if no active collapsed ranges are left.
@@ -1135,13 +1112,10 @@ class Thread extends mixInObject(
     removeFromArrayIfPresent(roots, this.rootComment);
     $element.data('cd-collapsed-thread-root-comments', roots);
     if (!roots.length && !$element.data('cd-comment-form')) {
-      element.classList.remove('cd-hidden');
       element.removeAttribute('hidden');
 
       // Remove beforematch event listener if we have the handler
-      if (this.handleBeforeMatch) {
-        element.removeEventListener('beforematch', this.handleBeforeMatch);
-      }
+      element.removeEventListener('beforematch', this.handleBeforeMatch);
     }
   }
 

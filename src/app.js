@@ -139,7 +139,8 @@ function maybeTweakAddTopicButton() {
     return;
 
   const $button = $('#ca-addsection a');
-  const href = $button.prop('href');
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const href = /** @type {HTMLAnchorElement | undefined} */ ($button[0])?.href;
   if (href) {
     const url = new URL(href);
     if (dtCreatePage) {
@@ -279,7 +280,8 @@ function getStrings() {
   return Promise.all(
     [cd.g.userLanguage, cd.g.contentLanguage]
       .filter(unique)
-      .filter((lang) => lang !== 'en' && !(lang in cd.i18n))
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      .filter((lang) => lang !== 'en' && !cd.i18n?.[lang])
       .map((lang) =>
         mw.loader.getScript(
           `https://commons.wikimedia.org/w/index.php?title=User:Jack_who_built_the_house/convenientDiscussions-i18n/${lang}.js&action=raw&ctype=text/javascript`

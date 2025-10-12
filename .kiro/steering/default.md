@@ -36,18 +36,24 @@ This is a JavaScript project with type checking supplied by TypeScript through t
   - Variables used in template strings. Those are OK to be used only once.
   - Cases where the use of the variable is in a loop or function while the assignment is not.
   - Cases where the assignment and the use of the variable are separated by a function with a side effect affecting that variable.
-- When using a method in a callback, turn it into an arrow function to avoid the need to bind them to `this` using `.bind()`. E.g. avoid this:
+- When using a method in a callback, don't bind it using `.bind()`. Instead, turn it into an arrow function. E.g. don't do this:
 
   ```js
-  this.boundOnClick = this.onClick.bind(this);
-  document.addEventListener('click', this.boundOnClick);
+  someMethod() {
+    this.boundOnClick = this.onClick.bind(this);
+    document.addEventListener('click', this.boundOnClick);
+  }
+
+  onClick() {
+    // ...
+  }
   ```
 
   Instead, do this:
 
   ```js
   someMethod() {
-    document.addEventListener('click', this.onClick)
+    document.addEventListener('click', this.onClick);
   }
 
   onClick = () => {

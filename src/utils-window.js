@@ -121,7 +121,9 @@ export function isInputFocused() {
 
   const $active = $(document.activeElement);
 
-  return $active.is(':input') || $active.prop('isContentEditable');
+  return Boolean(
+    $active.is(':input') || ('isContentEditable' in $active[0] && $active[0].isContentEditable)
+  );
 }
 
 /**

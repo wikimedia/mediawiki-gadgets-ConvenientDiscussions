@@ -119,7 +119,8 @@ class Subscriptions extends EventEmitter {
       let body = subscribeId.startsWith('p-')
         ? cd.mws('discussiontools-newtopicssubscription-notify-subscribed-body')
         : cd.mws('discussiontools-topicsubscription-notify-subscribed-body');
-      let /** @type {'long'|'short'|undefined} */ autoHideSeconds;
+      /** @type {'long'|'short'|undefined} */
+      let autoHideSeconds;
       if (!settings.get('useTopicSubscription')) {
         body += ' ' + cd.sParse('section-watch-openpages');
         if ($('#ca-watch').length) {

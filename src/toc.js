@@ -99,7 +99,7 @@ class Toc {
     if (this.isInSidebar() || !this.isPresent()) return;
 
     if (mw.cookie.get('hidetoc') === '1') {
-      this.$element.find('.toctogglecheckbox').prop('checked', true);
+      /** @type {HTMLInputElement} */ (this.$element.find('.toctogglecheckbox')[0]).checked = true;
     }
   }
 
@@ -356,12 +356,10 @@ class Toc {
         }
 
         upperLevelMatch.$element.append(ul);
+      } else if (this.isInSidebar()) {
+        $topUl.children('#toc-mw-content-text').after(li);
       } else {
-        if (this.isInSidebar()) {
-          $topUl.children('#toc-mw-content-text').after(li);
-        } else {
-          $topUl.prepend(li);
-        }
+        $topUl.prepend(li);
       }
 
       item = {
@@ -563,7 +561,6 @@ class Toc {
         date = cd.s('navpanel-newcomments-unknowndate');
       }
 
-
       const dateIfNeeded = settings.get('timestampFormat') === 'default' ? date : '';
       const text =
         // Names
@@ -587,7 +584,7 @@ class Toc {
         ul.append(li);
 
         const a = document.createElement('a');
-        const id = 'dtId' in comment ? comment.dtId : comment.id
+        const id = 'dtId' in comment ? comment.dtId : comment.id;
         a.href = `#${id}`;
         if (this.isInSidebar()) {
           a.className = 'vector-toc-link cd-toc-link-sidebar';
@@ -669,10 +666,10 @@ class Toc {
           // When unrendered (in gray) comments are added. (Boot process is also not specified at
           // those times.)
           !bootProcess ||
-            bootProcess.isFirstRun() ||
-            // When the comment or section is opened by a link from the TOC
-            bootProcess.passedData.commentIds ||
-            bootProcess.passedData.sectionId
+          bootProcess.isFirstRun() ||
+          // When the comment or section is opened by a link from the TOC
+          bootProcess.passedData.commentIds ||
+          bootProcess.passedData.sectionId
         )
       );
     }

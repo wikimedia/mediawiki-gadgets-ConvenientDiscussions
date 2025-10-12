@@ -87,7 +87,7 @@ class MoveSectionDialog extends ProcessDialog {
    * @ignore
    */
   getBodyHeight() {
-    return this.$errorItems ? this.$errors.prop('scrollHeight') : this.$body.prop('scrollHeight');
+    return this.$errorItems ? this.$errors[0].scrollHeight : this.$body[0].scrollHeight;
   }
 
   /**

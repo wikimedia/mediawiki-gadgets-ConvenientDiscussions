@@ -108,13 +108,11 @@ const convenientDiscussionsWindow = {
     const lastParam = args[args.length - 1];
 
     // lastParam.options can be a `mw.user`-like object to provide to {{gender:}}
-    let params;
     if (typeof lastParam === 'object' && !('options' in lastParam)) {
       options = lastParam;
-      params = /** @type {string[]} */ (args.splice(-1));
-    } else {
-      params = /** @type {string[]} */ (args);
+      args.splice(-1);
     }
+    const params = /** @type {string[]} */ (args);
 
     isQqxMode ??= /[?&]uselang=qqx(?=&|$)/.test(location.search);
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

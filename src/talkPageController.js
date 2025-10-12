@@ -282,7 +282,7 @@ class TalkPageController extends EventEmitter {
       } else {
         // In a collapsed thread?
         const closestHidden = /** @type {?HTMLElement} */ (
-          this.scrollData.element.closest('.cd-hidden')
+          this.scrollData.element.closest('[hidden]')
         );
         if (closestHidden) {
           commentManager.getAll()
@@ -709,7 +709,7 @@ class TalkPageController extends EventEmitter {
     let preloadConfig;
     let newTopicOnTop = false;
     if ($button.is('a')) {
-      const { searchParams } = new URL($button.prop('href'));
+      const { searchParams } = new URL(/** @type {HTMLAnchorElement} */ ($button[0]).href);
       preloadConfig = {
         editIntro: getLastArrayElementOrSelf(searchParams.getAll('editintro')),
         commentTemplate: getLastArrayElementOrSelf(searchParams.getAll('preload')),
@@ -1477,11 +1477,12 @@ class TalkPageController extends EventEmitter {
         }
 
         let pageName;
-        let /** @type {URL|undefined} */ url;
+        /** @type {URL | undefined} */
+        let url;
         if ($button.is('a')) {
-          url = new URL($button.prop('href'));
+          url = new URL(/** @type {HTMLAnchorElement} */ ($button[0]).href);
           pageName = getLastArrayElementOrSelf(url.searchParams.getAll('title'))
-            ?.replace(/^Special:NewSection\//i, '');
+            .replace(/^Special:NewSection\//i, '');
         } else if ($button.is('input')) {
           pageName = /** @type {string} */ ($button
             .closest('form')

@@ -788,7 +788,7 @@ class CommentManager extends EventEmitter {
     } else if (type === 'thread' && parent.$replyButtonWrapper) {
       button.$element.addClass('cd-thread-button');
       const tagName =
-        /** @type {JQuery} */ (parent.$replyButtonContainer).prop('tagName') === 'DL' ? 'dd' : 'li';
+        /** @type {JQuery} */ (parent.$replyButtonContainer)[0].tagName === 'DL' ? 'dd' : 'li';
       $(`<${tagName}>`)
         .addClass('cd-thread-button-container cd-thread-newCommentsNote')
         .append(button.$element)

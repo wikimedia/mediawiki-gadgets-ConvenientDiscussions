@@ -108,8 +108,16 @@ ol > .cd-thread-button-container > .cd-thread-button {
 }
 
 // Support for hidden="until-found" - elements with this attribute should be hidden but searchable
-[hidden='until-found'] {
-  display: none !important;
+.cd-comment-part.cd-comment-part.cd-comment-part[hidden="until-found"] {
+  margin-block: 0;
+}
+
+.cd-thread-expandNote + [hidden="until-found"] + .cd-thread-expandNote {
+  margin-top: -0.5em;
+}
+
+.cd-reformattedComments .cd-thread-expandNote + [hidden="until-found"] + .cd-thread-expandNote {
+  margin-top: -0.75em;
 }
 
 // Allow headings to have the top pixel visible to make active section highlighting in the TOC

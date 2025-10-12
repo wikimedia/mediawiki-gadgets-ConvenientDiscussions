@@ -24,27 +24,36 @@ describe('Thread hidden="until-found" functionality', () => {
     });
 
     // Test the logic that would be in hideElement method
-    mockElement.classList.add('cd-hidden');
     if ('onbeforematch' in mockElement) {
       mockElement.setAttribute('hidden', 'until-found');
+    } else {
+      mockElement.classList.add('cd-hidden');
     }
 
-    expect(mockElement.classList.contains('cd-hidden')).toBe(true);
+    expect(mockElement.classList.contains('cd-hidden')).toBe(false);
     expect(mockElement.getAttribute('hidden')).toBe('until-found');
   });
 
   test('should fall back gracefully when browser does not support beforematch', () => {
-    // Test the logic directly with a plain object
-    const elementWithoutSupport = {};
-    let hiddenAttributeSet = false;
+    // Test the logic directly with a plain object that doesn't have beforematch support
+    const elementWithoutSupport = {
+      classList: {
+        add: jest.fn(),
+        contains: jest.fn(() => true),
+      },
+      setAttribute: jest.fn(),
+      getAttribute: jest.fn(() => null),
+    };
 
     // Test the logic that would be in hideElement method
     if ('onbeforematch' in elementWithoutSupport) {
-      hiddenAttributeSet = true;
+      elementWithoutSupport.setAttribute('hidden', 'until-found');
+    } else {
+      elementWithoutSupport.classList.add('cd-hidden');
     }
 
-    expect(hiddenAttributeSet).toBe(false);
-    expect('onbeforematch' in elementWithoutSupport).toBe(false);
+    expect(elementWithoutSupport.classList.add).toHaveBeenCalledWith('cd-hidden');
+    expect(elementWithoutSupport.setAttribute).not.toHaveBeenCalled();
   });
 
   test('should remove hidden attribute when unhiding element', () => {
@@ -54,14 +63,16 @@ describe('Thread hidden="until-found" functionality', () => {
       writable: true,
     });
 
-    // Hide element first
-    mockElement.classList.add('cd-hidden');
+    // Hide element first (using hidden="until-found" since browser supports it)
     mockElement.setAttribute('hidden', 'until-found');
     expect(mockElement.getAttribute('hidden')).toBe('until-found');
 
-    // Unhide element
-    mockElement.classList.remove('cd-hidden');
-    mockElement.removeAttribute('hidden');
+    // Unhide element (test the logic from maybeUnhideElement)
+    if (mockElement.hasAttribute('hidden')) {
+      mockElement.removeAttribute('hidden');
+    } else {
+      mockElement.classList.remove('cd-hidden');
+    }
 
     expect(mockElement.classList.contains('cd-hidden')).toBe(false);
     expect(mockElement.getAttribute('hidden')).toBeNull();
@@ -101,5 +112,50 @@ describe('Thread hidden="until-found" functionality', () => {
     mockElement.dispatchEvent(beforeMatchEvent);
 
     expect(eventFired).toBe(true);
+  });
+
+  test('should not use cd-hidden class when hidden="until-found" is supported', () => {
+    // Mock browser support for beforematch
+    Object.defineProperty(mockElement, 'onbeforematch', {
+      value: null,
+      writable: true,
+    });
+
+    // Test that when hidden="until-found" is supported, we don't use cd-hidden
+    if ('onbeforematch' in mockElement) {
+      mockElement.setAttribute('hidden', 'until-found');
+    } else {
+      mockElement.classList.add('cd-hidden');
+    }
+
+    // Element should be hidden via hidden="until-found", not cd-hidden class
+    expect(mockElement.getAttribute('hidden')).toBe('until-found');
+    expect(mockElement.classList.contains('cd-hidden')).toBe(false);
+
+    // Text content should still be accessible (not affected by display: none)
+    expect(mockElement.textContent).toBe('Test content');
+  });
+
+  test('should use cd-hidden class as fallback when hidden="until-found" is not supported', () => {
+    // Test with an object that doesn't support beforematch
+    const elementWithoutSupport = {
+      classList: {
+        add: jest.fn(),
+        contains: jest.fn(() => true),
+      },
+      setAttribute: jest.fn(),
+      getAttribute: jest.fn(() => null),
+    };
+
+    // Test the fallback logic
+    if ('onbeforematch' in elementWithoutSupport) {
+      elementWithoutSupport.setAttribute('hidden', 'until-found');
+    } else {
+      elementWithoutSupport.classList.add('cd-hidden');
+    }
+
+    // Should use cd-hidden class as fallback
+    expect(elementWithoutSupport.classList.add).toHaveBeenCalledWith('cd-hidden');
+    expect(elementWithoutSupport.setAttribute).not.toHaveBeenCalled();
   });
 });

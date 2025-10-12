@@ -12,7 +12,7 @@ class CheckboxInputWidget extends OO.ui.CheckboxInputWidget {
     super(config);
 
     this.$input.on('change', () => {
-      this.emit('manualChange', this.$input.prop('checked'));
+      this.emit('manualChange', /** @type {HTMLInputElement} */ (this.$input[0]).checked);
     });
   }
 }

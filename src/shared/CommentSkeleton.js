@@ -732,7 +732,8 @@ class CommentSkeleton {
           * "dive" (recursively go to the last not inline/text child)
           * "replaced" (obtained as a result of manipulations after node traversal)
       */
-      let /** @type {Step | undefined} */ step;
+      /** @type {Step | undefined} */
+      let step;
       const previousPart = parts[parts.length - 1];
 
       if (!previousPart.hasCurrentSignature && previousPart.hasForeignComponents) {

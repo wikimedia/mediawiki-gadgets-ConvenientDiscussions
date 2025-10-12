@@ -3290,7 +3290,8 @@ class Comment extends CommentSkeleton {
       type = error.getType();
       code = error.getCode();
     }
-    let /** @type {string} */ text;
+    /** @type {string} */
+    let text;
     const historyUrl = this.getSourcePage().getArchivedPage().getUrl({ action: 'history' });
     switch (type) {
       case 'parse': {
@@ -3639,8 +3640,8 @@ class Comment extends CommentSkeleton {
       const { $wrappingItem } = this.addSubitem('replyForm', 'top');
       $wrappingItem.append(commentForm.$element);
     } else if (mode === 'edit') {
-      // We use a class here because there can be elements in the comment that are hidden from the
-      // beginning and should stay so when reshowing the comment.
+      // We use a class, not .hide(), here because there can be elements in the comment that are
+      // hidden from the beginning and should stay so when reshowing the comment.
       this.$elements.addClass('cd-hidden').data('cd-comment-form', commentForm);
       this.unhighlightHovered();
       if (this.isOpeningSection()) {
@@ -3652,7 +3653,7 @@ class Comment extends CommentSkeleton {
       let $outermostElement;
       const $first = this.$elements.first();
       if ($first.is('dd, li')) {
-        const outerWrapperTag = $first.prop('tagName').toLowerCase();
+        const outerWrapperTag = $first[0].tagName.toLowerCase();
         $outermostElement = $(`<${outerWrapperTag}>`).addClass('cd-commentForm-outerWrapper');
         $outermostElement.append(commentForm.$element);
       } else {
@@ -4156,7 +4157,7 @@ class Comment extends CommentSkeleton {
       wrappingItemTag = $anchor.is('dl') ? 'dd' : 'li';
       $anchor.addClass(`cd-commentLevel cd-commentLevel-${this.level + 1}`);
     } else if ($lastOfTarget.is('li, dd')) {
-      outerWrapperTag = $lastOfTarget.prop('tagName').toLowerCase();
+      outerWrapperTag = $lastOfTarget[0].tagName.toLowerCase();
     }
 
     const $wrappingItem = $(`<${wrappingItemTag}>`);

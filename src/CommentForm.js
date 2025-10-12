@@ -1031,9 +1031,9 @@ class CommentForm extends EventEmitter {
     } else if (this.isMode('edit')) {
       this.containerListType = this.target.containerListType;
     } else if (this.isMode('replyInSection')) {
-      this.containerListType = /** @type {JQuery} */ (this.target.$replyButtonContainer)
-        .prop('tagName')
-        .toLowerCase();
+      this.containerListType = /** @type {ListType} */ (
+        /** @type {JQuery} */ (this.target.$replyButtonContainer)[0].tagName.toLowerCase()
+      );
     }
 
     this.$element = $('<div>').addClass(

@@ -14,18 +14,18 @@ Node.COMMENT_NODE = 8;
 /**
  * @param {import('domhandler').ChildNode} referenceNode
  */
-Node.prototype.after = function (referenceNode) {
+Node.prototype.after = function after(referenceNode) {
   DomUtils.append(referenceNode, /** @type {import('domhandler').ChildNode} */ (this));
 };
 
 /**
  * @param {import('domhandler').ChildNode} referenceNode
  */
-Node.prototype.before = function (referenceNode) {
+Node.prototype.before = function before(referenceNode) {
   DomUtils.prepend(referenceNode, /** @type {import('domhandler').ChildNode} */ (this));
 };
 
-Node.prototype.remove = function () {
+Node.prototype.remove = function remove() {
   DomUtils.removeElement(/** @type {import('domhandler').ChildNode} */ (this));
 };
 
@@ -33,7 +33,7 @@ Node.prototype.remove = function () {
  * @param {Node} node
  * @returns {boolean}
  */
-Node.prototype.follows = function (node) {
+Node.prototype.follows = function follows(node) {
   return Boolean(
     DomUtils.compareDocumentPosition(
       /** @type {import('domhandler').AnyNode} */ (this),
@@ -44,10 +44,10 @@ Node.prototype.follows = function (node) {
 
 /**
  * @param {(node: Node) => boolean | void} callback
- * @param {boolean} [checkSelf=false]
+ * @param {boolean} [checkSelf]
  * @returns {boolean}
  */
-Node.prototype.traverseSubtree = function (callback, checkSelf = false) {
+Node.prototype.traverseSubtree = function traverseSubtree(callback, checkSelf = false) {
   if (checkSelf && callback(this)) {
     return true;
   }
@@ -103,7 +103,7 @@ Object.defineProperty(DataNode.prototype, 'textContent', {
  * @param {Node} node
  * @returns {boolean}
  */
-NodeWithChildren.prototype.contains = function (node) {
+NodeWithChildren.prototype.contains = function contains(node) {
   if (node === this) {
     return true;
   }
@@ -127,11 +127,12 @@ NodeWithChildren.prototype.contains = function (node) {
  * @param {number} [limit] Maximum number of nodes to include in the result.
  * @returns {Node[]} Array of nodes that passed the callback function.
  */
-NodeWithChildren.prototype.filterRecursively = function (callback, limit) {
+NodeWithChildren.prototype.filterRecursively = function filterRecursively(callback, limit) {
   const nodes = /** @type {Node[]} */ ([]);
   this.traverseSubtree((node) => {
     if (callback(node)) {
       nodes.push(node);
+
       return Boolean(limit && nodes.length === limit);
     }
 
@@ -144,7 +145,7 @@ NodeWithChildren.prototype.filterRecursively = function (callback, limit) {
 /**
  * @param {import('domhandler').ChildNode} node
  */
-Element.prototype.appendChild = function (node) {
+Element.prototype.appendChild = function appendChild(node) {
   DomUtils.appendChild(this, node);
 };
 
@@ -153,7 +154,7 @@ Element.prototype.appendChild = function (node) {
  * @param {import('domhandler').ChildNode|undefined} referenceNode
  * @returns {Node}
  */
-Element.prototype.insertBefore = function (node, referenceNode) {
+Element.prototype.insertBefore = function insertBefore(node, referenceNode) {
   if (referenceNode) {
     DomUtils.prepend(referenceNode, node);
   } else {
@@ -168,7 +169,7 @@ Element.prototype.insertBefore = function (node, referenceNode) {
  * @param {number} [limit]
  * @returns {Element[]}
  */
-Element.prototype.getElementsByClassName = function (name, limit) {
+Element.prototype.getElementsByClassName = function getElementsByClassName(name, limit) {
   return /** @type {Element[]} */ (this.filterRecursively(
     (node) => node instanceof Element && node.classList.contains(name),
     limit
@@ -179,7 +180,7 @@ Element.prototype.getElementsByClassName = function (name, limit) {
  * @param {RegExp} regexp
  * @returns {Element[]}
  */
-Element.prototype.getElementsByAttribute = function (regexp) {
+Element.prototype.getElementsByAttribute = function getElementsByAttribute(regexp) {
   return /** @type {Element[]} */ (this.filterRecursively(
     (node) => node instanceof Element && Object.keys(node.attribs).some((name) => regexp.test(name))
   ));
@@ -189,7 +190,7 @@ Element.prototype.getElementsByAttribute = function (regexp) {
  * @param {string} selector
  * @returns {Element[]}
  */
-Element.prototype.querySelectorAll = function (selector) {
+Element.prototype.querySelectorAll = function querySelectorAll(selector) {
   const tokens = selector.split(/ *, */);
   const tagNames = new Set(tokens
     .filter((token) => !token.startsWith('.'))
@@ -211,7 +212,7 @@ Element.prototype.querySelectorAll = function (selector) {
  * @param {string} name
  * @returns {Element[]}
  */
-Element.prototype.getElementsByTagName = function (name) {
+Element.prototype.getElementsByTagName = function getElementsByTagName(name) {
   return DomUtils.getElementsByTagName(name, this);
 };
 
@@ -361,7 +362,7 @@ Object.defineProperty(Element.prototype, 'outerHTML', {
  * @returns {boolean}
  * @readonly
  */
-Element.prototype.hasAttribute = function (name) {
+Element.prototype.hasAttribute = function hasAttribute(name) {
   return this.attribs[name] !== undefined;
 };
 
@@ -370,9 +371,9 @@ Element.prototype.hasAttribute = function (name) {
  * @returns {?string}
  * @readonly
  */
-Element.prototype.getAttribute = function (name) {
+Element.prototype.getAttribute = function getAttribute(name) {
   let value = this.attribs[name] || null;
-  if (value && typeof value === 'string' && value.indexOf('&') !== -1) {
+  if (value && typeof value === 'string' && value.includes('&')) {
     value = value
       .replace(/&amp;/g, '&')
       .replace(/&quot;/g, '"');
@@ -385,12 +386,12 @@ Element.prototype.getAttribute = function (name) {
  * @param {string} name
  * @param {string} value
  */
-Element.prototype.setAttribute = function (name, value) {
+Element.prototype.setAttribute = function setAttribute(name, value) {
   if (value && typeof value === 'string') {
-    if (value.indexOf('&') !== -1) {
+    if (value.includes('&')) {
       value = value.replace(/&/g, '&amp;');
     }
-    if (value.indexOf('"') !== -1) {
+    if (value.includes('"')) {
       value = value.replace(/"/g, '&quot;');
     }
   }
@@ -400,7 +401,7 @@ Element.prototype.setAttribute = function (name, value) {
 /**
  * @param {string} name
  */
-Element.prototype.removeAttribute = function (name) {
+Element.prototype.removeAttribute = function removeAttribute(name) {
   delete this.attribs[name];
 };
 
@@ -484,7 +485,7 @@ Object.defineProperty(Element.prototype, 'classList', {
 
         // This can run tens of thousand times, so we microoptimize it (don't use template strings
         // and String#includes()).
-        return Boolean(this._classList.length) && this._classList.indexOf(name) !== -1;
+        return Boolean(this._classList.length) && this._classList.includes(name);
       };
     }
 
@@ -509,15 +510,15 @@ Object.defineProperty(Element.prototype, 'className', {
  * @param {string} name Tag name of the element.
  * @returns {Element} The created element.
  */
-Document.prototype.createElement = function (name) {
+Document.prototype.createElement = function createElement(name) {
   return new Element(name, {});
 };
 
 /**
- * @param {string} [content='']
+ * @param {string} [content]
  * @returns {Text}
  */
-Document.prototype.createTextNode = function (content = '') {
+Document.prototype.createTextNode = function createTextNode(content = '') {
   return new Text(content);
 };
 
