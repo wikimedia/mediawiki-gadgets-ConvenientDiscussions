@@ -1193,13 +1193,12 @@ class Thread extends mixInObject(
    * @param {Thread[]} options.threadsToUpdate
    * @param {number} options.scrollX
    * @param {number} options.scrollY
-   * @param {import('./utils-window').ExtendedDOMRect[]} options.floatingRects
    * @returns {boolean}
    * @private
    */
-  updateLine({ elementsToAdd, threadsToUpdate, scrollX, scrollY, floatingRects }) {
+  updateLine({ elementsToAdd, threadsToUpdate, scrollX, scrollY }) {
     const getLeft = (
-      /** @type {DOMRect|import('./Comment').CommentOffset} */ rectOrOffset,
+      /** @type {DOMRect} */ rect,
       /** @type {import('./Comment').CommentMargins=} */ commentMargins,
       /** @type {'rtl'|'ltr'} */ dir
     ) => {
@@ -1213,13 +1212,13 @@ class Thread extends mixInObject(
       );
 
       if (dir === 'ltr') {
-        offset = rectOrOffset.left + centerOffset;
+        offset = rect.left + centerOffset;
         if (commentMargins) {
           offset -= commentMargins.left + 1;
         }
       } else {
         offset = (
-          rectOrOffset.right -
+          rect.right -
           (cd.g.commentMarkerWidth / cd.g.pixelDeviationRatio) -
           centerOffset
         );
@@ -1227,98 +1226,92 @@ class Thread extends mixInObject(
           offset += commentMargins.right + 1;
         }
       }
-      if (rectOrOffset instanceof DOMRect) {
-        offset += scrollX;
-      }
 
-      return offset - cd.g.threadLineSidePadding;
+      return offset + scrollX - cd.g.threadLineSidePadding;
     };
-    const getTop = (/** @type {DOMRect|import('./Comment').CommentOffset} */ rectOrOffset) => (
-      rectOrOffset instanceof DOMRect
-        ? scrollY + rectOrOffset.top
-        : rectOrOffset.top
-    );
 
     const comment = this.rootComment;
 
-    if (comment.isCollapsed && !this.isCollapsed) {
-      this.removeLine();
+    try {
+      if (comment.isCollapsed && !this.isCollapsed) {
+        throw new CdError();
+      }
 
-      return false;
-    }
+      const needCalculateMargins = (
+        comment.level === 0 ||
+        comment.containerListType === 'ol' ||
 
-    const needCalculateMargins = (
-      comment.level === 0 ||
-      comment.containerListType === 'ol' ||
+        // Occurs when part of a comment that is not in the thread is next to the start element, for
+        // example
+        // https://ru.wikipedia.org/wiki/Project:Запросы_к_администраторам/Архив/2021/04#202104081533_Macuser
+        // - the next comment is not in the thread.
+        this.startElement.tagName === 'DIV'
+      );
 
-      // Occurs when part of a comment that is not in the thread is next to the start element, for
-      // example
-      // https://ru.wikipedia.org/wiki/Project:Запросы_к_администраторам/Архив/2021/04#202104081533_Macuser
-      // - the next comment is not in the thread.
-      this.startElement.tagName === 'DIV'
-    );
+      const elTop = this.isCollapsed || !needCalculateMargins
+        ? this.getAdjustedStartElement()
+        : undefined;
+      const elBottom = this.isCollapsed ? elTop : this.getAdjustedEndElement(true);
 
-    const elTop = this.isCollapsed || !needCalculateMargins
-      ? this.getAdjustedStartElement()
-      : undefined;
-    const elBottom = this.isCollapsed ? elTop : this.getAdjustedEndElement(true);
+      const rectTop = elTop?.getBoundingClientRect();
+      const rectBottom = elBottom?.getBoundingClientRect();
+      if (
+        !rectTop ||
+        !rectBottom ||
+        !getVisibilityByRects(rectTop, rectBottom)
+      ) {
+        throw new CdError();
+      }
 
-    const rectTop = elTop?.getBoundingClientRect();
-    const rectBottom = elBottom?.getBoundingClientRect();
-    const commentMargins = needCalculateMargins ? comment.getMargins() : undefined;
+      const commentMargins = needCalculateMargins ? comment.getMargins() : undefined;
 
-    const dir = comment.getDirection();
-    const left = rectTop ? getLeft(rectTop, commentMargins, dir) : undefined;
+      const dir = comment.getDirection();
+      const left = getLeft(rectTop, commentMargins, dir);
 
-    const areTopAndBottomAligned = () => {
       // FIXME: We use the first comment part's margins for the bottom rectangle which can lead to
       // errors (need to check).
       const bottomLeft = getLeft(/** @type {DOMRect} */ (rectBottom), commentMargins, dir);
 
-      return dir === 'ltr'
-        ? bottomLeft >= /** @type {number} */ (left)
-        : bottomLeft <= /** @type {number} */ (left);
-    };
-    if (
-      !rectTop ||
-      !rectBottom ||
-      !getVisibilityByRects(rectTop, rectBottom) ||
-      !areTopAndBottomAligned()
-    ) {
+      // Are top and bottom aligned?
+      if (
+        !(dir === 'ltr'
+          ? bottomLeft >= /** @type {number} */ (left)
+          : bottomLeft <= /** @type {number} */ (left))
+      ) {
+        throw new CdError();
+      }
+
+      const top = scrollY + rectTop.top;
+      const height = rectBottom.bottom - (top - scrollY);
+
+      // Find the top comment that has its offset changed and stop at it.
+      if (
+        this.clickAreaOffset &&
+        top === this.clickAreaOffset.top &&
+        left === this.clickAreaOffset.left &&
+        height === this.clickAreaOffset.height
+      ) {
+        // Opened/closed "Reply in section" comment form will change a 0-level thread line height,
+        // so we may go a long way until we finally arrive at a 0-level comment (or a comment
+        // without a parent).
+        return !comment.getParent();
+      }
+
+      /** @type {ClickAreaOffset} */
+      // eslint-disable-next-line object-shorthand
+      this.clickAreaOffset = { top, left: /** @type {number} */ (left), height };
+
+      if (!this.line) {
+        this.createLine();
+      }
+
+      threadsToUpdate.push(this);
+      const clickArea = /** @type {HTMLElement} */ (this.clickArea);
+      if (!clickArea.isConnected) {
+        elementsToAdd.push(clickArea);
+      }
+    } catch {
       this.removeLine();
-
-      return false;
-    }
-
-    const top = getTop(rectTop);
-
-    const height = rectBottom.bottom - (top - scrollY);
-
-    // Find the top comment that has its offset changed and stop at it.
-    if (
-      this.clickAreaOffset &&
-      top === this.clickAreaOffset.top &&
-      left === this.clickAreaOffset.left &&
-      height === this.clickAreaOffset.height
-    ) {
-      // Opened/closed "Reply in section" comment form will change a 0-level thread line height,
-      // so we may go a long way until we finally arrive at a 0-level comment (or a comment
-      // without a parent).
-      return !comment.getParent();
-    }
-
-    /** @type {ClickAreaOffset} */
-    // eslint-disable-next-line object-shorthand
-    this.clickAreaOffset = { top, left: /** @type {number} */ (left), height };
-
-    if (!this.line) {
-      this.createLine();
-    }
-
-    threadsToUpdate.push(this);
-    const clickArea = /** @type {HTMLElement} */ (this.clickArea);
-    if (!clickArea.isConnected) {
-      elementsToAdd.push(clickArea);
     }
 
     return false;
