@@ -162,25 +162,46 @@ export function getExtendedRect(el) {
     };
   }
   const rect = el.getBoundingClientRect();
-  const isVisible = getVisibilityByRects(rect);
+  const visible = getVisibilityByRects(rect);
 
   return $.extend({
-    outerTop: rect.top - (isVisible ? el.cdMargin.top : 0),
-    outerBottom: rect.bottom + (isVisible ? el.cdMargin.bottom : 0),
-    outerLeft: rect.left - (isVisible ? el.cdMargin.left : 0),
-    outerRight: rect.right + (isVisible ? el.cdMargin.right : 0),
+    outerTop: rect.top - (visible ? el.cdMargin.top : 0),
+    outerBottom: rect.bottom + (visible ? el.cdMargin.bottom : 0),
+    outerLeft: rect.left - (visible ? el.cdMargin.left : 0),
+    outerRight: rect.right + (visible ? el.cdMargin.right : 0),
   }, rect);
 }
 
 /**
- * Given bounding client rectangle(s), determine whether the element is visible.
+ * Given bounding client rectangle(s), determine whether the element is fully visible (not
+ * necessarily in the viewport).
  *
  * @param {...AnyDOMRect} rects
  * @returns {boolean} `true` if visible, `false` if not.
  */
 export function getVisibilityByRects(...rects) {
   // If the element has 0 as the left position and height, it's probably invisible for some reason.
-  return !rects.some((rect) => rect.left === 0 && rect.height === 0);
+  return rects.every((rect) => rect.left !== 0 || rect.height !== 0);
+}
+
+/**
+ * Check if an element is hidden by a `hidden="until-found"` ancestor.
+ *
+ * @param {Element} element The element to check
+ * @returns {boolean}
+ */
+function isHiddenByUntilFound(element) {
+  let current = element.parentElement;
+
+  while (current) {
+    if (current.getAttribute('hidden') === 'until-found') {
+      return true;
+    }
+
+    current = current.parentElement;
+  }
+
+  return false;
 }
 
 /**

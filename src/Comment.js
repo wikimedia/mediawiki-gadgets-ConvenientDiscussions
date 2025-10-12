@@ -1904,6 +1904,7 @@ class Comment extends CommentSkeleton {
       if (!getVisibilityByRects(rect)) {
         return null;
       }
+
       container.cdCouldHaveMoved = false;
       container.cdCachedLayersContainerOffset = {
         top: rect.top + window.scrollY,

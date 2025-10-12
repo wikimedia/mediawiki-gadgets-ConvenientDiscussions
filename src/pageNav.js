@@ -171,7 +171,7 @@ class PageNav {
   };
 
   /**
-   * Get offsets of some important elements relative to the viewport.
+   * Get offsets of certain elements we need relative to the viewport.
    *
    * @param {number} scrollY
    * @returns {{

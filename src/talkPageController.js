@@ -16,7 +16,7 @@ import Parser from './shared/Parser';
 import { defined, definedAndNotNull, getLastArrayElementOrSelf, isHeadingNode, isInline, sleep } from './shared/utils-general';
 import toc from './toc';
 import updateChecker from './updateChecker';
-import { copyText, getVisibilityByRects, transparentize, wrapHtml } from './utils-window';
+import { copyText, getVisibilityByRects, wrapHtml } from './utils-window';
 
 /**
  * @typedef {object} EventMap

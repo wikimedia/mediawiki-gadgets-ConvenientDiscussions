@@ -415,7 +415,7 @@ class CommentManager extends EventEmitter {
 
     // Visibility is checked in the sense that an element is visible on the page, not necessarily in
     // the viewport.
-    const isVisible = (/** @type {Comment} */ comment) => {
+    const isCommentVisible = (/** @type {Comment} */ comment) => {
       comment.getOffset({ set: true });
 
       return Boolean(comment.roughOffset);
@@ -434,7 +434,7 @@ class CommentManager extends EventEmitter {
         );
       }
 
-      return comments.find(isVisible) || null;
+      return comments.find(isCommentVisible) || null;
     };
 
     const firstVisibleComment = findVisible('forward');
