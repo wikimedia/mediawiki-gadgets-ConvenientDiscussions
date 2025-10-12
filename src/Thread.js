@@ -1197,14 +1197,14 @@ class Thread extends mixInObject(
    * @private
    */
   updateLine({ elementsToAdd, threadsToUpdate, scrollX, scrollY }) {
-    const comment = this.rootComment;
-
     try {
+      const comment = this.rootComment;
+
       if (comment.isCollapsed && !this.isCollapsed) {
         throw new CdError();
       }
 
-      const needCalculateMargins = (
+      const needCalculateMargins =
         comment.level === 0 ||
         comment.containerListType === 'ol' ||
 
@@ -1212,26 +1212,19 @@ class Thread extends mixInObject(
         // example
         // https://ru.wikipedia.org/wiki/Project:Запросы_к_администраторам/Архив/2021/04#202104081533_Macuser
         // - the next comment is not in the thread.
-        this.startElement.tagName === 'DIV'
-      );
+        this.startElement.tagName === 'DIV';
 
       const elTop = this.isCollapsed || !needCalculateMargins
         ? this.getAdjustedStartElement()
         : undefined;
       const elBottom = this.isCollapsed ? elTop : this.getAdjustedEndElement(true);
-
-      const rectTop = elTop?.getBoundingClientRect();
-      const rectBottom = elBottom?.getBoundingClientRect();
-      if (
-        !rectTop ||
-        !rectBottom ||
-        !isVisible(elTop, elBottom)
-      ) {
+      if (!elTop || !elBottom || !isVisible(elTop, elBottom)) {
         throw new CdError();
       }
 
+      const rectTop = elTop.getBoundingClientRect();
+      const rectBottom = elBottom.getBoundingClientRect();
       const commentMargins = needCalculateMargins ? comment.getMargins() : undefined;
-
       const dir = comment.getDirection();
       const left = this.getThreadLineLeft(rectTop, commentMargins, dir, scrollX);
 
@@ -1660,20 +1653,17 @@ class Thread extends mixInObject(
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
 
-    const floatingRects = talkPageController.getFloatingElements().map(getExtendedRect);
     commentManager.getAll()
       .slice()
       .reverse()
-      .some((comment) => (
+      .some((comment) =>
         comment.thread?.updateLine({
           elementsToAdd,
           threadsToUpdate,
           scrollX,
           scrollY,
-          floatingRects,
-        }) ||
-        false
-      ));
+        })
+      );
 
     // Faster to update/add all elements in one batch.
     threadsToUpdate.forEach((thread) => {
