@@ -13,7 +13,7 @@ import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
 import { loadUserGenders } from './utils-api';
 import { mixInObject } from './utils-oojs';
-import { getCommonGender, getExtendedRect, getRangeContents, getVisibilityByRects, isCmdModifierPressed } from './utils-window';
+import { getCommonGender, getExtendedRect, getRangeContents, getVisibilityByRects, isVisible, isCmdModifierPressed } from './utils-window';
 
 /**
  * @typedef {object} EventMap
@@ -27,7 +27,7 @@ import { getCommonGender, getExtendedRect, getRangeContents, getVisibilityByRect
 class Thread extends mixInObject(
   // eslint-disable-next-line jsdoc/require-jsdoc
   class {},
-  /** @type {typeof EventEmitter<EventMap>} */ (EventEmitter)
+  /** @type {typeof EventEmitter<EventMap>} */(EventEmitter)
 ) {
   /**
    * Click area of the thread line.
@@ -496,8 +496,8 @@ class Thread extends mixInObject(
       if (this.hasMouseMoved(event)) {
         $(document).off('mousemove.cd', this.handleDocumentMouseMove);
         this.enterNavMode(
-          /** @type {number} */ (this.navFromX),
-          /** @type {number} */ (this.navFromY),
+          /** @type {number} */(this.navFromX),
+          /** @type {number} */(this.navFromY),
           true
         );
       }
@@ -748,10 +748,10 @@ class Thread extends mixInObject(
       ) {
         endElement = /** @type {HTMLElement} */ (endElement.previousElementSibling);
       }
-      if (!getVisibilityByRects(endElement.getBoundingClientRect())) {
+      if (!isVisible(endElement)) {
         endElement = this.visualEndElementFallback;
 
-        if (!getVisibilityByRects(endElement.getBoundingClientRect()) && this.rootComment.editForm) {
+        if (!isVisible(endElement) && this.rootComment.editForm) {
           endElement = this.rootComment.editForm.getOutermostElement();
         }
       }
@@ -1150,8 +1150,8 @@ class Thread extends mixInObject(
     const getParentIfItsFinalChild = (el) =>
       el &&
       isFinalChild(
-        /** @type {HTMLElement | undefined} */ (el.parentNode?.parentNode),
-        /** @type {HTMLElement | undefined} */ (el.parentNode)
+        /** @type {HTMLElement | undefined} */(el.parentNode?.parentNode),
+        /** @type {HTMLElement | undefined} */(el.parentNode)
       )
         ? /** @type {HTMLElement} */ (el.parentNode)
         : undefined;
@@ -1225,7 +1225,7 @@ class Thread extends mixInObject(
       if (
         !rectTop ||
         !rectBottom ||
-        !getVisibilityByRects(rectTop, rectBottom)
+        !isVisible(elTop, elBottom)
       ) {
         throw new CdError();
       }

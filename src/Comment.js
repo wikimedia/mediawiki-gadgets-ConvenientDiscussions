@@ -20,7 +20,7 @@ import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
 import { handleApiReject, loadUserGenders, parseCode } from './utils-api';
 import { showConfirmDialog } from './utils-oojs';
-import { createSvg, extractSignatures, formatDate, formatDateNative, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisibilityByRects, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
+import { createSvg, extractSignatures, formatDate, formatDateNative, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisibilityByRects, isVisible, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**
  * @typedef {object} CommentOffset
@@ -1519,7 +1519,7 @@ class Comment extends CommentSkeleton {
     let rectTop = Comment.getCommentPartRect(firstElement);
     let rectBottom = this.elements.length === 1 ? rectTop : Comment.getCommentPartRect(lastElement);
 
-    if (!getVisibilityByRects(rectTop, rectBottom)) {
+    if (!isVisible(firstElement, lastElement)) {
       this.maybeSetOffset(undefined, options);
 
       return;
@@ -1901,7 +1901,7 @@ class Comment extends CommentSkeleton {
     const container = this.getLayersContainer();
     if (!container.cdCachedLayersContainerOffset || container.cdCouldHaveMoved) {
       const rect = container.getBoundingClientRect();
-      if (!getVisibilityByRects(rect)) {
+      if (!isVisible(container)) {
         return null;
       }
 

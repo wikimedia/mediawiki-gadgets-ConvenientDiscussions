@@ -162,7 +162,7 @@ export function getExtendedRect(el) {
     };
   }
   const rect = el.getBoundingClientRect();
-  const visible = getVisibilityByRects(rect);
+  const visible = isVisible(el);
 
   return $.extend({
     outerTop: rect.top - (visible ? el.cdMargin.top : 0),
@@ -182,6 +182,31 @@ export function getExtendedRect(el) {
 export function getVisibilityByRects(...rects) {
   // If the element has 0 as the left position and height, it's probably invisible for some reason.
   return rects.every((rect) => rect.left !== 0 || rect.height !== 0);
+}
+
+/**
+ * Check if elements are visible, using modern checkVisibility API when available, falling back to
+ * rectangle-based and hidden="until-found" checks.
+ *
+ * @param {...Element} elements
+ * @returns {boolean} `true` if all elements are visible, `false` otherwise.
+ */
+export function isVisible(...elements) {
+  return elements.every((element) => {
+    // Use modern checkVisibility API if available
+    if ('checkVisibility' in element) {
+      return element.checkVisibility();
+    }
+
+    // Fallback: check rectangles first
+    const rect = element.getBoundingClientRect();
+    if (!getVisibilityByRects(rect)) {
+      return false;
+    }
+
+    // Then check for hidden="until-found" ancestors
+    return !isHiddenByUntilFound(element);
+  });
 }
 
 /**
