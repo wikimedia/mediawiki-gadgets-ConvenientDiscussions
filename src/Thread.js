@@ -1258,28 +1258,10 @@ class Thread extends mixInObject(
       this.startElement.tagName === 'DIV'
     );
 
-    let elTop;
-    if (this.isCollapsed || !needCalculateMargins) {
-      const adjustedStartElement = this.getAdjustedStartElement();
-      if ('checkVisibility' in adjustedStartElement && adjustedStartElement.checkVisibility()) {
-        elTop = adjustedStartElement;
-      }
-    }
-
-    /** @type {Element | undefined} */
-    let elBottom;
-    if (this.isCollapsed) {
-      elBottom = elTop;
-    } else {
-      const adjustedEndElement = this.getAdjustedEndElement(true);
-      if (
-        adjustedEndElement &&
-        'checkVisibility' in adjustedEndElement &&
-        adjustedEndElement.checkVisibility()
-      ) {
-        elBottom = adjustedEndElement;
-      }
-    }
+    const elTop = this.isCollapsed || !needCalculateMargins
+      ? this.getAdjustedStartElement()
+      : undefined;
+    const elBottom = this.isCollapsed ? elTop : this.getAdjustedEndElement(true);
 
     const rectTop = elTop?.getBoundingClientRect();
     const rectBottom = elBottom?.getBoundingClientRect();
