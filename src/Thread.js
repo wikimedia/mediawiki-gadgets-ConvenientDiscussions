@@ -1258,18 +1258,18 @@ class Thread extends mixInObject(
       this.startElement.tagName === 'DIV'
     );
 
-    let rectTop;
+    let elTop;
     if (this.isCollapsed || !needCalculateMargins) {
       const adjustedStartElement = this.getAdjustedStartElement();
       if ('checkVisibility' in adjustedStartElement && adjustedStartElement.checkVisibility()) {
-        rectTop = adjustedStartElement.getBoundingClientRect();
+        elTop = adjustedStartElement;
       }
     }
 
-    /** @type {DOMRect | undefined} */
-    let rectBottom;
+    /** @type {Element | undefined} */
+    let elBottom;
     if (this.isCollapsed) {
-      rectBottom = rectTop;
+      elBottom = elTop;
     } else {
       const adjustedEndElement = this.getAdjustedEndElement(true);
       if (
@@ -1277,13 +1277,15 @@ class Thread extends mixInObject(
         'checkVisibility' in adjustedEndElement &&
         adjustedEndElement.checkVisibility()
       ) {
-        rectBottom = adjustedEndElement.getBoundingClientRect();
+        elBottom = adjustedEndElement;
       }
     }
 
+    const rectTop = elTop?.getBoundingClientRect();
     const rectOrOffset = rectTop || comment.getOffset({ floatingRects });
 
-    // Should be below comment.getOffset() as Comment#isStartStretched is set inside that call.
+    // Side effect warning: comment.getMargins() should be below comment.getOffset() as
+    // Comment#isStartStretched is set inside that call.
     const commentMargins = needCalculateMargins ? comment.getMargins() : undefined;
 
     /** @type {number | undefined} */
@@ -1295,6 +1297,8 @@ class Thread extends mixInObject(
       top = getTop(rectOrOffset);
       left = getLeft(rectOrOffset, commentMargins, dir);
     }
+
+    const rectBottom = elBottom?.getBoundingClientRect();
 
     const areTopAndBottomAligned = () => {
       // FIXME: We use the first comment part's margins for the bottom rectangle which can lead to
@@ -1308,7 +1312,7 @@ class Thread extends mixInObject(
     if (
       top === undefined ||
       !rectBottom ||
-      !getVisibilityByRects(...[rectTop, rectBottom].filter(defined)) ||
+      !getVisibilityByRects(...[elTop?.getBoundingClientRect(), rectBottom].filter(defined)) ||
       !areTopAndBottomAligned()
     ) {
       this.removeLine();

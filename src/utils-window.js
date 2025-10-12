@@ -190,7 +190,7 @@ export function getVisibilityByRects(...rects) {
  * @param {Element} element The element to check
  * @returns {boolean}
  */
-function isHiddenByUntilFound(element) {
+export function isHiddenByUntilFound(element) {
   let current = element.parentElement;
 
   while (current) {
