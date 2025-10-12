@@ -137,9 +137,9 @@ export function generatePageNamePattern(string) {
   // mb_strtoupper and JavaScript's String#toUpperCase, see ucFirst() and
   // https://phabricator.wikimedia.org/T141723#2513800.
   // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-  const firstCharPattern = firstCharUpperCase === firstCharLowerCase ?
-    mw.util.escapeRegExp(firstChar) :
-    '[' + firstCharUpperCase + firstCharLowerCase + ']';
+  const firstCharPattern = firstCharUpperCase === firstCharLowerCase
+    ? mw.util.escapeRegExp(firstChar)
+    : '[' + firstCharUpperCase + firstCharLowerCase + ']';
 
   return firstCharPattern + mw.util.escapeRegExp(string.slice(1)).replace(/[ _]+/g, '[ _]+');
 }
@@ -214,14 +214,14 @@ export function definedAndNotNull(el) {
  * @returns {T[]}
  */
 export function reorderArray(arr, startIndex, reverse = false) {
-  return reverse ?
-    arr
-      .slice(startIndex + 1)
-      .concat(arr.slice(0, startIndex + 1))
-      .reverse() :
-    arr
-      .slice(startIndex)
-      .concat(arr.slice(0, startIndex))
+  return reverse
+    ? arr
+        .slice(startIndex + 1)
+        .concat(arr.slice(0, startIndex + 1))
+        .reverse()
+    : arr
+        .slice(startIndex)
+        .concat(arr.slice(0, startIndex));
 }
 
 /**
@@ -271,9 +271,10 @@ export function removeDoubleSpaces(string) {
  * @private
  */
 export function charAt(string, offset, backwards = false) {
-  const maybePair = backwards ?
-    string.slice(offset - 1, offset + 1) :
-    string.slice(offset, offset + 2);
+  const maybePair = backwards
+    ? string.slice(offset - 1, offset + 1)
+    : string.slice(offset, offset + 2);
+
   return /^[\uD800-\uDBFF][\uDC00-\uDFFF]$/.test(maybePair) ? maybePair : string.charAt(offset);
 }
 
@@ -304,6 +305,7 @@ export function phpCharToUpper(char) {
  */
 export function ucFirst(string) {
   const firstChar = charAt(string, 0);
+
   return phpCharToUpper(firstChar) + string.slice(firstChar.length);
 }
 
@@ -344,6 +346,7 @@ export function mergeRegexps(arr) {
  */
 export async function getNativePromiseState(promise) {
   const obj = {};
+
   // eslint-disable-next-line @typescript-eslint/await-thenable
   return Promise.race([promise, obj]).then(
     (value) => value === obj ? 'pending' : 'resolved',
@@ -509,6 +512,7 @@ export function calculateWordOverlap(s1, s2, caseInsensitive = false) {
   const regexp = new RegExp(`[${cd.g.letterPattern}]{2,}`, 'g');
   const strToArr = (/** @type {string} */ s) =>
     ((caseInsensitive ? s.toLowerCase() : s).match(regexp) || []).filter(unique);
+
   return calculateArrayOverlap(strToArr(s1), strToArr(s2));
 }
 
@@ -545,7 +549,7 @@ export function removeFromArrayIfPresent(arr, el) {
  * of the parameter is used, while with `URLSearchParams#get` it is the first one.)
  *
  * @param {string|string[]} value
- * @returns {string}
+ * @returns {string | undefined}
  */
 export function getLastArrayElementOrSelf(value) {
   return Array.isArray(value) ? value[value.length - 1] : value;
@@ -703,26 +707,25 @@ export function decodeHtmlEntities(string) {
   if (!string.includes('&')) {
     return string;
   }
-    let result = string;
-    // eslint-disable-next-line unicorn/prefer-includes
-    if (result.includes('&#38;amp;')) {
-      result = result.replace(/&#38;amp;/g, '&amp;amp;')
-    }
-    // eslint-disable-next-line unicorn/prefer-includes
-    if (result.includes('&#')) {
-      // eslint-disable-next-line unicorn/prefer-code-point
-      result = result.replace(
-        /&#(\d+);/g,
-        /** @type {ReplaceCallback<1>} */ (_s, code) => String.fromCodePoint(Number(code))
-      );
-    }
-    // eslint-disable-next-line unicorn/prefer-includes
-    if (result.includes('&')) {
-      result = /** @type {string} */ (html_entity_decode(result));
-    }
+  let result = string;
+  // eslint-disable-next-line unicorn/prefer-includes
+  if (result.includes('&#38;amp;')) {
+    result = result.replace(/&#38;amp;/g, '&amp;amp;');
+  }
+  // eslint-disable-next-line unicorn/prefer-includes
+  if (result.includes('&#')) {
+    // eslint-disable-next-line unicorn/prefer-code-point
+    result = result.replace(
+      /&#(\d+);/g,
+      /** @type {ReplaceCallback<1>} */ (_s, code) => String.fromCodePoint(Number(code))
+    );
+  }
+  // eslint-disable-next-line unicorn/prefer-includes
+  if (result.includes('&')) {
+    result = /** @type {string} */ (html_entity_decode(result));
+  }
 
-    return result;
-
+  return result;
 }
 
 /**
@@ -766,6 +769,7 @@ export function countOccurrences(string, regexp) {
       message: 'The regexp supplied to countOccurrences() must have the "g" flag.',
     });
   }
+
   return (string.match(regexp) || []).length;
 }
 
@@ -876,7 +880,7 @@ export function parseWikiUrl(url) {
 
     // Could we just get by with `[&?]action=edit` (see below)?
     // .replace(cd.g.startsWithEditActionPathRegexp || '', '$1')
-
+    //
     .replace(cd.g.articlePathRegexp, '$1')
     .replace(cd.g.startsWithScriptTitleRegexp, '')
     .replace(/[&?]action=edit.*/, '')
@@ -965,9 +969,9 @@ export function genericGetOldestOrNewestByDateProp(items, which, allowDateless) 
             (which === 'oldest' ? item.date < candidate.date : item.date > candidate.date)
           )
         )
-      ) ?
-        item :
-        candidate,
+      )
+        ? item
+        : candidate,
     /** @type {T | undefined} */ (undefined)
   ));
 }
@@ -1000,7 +1004,6 @@ export function typedEntries(obj) {
     Object.entries(obj)
   );
 }
-
 
 /**
  * @template {AnyByKey} T

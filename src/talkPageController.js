@@ -1482,7 +1482,7 @@ class TalkPageController extends EventEmitter {
         if ($button.is('a')) {
           url = new URL(/** @type {HTMLAnchorElement} */ ($button[0]).href);
           pageName = getLastArrayElementOrSelf(url.searchParams.getAll('title'))
-            .replace(/^Special:NewSection\//i, '');
+            ?.replace(/^Special:NewSection\//i, '');
         } else if ($button.is('input')) {
           pageName = /** @type {string} */ ($button
             .closest('form')

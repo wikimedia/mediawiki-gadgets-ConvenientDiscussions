@@ -1282,7 +1282,8 @@ class Thread extends mixInObject(
     }
 
     const rectTop = elTop?.getBoundingClientRect();
-    const rectOrOffset = rectTop || comment.getOffset({ floatingRects });
+    const rectBottom = elBottom?.getBoundingClientRect();
+    const rectTopOrCommentOffset = rectTop || comment.getOffset({ floatingRects });
 
     // Side effect warning: comment.getMargins() should be below comment.getOffset() as
     // Comment#isStartStretched is set inside that call.
@@ -1293,12 +1294,10 @@ class Thread extends mixInObject(
     /** @type {number | undefined} */
     let left;
     const dir = comment.getDirection();
-    if (rectOrOffset) {
-      top = getTop(rectOrOffset);
-      left = getLeft(rectOrOffset, commentMargins, dir);
+    if (rectTopOrCommentOffset) {
+      top = getTop(rectTopOrCommentOffset);
+      left = getLeft(rectTopOrCommentOffset, commentMargins, dir);
     }
-
-    const rectBottom = elBottom?.getBoundingClientRect();
 
     const areTopAndBottomAligned = () => {
       // FIXME: We use the first comment part's margins for the bottom rectangle which can lead to
@@ -1312,7 +1311,7 @@ class Thread extends mixInObject(
     if (
       top === undefined ||
       !rectBottom ||
-      !getVisibilityByRects(...[elTop?.getBoundingClientRect(), rectBottom].filter(defined)) ||
+      !getVisibilityByRects(...[rectTop, rectBottom].filter(defined)) ||
       !areTopAndBottomAligned()
     ) {
       this.removeLine();
