@@ -20,7 +20,7 @@ import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
 import { handleApiReject, loadUserGenders, parseCode } from './utils-api';
 import { showConfirmDialog } from './utils-oojs';
-import { createSvg, extractSignatures, formatDate, formatDateNative, getExtendedRect, getHigherNodeAndOffsetInSelection, getVisibilityByRects, isVisible, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
+import { createSvg, extractSignatures, formatDate, formatDateNative, getExtendedRect, getHigherNodeAndOffsetInSelection, isVisible, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**
  * @typedef {object} CommentOffset
@@ -1534,20 +1534,21 @@ class Comment extends CommentSkeleton {
     // `true` wrongly if the comment is around floating elements, but that doesn't hurt much.
     if (
       this.offset &&
+
       // Has the top stayed the same? With scale other than 100% values of less than 0.001 appear
       // in Chrome and Firefox.
       Math.abs(scrollY + rectTop.top - this.offset.top) < 0.01 &&
+
       // Has the height stayed the same?
       Math.abs(rectBottom.bottom - rectTop.top - (this.offset.bottom - this.offset.top)) < 0.01 &&
+
       // Has the width of the first highlightable stayed the same?
       Math.abs(this.highlightables[0].offsetWidth - this.offset.firstHighlightableWidth) < 0.01
     ) {
       // If floating elements aren't supposed to be taken into account but the comment isn't moved,
-      // we still set/return the offset with floating elements taken into account because that
+      // we still set or return the offset with floating elements taken into account because that
       // shouldn't do any harm.
-      if (options.set && !options.considerFloating) {
-        this.roughOffset = this.offset;
-      }
+      this.maybeSetOffset(this.offset, options);
 
       return options.set ? false : this.offset;
     }

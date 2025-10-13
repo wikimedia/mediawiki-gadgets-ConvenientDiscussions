@@ -107,16 +107,26 @@ ol > .cd-thread-button-container > .cd-thread-button {
   display: none !important;
 }
 
-// Support for hidden="until-found" - elements with this attribute should be hidden but searchable
-.cd-comment-part.cd-comment-part.cd-comment-part[hidden="until-found"] {
+.cd-comment-part.cd-comment-part.cd-comment-part.cd-hiddenUntilFound {
   margin-block: 0;
 }
 
-.cd-thread-expandNote + [hidden="until-found"] + .cd-thread-expandNote {
+// Compensate for lack of margin collapsing
+// https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing
+// Compensate for lack of margin collapsing
+// https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing
+.cd-thread-expandNote.cd-thread-expandNote + .cd-hiddenUntilFound + .cd-comment-part,
+.cd-thread-expandNote.cd-thread-expandNote + .cd-hiddenUntilFound + * > .cd-comment-part:first-child,
+.cd-thread-expandNote.cd-thread-expandNote + .cd-hiddenUntilFound + .cd-thread-expandNote,
+.cd-thread-expandNote.cd-thread-expandNote + .cd-hiddenUntilFound + .cd-replyButtonWrapper {
+  margin-top: 0;
+}
+
+.cd-thread-expandNote + .cd-hiddenUntilFound:last-child {
   margin-top: -0.5em;
 }
 
-.cd-reformattedComments .cd-thread-expandNote + [hidden="until-found"] + .cd-thread-expandNote {
+.cd-reformattedComments .cd-thread-expandNote + .cd-hiddenUntilFound:last-child {
   margin-top: -0.75em;
 }
 

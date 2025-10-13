@@ -80,7 +80,7 @@ function setStrings() {
     ))
       ? cd.g.contentLanguage
       : cd.g.userLanguage;
-    acc[name] = lang in cd.i18n ? cd.i18n[lang][name] : cd.i18n.en[name];
+    acc[name] = (lang in cd.i18n && cd.i18n[lang][name]) ?? cd.i18n.en[name];
 
     return acc;
   }, /** @type {StringsByKey} */ ({}));

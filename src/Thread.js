@@ -1085,11 +1085,12 @@ class Thread extends mixInObject(
    * @private
    */
   hideElement(element) {
+    element.classList.add('cd-hiddenUntilFound');
+
     // Use hidden="until-found" instead of .cd-hidden for better browser search support. If
     // unsupported, this would gracefully degrade to simply hiding the element.
     element.setAttribute('hidden', 'until-found');
 
-    // Add beforematch event listener if we have the handler
     element.addEventListener('beforematch', this.handleBeforeMatch);
 
     // An element can be in more than one collapsed range. So, we need to show the element when
@@ -1112,9 +1113,8 @@ class Thread extends mixInObject(
     removeFromArrayIfPresent(roots, this.rootComment);
     $element.data('cd-collapsed-thread-root-comments', roots);
     if (!roots.length && !$element.data('cd-comment-form')) {
+      element.classList.remove('cd-hiddenUntilFound');
       element.removeAttribute('hidden');
-
-      // Remove beforematch event listener if we have the handler
       element.removeEventListener('beforematch', this.handleBeforeMatch);
     }
   }
@@ -1193,10 +1193,11 @@ class Thread extends mixInObject(
    * @param {Thread[]} options.threadsToUpdate
    * @param {number} options.scrollX
    * @param {number} options.scrollY
+   * @param {import('./utils-window').ExtendedDOMRect[]} options.floatingRects
    * @returns {boolean}
    * @private
    */
-  updateLine({ elementsToAdd, threadsToUpdate, scrollX, scrollY }) {
+  updateLine({ elementsToAdd, threadsToUpdate, scrollX, scrollY, floatingRects }) {
     try {
       const comment = this.rootComment;
 
@@ -1218,27 +1219,45 @@ class Thread extends mixInObject(
         ? this.getAdjustedStartElement()
         : undefined;
       const elBottom = this.isCollapsed ? elTop : this.getAdjustedEndElement(true);
-      if (!elTop || !elBottom || !isVisible(elTop, elBottom)) {
+
+      let offsetTop;
+      if (elTop) {
+        offsetTop = elTop.getBoundingClientRect();
+      } else {
+        offsetTop = comment.getOffset({ floatingRects });
+        if (offsetTop) {
+          offsetTop.top -= scrollY;
+          offsetTop.bottom -= scrollY;
+          offsetTop.left -= scrollX;
+          offsetTop.right -= scrollX;
+        }
+      }
+
+      if (
+        !offsetTop ||
+        (elTop ? !isVisible(elTop) : !getVisibilityByRects(/** @type {DOMRect} */ (offsetTop))) ||
+        !elBottom ||
+        !isVisible(elBottom)
+      ) {
         throw new CdError();
       }
 
-      const rectTop = elTop.getBoundingClientRect();
-      const rectBottom = elBottom.getBoundingClientRect();
+      const offsetBottom = elBottom.getBoundingClientRect();
       const commentMargins = needCalculateMargins ? comment.getMargins() : undefined;
       const dir = comment.getDirection();
-      const left = this.getThreadLineLeft(rectTop, commentMargins, dir, scrollX);
+      const left = this.getThreadLineLeft(offsetTop, commentMargins, dir, scrollX);
 
       // FIXME: We use the first comment part's margins for the bottom rectangle which can lead to
       // errors (need to check).
-      const bottomLeft = this.getThreadLineLeft(rectBottom, commentMargins, dir, scrollX);
+      const bottomLeft = this.getThreadLineLeft(offsetBottom, commentMargins, dir, scrollX);
 
       // Are top and bottom aligned?
       if (dir === 'ltr' ? bottomLeft < left : bottomLeft > left) {
         throw new CdError();
       }
 
-      const top = scrollY + rectTop.top;
-      const height = rectBottom.bottom - (top - scrollY);
+      const top = scrollY + offsetTop.top;
+      const height = offsetBottom.bottom - (top - scrollY);
 
       // Find the top comment that has its offset changed and stop at it.
       if (
@@ -1276,36 +1295,36 @@ class Thread extends mixInObject(
   /**
    * Get the left offset of the thread line.
    *
-   * @param {DOMRect} rect
+   * @param {{ left: number, right: number }} offset
    * @param {import('./Comment').CommentMargins | undefined} commentMargins
    * @param {'rtl' | 'ltr'} dir
    * @param {number} scrollX
    * @returns {number}
    * @private
    */
-  getThreadLineLeft(rect, commentMargins, dir, scrollX) {
-    let offset;
+  getThreadLineLeft(offset, commentMargins, dir, scrollX) {
+    let left;
 
     // This calculation is the same as in .cd-comment-overlay-marker, but without -1px - we don't
     // need it. Don't round - we need a subpixel-precise value.
-    const centerOffset = -(
+    const centerLeft = -(
       (cd.g.commentMarkerWidth / cd.g.pixelDeviationRatio - 1 / cd.g.pixelDeviationRatioFor1px) /
       2
     );
 
     if (dir === 'ltr') {
-      offset = rect.left + centerOffset;
+      left = offset.left + centerLeft;
       if (commentMargins) {
-        offset -= commentMargins.left + 1;
+        left -= commentMargins.left + 1;
       }
     } else {
-      offset = rect.right - cd.g.commentMarkerWidth / cd.g.pixelDeviationRatio - centerOffset;
+      left = offset.right - cd.g.commentMarkerWidth / cd.g.pixelDeviationRatio - centerLeft;
       if (commentMargins) {
-        offset += commentMargins.right + 1;
+        left += commentMargins.right + 1;
       }
     }
 
-    return offset + scrollX - cd.g.threadLineSidePadding;
+    return left + scrollX - cd.g.threadLineSidePadding;
   }
 
   /**
@@ -1653,6 +1672,7 @@ class Thread extends mixInObject(
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
 
+    const floatingRects = talkPageController.getFloatingElements().map(getExtendedRect);
     commentManager.getAll()
       .slice()
       .reverse()
@@ -1662,6 +1682,7 @@ class Thread extends mixInObject(
           threadsToUpdate,
           scrollX,
           scrollY,
+          floatingRects,
         })
       );
 
