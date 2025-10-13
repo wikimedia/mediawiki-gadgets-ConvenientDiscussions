@@ -1755,18 +1755,18 @@ class Comment extends CommentSkeleton {
    * @returns {Direction}
    */
   getDirection() {
-    if (!this.direction) {
-      this.direction = talkPageController.areThereLtrRtlMixes()
-        ? this.elements
+    this.direction ||= talkPageController.areThereLtrRtlMixes()
+      ? this.elements
+
         // Take the last element because the first one may be the section heading which can have
         // another direction.
-          .slice(-1)[0]
-          .closest('.mw-content-ltr, .mw-content-rtl')
-          ?.classList.contains('mw-content-rtl')
-          ? 'rtl'
-          : 'ltr'
-        : cd.g.contentDirection;
-    }
+        .slice(-1)[0]
+
+        .closest('.mw-content-ltr, .mw-content-rtl')
+        ?.classList.contains('mw-content-rtl')
+        ? 'rtl'
+        : 'ltr'
+      : cd.g.contentDirection;
 
     return this.direction;
   }
@@ -2174,7 +2174,7 @@ class Comment extends CommentSkeleton {
       this.replyButton?.setDisabled(add);
       this.editButton?.setDisabled(add);
     } else if (flag === 'hovered' && !add) {
-      this.overlayInnerWrapper.style.display = '';
+      /** @type {Comment<false, boolean, true>} */ (this).overlayInnerWrapper.style.display = '';
     }
   }
 
@@ -2220,12 +2220,12 @@ class Comment extends CommentSkeleton {
     removeFromArrayIfPresent(commentManager.underlays, this.underlay);
 
     this.underlay.remove();
-    this.underlay = /** @type {HTMLElementIfHasLayers & null} */ (null);
-    this.$underlay = /** @type {JQueryIfHasLayers & null} */ (null);
+    /** @type {Comment} */ (this).underlay = undefined;
+    /** @type {Comment} */ (this).$underlay = undefined;
 
     this.overlay.remove();
-    this.overlay = /** @type {HTMLElementIfHasLayers & null} */ (null);
-    this.$overlay = /** @type {JQueryIfHasLayers & null} */ (null);
+    /** @type {Comment} */ (this).overlay = undefined;
+    /** @type {Comment} */ (this).$overlay = undefined;
   }
 
   /**
@@ -2323,6 +2323,7 @@ class Comment extends CommentSkeleton {
    * @param {string} markerColor
    * @param {string} backgroundColor
    * @param {() => void} [callback] Function to run when the animation is concluded.
+   * @this {Comment<boolean, boolean, true>}
    * @private
    */
   animateToColors(markerColor, backgroundColor, callback) {
@@ -2364,7 +2365,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   animateBack(flag, callback) {
-    if (!this.$underlay?.parent().length) {
+    if (!this.hasLayers() || !this.$underlay.parent().length) {
       callback?.();
 
       return;
@@ -2413,7 +2414,7 @@ class Comment extends CommentSkeleton {
    */
   flash(flag, delay, callback) {
     this.configureLayers();
-    if (!this.$underlay) {
+    if (!this.hasLayers()) {
       callback?.();
 
       return;
@@ -2504,6 +2505,8 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Stop all animations on the comment.
    */
   stopAnimations() {
+    if (!this.hasLayers()) return;
+
     this.$animatedBackground?.add(this.$marker).stop(true, true);
   }
 
