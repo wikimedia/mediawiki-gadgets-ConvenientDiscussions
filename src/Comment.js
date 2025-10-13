@@ -75,7 +75,7 @@ import { createSvg, extractSignatures, formatDate, formatDateNative, getExtended
  *
  * @template {boolean} [Reformatted=boolean]
  * @template {boolean} [OpeningSection=boolean]
- * @template {boolean} [NotReformattedAndHasUnderlay=boolean]
+ * @template {boolean} [HasLayers=boolean]
  * @augments CommentSkeleton<Node>
  */
 class Comment extends CommentSkeleton {
@@ -130,12 +130,6 @@ class Comment extends CommentSkeleton {
    */
   reformatted;
 
-  /**
-   * @type {NotReformattedAndHasUnderlay}
-   * @private
-   */
-  notReformattedAndHasUnderlay;
-
   /** @type {Direction | undefined} */
   direction;
 
@@ -153,7 +147,11 @@ class Comment extends CommentSkeleton {
    */
 
   /**
-   * @typedef {NotReformattedAndHasUnderlay extends true ? HTMLElement : undefined} HTMLElementIfNotReformattedAndHasUnderlay
+   * @typedef {HasLayers extends true ? HTMLElement : undefined} HTMLElementIfHasLayers
+   */
+
+  /**
+   * @typedef {Reformatted extends false ? (HasLayers extends true ? HTMLElement : undefined) : undefined} HTMLElementIfNotReformattedAndHasLayers
    */
 
   /**
@@ -161,7 +159,11 @@ class Comment extends CommentSkeleton {
    */
 
   /**
-   * @typedef {NotReformattedAndHasUnderlay extends true ? JQuery<HTMLElementIfNotReformattedAndHasUnderlay> : undefined} JQueryIfNotReformattedAndHasUnderlay
+   * @typedef {HasLayers extends true ? JQuery<HTMLElementIfHasLayers> : undefined} JQueryIfHasLayers
+   */
+
+  /**
+   * @typedef {Reformatted extends false ? (HasLayers extends true ? JQuery<HTMLElementIfHasLayers> : undefined) : undefined} JQueryIfNotReformattedAndHasLayers
    */
 
   /**
@@ -192,14 +194,14 @@ class Comment extends CommentSkeleton {
   /**
    * _For internal use._ Comment's underlay as a native (non-jQuery) element.
    *
-   * @type {?HTMLElement}
+   * @type {HTMLElementIfHasLayers}
    */
   underlay;
 
   /**
    * Comment's overlay.
    *
-   * @type {?HTMLElement}
+   * @type {HTMLElementIfHasLayers}
    * @private
    */
   overlay;
@@ -207,7 +209,7 @@ class Comment extends CommentSkeleton {
   /**
    * Line element in comment's overlay.
    *
-   * @type {HTMLElement}
+   * @type {HTMLElementIfHasLayers}
    * @private
    */
   line;
@@ -215,7 +217,7 @@ class Comment extends CommentSkeleton {
   /**
    * Comment's side marker.
    *
-   * @type {HTMLElement}
+   * @type {HTMLElementIfHasLayers}
    * @private
    */
   marker;
@@ -223,7 +225,7 @@ class Comment extends CommentSkeleton {
   /**
    * Inner wrapper in comment's overlay.
    *
-   * @type {HTMLElementIfNotReformattedAndHasUnderlay}
+   * @type {HTMLElementIfNotReformattedAndHasLayers}
    * @private
    */
   overlayInnerWrapper;
@@ -231,7 +233,7 @@ class Comment extends CommentSkeleton {
   /**
    * Gradient element in comment's overlay.
    *
-   * @type {HTMLElementIfNotReformattedAndHasUnderlay}
+   * @type {HTMLElementIfNotReformattedAndHasLayers}
    * @private
    */
   overlayGradient;
@@ -239,7 +241,7 @@ class Comment extends CommentSkeleton {
   /**
    * Menu element in comment's overlay.
    *
-   * @type {HTMLElementIfNotReformattedAndHasUnderlay}
+   * @type {HTMLElementIfNotReformattedAndHasLayers}
    * @private
    */
   overlayMenu;
@@ -247,35 +249,35 @@ class Comment extends CommentSkeleton {
   /**
    * Comment's underlay.
    *
-   * @type {?JQuery}
+   * @type {JQueryIfHasLayers}
    */
   $underlay;
 
   /**
    * Comment's overlay.
    *
-   * @type {?JQuery}
+   * @type {JQueryIfHasLayers}
    */
   $overlay;
 
   /**
    * Comment's side marker.
    *
-   * @type {JQuery}
+   * @type {JQueryIfHasLayers}
    */
   $marker;
 
   /**
    * Menu element in the comment's overlay.
    *
-   * @type {JQueryIfNotReformattedAndHasUnderlay}
+   * @type {JQueryIfNotReformattedAndHasLayers}
    */
   $overlayMenu;
 
   /**
    * Gradient element in the comment's overlay.
    *
-   * @type {JQueryIfNotReformattedAndHasUnderlay}
+   * @type {JQueryIfNotReformattedAndHasLayers}
    */
   $overlayGradient;
 
@@ -532,12 +534,21 @@ class Comment extends CommentSkeleton {
   }
 
   /**
+   * Check if the comment has layers (underlay and overlay).
+   *
+   * @returns {this is Comment<boolean, boolean, true>}
+   */
+  hasLayers() {
+    return Boolean(this.underlay);
+  }
+
+  /**
    * Check if the comment is not reformatted and its underlay is present.
    *
    * @returns {this is Comment<false, boolean, true>}
    */
   hasClassicUnderlay() {
-    return Boolean(!this.reformatted && this.underlay);
+    return !this.isReformatted() && this.hasLayers();
   }
 
   /**
@@ -1838,7 +1849,7 @@ class Comment extends CommentSkeleton {
 
     // Configure the layers only if they were unexistent or the comment position has changed, to
     // save time.
-    if (this.underlay) {
+    if (this.hasLayers()) {
       this.updateLayersStyles();
       if (isMoved && options.update) {
         this.updateLayersOffset();
@@ -2009,24 +2020,24 @@ class Comment extends CommentSkeleton {
    * @private
    */
   createLayers() {
-    this.underlay = Comment.prototypes.get('underlay');
+    this.underlay = /** @type {HTMLElementIfHasLayers & HTMLElement} */ (Comment.prototypes.get('underlay'));
     commentManager.underlays.push(this.underlay);
 
-    this.overlay = Comment.prototypes.get('overlay');
-    this.line = /** @type {HTMLElement} */ (this.overlay.firstChild);
-    this.marker = /** @type {HTMLElement} */ (
+    this.overlay = /** @type {HTMLElementIfHasLayers & HTMLElement} */ (Comment.prototypes.get('overlay'));
+    this.line = /** @type {HTMLElementIfHasLayers & HTMLElement} */ (this.overlay.firstChild);
+    this.marker = /** @type {HTMLElementIfHasLayers & HTMLElement} */ (
       /** @type {HTMLElement} */ (this.overlay.firstChild).nextSibling
     );
 
     if (this.hasClassicUnderlay()) {
       this.overlayInnerWrapper =
-        /** @type {HTMLElementIfNotReformattedAndHasUnderlay & HTMLElement} */ (
+        /** @type {HTMLElementIfNotReformattedAndHasLayers & HTMLElement} */ (
           this.overlay.lastChild
         );
-      this.overlayGradient = /** @type {HTMLElementIfNotReformattedAndHasUnderlay & HTMLElement} */ (
+      this.overlayGradient = /** @type {HTMLElementIfNotReformattedAndHasLayers & HTMLElement} */ (
         this.overlayInnerWrapper.firstChild
       );
-      this.overlayMenu = /** @type {HTMLElementIfNotReformattedAndHasUnderlay & HTMLElement} */ (
+      this.overlayMenu = /** @type {HTMLElementIfNotReformattedAndHasLayers & HTMLElement} */ (
         this.overlayInnerWrapper.lastChild
       );
 
@@ -2052,28 +2063,28 @@ class Comment extends CommentSkeleton {
      *
      * @type {?JQuery}
      */
-    this.$underlay = $(this.underlay);
+    this.$underlay = /** @type {JQueryIfHasLayers & JQuery} */ ($(this.underlay));
 
     /**
      * Comment's overlay.
      *
      * @type {?JQuery}
      */
-    this.$overlay = $(this.overlay);
+    this.$overlay = /** @type {JQueryIfHasLayers & JQuery} */ ($(this.overlay));
 
     /**
      * Comment's side marker.
      *
      * @type {JQuery}
      */
-    this.$marker = $(this.marker);
+    this.$marker = /** @type {JQueryIfHasLayers & JQuery} */ ($(this.marker));
 
     if (this.hasClassicUnderlay()) {
-      this.$overlayMenu = /** @type {JQueryIfNotReformattedAndHasUnderlay & JQuery} */ (
-        $(this.overlayMenu)
+      this.$overlayMenu = /** @type {JQueryIfNotReformattedAndHasLayers & JQuery} */ (
+        /** @type {unknown} */ ($(this.overlayMenu))
       );
-      this.$overlayGradient = /** @type {JQueryIfNotReformattedAndHasUnderlay & JQuery} */ (
-        $(this.overlayGradient)
+      this.$overlayGradient = /** @type {JQueryIfNotReformattedAndHasLayers & JQuery} */ (
+        /** @type {unknown} */ ($(this.overlayGradient))
       );
     }
 
@@ -2130,7 +2141,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   updateLayersStyles(wereJustCreated = false) {
-    if (!this.underlay) return;
+    if (!this.hasLayers()) return;
 
     this.updateClassesForFlag('new', Boolean(this.isNew));
     this.updateClassesForFlag('own', this.isOwn);
@@ -2153,7 +2164,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   updateClassesForFlag(flag, add) {
-    if (!this.underlay || this.underlay.classList.contains(`cd-comment-underlay-${flag}`) === add)
+    if (!this.hasLayers() || this.underlay.classList.contains(`cd-comment-underlay-${flag}`) === add)
       return;
 
     this.underlay.classList.toggle(`cd-comment-underlay-${flag}`, add);
@@ -2171,7 +2182,7 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Add the (already existent) comment's layers to the DOM.
    */
   addLayers() {
-    if (!this.underlay) return;
+    if (!this.hasLayers()) return;
 
     this.updateLayersOffset();
     this.getLayersContainer().append(this.underlay);
@@ -2186,7 +2197,7 @@ class Comment extends CommentSkeleton {
     // The underlay can be absent if called from commentManager.maybeRedrawLayers() with redrawAll
     // set to `true`. layersOffset can be absent in some rare cases when the comment became
     // invisible.
-    if (!this.underlay || !this.layersOffset) return;
+    if (!this.hasLayers() || !this.layersOffset) return;
 
     this.underlay.style.top = this.overlay.style.top = String(this.layersOffset.top) + 'px';
     this.underlay.style.left = this.overlay.style.left = String(this.layersOffset.left) + 'px';
@@ -2200,7 +2211,7 @@ class Comment extends CommentSkeleton {
    * Remove the comment's underlay and overlay.
    */
   removeLayers() {
-    if (!this.underlay) return;
+    if (!this.hasLayers()) return;
 
     this.$marker.stop(true, true);
     this.unhighlightHovered(true);
@@ -2209,12 +2220,12 @@ class Comment extends CommentSkeleton {
     removeFromArrayIfPresent(commentManager.underlays, this.underlay);
 
     this.underlay.remove();
-    this.underlay = null;
-    this.$underlay = null;
+    this.underlay = /** @type {HTMLElementIfHasLayers & null} */ (null);
+    this.$underlay = /** @type {JQueryIfHasLayers & null} */ (null);
 
     this.overlay.remove();
-    this.overlay = null;
-    this.$overlay = null;
+    this.overlay = /** @type {HTMLElementIfHasLayers & null} */ (null);
+    this.$overlay = /** @type {JQueryIfHasLayers & null} */ (null);
   }
 
   /**
@@ -2277,7 +2288,7 @@ class Comment extends CommentSkeleton {
       // Is the comment moved?
       this.configureLayers() ||
 
-      !this.underlay
+      !this.hasLayers()
     ) {
       return;
     }
