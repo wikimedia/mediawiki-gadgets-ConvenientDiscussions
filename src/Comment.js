@@ -3043,7 +3043,7 @@ class Comment extends CommentSkeleton {
    * collapsed.
    */
   toggleChildThreads() {
-    this.getChildren()[0].thread.toggleWithSiblings();
+    this.getChildren().at(0)?.thread?.toggleWithSiblings();
   }
 
   /**

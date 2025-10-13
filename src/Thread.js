@@ -337,7 +337,7 @@ class Thread extends mixInObject(
       }
     }
 
-    if (!startElement || !endElement || !visualEndElement || !visualEndElementFallback) {
+    if (!endElement || !visualEndElement || !visualEndElementFallback) {
       throw new CdError();
     }
 
@@ -922,14 +922,9 @@ class Thread extends mixInObject(
   toggleWithSiblings(clickedThread = false) {
     const wasCollapsed = clickedThread
       ? this.isCollapsed
-
       : Boolean(this.rootComment.getParent()?.areChildThreadsCollapsed());
     this.rootComment.getSiblingsAndSelf().forEach((sibling) => {
-      if (wasCollapsed) {
-        sibling.thread?.expand(undefined, true);
-      } else {
-        sibling.thread?.collapse(undefined, true);
-      }
+      sibling.thread?.toggle(wasCollapsed, undefined, true);
     });
     Thread.emit('toggle');
     this.rootComment.getParent()?.updateToggleChildThreadsButton();
@@ -941,13 +936,16 @@ class Thread extends mixInObject(
   /**
    * Expand the thread if it's collapsed and collapse if it's expanded.
    *
+   * @param {boolean} [expand]
+   * @param {boolean} [auto]
+   * @param {boolean} [isBatchOperation]
    * @private
    */
-  toggle() {
-    if (this.isCollapsed) {
-      this.expand();
+  toggle(expand, auto, isBatchOperation) {
+    if (expand || (expand === undefined && this.isCollapsed)) {
+      this.expand(auto, isBatchOperation);
     } else {
-      this.collapse();
+      this.collapse(auto, isBatchOperation);
     }
   }
 
@@ -1714,7 +1712,7 @@ class Thread extends mixInObject(
           ))
           .map((comment) => ({
             id: comment.id,
-            collapsed: comment.thread.isCollapsed,
+            collapsed: /** @type {Thread} */ (comment.thread).isCollapsed,
           }))
       )
       .save();
