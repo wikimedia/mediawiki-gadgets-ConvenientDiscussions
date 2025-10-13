@@ -434,6 +434,13 @@ class Comment extends CommentSkeleton {
   source;
 
   /**
+   * Is the comment selected.
+   *
+   * @type {boolean}
+   */
+  isSelected = false;
+
+  /**
    * Create a comment object.
    *
    * @param {import('./shared/Parser').default<Node>} parser
@@ -1413,12 +1420,7 @@ class Comment extends CommentSkeleton {
    */
   replyButtonClick() {
     if (this.replyForm) {
-      if (this.isSelected) {
-        this.fixSelection();
-        this.replyForm.quote(true, this);
-      } else {
-        this.replyForm.cancel();
-      }
+      this.replyForm.cancel();
     } else {
       this.reply();
     }
@@ -3470,15 +3472,6 @@ class Comment extends CommentSkeleton {
   reply(initialState, commentForm) {
     if (this.replyForm) return;
 
-    let isSelectionRelevant = false;
-    if (!initialState && !commentForm) {
-      isSelectionRelevant = commentManager.getSelectedComment() === this;
-      if (isSelectionRelevant) {
-        initialState = { focus: false };
-        this.fixSelection();
-      }
-    }
-
     if (commentManager.getByIndex(this.index + 1)?.isOutdented && this.section) {
       let replyForm = this.section.replyForm;
       if (replyForm && replyForm.targetWithOutdentedReplies === this) {
@@ -3523,16 +3516,13 @@ class Comment extends CommentSkeleton {
       initialState,
       commentForm
     );
-
-    if (isSelectionRelevant) {
-      this.replyForm.quote(true, this);
-    }
   }
 
   /**
-   * Make sure the selection will not include the comment form itself when it appears.
-   *
-   * @private
+   * Make sure the selection doesn't include any subsequent text even though it doesn't look like
+   * this (e.g. Chrome includes subsequent text on triple click; if you try quotting the last
+   * comment on the page without running fixSelection(), the `NewPP limit report` comment will be
+   * included).
    */
   fixSelection() {
     let endBoundary;
@@ -4452,19 +4442,9 @@ class Comment extends CommentSkeleton {
    * @param {boolean} selected
    */
   setSelected(selected) {
-    if (selected) {
-      if (this.isActionable) {
-        this.isSelected = true;
-        this.configureLayers();
-        this.replyButton
-          ?.setFlags(['progressive'])
-          .setLabel(cd.s('cm-quote'));
-      }
-    } else {
-      this.isSelected = false;
-      this.replyButton
-        ?.setFlags([])
-        .setLabel(cd.s('cm-reply'));
+    this.isSelected = selected;
+    if (selected && this.isActionable) {
+      this.configureLayers();
     }
   }
 

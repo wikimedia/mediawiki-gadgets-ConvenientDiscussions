@@ -107,27 +107,21 @@ ol > .cd-thread-button-container > .cd-thread-button {
   display: none !important;
 }
 
-.cd-comment-part.cd-comment-part.cd-comment-part.cd-hiddenUntilFound {
+// Need to override `.cd-reformattedComments
+// .cd-comment-part-first.cd-comment-part-first.cd-comment-part-first`.
+.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound {
   margin-block: 0;
 }
 
-// Compensate for lack of margin collapsing
-// https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing
-// Compensate for lack of margin collapsing
-// https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing
-.cd-thread-expandNote.cd-thread-expandNote + .cd-hiddenUntilFound + .cd-comment-part,
-.cd-thread-expandNote.cd-thread-expandNote + .cd-hiddenUntilFound + * > .cd-comment-part:first-child,
-.cd-thread-expandNote.cd-thread-expandNote + .cd-hiddenUntilFound + .cd-thread-expandNote,
-.cd-thread-expandNote.cd-thread-expandNote + .cd-hiddenUntilFound + .cd-replyButtonWrapper {
-  margin-top: 0;
+// Hotfix Vector's `margin-top: -0.5em;` for `p + ul` etc.
+.mw-body [hidden] + ul, .mw-body [hidden] + ol, .mw-body [hidden] + table, .mw-body [hidden] + dl, .mw-body [hidden] + blockquote {
+  margin-top: 1em;
 }
 
-.cd-thread-expandNote + .cd-hiddenUntilFound:last-child {
-  margin-top: -0.5em;
-}
-
-.cd-reformattedComments .cd-thread-expandNote + .cd-hiddenUntilFound:last-child {
-  margin-top: -0.75em;
+// Compensate for lack of margin collapsing
+// https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing
+.cd-thread-expandNote.cd-thread-expandNote.cd-thread-expandNote.cd-thread-expandNote {
+  margin-bottom: 0;
 }
 
 // Allow headings to have the top pixel visible to make active section highlighting in the TOC

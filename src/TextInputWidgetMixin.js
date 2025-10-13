@@ -83,8 +83,9 @@ class TextInputWidgetMixin {
    */
   async getWikitextFromSelection() {
     const div = document.createElement('div');
-    if (window.getSelection().type === 'Range') {
-      div.append(window.getSelection().getRangeAt(0).cloneContents());
+    const selection = window.getSelection();
+    if (selection.type === 'Range') {
+      div.append(selection.getRangeAt(0).cloneContents());
 
       return await this.maybeConvertElementToWikitext(cleanUpPasteDom(div, this.$element[0]));
     }

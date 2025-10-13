@@ -773,12 +773,14 @@ class CommentManager extends EventEmitter {
       });
     });
 
+    /** @type {JQuery} */
+    let $buttoned;
+    /** @type {JQuery} */
+    let $classed;
     if (parent instanceof Comment) {
       button.$element.addClass('cd-thread-button');
       const { $wrappingItem } = parent.addSubitem('newCommentsNote', 'bottom');
-      $wrappingItem
-        .addClass('cd-thread-button-container cd-thread-newCommentsNote')
-        .append(button.$element);
+      $classed = $buttoned = $wrappingItem;
 
       // Update the collapsed range for the thread.
       if (parent.thread?.isCollapsed) {
@@ -789,24 +791,24 @@ class CommentManager extends EventEmitter {
       button.$element.addClass('cd-thread-button');
       const tagName =
         /** @type {JQuery} */ (parent.$replyButtonContainer)[0].tagName === 'DL' ? 'dd' : 'li';
-      $(`<${tagName}>`)
-        .addClass('cd-thread-button-container cd-thread-newCommentsNote')
-        .append(button.$element)
-        .insertBefore(parent.$replyButtonWrapper);
+      $classed = $buttoned = $(`<${tagName}>`).insertBefore(parent.$replyButtonWrapper);
     } else {
       button.$element.addClass('cd-section-button');
-      (
-        type === 'section'
-          ? $('<div>').append(button.$element)
-          : $('<dl>').append($('<dd>').append(button.$element))
-      )
-        .addClass('cd-thread-button-container cd-thread-newCommentsNote')
-        .insertAfter(
-          parent.$addSubsectionButtonsContainer && !parent.getChildren().length
-            ? parent.$addSubsectionButtonsContainer
-            : parent.$replyButtonContainer || parent.lastElementInFirstChunk
-        );
+      if (type === 'section') {
+        $classed = $buttoned = $('<div>');
+      } else {
+        $buttoned = $('<dd>');
+        $classed = $('<dl>').append($buttoned);
+      }
+
+      $classed.insertAfter(
+        parent.$addSubsectionButtonsContainer && !parent.getChildren().length
+          ? parent.$addSubsectionButtonsContainer
+          : parent.$replyButtonContainer || parent.lastElementInFirstChunk
+      );
     }
+    $buttoned.append(button.$element);
+    $classed.addClass('cd-thread-button-container cd-thread-newCommentsNote');
   }
 
   /**

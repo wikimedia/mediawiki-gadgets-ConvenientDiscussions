@@ -3920,6 +3920,8 @@ class CommentForm extends EventEmitter {
         selection = window.getSelection().toString();
       }
     }
+
+    comment?.fixSelection();
     if (!isInputFocused() || selection === undefined) {
       selection = await this.commentInput.getWikitextFromSelection();
     }

@@ -93,7 +93,9 @@ dd.cd-comment-part:not(.cd-comment-part-last) + .cd-connectToPreviousItem > .cd-
   margin-top: 0.5em;
 }
 
-.cd-comment-part-first {
+// Need to override `.ns-talk .mw-body-content dd` present in many wikis
+// https://global-search.toolforge.org/?q=%22.ns-talk+.mw-body-content+dd%22&namespaces=8&title=.*%5C.css
+.cd-comment-part-first.cd-comment-part-first.cd-comment-part-first {
   margin-top: 0.5em;
 
   .cd-reformattedComments & {
