@@ -1361,7 +1361,8 @@ class CommentForm extends EventEmitter {
       }
     });
 
-    this.$element.find('.tool[rel="quote"]').wrap($('<span>').addClass('cd-tool-button-wrapper'));
+    // Reuse .tool-button for correct background on hover. In case of problems replace with styles for .cd-tool-button-wrapper
+    this.$element.find('.tool[rel="quote"]').wrap($('<span>').addClass('tool-button cd-tool-button-wrapper'));
   }
 
   /**
