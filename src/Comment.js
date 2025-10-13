@@ -75,7 +75,7 @@ import { createSvg, extractSignatures, formatDate, formatDateNative, getExtended
  *
  * @template {boolean} [Reformatted=boolean]
  * @template {boolean} [OpeningSection=boolean]
- * @template {boolean} [NotReformattedAndHavingUnderlay=boolean]
+ * @template {boolean} [NotReformattedAndHasUnderlay=boolean]
  * @augments CommentSkeleton<Node>
  */
 class Comment extends CommentSkeleton {
@@ -131,10 +131,10 @@ class Comment extends CommentSkeleton {
   reformatted;
 
   /**
-   * @type {NotReformattedAndHavingUnderlay}
+   * @type {NotReformattedAndHasUnderlay}
    * @private
    */
-  notReformattedAndHavingUnderlay;
+  notReformattedAndHasUnderlay;
 
   /** @type {Direction | undefined} */
   direction;
@@ -153,7 +153,7 @@ class Comment extends CommentSkeleton {
    */
 
   /**
-   * @typedef {NotReformattedAndHavingUnderlay extends true ? HTMLElement : undefined} HTMLElementIfNotReformattedAndHavingUnderlay
+   * @typedef {NotReformattedAndHasUnderlay extends true ? HTMLElement : undefined} HTMLElementIfNotReformattedAndHasUnderlay
    */
 
   /**
@@ -161,7 +161,7 @@ class Comment extends CommentSkeleton {
    */
 
   /**
-   * @typedef {NotReformattedAndHavingUnderlay extends true ? JQuery<HTMLElementIfNotReformattedAndHavingUnderlay> : undefined} JQueryIfNotReformattedAndHavingUnderlay
+   * @typedef {NotReformattedAndHasUnderlay extends true ? JQuery<HTMLElementIfNotReformattedAndHasUnderlay> : undefined} JQueryIfNotReformattedAndHasUnderlay
    */
 
   /**
@@ -223,7 +223,7 @@ class Comment extends CommentSkeleton {
   /**
    * Inner wrapper in comment's overlay.
    *
-   * @type {HTMLElementIfNotReformattedAndHavingUnderlay}
+   * @type {HTMLElementIfNotReformattedAndHasUnderlay}
    * @private
    */
   overlayInnerWrapper;
@@ -231,7 +231,7 @@ class Comment extends CommentSkeleton {
   /**
    * Gradient element in comment's overlay.
    *
-   * @type {HTMLElementIfNotReformattedAndHavingUnderlay}
+   * @type {HTMLElementIfNotReformattedAndHasUnderlay}
    * @private
    */
   overlayGradient;
@@ -239,7 +239,7 @@ class Comment extends CommentSkeleton {
   /**
    * Menu element in comment's overlay.
    *
-   * @type {HTMLElementIfNotReformattedAndHavingUnderlay}
+   * @type {HTMLElementIfNotReformattedAndHasUnderlay}
    * @private
    */
   overlayMenu;
@@ -268,14 +268,14 @@ class Comment extends CommentSkeleton {
   /**
    * Menu element in the comment's overlay.
    *
-   * @type {JQueryIfNotReformattedAndHavingUnderlay}
+   * @type {JQueryIfNotReformattedAndHasUnderlay}
    */
   $overlayMenu;
 
   /**
    * Gradient element in the comment's overlay.
    *
-   * @type {JQueryIfNotReformattedAndHavingUnderlay}
+   * @type {JQueryIfNotReformattedAndHasUnderlay}
    */
   $overlayGradient;
 
@@ -2020,13 +2020,13 @@ class Comment extends CommentSkeleton {
 
     if (this.hasClassicUnderlay()) {
       this.overlayInnerWrapper =
-        /** @type {HTMLElementIfNotReformattedAndHavingUnderlay & HTMLElement} */ (
+        /** @type {HTMLElementIfNotReformattedAndHasUnderlay & HTMLElement} */ (
           this.overlay.lastChild
         );
-      this.overlayGradient = /** @type {HTMLElementIfNotReformattedAndHavingUnderlay & HTMLElement} */ (
+      this.overlayGradient = /** @type {HTMLElementIfNotReformattedAndHasUnderlay & HTMLElement} */ (
         this.overlayInnerWrapper.firstChild
       );
-      this.overlayMenu = /** @type {HTMLElementIfNotReformattedAndHavingUnderlay & HTMLElement} */ (
+      this.overlayMenu = /** @type {HTMLElementIfNotReformattedAndHasUnderlay & HTMLElement} */ (
         this.overlayInnerWrapper.lastChild
       );
 
@@ -2069,10 +2069,10 @@ class Comment extends CommentSkeleton {
     this.$marker = $(this.marker);
 
     if (this.hasClassicUnderlay()) {
-      this.$overlayMenu = /** @type {JQueryIfNotReformattedAndHavingUnderlay & JQuery} */ (
+      this.$overlayMenu = /** @type {JQueryIfNotReformattedAndHasUnderlay & JQuery} */ (
         $(this.overlayMenu)
       );
-      this.$overlayGradient = /** @type {JQueryIfNotReformattedAndHavingUnderlay & JQuery} */ (
+      this.$overlayGradient = /** @type {JQueryIfNotReformattedAndHasUnderlay & JQuery} */ (
         $(this.overlayGradient)
       );
     }
@@ -2175,7 +2175,7 @@ class Comment extends CommentSkeleton {
 
     this.updateLayersOffset();
     this.getLayersContainer().append(this.underlay);
-    this.getLayersContainer().append(/** @type {HTMLElement} */ (this.overlay));
+    this.getLayersContainer().append(this.overlay);
   }
 
   /**
@@ -2188,11 +2188,10 @@ class Comment extends CommentSkeleton {
     // invisible.
     if (!this.underlay || !this.layersOffset) return;
 
-    const overlay = /** @type {HTMLElement} */ (this.overlay);
-    this.underlay.style.top = overlay.style.top = String(this.layersOffset.top) + 'px';
-    this.underlay.style.left = overlay.style.left = String(this.layersOffset.left) + 'px';
-    this.underlay.style.width = overlay.style.width = String(this.layersOffset.width) + 'px';
-    this.underlay.style.height = overlay.style.height = String(this.layersOffset.height) + 'px';
+    this.underlay.style.top = this.overlay.style.top = String(this.layersOffset.top) + 'px';
+    this.underlay.style.left = this.overlay.style.left = String(this.layersOffset.left) + 'px';
+    this.underlay.style.width = this.overlay.style.width = String(this.layersOffset.width) + 'px';
+    this.underlay.style.height = this.overlay.style.height = String(this.layersOffset.height) + 'px';
 
     this.toggleChildThreadsPopup?.position();
   }
@@ -2213,7 +2212,7 @@ class Comment extends CommentSkeleton {
     this.underlay = null;
     this.$underlay = null;
 
-    /** @type {HTMLElement} */ (this.overlay).remove();
+    this.overlay.remove();
     this.overlay = null;
     this.$overlay = null;
   }
@@ -2985,9 +2984,11 @@ class Comment extends CommentSkeleton {
             notification.close();
           },
           'cd-notification-markThreadAsRead': () => {
-            this.thread.getComments().forEach((comment) => {
-              comment.isSeen = true;
-            });
+            /** @type {import('./Thread').default} */ (this.thread)
+              .getComments()
+              .forEach((comment) => {
+                comment.isSeen = true;
+              });
             commentManager.emit('registerSeen');
             commentManager.goToFirstUnseenComment();
             notification.close();
