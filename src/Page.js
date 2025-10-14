@@ -499,10 +499,11 @@ export default class Page {
 
           default: {
             const message = error.getHtml();
-            error.setMessage(message);
-            error.setDetails({
-              isRawMessage: message.includes('<table') || message.includes('<div'),
-            });
+            if (message.includes('<table') || message.includes('<div')) {
+              error.set$message($(message));
+            } else {
+              error.setMessage(message);
+            }
           }
         }
       }
@@ -515,7 +516,6 @@ export default class Page {
         type: 'response',
         code: response.edit.captcha ? 'captcha' : 'fail',
         apiResponse: response,
-        details: { isRawMessage: true },
       });
     }
 

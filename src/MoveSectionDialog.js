@@ -571,7 +571,7 @@ class MoveSectionDialog extends ProcessDialog {
         if (error.getType() === 'network') {
           throw new CdError({ details: [genericMessage + ' ' + cd.sParse('error-network'), true] });
         } else {
-          let { code, message, logMessage } = error.getDetails();
+          const { code, type, logMessage } = error.getDetails();
           if (code === 'editconflict') {
             message += ' ' + cd.sParse('msd-error-editconflict-retry');
           }
@@ -631,16 +631,21 @@ class MoveSectionDialog extends ProcessDialog {
       // already edited the source page.
       const genericMessage = cd.sParse('msd-error-editingsourcepage');
       if (error instanceof CdError) {
-        const { details } = error.getDetails();
-        if (error.getType() === 'network') {
-          throw new CdError({
-            details: [genericMessage + ' ' + cd.sParse('error-network'), false, true],
-          });
-        } else {
-          const { logMessage } = details;
-          console.warn(logMessage);
-          throw new CdError({ details: [genericMessage + ' ' + error.getMessage(), false, true] });
-        }
+        throw new CdError({
+          details: [
+            (
+              genericMessage +
+              ' ' +
+              (
+                error.getType() === 'network'
+                  ? cd.sParse('error-network')
+                  : /** @type {string} */ (error.getMessage())
+              )
+            ),
+            false,
+            true,
+          ],
+        });
       } else {
         console.warn(error);
         throw new CdError({

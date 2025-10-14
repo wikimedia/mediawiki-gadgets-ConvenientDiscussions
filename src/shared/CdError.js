@@ -34,7 +34,7 @@
  * @property {string} [code]
  * @property {AnyByKey} [details={}]
  * @property {string} [message]
- * @property {JQuery} [$interactiveMessage]
+ * @property {JQuery} [$message]
  * @property {import('types-mediawiki/mw/Api').ApiResponse} [apiResponse]
  * @property {string} [html]
  */
@@ -104,7 +104,7 @@ class CdError extends Error {
   }
 
   /**
-   * Get the error message (simple string or HTML, depending on where it is supposed to go).
+   * Get the error message if available; simple string or HTML, depending on where it is supposed to go.
    *
    * @returns {string | undefined}
    */
@@ -113,21 +113,32 @@ class CdError extends Error {
   }
 
   /**
-   * Get an interactive (with events) error message to show in the UI.
+   * Get a jQuery error message if available.
    *
    * @returns {JQuery | undefined}
    */
-  getInteractiveMessage() {
-    return this.data.$interactiveMessage;
+  get$message() {
+    return this.data.$message;
   }
 
   /**
-   * Set the error message.
+   * Set the error message. For messages that should be shown as they are, with no OOUI message
+   * framing ({@link https://doc.wikimedia.org/oojs-ui/master/js/OO.ui.MessageWidget.html}), use
+   * {@link CdError#set$message}.
    *
    * @param {string} message
    */
   setMessage(message) {
     this.data.message = message;
+  }
+
+  /**
+   * Set the jQuery error message.
+   *
+   * @param {JQuery} $message
+   */
+  set$message($message) {
+    this.data.$message = $message;
   }
 
   /**

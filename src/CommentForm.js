@@ -2540,10 +2540,10 @@ class CommentForm extends EventEmitter {
    * @param {'notice'|'error'|'warning'|'success'} [options.type] See the
    *   {@link https://doc.wikimedia.org/oojs-ui/master/demos/?page=widgets&theme=wikimediaui&direction=ltr&platform=desktop#MessageWidget-type-notice-inline-true OOUI Demos}.
    * @param {string} [options.name] Name added to the class name of the message element.
-   * @param {boolean} [options.isRaw] Message HTML contains the whole message code. It doesn't
-   *   need to be wrapped in a widget.
+   * @param {boolean} [options.framed] Whether the message should be framed in an OOUI widget, or
+   *   its HTML contains the whole message code.
    */
-  showMessage(htmlOrJquery, { type = 'notice', name, isRaw = false } = {}) {
+  showMessage(htmlOrJquery, { type = 'notice', name, framed = true } = {}) {
     // Don't show two messages with the same name (we assume they should have the same text).
     if (this.torndown || (name && this.$messageArea.children(`.cd-message-${name}`).length)) {
       return;
@@ -2551,14 +2551,14 @@ class CommentForm extends EventEmitter {
 
     this.$messageArea
       .append(
-        isRaw
-          ? htmlOrJquery
-          : new OO.ui.MessageWidget({
+        framed
+          ? new OO.ui.MessageWidget({
             type,
             inline: true,
             label: typeof htmlOrJquery === 'string' ? wrapHtml(htmlOrJquery) : htmlOrJquery,
             classes: ['cd-message', name ? `cd-message-${name}` : undefined].filter(defined),
           }).$element
+          : htmlOrJquery
       )
       .cdAddCloseButton()
       .cdScrollIntoView('top');
@@ -2584,20 +2584,19 @@ class CommentForm extends EventEmitter {
    *
    * @param {object} options
    * @param {JQuery} options.$message Message visible to the user.
-   * @param {'error'|'notice'|'warning'} [options.messageType] Message type if not
-   *   `'error'`.
-   * @param {boolean} [options.isRawMessage] Show the message as it is, without icons and
-   *   framing.
+   * @param {'error'|'notice'|'warning'} [options.messageType] Message type if not `'error'`.
+   * @param {boolean} [options.framed] Whether to show the OOUI message framing for the error
+   *   message.
    * @param {Error | undefined} [options.errorToLog] Error to log in the browser console.
    * @param {boolean} [options.cancel] Cancel the form and show the message as a notification.
-   * @param {import('./CommentFormOperation').default} [options.operation]
-   *   Operation the form is undergoing.
+   * @param {import('./CommentFormOperation').default} [options.operation] Operation the form is
+   *   undergoing.
    * @private
    */
   abort({
     $message,
     messageType = 'error',
-    isRawMessage = false,
+    framed = true,
     errorToLog,
     cancel = false,
     operation,
@@ -2622,7 +2621,7 @@ class CommentForm extends EventEmitter {
       if (!(operation && operation.getType() === 'preview' && operation.getOptionValue('isAuto'))) {
         this.showMessage($message, {
           type: messageType,
-          isRaw: isRawMessage,
+          framed,
         });
       }
       this.$messageArea.cdScrollIntoView('top');
@@ -2634,12 +2633,11 @@ class CommentForm extends EventEmitter {
    * @typedef {object} HandleErrorOptions
    * @property {unknown} error
    * @property {string} [message] Text of the error. (Either `code`, `apiResponse`, `message`, or
-   *   `$interactiveMessage` should be specified.)
-   * @property {JQuery} [$interactiveMessage] JQuery element with the error (supposed to have
-   *   events).
+   *   `$message` should be specified.)
+   * @property {JQuery} [$message] JQuery element with the error (supposed not need the OOUI message
+   *   framing).
    * @property {'error' | 'notice' | 'warning'} [messageType='error'] Message type if not `'error'`.
    * @property {boolean} [cancel=false] Cancel the form and show the message as a notification.
-   * @property {boolean} [isRawMessage=false] Show the message as it is, without OOUI framing.
    * @property {import('./CommentFormOperation').default} [operation] Operation the form is
    *   undergoing.
    */
@@ -2653,7 +2651,7 @@ class CommentForm extends EventEmitter {
   handleError({
     error,
     message,
-    $interactiveMessage,
+    $message,
     messageType = 'error',
     cancel = false,
     operation,
@@ -2749,27 +2747,27 @@ class CommentForm extends EventEmitter {
     }
     if (!message) return;
 
-    const $message =
-      $interactiveMessage ||
-      (
-        typeof message === 'string'
-          ? wrapHtml(message, {
-              callbacks: {
-                'cd-message-reloadPage': () => {
-                  if (this.confirmClose()) {
-                    this.reloadPage();
-                  }
-                },
+    // If the message in the jQuery format was pre-provided, then by convention it's one that is not
+    // supposed to be framed.
+    const framed = !$message;
+    $message ||=
+      typeof message === 'string'
+        ? wrapHtml(message, {
+            callbacks: {
+              'cd-message-reloadPage': () => {
+                if (this.confirmClose()) {
+                  this.reloadPage();
+                }
               },
-            })
-          : message
-      );
+            },
+          })
+        : message;
     $message.find('.mw-parser-output').css('display', 'inline');
 
     this.abort({
       $message,
       messageType,
-      isRawMessage: /** @type {{ isRawMessage: boolean }} */ (cdError.getDetails()).isRawMessage,
+      framed,
       errorToLog,
       cancel,
       operation,
@@ -3336,7 +3334,7 @@ class CommentForm extends EventEmitter {
         /** @type {string | undefined} */
         const message = error.getMessage();
         /** @type {JQuery | undefined} */
-        let $interactiveMessage;
+        let $message;
         if (errorCode === 'editconflict') {
           error.setMessage(
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
@@ -3352,7 +3350,7 @@ class CommentForm extends EventEmitter {
           this.captchaInput.on('enter', () => {
             this.submit();
           });
-          $interactiveMessage = new OO.ui.MessageWidget({
+          $message = new OO.ui.MessageWidget({
             type: 'notice',
             label: this.captchaInput.$element,
           }).$element;
@@ -3361,7 +3359,7 @@ class CommentForm extends EventEmitter {
         this.handleError({
           error,
           message: error.getType() === 'network' ? cd.sParse('cf-error-couldntedit') : message,
-          $interactiveMessage,
+          $message,
           messageType,
           operation,
         });
