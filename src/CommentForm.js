@@ -2630,17 +2630,13 @@ class CommentForm extends EventEmitter {
     }
   }
 
-  //  * @property {import('./shared/CdError').ErrorType} options.type Error type.
-  //  * @property {string} [options.code] Code of the error. (Either `code`, `apiResponse`, or
-  //  *   `message` should be specified.)
-  //  * @property {{ [x: string]: any }} [options.details] Additional details about the error.
-  //  * @property {ApiAnyResponse} [options.apiResponse] Data object received from the MediaWiki
-  //  *   server. (Either `code`, `apiResponse`, or `message` should be specified.)
   /**
    * @typedef {object} HandleErrorOptions
    * @property {unknown} error
-   * @property {string | JQuery} [message] Text of the error or a JQuery element with it. (Either
-   *   `code`, `apiResponse`, or `message` should be specified.)
+   * @property {string} [message] Text of the error. (Either `code`, `apiResponse`, `message`, or
+   *   `$interactiveMessage` should be specified.)
+   * @property {JQuery} [$interactiveMessage] JQuery element with the error (supposed to have
+   *   events).
    * @property {'error' | 'notice' | 'warning'} [messageType='error'] Message type if not `'error'`.
    * @property {boolean} [cancel=false] Cancel the form and show the message as a notification.
    * @property {boolean} [isRawMessage=false] Show the message as it is, without OOUI framing.
@@ -2654,15 +2650,26 @@ class CommentForm extends EventEmitter {
    *
    * @param {HandleErrorOptions} options
    */
-  handleError({ error, message, messageType = 'error', cancel = false, operation }) {
+  handleError({
+    error,
+    message,
+    $interactiveMessage,
+    messageType = 'error',
+    cancel = false,
+    operation,
+  }) {
     const cdError = error instanceof CdError
-      ? error
+      // Without the type casting, in VS Code `error` becomes CdError<any> instead of
+      // CdError<ErrorType>
+      ? /** @type {CdError} */ (error)
+
       : CdError.generateCdErrorFromJsErrorOrMessage(error || message);
 
     message = cdError.getMessage() || '';
     /** @type {CdError | undefined} */
     let errorToLog;
-    switch (cdError.getType()) {
+    const type = cdError.getType();
+    switch (type) {
       case 'parse': {
         const editUrl = cd.g.server + cd.page.getUrl({ action: 'edit' });
         switch (cdError.getCode()) {
@@ -2733,7 +2740,6 @@ class CommentForm extends EventEmitter {
 
       case 'network':
       case 'javascript': {
-        const type = cdError.getType();
         message = typeof message === 'string'
           ? message + ' ' + cd.sParse(`error-${type}`)
           : message;
@@ -2744,17 +2750,20 @@ class CommentForm extends EventEmitter {
     if (!message) return;
 
     const $message =
-      typeof message === 'string'
-        ? wrapHtml(message, {
-            callbacks: {
-              'cd-message-reloadPage': () => {
-                if (this.confirmClose()) {
-                  this.reloadPage();
-                }
+      $interactiveMessage ||
+      (
+        typeof message === 'string'
+          ? wrapHtml(message, {
+              callbacks: {
+                'cd-message-reloadPage': () => {
+                  if (this.confirmClose()) {
+                    this.reloadPage();
+                  }
+                },
               },
-            },
-          })
-        : message;
+            })
+          : message
+      );
     $message.find('.mw-parser-output').css('display', 'inline');
 
     this.abort({
@@ -3324,10 +3333,15 @@ class CommentForm extends EventEmitter {
         /** @type {'notice' | undefined} */
         let messageType;
         const errorCode = error.getCode();
-        /** @type {string | JQuery | undefined} */
-        let message = error.getMessage();
+        /** @type {string | undefined} */
+        const message = error.getMessage();
+        /** @type {JQuery | undefined} */
+        let $interactiveMessage;
         if (errorCode === 'editconflict') {
-          error.setMessage(message + ' ' + cd.sParse('cf-notice-editconflict-retrying'));
+          error.setMessage(
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+            /** @type {string} */ (message) + ' ' + cd.sParse('cf-notice-editconflict-retrying')
+          );
           messageType = 'notice';
         } else if (errorCode === 'captcha' && 'confirmEdit' in mw.libs) {
           this.captchaInput = new mw.libs.confirmEdit.CaptchaInputWidget(
@@ -3338,7 +3352,7 @@ class CommentForm extends EventEmitter {
           this.captchaInput.on('enter', () => {
             this.submit();
           });
-          message = new OO.ui.MessageWidget({
+          $interactiveMessage = new OO.ui.MessageWidget({
             type: 'notice',
             label: this.captchaInput.$element,
           }).$element;
@@ -3347,6 +3361,7 @@ class CommentForm extends EventEmitter {
         this.handleError({
           error,
           message: error.getType() === 'network' ? cd.sParse('cf-error-couldntedit') : message,
+          $interactiveMessage,
           messageType,
           operation,
         });

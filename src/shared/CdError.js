@@ -28,33 +28,34 @@
  */
 
 /**
- * @template {ErrorType} [Type=ErrorType]
+ * @template {ErrorType} [T=ErrorType]
  * @typedef {object} ErrorDataBase
  * @property {ErrorType} [type='internal']
  * @property {string} [code]
  * @property {AnyByKey} [details={}]
- * @property {string | JQuery} [message]
+ * @property {string} [message]
+ * @property {JQuery} [$interactiveMessage]
  * @property {import('types-mediawiki/mw/Api').ApiResponse} [apiResponse]
  * @property {string} [html]
  */
 
 /**
- * @template {ErrorType} Type
+ * @template {ErrorType} T
  * @typedef {Expand<
- *     ErrorDataBase<Type>
+ *     ErrorDataBase<T>
  *   & (ErrorDataServerDefinedApiError | ErrorDataResponseError | {})
  * >} ErrorDataParameter
  */
 
 /**
- * @template {ErrorType} Type
- * @typedef {MakeRequired<ErrorDataParameter<Type>, 'type' | 'details'>} ErrorData
+ * @template {ErrorType} T
+ * @typedef {MakeRequired<ErrorDataParameter<T>, 'type' | 'details'>} ErrorData
  */
 
 /**
  * Script's custom error class.
  *
- * @template {ErrorType} [Type=ErrorType]
+ * @template {ErrorType} [T=ErrorType]
  * @augments Error
  */
 class CdError extends Error {
@@ -67,7 +68,7 @@ class CdError extends Error {
   /**
    * Create a custom error.
    *
-   * @param {ErrorDataParameter<Type> | string} [data]
+   * @param {ErrorDataParameter<T> | string} [data]
    */
   constructor(data = {}) {
     if (typeof data === 'string') {
@@ -96,19 +97,28 @@ class CdError extends Error {
   /**
    * Get the error type.
    *
-   * @returns {Type}
+   * @returns {T}
    */
   getType() {
-    return /** @type {Type} */ (this.data.type);
+    return /** @type {T} */ (this.data.type);
   }
 
   /**
-   * Get the error message.
+   * Get the error message (simple string or HTML, depending on where it is supposed to go).
    *
-   * @returns {string | JQuery | undefined}
+   * @returns {string | undefined}
    */
   getMessage() {
     return this.data.message;
+  }
+
+  /**
+   * Get an interactive (with events) error message to show in the UI.
+   *
+   * @returns {JQuery | undefined}
+   */
+  getInteractiveMessage() {
+    return this.data.$interactiveMessage;
   }
 
   /**
@@ -132,20 +142,19 @@ class CdError extends Error {
   /**
    * Get the HTML code sent by the server.
    *
-   * @returns {Type extends 'api' ? string : undefined}
+   * @returns {T extends 'api' ? string : undefined}
    */
   getHtml() {
-    return /** @type {Type extends 'api' ? string : undefined} */ (
+    return /** @type {T extends 'api' ? string : undefined} */ (
       this.isServerDefinedApiError() ? this.data.html : undefined
     );
   }
 
   /**
-   * @typedef {(
-   *   Type extends 'api'
+   * @typedef {( T extends 'api'
    *     ? import('types-mediawiki/mw/Api').ApiResponse
-   *     : Type extends 'response'
-   *       ? import('types-mediawiki/mw/Api').ApiResponse | undefined
+   *     : T extends 'response'
+   *       ? (import('types-mediawiki/mw/Api').ApiResponse | undefined)
    *       : undefined
    * )} ApiResponseType
    */
@@ -182,7 +191,7 @@ class CdError extends Error {
   /**
    * Generate an instance of this class given a JavaScript error.
    *
-   * @param {any} error JS error or message (including a jQuery one).
+   * @param {any} error JS error or message.
    * @returns {CdError}
    */
   static generateCdErrorFromJsErrorOrMessage(error) {
