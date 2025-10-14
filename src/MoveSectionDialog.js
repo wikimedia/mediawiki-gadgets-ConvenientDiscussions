@@ -571,11 +571,11 @@ class MoveSectionDialog extends ProcessDialog {
         if (error.getType() === 'network') {
           throw new CdError({ details: [genericMessage + ' ' + cd.sParse('error-network'), true] });
         } else {
-          const { code, type, logMessage } = error.getDetails();
-          if (code === 'editconflict') {
+          let message = /** @type {string} */ (error.getMessage());
+          if (error.getCode() === 'editconflict') {
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             message += ' ' + cd.sParse('msd-error-editconflict-retry');
           }
-          console.warn(logMessage);
           throw new CdError({ details: [genericMessage + ' ' + message, true] });
         }
       } else {
