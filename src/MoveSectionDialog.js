@@ -60,7 +60,7 @@ class MoveSectionDialog extends ProcessDialog {
   /**
    * @typedef {{
    *   title: 'title';
-   *   keepLink: 'checkbox';
+   *   keepLink: 'checkbox' | undefined;
    *   chronologicalOrder: 'checkbox';
    *   summaryEnding: 'text';
    * }} MoveSectionDialogControlTypes
@@ -358,7 +358,7 @@ class MoveSectionDialog extends ProcessDialog {
         );
 
         bootManager.reboot({
-          sectionId: this.controls.keepLink.input.isSelected() ? this.section.id : undefined,
+          sectionId: this.controls.keepLink?.input.isSelected() ? this.section.id : undefined,
         });
 
         this.stack.setItem(this.successPanel);
@@ -456,7 +456,7 @@ class MoveSectionDialog extends ProcessDialog {
     return {
       page: this.section.getSourcePage(),
       sectionSource,
-      sectionWikilink: this.controls.keepLink.input.isSelected()
+      sectionWikilink: this.controls.keepLink?.input.isSelected()
         ? `${pageName}#${headlineEncoded}`
         : pageName,
     };
@@ -519,7 +519,7 @@ class MoveSectionDialog extends ProcessDialog {
   async editTargetPage(source, target) {
     let codeBeginning;
     let codeEnding;
-    if (cd.config.getMoveTargetPageCode && this.controls.keepLink.input.isSelected()) {
+    if (cd.config.getMoveTargetPageCode && this.controls.keepLink?.input.isSelected()) {
       const code = cd.config.getMoveTargetPageCode(
         source.sectionWikilink.replace(/=/g, '{{=}}'),
         cd.g.userSignature.replace(/=/g, '{{=}}')
@@ -604,7 +604,7 @@ class MoveSectionDialog extends ProcessDialog {
         text: (
           code.slice(0, source.sectionSource.startIndex) +
           (
-            cd.config.getMoveSourcePageCode && this.controls.keepLink.input.isSelected()
+            cd.config.getMoveSourcePageCode && this.controls.keepLink?.input.isSelected()
               ? (
                   sectionCode.slice(0, source.sectionSource.relativeContentStartIndex) +
                   cd.config.getMoveSourcePageCode(

@@ -182,9 +182,15 @@ declare global {
     text: TextControl;
   }
 
-  type ControlTypesByName<T extends Record<string, ControlType>> = {
-    -readonly [K in keyof T]: ControlTypeToControl[T[K]];
-  };
+  type ControlTypesByName<T> = Expand<{
+    -readonly [K in keyof T]: T[K] extends undefined
+      ? undefined
+      : T[K] extends ControlType
+        ? ControlTypeToControl[T[K]]
+        : T[K] extends ControlType | undefined
+          ? ControlTypeToControl[Exclude<T[K], undefined>] | undefined
+          : never;
+  }>;
 
   interface GenericControl<T extends ControlType> {
     type: T;
