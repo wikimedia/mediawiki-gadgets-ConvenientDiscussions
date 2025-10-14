@@ -209,7 +209,7 @@ export default class Page {
    * {@link module:defaultConfig.archivePaths}, returns the current page's name. If the page is an
    * archive page or can't have archives, returns `null`.
    *
-   * @param {boolean} [onlyExplicit=false]
+   * @param {boolean} [onlyExplicit]
    * @returns {?string}
    */
   getArchivePrefix(onlyExplicit = false) {
@@ -252,7 +252,7 @@ export default class Page {
   /**
    * @overload
    * @param {import('./CommentForm').default} [_] Not used.
-   * @param {true} [tolerateMissing=true] Return `null` if the page is missing instead of throwing
+   * @param {true} [tolerateMissing] Return `null` if the page is missing instead of throwing
    *   an error.
    * @returns {Promise<PageSource|null>} A promise resolving to the wikitext of the page, or `null`
    *   if the page is missing.
@@ -265,7 +265,7 @@ export default class Page {
    *
    * @overload
    * @param {import('./CommentForm').default} [_] Not used.
-   * @param {boolean} [tolerateMissing=true] Return `null` if the page is missing instead of
+   * @param {boolean} [tolerateMissing] Return `null` if the page is missing instead of
    *   throwing an error.
    * @returns {Promise<PageSource>} A promise resolving to the wikitext of the page.
    */
@@ -278,7 +278,7 @@ export default class Page {
    * name.
    *
    * @param {import('./CommentForm').default} [_] Not used.
-   * @param {boolean} [tolerateMissing=true] Return `null` if the page is missing instead of
+   * @param {boolean} [tolerateMissing] Return `null` if the page is missing instead of
    *   throwing an error.
    * @returns {Promise<PageSource|null>}
    * @throws {CdError}
@@ -359,9 +359,9 @@ export default class Page {
    * Make a parse request (see {@link https://www.mediawiki.org/wiki/API:Parsing_wikitext}).
    *
    * @param {import('types-mediawiki/api_params').ApiParseParams} [customOptions]
-   * @param {boolean} [inBackground=false] Make a request that won't set the process on hold when
+   * @param {boolean} [inBackground] Make a request that won't set the process on hold when
    *   the tab is in the background.
-   * @param {boolean} [markAsRead=false] Mark the current page as read in the watchlist.
+   * @param {boolean} [markAsRead] Mark the current page as read in the watchlist.
    * @returns {Promise.<import('./utils-api').ApiResponseParseContent>}
    * @throws {CdError}
    */
@@ -416,8 +416,8 @@ export default class Page {
    * default).
    *
    * @template {string[]} [T=['ids', 'timestamp', 'flags', 'comment', 'user']]
-   * @param {GetRevisionsOptions<T>} [customOptions={}]
-   * @param {boolean} [inBackground=false] Make a request that won't set the process on hold when
+   * @param {GetRevisionsOptions<T>} [customOptions]
+   * @param {boolean} [inBackground] Make a request that won't set the process on hold when
    *   the tab is in the background.
    * @returns {Promise<Revision<T>[]>}
    */
@@ -564,7 +564,7 @@ export default class Page {
    * Get a decoded URL with a fragment identifier.
    *
    * @param {?string} [fragment]
-   * @param {boolean} [permanent=false] Get a permanent URL.
+   * @param {boolean} [permanent] Get a permanent URL.
    * @returns {string}
    */
   getDecodedUrlWithFragment(fragment, permanent = false) {
