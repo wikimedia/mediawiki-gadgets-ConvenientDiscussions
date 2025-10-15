@@ -195,14 +195,14 @@
 
 - [ ] 11. Testing and validation
 
-  - [ ]\* 11.1 Create unit tests for new classes
+  - [ ] 11.1 Create unit tests for new classes
 
     - Write tests for CommentLayers, CommentActions, and their subclasses
     - Write tests for SpaciousComment and CompactComment functionality
     - Test prototype management and class instantiation
     - _Requirements: 8.1, 8.2_
 
-  - [ ]\* 11.2 Update existing tests
+  - [ ] 11.2 Update existing tests
 
     - Update Comment class tests to work with new architecture
     - Update integration tests for Parser and settings changes
@@ -210,7 +210,6 @@
     - _Requirements: 8.2, 5.5_
 
   - [x] 11.3 Validate backward compatibility
-
 
     - Test that existing comment functionality works identically
     - Verify settings migration works correctly
