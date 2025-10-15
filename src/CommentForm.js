@@ -2332,7 +2332,7 @@ class CommentForm extends EventEmitter {
               (_, /** @type {HTMLAnchorElement} */ el) =>
                 cd.g.userLinkRegexp.test(el.title) &&
                 !el.closest(
-                  settings.get('reformatComments') ? '.cd-comment-author' : '.cd-signature'
+                  settings.get('spaciousComments') ? '.cd-comment-author' : '.cd-signature'
                 )
             )
             .get()

@@ -67,7 +67,7 @@ class CommentManager extends EventEmitter {
    * _For internal use._ Initialize the registry.
    */
   init() {
-    this.reformatCommentsSetting = settings.get('reformatComments');
+    this.reformatCommentsSetting = settings.get('spaciousComments');
 
     this.thanksStorage = new StorageItemWithKeys('thanks')
       .cleanUp((entry) => (entry.thankTime || 0) < subtractDaysFromNow(60))
@@ -145,7 +145,7 @@ class CommentManager extends EventEmitter {
   setup() {
     // This can be updated after an in-script page reload if the user agrees to this setting in the
     // onboarding popup (settings.maybeSuggestEnableCommentReformatting()).
-    this.reformatCommentsSetting = settings.get('reformatComments');
+    this.reformatCommentsSetting = settings.get('spaciousComments');
 
     this.reformatTimestamps();
     this.findAndUpdateTableComments();

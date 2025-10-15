@@ -473,7 +473,7 @@ const globalProperties = {
   /**
    * Names of elements that shouldn't be the first or last highlightable element. CD wraps these
    * elements into `<div>` containers. It allows for comment headers to be displayed correctly when
-   * the `reformatComments` setting is enabled.
+   * the `spaciousComments` setting is enabled.
    *
    * @type {string[]}
    * @memberof convenientDiscussions.g

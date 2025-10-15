@@ -337,7 +337,7 @@ class BootProcess {
       // (e.g. RevisionSlider replaces it).
       talkPageController.setupMutationObserver();
 
-      if (settings.get('reformatComments') && commentManager.getCount() && this.isFirstRun()) {
+      if (settings.get('spaciousComments') && commentManager.getCount() && this.isFirstRun()) {
         // Using the wikipage.content hook could theoretically disrupt code that needs to process
         // the whole page content (#mw-content-text), if it runs later than CD which would override
         // the hook's argument below. But typically CD runs relatively late.

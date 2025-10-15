@@ -31,7 +31,7 @@ import { createSvg, formatDateImproved, formatDateNative, formatDateRelative, ge
  * @property {boolean} notifyCollapsedThreads
  * @property {boolean} outdent
  * @property {number} outdentLevel
- * @property {boolean|null} reformatComments
+ * @property {boolean|null} spaciousComments
  * @property {boolean} showContribsLink
  * @property {boolean} showToolbar
  * @property {string} signaturePrefix
@@ -145,6 +145,7 @@ class Settings {
     aliases: {
       'insertButtons-altered': ['haveInsertButtonsBeenAltered'],
       'improvePerformance-lastSuggested': ['improvePerformanceLastSuggested'],
+      'spaciousComments': ['reformatComments'],
       'subscribeOnReply': ['watchSectionOnReply'],
     },
 
@@ -171,7 +172,7 @@ class Settings {
      * @type {Partial<SettingsValues>}
      */
     resetsTo: {
-      reformatComments: false,
+      spaciousComments: false,
     },
 
     /**
@@ -196,7 +197,7 @@ class Settings {
       notifyCollapsedThreads: 'checkbox',
       outdent: 'checkbox',
       outdentLevel: 'number',
-      reformatComments: 'checkbox',
+      spaciousComments: 'checkbox',
       removeData: 'button',
       showContribsLink: 'checkbox',
       showToolbar: 'checkbox',
@@ -261,7 +262,7 @@ class Settings {
       'notifyCollapsedThreads': false,
       'outdent': true,
       'outdentLevel': 15,
-      'reformatComments': null,
+      'spaciousComments': null,
       'showContribsLink': false,
       'showToolbar': true,
       'signaturePrefix': cd.config.defaultSignaturePrefix,
@@ -314,8 +315,8 @@ class Settings {
         label: cd.s('sd-page-talkpage'),
         controls: [
           {
-            name: 'reformatComments',
-            type: this.scheme.controlTypes.reformatComments,
+            name: 'spaciousComments',
+            type: this.scheme.controlTypes.spaciousComments,
             label: cd.s('sd-reformatcomments'),
           },
           {
@@ -900,12 +901,12 @@ class Settings {
    * @returns {Promise.<boolean>} Did the user enable comment reformatting.
    */
   async maybeSuggestEnableCommentReformatting() {
-    if (this.get('reformatComments') !== null) {
+    if (this.get('spaciousComments') !== null) {
       return false;
     }
 
-    const { reformatComments } = await this.load({ reuse: true });
-    if (definedAndNotNull(reformatComments)) {
+    const { spaciousComments } = await this.load({ reuse: true });
+    if (definedAndNotNull(spaciousComments)) {
       return false;
     }
 
@@ -965,7 +966,7 @@ class Settings {
 
     const accepted = action === 'accept';
     try {
-      await this.saveSettingOnTheFly('reformatComments', accepted);
+      await this.saveSettingOnTheFly('spaciousComments', accepted);
     } catch (error) {
       mw.notify(cd.s('error-settings-save'), { type: 'error' });
       console.warn(error);

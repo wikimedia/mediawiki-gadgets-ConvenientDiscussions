@@ -46,7 +46,6 @@
 
 - [x] 3. Create Comment subclasses
 
-
   - [x] 3.1 Create SpaciousComment class
 
     - Create src/SpaciousComment.js extending Comment
@@ -66,9 +65,10 @@
     - Create static initPrototypes for overlay menu prototypes
     - _Requirements: 1.1, 1.3, 1.5_
 
-- [ ] 4. Update settings system
+- [x] 4. Update settings system
 
-  - [ ] 4.1 Implement settings migration
+  - [x] 4.1 Implement settings migration
+
     - Update src/settings.js to rename reformatComments setting to spaciousComments
     - Add reformatComments to aliases property for backward compatibility
     - Update all references to use new setting name

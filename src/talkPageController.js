@@ -745,7 +745,7 @@ class TalkPageController extends EventEmitter {
    * _For internal use._ Add event listeners to `window`, `document`, hooks.
    */
   addEventListeners() {
-    if (!settings.get('reformatComments')) {
+    if (!settings.get('spaciousComments')) {
       // The `mouseover` event allows to capture the state when the cursor is not moving but ends up
       // above a comment but not above any comment parts (for example, as a result of scrolling).
       // The benefit may be low compared to the performance cost, but it's unexpected when the user
@@ -844,7 +844,7 @@ class TalkPageController extends EventEmitter {
 
     const currentUserName = cd.user.getName();
     const excludeSelector = [
-      settings.get('reformatComments')
+      settings.get('spaciousComments')
         ? 'cd-comment-author'
         : 'cd-signature',
     ]

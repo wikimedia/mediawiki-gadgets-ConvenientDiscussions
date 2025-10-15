@@ -455,7 +455,7 @@ class Comment extends CommentSkeleton {
   constructor(parser, signature, targets) {
     super(parser, signature, targets);
 
-    this.reformatted = /** @type {Reformatted} */ (settings.get('reformatComments') || false);
+    this.reformatted = /** @type {Reformatted} */ (settings.get('spaciousComments') || false);
     this.showContribsLink = settings.get('showContribsLink');
     this.hideTimezone = settings.get('hideTimezone');
     this.timestampFormat = settings.get('timestampFormat');
@@ -4739,7 +4739,7 @@ class Comment extends CommentSkeleton {
    */
   static initPrototypes() {
     /* Comment header element */
-    if (settings.get('reformatComments') !== false) {
+    if (settings.get('spaciousComments') !== false) {
       // true, null
       const headerElement = document.createElement('div');
       headerElement.className = 'cd-comment-header';
@@ -4818,7 +4818,7 @@ class Comment extends CommentSkeleton {
     overlayMarker.className = 'cd-comment-overlay-marker';
     commentOverlay.append(overlayMarker);
 
-    if (!settings.get('reformatComments')) {
+    if (!settings.get('spaciousComments')) {
       const overlayInnerWrapper = document.createElement('div');
       overlayInnerWrapper.className = 'cd-comment-overlay-innerWrapper';
       commentOverlay.append(overlayInnerWrapper);
