@@ -26,7 +26,7 @@ This is a JavaScript project with type checking supplied by TypeScript through t
   this.updateCompareProperties(element, this.getElementHtmlToCompare(element));
   ```
 
-- Files should end with a single newline.
+- Files should end with a single newline. This includes `.md` files.
 - When running `npm test`, use space, not `=`, between the option name and the value, e.g. `npm test -- --testNamePattern "TagsAutocomplete"`, not `npm test -- --testNamePattern="TagsAutocomplete"`.
 
 ## JavaScript & TypeScript code style

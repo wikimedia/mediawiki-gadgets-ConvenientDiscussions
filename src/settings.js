@@ -87,7 +87,7 @@ class Settings {
   values = /** @type {SettingsValues} */ ({});
 
   /**
-   * @type {Promise<void>}
+   * @type {Promise<void> | undefined}
    * @private
    */
   initPromise;
@@ -251,6 +251,7 @@ class Settings {
       'highlightNewInterval': 15,
       'improvePerformance': false,
       'improvePerformance-lastSuggested': null,
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       'insertButtons': cd.config.defaultInsertButtons || [],
       'insertButtons-altered': false,
       'manyForms-onboarded': false,
@@ -1013,7 +1014,7 @@ class Settings {
                 promise = this.saveSettingOnTheFly('desktopNotifications', 'none');
               }
             });
-          } else if (Notification.permission === 'granted') {
+          } else {
             promise = this.saveSettingOnTheFly('desktopNotifications', 'all');
           }
         } else if (action === 'reject') {
