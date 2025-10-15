@@ -1,6 +1,5 @@
 import Comment from './Comment';
 import EventEmitter from './EventEmitter';
-import SpaciousComment from './SpaciousComment';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import Thread from './Thread';
 import bootManager from './bootManager';
@@ -824,10 +823,8 @@ class CommentManager extends EventEmitter {
 
     const pagesToCheckExistence = this.items.reduce((acc, comment) => {
       // Only call reformatting methods on SpaciousComment instances
-      if (comment instanceof SpaciousComment) {
-        acc.push(...comment.replaceSignatureWithHeader());
-        comment.addMenu();
-      }
+      acc.push(...comment.replaceSignatureWithHeader());
+      comment.addMenu();
 
       return acc;
     }, /** @type {import('./Comment').ReplaceSignatureWithHeaderReturn} */ ([]));

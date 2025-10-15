@@ -4,8 +4,6 @@
  * @module pageRegistry
  */
 
-import CurrentPage from './CurrentPage';
-import Page from './Page';
 import cd from './cd';
 
 /**
@@ -15,7 +13,7 @@ const pageRegistry = {
   /**
    * Collection of pages.
    *
-   * @type {TypeByKey<Page>}
+   * @type {TypeByKey<import('./Page').default>}
    * @private
    */
   items: {},
@@ -23,13 +21,13 @@ const pageRegistry = {
   /**
    * @overload
    * @param {string} nameOrMwTitle
-   * @param {true} [isGendered=false]
-   * @returns {?Page}
+   * @param {true} [isGendered]
+   * @returns {?import('./Page').default}
    *
    * @overload
    * @param {string|mw.Title} nameOrMwTitle
-   * @param {false} [isGendered=false]
-   * @returns {?Page}
+   * @param {false} [isGendered]
+   * @returns {?import('./Page').default}
    */
 
   /**
@@ -38,7 +36,7 @@ const pageRegistry = {
    * @param {string | mw.Title} nameOrMwTitle
    * @param {boolean} [isGendered] Used to keep the gendered namespace name (`nameOrMwTitle`
    *   should be a string).
-   * @returns {?Page}
+   * @returns {?import('./Page').default}
    */
   get(nameOrMwTitle, isGendered = false) {
     const title = nameOrMwTitle instanceof mw.Title
@@ -50,10 +48,11 @@ const pageRegistry = {
 
     const name = title.getPrefixedText();
     if (!(name in this.items)) {
-      this.items[name] = new (nameOrMwTitle === cd.g.pageName ? CurrentPage : Page)(
-        title,
-        isGendered ? /** @type {string} */ (nameOrMwTitle) : undefined
-      );
+      this.items[name] = new (
+        nameOrMwTitle === cd.g.pageName
+          ? require('./CurrentPage').default
+          : require('./Page').default
+      )(title, isGendered ? /** @type {string} */ (nameOrMwTitle) : undefined);
     } else if (isGendered) {
       // Set the gendered name which could be missing for the page.
       this.items[name].name = /** @type {string} */ (nameOrMwTitle);
