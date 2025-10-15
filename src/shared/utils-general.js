@@ -77,7 +77,7 @@ export function unique(el, i, arr) {
  *
  * @param {NodeLike} node
  * @param {boolean} [considerTextNodesAsInline]
- * @returns {?boolean}
+ * @returns {boolean | undefined}
  */
 export function isInline(node, considerTextNodesAsInline = false) {
   if (considerTextNodesAsInline && isText(node)) {
@@ -85,7 +85,7 @@ export function isInline(node, considerTextNodesAsInline = false) {
   }
 
   if (!isElement(node)) {
-    return null;
+    return;
   }
 
   if (
@@ -113,7 +113,7 @@ export function isInline(node, considerTextNodesAsInline = false) {
       .display.startsWith('inline');
   }
 
-  return node.cdIsInline ?? null;
+  return node.cdIsInline;
 }
 
 /**
@@ -588,7 +588,7 @@ export function isHeadingNode(node, onlyHElements = false) {
  *
  * @param {ElementLike|{ tagName: string; className: string }} node Element or object with `tagName`
  *   and `className` properties.
- * @returns {?number}
+ * @returns {number | undefined}
  */
 export function getHeadingLevel(node) {
   return (
@@ -599,7 +599,7 @@ export function getHeadingLevel(node) {
         []
       )[1]
     ) ||
-    null
+    undefined
   );
 }
 
@@ -866,7 +866,7 @@ export function getDbnameForHostname(hostname) {
  * wgArticlePath, wgScript, and wgActionPaths config values).
  *
  * @param {string} url
- * @returns {?ParsedWikiUrl}
+ * @returns {ParsedWikiUrl | undefined}
  */
 export function parseWikiUrl(url) {
   let hostname = cd.g.serverName;
@@ -893,7 +893,7 @@ export function parseWikiUrl(url) {
   try {
     pageName = decodeURIComponent(pageName);
   } catch {
-    return null;
+    return;
   }
 
   return { pageName, hostname, fragment };
@@ -913,7 +913,7 @@ export function canonicalUrlToPageName(url) {
  * Check if a URL query parameter is `true` (`1`, `yes`, `y`) or `false` (`0`, `no`, `n`).
  *
  * @param {string} param
- * @returns {?boolean}
+ * @returns {boolean | undefined}
  */
 export function getQueryParamBooleanValue(param) {
   const match = location.search.match(new RegExp('[?&]' + param + '=([^&]+)'));
@@ -925,7 +925,7 @@ export function getQueryParamBooleanValue(param) {
     }
   }
 
-  return null;
+  return;
 }
 
 /**

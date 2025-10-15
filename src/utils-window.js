@@ -309,11 +309,11 @@ export function getFooter() {
  * focus node.
  *
  * @param {Selection} selection
- * @returns {HigherNodeAndOffsetInSelection | null}
+ * @returns {HigherNodeAndOffsetInSelection | undefined}
  */
 export function getHigherNodeAndOffsetInSelection(selection) {
   if (!selection.anchorNode) {
-    return null;
+    return;
   }
 
   const isAnchorHigher = (
@@ -592,7 +592,7 @@ export function getElementFromPasteHtml(html) {
  * @param {HTMLElement} start
  * @param {?HTMLElement} end
  * @param {HTMLElement} rootElement
- * @returns {?HTMLElement[]}
+ * @returns {HTMLElement[] | undefined}
  */
 export function getRangeContents(start, end, rootElement) {
   // It makes more sense to place this function in the `utils` module, but we can't import
@@ -601,7 +601,7 @@ export function getRangeContents(start, end, rootElement) {
 
   // Fight infinite loops
   if (!end || (start.compareDocumentPosition(end) & Node.DOCUMENT_POSITION_PRECEDING)) {
-    return null;
+    return;
   }
 
   let commonAncestor;
@@ -723,11 +723,11 @@ export function getAllTextNodes(rootNode) {
  * @param {string} anchor
  * @param {boolean} [isWikilink] The anchor is part of a wikilink string (e.g. [[#test
  *   test]]). If so, we will replace spaces with underlines.
- * @returns {?boolean}
+ * @returns {boolean | undefined}
  */
 export function isExistentAnchor(anchor, isWikilink = false) {
   if (!anchor) {
-    return null;
+    return;
   }
 
   if (isWikilink) {
@@ -756,12 +756,12 @@ export function mergeJquery(...arrayOfJquery) {
  * right, returns `null`.
  *
  * @param {HTMLAnchorElement} element
- * @returns {?string}
+ * @returns {string | undefined}
  */
 export function getLinkedAnchor(element) {
   const href = element.getAttribute('href');
 
-  return href?.startsWith('#') ? href.slice(1) : null;
+  return href?.startsWith('#') ? href.slice(1) : undefined;
 }
 
 /**
@@ -1082,10 +1082,10 @@ function extractUnsigneds(adjustedCode, code, signatures) {
  * Find the first timestamp related to a comment in the code.
  *
  * @param {string} code
- * @returns {?string}
+ * @returns {string | undefined}
  */
 export function findFirstTimestamp(code) {
-  return extractSignatures(code)[0]?.timestamp || null;
+  return extractSignatures(code)[0]?.timestamp;
 }
 
 /**

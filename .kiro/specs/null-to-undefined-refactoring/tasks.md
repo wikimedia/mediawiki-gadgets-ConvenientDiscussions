@@ -11,18 +11,29 @@
   - Set up file processing state tracking to manage the refactoring progress
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 2. Process utility and helper functions (Phase 1 - Leaf functions)
-  - [ ] 2.1 Update shared/utils-general.js null returns
+- [x] 2. Process utility and helper functions (Phase 1 - Leaf functions)
+
+
+
+
+
+  - [x] 2.1 Update shared/utils-general.js null returns
+
+
     - Replace `return null;` statements in `getElementByClassName`, `parsePageNameFromUrl`, and other utility functions
     - Update JSDoc `@returns` tags from `Type | null` to `Type | undefined`
     - _Requirements: 1.1, 1.4_
 
-  - [ ] 2.2 Update shared/utils-timestamp.js null returns
+  - [x] 2.2 Update shared/utils-timestamp.js null returns
+
+
     - Replace `return null;` in timestamp parsing functions
     - Update JSDoc return types to use `undefined`
     - _Requirements: 1.1, 1.4_
 
-  - [ ] 2.3 Update utils-window.js null returns
+  - [x] 2.3 Update utils-window.js null returns
+
+
     - Replace `return null;` statements in DOM utility functions like `getHigherNodeAndOffsetInSelection`
     - Add `|| undefined` for native API returns where appropriate
     - Update JSDoc return types

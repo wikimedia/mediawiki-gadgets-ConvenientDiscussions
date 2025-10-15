@@ -145,7 +145,7 @@ export function getDateFromTimestampMatch(match, timezone) {
  * @param {string} timestamp
  * @param {string|number} [timezone] Standard timezone name or offset in minutes. If set, it is
  *   implied that the timestamp is in the user (interface) language, not in the content language.
- * @returns {?ParseTimestampReturn}
+ * @returns {ParseTimestampReturn | undefined}
  */
 export function parseTimestamp(timestamp, timezone) {
   // Remove left-to-right and right-to-left marks that are sometimes copied from edit history to the
@@ -155,7 +155,7 @@ export function parseTimestamp(timestamp, timezone) {
     timezone === undefined ? cd.g.parseTimestampContentRegexp : cd.g.parseTimestampUiRegexp
   );
   if (!match) {
-    return null;
+    return;
   }
 
   return {
