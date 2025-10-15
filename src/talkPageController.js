@@ -379,13 +379,13 @@ class TalkPageController extends EventEmitter {
    *
    * @returns {boolean}
    */
-  areThereOutdents() {
+  areThereOutdents = () => {
     this.content.areThereOutdents ??= Boolean(
       bootManager.$root.find('.' + cd.config.outdentClass).length
     );
 
     return this.content.areThereOutdents;
-  }
+  };
 
   /**
    * Find floating elements on the page.
@@ -586,7 +586,7 @@ class TalkPageController extends EventEmitter {
    *
    * @private
    */
-  async handleWindowResize() {
+  handleWindowResize = async () => {
     // sleep(), because it seems like sometimes it doesn't have time to update.
     await sleep(cd.g.skin === 'vector-2022' ? 100 : 0);
 
@@ -598,7 +598,7 @@ class TalkPageController extends EventEmitter {
 
     this.emit('resize');
     this.handleScroll();
-  }
+  };
 
   /**
    * Handles `keydown` event on the document.
@@ -606,18 +606,18 @@ class TalkPageController extends EventEmitter {
    * @param {KeyboardEvent | JQuery.KeyDownEvent} event
    * @private
    */
-  handleGlobalKeyDown(event) {
+  handleGlobalKeyDown = (event) => {
     if (bootManager.isPageOverlayOn()) return;
 
     this.emit('keyDown', event);
-  }
+  };
 
   /**
    * _For internal use._ Handle a document's `scroll` event: Register seen comments, update the
    * navigation panel's first unseen button, and update the current section block. Trigger the
    * `horizontalscroll` event.
    */
-  handleScroll() {
+  handleScroll = () => {
     // Scroll will be handled when the autoscroll is finished.
     if (this.isAutoScrolling()) return;
 
@@ -640,23 +640,23 @@ class TalkPageController extends EventEmitter {
       $(document).trigger('horizontalscroll.cd');
     }
     this.lastScrollX = window.scrollX;
-  }
+  };
 
   /**
    * Handle a `horizontalscroll` event, triggered from {@link TalkPageController#handleScroll}.
    *
    * @private
    */
-  handleHorizontalScroll() {
+  handleHorizontalScroll = () => {
     this.emit('horizontalScroll');
-  }
+  };
 
   /**
    * Handle a `popstate` event, including clicks on links pointing to comment anchors.
    *
    * @private
    */
-  handlePopState() {
+  handlePopState = () => {
     // Use `popstate`, not `hashchange`, because we need to handle cases when the user clicks a link
     // with the same fragment as is in the URL.
     try {
@@ -668,33 +668,33 @@ class TalkPageController extends EventEmitter {
     // Make sure the title has no incorrect new comment count when the user presses the "Back"
     // button after an (internal) page reboot.
     this.updatePageTitle();
-  }
+  };
 
   /**
    * Handle a `selectionchange` event.
    *
    * @private
    */
-  handleSelectionChange() {
+  handleSelectionChange = () => {
     this.throttledHandleSelectionChange ||= OO.ui.throttle(() => {
       this.emit('selectionChange');
     }, 200);
     this.throttledHandleSelectionChange();
-  }
+  };
 
   /**
    * Handle page (content area) mutations.
    *
    * @private
    */
-  handlePageMutate() {
+  handlePageMutate = () => {
     if (bootManager.isBooting()) return;
 
     this.emit('mutate');
 
     // Could also run this.handleScroll() here, but not sure, as it would double the execution
     // time with rare effect.
-  }
+  };
 
   /**
    * Handle a click on an "Add topic" button excluding those added by the script.
@@ -702,7 +702,7 @@ class TalkPageController extends EventEmitter {
    * @param {JQuery.TriggeredEvent} event
    * @private
    */
-  handleAddTopicButtonClick(event) {
+  handleAddTopicButtonClick = (event) => {
     if (event.ctrlKey || event.shiftKey || event.metaKey) return;
 
     const $button = $(/** @type {EventTarget} */ (event.currentTarget));
@@ -739,7 +739,7 @@ class TalkPageController extends EventEmitter {
 
     event.preventDefault();
     cd.page.addSection(undefined, undefined, preloadConfig, newTopicOnTop);
-  }
+  };
 
   /**
    * _For internal use._ Add event listeners to `window`, `document`, hooks.
@@ -759,40 +759,40 @@ class TalkPageController extends EventEmitter {
     // We need the `visibilitychange` event because many things may move while the document is
     // hidden, and movements are not processed when the document is hidden.
     $(document)
-      .on('scroll visibilitychange', this.handleScroll.bind(this))
-      .on('horizontalscroll.cd visibilitychange', this.handleHorizontalScroll.bind(this))
-      .on('selectionchange', this.handleSelectionChange.bind(this));
+      .on('scroll visibilitychange', this.handleScroll)
+      .on('horizontalscroll.cd visibilitychange', this.handleHorizontalScroll)
+      .on('selectionchange', this.handleSelectionChange);
 
     $(window)
-      .on('resize orientationchange', this.handleWindowResize.bind(this))
-      .on('popstate', this.handlePopState.bind(this));
+      .on('resize orientationchange', this.handleWindowResize)
+      .on('popstate', this.handlePopState);
 
     // Should be above mw.hook('wikipage.content').fire so that it runs for the whole page content
     // as opposed to $('.cd-comment-author-wrapper').
     mw.hook('wikipage.content').add(
-      this.connectToCommentLinks.bind(this),
-      this.highlightMentions.bind(this)
+      this.connectToCommentLinks,
+      this.highlightMentions
     );
-    mw.hook('convenientDiscussions.previewReady').add(this.connectToCommentLinks.bind(this));
+    mw.hook('convenientDiscussions.previewReady').add(this.connectToCommentLinks);
 
     // Mutation observer doesn't follow all possible comment position changes (for example,
     // initiated with adding new CSS) unfortunately.
-    setInterval(this.handlePageMutate.bind(this), 1500);
+    setInterval(this.handlePageMutate, 1500);
 
     if (cd.page.isCommentable()) {
-      $(document).on('keydown', this.handleGlobalKeyDown.bind(this));
+      $(document).on('keydown', this.handleGlobalKeyDown);
     }
 
-    mw.hook('wikipage.content').add(bootManager.handleWikipageContentHookFirings.bind(bootManager));
+    mw.hook('wikipage.content').add(bootManager.handleWikipageContentHookFirings);
 
     updateChecker
       .on('check', (revisionId) => {
         this.lastCheckedRevisionId = revisionId;
       })
-      .on('commentsUpdate', this.updateAddedComments.bind(this));
+      .on('commentsUpdate', this.updateAddedComments);
 
     Thread
-      .on('toggle', this.handleScroll.bind(this));
+      .on('toggle', this.handleScroll);
   }
 
   /**
@@ -806,7 +806,7 @@ class TalkPageController extends EventEmitter {
    * @param {JQuery} $content
    * @private
    */
-  connectToCommentLinks($content) {
+  connectToCommentLinks = ($content) => {
     if (!$content.is('#mw-content-text, .cd-commentForm-previewArea')) return;
 
     const goToCommentUrl = mw.util.getUrl('Special:GoToComment/');
@@ -831,7 +831,7 @@ class TalkPageController extends EventEmitter {
             pushState: true,
           });
       });
-  }
+  };
 
   /**
    * Highlight mentions of the current user.
@@ -839,7 +839,7 @@ class TalkPageController extends EventEmitter {
    * @param {JQuery} $content
    * @private
    */
-  highlightMentions($content) {
+  highlightMentions = ($content) => {
     if (!$content.is('#mw-content-text, .cd-comment-part')) return;
 
     const currentUserName = cd.user.getName();
@@ -867,7 +867,7 @@ class TalkPageController extends EventEmitter {
       .each((_, link) => {
         link.classList.add('cd-currentUserLink');
       });
-  }
+  };
 
   /**
    * _For internal use._ Update the page's HTML and certain configuration values.
@@ -1365,7 +1365,7 @@ class TalkPageController extends EventEmitter {
    *
    * @param {import('./updateChecker').AddedComments} addedComments
    */
-  updateAddedComments({ all, relevant }) {
+  updateAddedComments = ({ all, relevant }) => {
     this.addedCommentCount = all.length;
     this.areRelevantCommentsAdded = Boolean(relevant.length);
     if (relevant.length) {
@@ -1381,7 +1381,7 @@ class TalkPageController extends EventEmitter {
     this.showRegularNotification(commentsToNotifyAbout);
     this.showDesktopNotification(commentsToNotifyAbout);
     this.commentsNotifiedAbout.push(...commentsToNotifyAbout);
-  }
+  };
 
   /**
    * Get the IDs of the comments that should be jumped to after rebooting the page.
@@ -1526,7 +1526,7 @@ class TalkPageController extends EventEmitter {
       // topic" button click handler is trickier, see below.
       .off('click')
 
-      .on('click.cd', this.handleAddTopicButtonClick.bind(this))
+      .on('click.cd', this.handleAddTopicButtonClick)
       .filter((_, el) => (
         !cd.g.isDtNewTopicToolEnabled &&
         !($(el).is('a') && Number(mw.util.getParamValue('cdaddtopic', $(el).attr('href'))))

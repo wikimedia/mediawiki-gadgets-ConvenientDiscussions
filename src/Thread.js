@@ -968,7 +968,7 @@ class Thread extends mixInObject(
     );
     if (!this.collapsedRange) return;
 
-    this.collapsedRange.forEach(this.hideElement.bind(this));
+    this.collapsedRange.forEach(this.hideElement);
     this.updateEndOfCollapsedRange(talkPageController.getClosedDiscussions());
 
     this.isCollapsed = true;
@@ -1025,7 +1025,7 @@ class Thread extends mixInObject(
   expand(auto = false, isBatchOperation = auto) {
     if (!this.isCollapsed) return;
 
-    /** @type {HTMLElement[]} */ (this.collapsedRange).forEach(this.maybeUnhideElement.bind(this));
+    /** @type {HTMLElement[]} */ (this.collapsedRange).forEach(this.maybeUnhideElement);
 
     /** @type {HTMLElement} */ (this.expandNote).remove();
     this.expandNote = undefined;
@@ -1082,7 +1082,7 @@ class Thread extends mixInObject(
    * @param {HTMLElement} element
    * @private
    */
-  hideElement(element) {
+  hideElement = (element) => {
     element.classList.add('cd-hiddenUntilFound');
 
     // Use hidden="until-found" instead of .cd-hidden for better browser search support. If
@@ -1097,7 +1097,7 @@ class Thread extends mixInObject(
     const roots = $el.data('cd-collapsed-thread-root-comments') || [];
     roots.push(this.rootComment);
     $el.data('cd-collapsed-thread-root-comments', roots);
-  }
+  };
 
   /**
    * Unhide (if appropriate) an element when expanding a thread.
@@ -1105,7 +1105,7 @@ class Thread extends mixInObject(
    * @param {HTMLElement} element
    * @private
    */
-  maybeUnhideElement(element) {
+  maybeUnhideElement = (element) => {
     const $element = $(element);
     const roots = $element.data('cd-collapsed-thread-root-comments') || [];
     removeFromArrayIfPresent(roots, this.rootComment);
@@ -1115,7 +1115,7 @@ class Thread extends mixInObject(
       element.removeAttribute('hidden');
       element.removeEventListener('beforematch', this.handleBeforeMatch);
     }
-  }
+  }; ;
 
   /**
    * Update the collapsed range, taking into account closed discussions. (We can't do it before,

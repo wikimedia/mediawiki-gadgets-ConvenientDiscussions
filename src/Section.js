@@ -454,11 +454,12 @@ class Section extends SectionSkeleton {
     });
     button.buttonElement.addEventListener(
       'mouseenter',
-      buttonsContainerInstance.resetHideAddSubsectionButtonTimeout.bind(buttonsContainerInstance)
+      buttonsContainerInstance.resetHideAddSubsectionButtonTimeout
+
     );
     button.buttonElement.addEventListener(
       'mouseleave',
-      buttonsContainerInstance.deferAddSubsectionButtonHide.bind(buttonsContainerInstance)
+      buttonsContainerInstance.deferAddSubsectionButtonHide
     );
 
     return button;
@@ -488,30 +489,30 @@ class Section extends SectionSkeleton {
    *
    * @private
    */
-  resetHideAddSubsectionButtonTimeout() {
+  resetHideAddSubsectionButtonTimeout = () => {
     clearTimeout(this.hideAddSubsectionButtonTimeout);
     delete this.hideAddSubsectionButtonTimeout;
-  }
+  };
 
   /**
    * Hide the "Add subsection" button after a second.
    *
    * @private
    */
-  deferAddSubsectionButtonHide() {
+  deferAddSubsectionButtonHide = () => {
     if (this.hideAddSubsectionButtonTimeout) return;
 
     this.hideAddSubsectionButtonTimeout = setTimeout(() => {
       /** @type {JQuery} */ (this.$addSubsectionButtonsContainer).hide();
     }, 1000);
-  }
+  };
 
   /**
    * Handle a `mouseenter` event on the reply button.
    *
    * @private
    */
-  handleReplyButtonHover() {
+  handleReplyButtonHover = () => {
     this.resetHideAddSubsectionButtonTimeout();
 
     if (this.showAddSubsectionButtonTimeout) return;
@@ -519,17 +520,17 @@ class Section extends SectionSkeleton {
     this.showAddSubsectionButtonTimeout = setTimeout(() => {
       /** @type {JQuery} */ (this.$addSubsectionButtonsContainer).show();
     }, 1000);
-  }
+  };
 
   /**
    * Handle a `mouseleave` event on the reply button.
    *
    * @private
    */
-  handleReplyButtonUnhover() {
+  handleReplyButtonUnhover = () => {
     this.resetShowAddSubsectionButtonTimeout();
     this.deferAddSubsectionButtonHide();
-  }
+  };
 
   /**
    * _For internal use._ Make it so that when the user hovers over a reply button at the end of the
@@ -538,8 +539,8 @@ class Section extends SectionSkeleton {
   showAddSubsectionButtonsOnReplyButtonHover() {
     if (!this.replyButton) return;
 
-    this.replyButton.buttonElement.addEventListener('mouseenter', this.handleReplyButtonHover.bind(this));
-    this.replyButton.buttonElement.addEventListener('mouseleave', this.handleReplyButtonUnhover.bind(this));
+    this.replyButton.buttonElement.addEventListener('mouseenter', this.handleReplyButtonHover);
+    this.replyButton.buttonElement.addEventListener('mouseleave', this.handleReplyButtonUnhover);
   }
 
   /**
@@ -696,7 +697,7 @@ class Section extends SectionSkeleton {
    */
   toggleAuthors() {
     if (!this.authorsPopup) {
-      const $button = $(/** @type {Button} */ (this.authorCountButton).element);
+      const $button = $(/** @type {Button} */(this.authorCountButton).element);
       this.authorsPopup = new OO.ui.PopupWidget({
         $content: this.createAuthorsPopupContent(),
         head: false,
@@ -776,7 +777,7 @@ class Section extends SectionSkeleton {
       classes: ['cd-popup-authors-sort'],
     });
     sortSelect.on('choose', (item) => {
-      stack.setItem(getPanelByName(/** @type {PanelName} */ (item.getData())));
+      stack.setItem(getPanelByName(/** @type {PanelName} */(item.getData())));
       settings.saveSettingOnTheFly('authorsSort', item.getData());
     });
 
@@ -861,10 +862,10 @@ class Section extends SectionSkeleton {
    * @param {Event} event
    * @private
    */
-  scrollToLatestComment(event) {
+  scrollToLatestComment = (event) => {
     event.preventDefault();
     /** @type {Comment} */ (this.latestComment).scrollTo({ pushState: true });
-  }
+  };
 
   /**
    * Create a metadata container (for 2-level sections).
@@ -886,7 +887,7 @@ class Section extends SectionSkeleton {
         const id = latestComment.getUrlFragment();
         latestCommentLink.href = `#${id}`;
         latestCommentLink.className = 'cd-clickHandled';
-        latestCommentLink.addEventListener('click', this.scrollToLatestComment.bind(this));
+        latestCommentLink.addEventListener('click', this.scrollToLatestComment);
         latestCommentLink.textContent = formatDate(latestComment.date);
         (new LiveTimestamp(latestCommentLink, latestComment.date, false)).init();
 
@@ -1014,7 +1015,7 @@ class Section extends SectionSkeleton {
    * @fires moreMenuSelectCreated
    * @private
    */
-  addMoreMenuSelect() {
+  addMoreMenuSelect = () => {
     const moreMenuSelect = this.createMoreMenuSelectStub();
     moreMenuSelect
       .getMenu()
@@ -1086,7 +1087,7 @@ class Section extends SectionSkeleton {
      * @param {object} cd {@link convenientDiscussions} object.
      */
     mw.hook('convenientDiscussions.moreMenuSelectCreated').fire(this);
-  }
+  };
 
   /**
    * Create a "More" menu select button with no menu.
@@ -1134,7 +1135,7 @@ class Section extends SectionSkeleton {
           this.createAndClickMoreMenuSelect();
         },
       });
-      moreMenuSelectDummy.buttonElement.addEventListener('mouseenter', this.addMoreMenuSelect.bind(this));
+      moreMenuSelectDummy.buttonElement.addEventListener('mouseenter', this.addMoreMenuSelect);
     }
 
     let copyLinkButton;
@@ -1277,10 +1278,10 @@ class Section extends SectionSkeleton {
    * @param {Event} event
    * @private
    */
-  scrollToNewComments(event) {
+  scrollToNewComments = (event) => {
     event.preventDefault();
-    Comment.scrollToFirstFlashAll(/** @type {Comment[]} */ (this.newComments));
-  }
+    Comment.scrollToFirstFlashAll(/** @type {Comment[]} */(this.newComments));
+  };
 
   /**
    * _For internal use._ Update the new comments data for the section and add the new comment count
@@ -1306,7 +1307,7 @@ class Section extends SectionSkeleton {
     newLink.textContent = cd.s('section-metadata-newcommentcount', String(this.newComments.length));
     newLink.href = `#${this.newComments[0].dtId}`;
     newLink.className = 'cd-clickHandled';
-    newLink.addEventListener('click', this.scrollToNewComments.bind(this));
+    newLink.addEventListener('click', this.scrollToNewComments);
 
     const newCommentCountWrapper = document.createElement('span');
     newCommentCountWrapper.className = 'cd-section-bar-item';
@@ -1314,7 +1315,7 @@ class Section extends SectionSkeleton {
 
     /** @type {HTMLElement} */ (this.metadataElement).insertBefore(
       newCommentCountWrapper,
-      /** @type {HTMLElement} */ (this.commentCountWrapper).nextSibling || null
+      /** @type {HTMLElement} */(this.commentCountWrapper).nextSibling || null
     );
 
     this.newCommentCountWrapper = newCommentCountWrapper;
@@ -1689,7 +1690,7 @@ class Section extends SectionSkeleton {
       this.headline &&
       oldSectionDummy.headline !== this.headline &&
       /** @type {import('./LegacySubscriptions').default} */ (this.subscriptions).getOriginalState(
-        /** @type {string} */ (oldSectionDummy.headline)
+        /** @type {string} */(oldSectionDummy.headline)
       )
     ) {
       this.subscribe('quiet', oldSectionDummy.headline);
@@ -1735,7 +1736,7 @@ class Section extends SectionSkeleton {
         await cd
           .getApi()
           .post(
-            /** @type {import('types-mediawiki/api_params').UnknownApiParams} */ (
+            /** @type {import('types-mediawiki/api_params').UnknownApiParams} */(
               /** @type {import('types-mediawiki/api_params').ApiQueryRevisionsParams} */ ({
                 action: 'query',
                 titles: this.getSourcePage().name,
@@ -2178,7 +2179,7 @@ class Section extends SectionSkeleton {
       .reverse()
       .reduce(
         (comment, section) => comment || section.commentsInFirstChunk.slice(-1)[0],
-        /** @type {Comment | undefined} */ (undefined)
+        /** @type {Comment | undefined} */(undefined)
       );
   }
 

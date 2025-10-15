@@ -35,17 +35,17 @@ class SectionManager {
     this.improvePerformance = settings.get('improvePerformance');
 
     talkPageController
-      .on('scroll', this.maybeUpdateVisibility.bind(this));
+      .on('scroll', this.maybeUpdateVisibility);
     subscriptions
-      .on('process', this.addSubscribeButtons.bind(this));
+      .on('process', this.addSubscribeButtons);
     visits
-      .on('process', this.updateNewCommentsData.bind(this));
+      .on('process', this.updateNewCommentsData);
 
     if (this.improvePerformance) {
       // Unhide when the user opens a search box to allow searching the full page.
       $(window)
-        .on('focus', this.maybeUpdateVisibility.bind(this))
-        .on('blur', this.maybeUnhideAll.bind(this));
+        .on('focus', this.maybeUpdateVisibility)
+        .on('blur', this.maybeUnhideAll);
     }
   }
 
@@ -240,7 +240,7 @@ class SectionManager {
    *
    * @private
    */
-  addSubscribeButtons() {
+  addSubscribeButtons = () => {
     if (!cd.user.isRegistered()) return;
 
     talkPageController.saveRelativeScrollPosition();
@@ -248,7 +248,7 @@ class SectionManager {
       section.addSubscribeButton();
     });
     talkPageController.restoreRelativeScrollPosition();
-  }
+  };
 
   /**
    * Generate an DiscussionTools ID for a section.
@@ -277,11 +277,11 @@ class SectionManager {
   /**
    * _For internal use._ Update the new comments data for sections and render the updates.
    */
-  updateNewCommentsData() {
+  updateNewCommentsData = () => {
     this.items.forEach((section) => {
       section.updateNewCommentsData();
     });
-  }
+  };
 
   /**
    * _For internal use._ Get the top offset of the first section relative to the viewport.
@@ -342,7 +342,7 @@ class SectionManager {
    *
    * @private
    */
-  maybeUpdateVisibility() {
+  maybeUpdateVisibility = () => {
     if (
       !this.improvePerformance ||
       !this.items.length ||
@@ -411,7 +411,7 @@ class SectionManager {
           !(firstSectionToHide && section.index >= firstSectionToHide.index)
         );
       });
-  }
+  };
 
   /**
    * _For internal use._ Unhide the sections.
@@ -419,13 +419,13 @@ class SectionManager {
    * This is called when the "Try to improve performance" setting is enabled and the window is
    * blurred.
    */
-  maybeUnhideAll() {
+  maybeUnhideAll = () => {
     if (!talkPageController.isLongPage()) return;
 
     this.items.forEach((section) => {
       section.updateVisibility(true);
     });
-  }
+  };
 }
 
 export default new SectionManager();

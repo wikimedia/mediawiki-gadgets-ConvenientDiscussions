@@ -174,13 +174,13 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
       });
     this.configureManuallySelected = false;
     this.controls.configure.input
-      .on('change', this.onPresetChange.bind(this))
+      .on('change', this.onPresetChange)
       .on('manualChange', (selected) => {
         this.configureManuallySelected = selected;
       });
     this.controls.title.input
-      .on('change', this.onUploadFormChange.bind(this))
-      .on('enter', this.emit.bind(this, 'submitUpload'));
+      .on('change', this.onUploadFormChange)
+      .on('enter', () => this.emit('submitUpload'));
   }
 
   /**
@@ -190,13 +190,13 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
    * @protected
    * @override
    */
-  async onUploadFormChange() {
+  onUploadFormChange = async () => {
     let valid = true;
     await this.controls.title?.input.getValidity().catch(() => {
       valid = false;
     });
     this.emit('uploadValid', this.selectFileWidget.getValue() && valid);
-  }
+  };
 
   /**
    * Handle events changing the preset.
@@ -204,7 +204,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
    * @param {OO.ui.RadioOptionWidget|boolean} [itemOrSelected]
    * @protected
    */
-  onPresetChange(itemOrSelected) {
+  onPresetChange = (itemOrSelected) => {
     const preset = /** @type {import('./RadioOptionWidget').default} */ (
       this.controls.preset.input.findSelectedItem()
     )?.getData();
@@ -224,7 +224,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
     }
 
     this.emit('changeSteps', this.isInfoFormOmitted());
-  }
+  };
 
   /**
    * Find out whether the information form should be omitted given the current state of controls.
@@ -281,9 +281,9 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
       ),
     });
 
-    this.controls.source.input.on('change', this.onInfoFormChange.bind(this));
-    this.controls.author.input.on('change', this.onInfoFormChange.bind(this));
-    this.controls.license.input.on('change', this.onInfoFormChange.bind(this));
+    this.controls.source.input.on('change', this.onInfoFormChange);
+    this.controls.author.input.on('change', this.onInfoFormChange);
+    this.controls.license.input.on('change', this.onInfoFormChange);
 
     // Add items to the fieldset
     /** @type {OO.ui.FieldsetLayout} */ (this.infoForm.getItems()[1]).addItems([
@@ -300,7 +300,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
    * @protected
    * @override
    */
-  async onInfoFormChange() {
+  onInfoFormChange = async () => {
     let valid = true;
     await Promise.all(
       [
@@ -315,7 +315,7 @@ class ForeignStructuredUploadBookletLayout extends mw.ForeignStructuredUpload.Bo
       valid = false;
     });
     this.emit('infoValid', valid);
-  }
+  };
 
   /**
    * Returns a {@link mw.ForeignStructuredUpload mw.ForeignStructuredUpload} with the target

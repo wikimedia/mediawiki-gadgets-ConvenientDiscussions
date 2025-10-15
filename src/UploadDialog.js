@@ -108,8 +108,8 @@ export class UploadDialog extends mixInClass(
       }
 
       this.uploadBooklet
-        .on('changeSteps', this.updateActionLabels.bind(this))
-        .on('submitUpload', this.executeAction.bind(this, 'upload'));
+        .on('changeSteps', this.updateActionLabels)
+        .on('submitUpload', () => this.executeAction('upload'));
       this.uploadBooklet.setup(data.file, enProjectName);
     });
   }
@@ -191,7 +191,7 @@ export class UploadDialog extends mixInClass(
    * @param {boolean} autosave Whether to save the upload when clicking the main button.
    * @protected
    */
-  updateActionLabels(autosave) {
+  updateActionLabels = (autosave) => {
     this.autosave = autosave;
     if (this.autosave) {
       this.actions.get({ actions: ['upload', 'save'] }).forEach((action) => {
@@ -202,7 +202,7 @@ export class UploadDialog extends mixInClass(
         action.setLabel(cd.mws(`upload-dialog-button-${action.getAction()}`));
       });
     }
-  }
+  };
 
   /**
    * @class Error

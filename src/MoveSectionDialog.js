@@ -227,7 +227,7 @@ class MoveSectionDialog extends ProcessDialog {
       });
 
       this.controls.title.input
-        .on('change', this.onTitleInputChange.bind(this))
+        .on('change', this.onTitleInputChange)
         .on('enter', () => {
           if (!this.actions.get({ actions: 'move' })[0].isDisabled()) {
             this.executeAction('move');
@@ -379,13 +379,13 @@ class MoveSectionDialog extends ProcessDialog {
    *
    * @protected
    */
-  async onTitleInputChange() {
+  onTitleInputChange = async () => {
     let move = true;
     await this.controls.title.input.getValidity().catch(() => {
       move = false;
     });
     this.actions.setAbilities({ move });
-  }
+  };
 
   /**
    * @typedef {object} Source

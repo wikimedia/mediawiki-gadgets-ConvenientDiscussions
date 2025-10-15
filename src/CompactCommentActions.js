@@ -45,7 +45,7 @@ class CompactCommentActions extends CommentActions {
     return new CommentButton({
       element: this.comment.createReplyButton().$element[0],
       action,
-      widgetConstructor: this.comment.createReplyButton.bind(this.comment),
+      widgetConstructor: this.comment.createReplyButton,
     });
   }
 
@@ -60,7 +60,7 @@ class CompactCommentActions extends CommentActions {
     return new CommentButton({
       element: this.comment.createEditButton().$element[0],
       action,
-      widgetConstructor: this.comment.createEditButton.bind(this.comment),
+      widgetConstructor: this.comment.createEditButton,
     });
   }
 
@@ -76,7 +76,7 @@ class CompactCommentActions extends CommentActions {
     return new CommentButton({
       element: this.comment.createThankButton().$element[0],
       action,
-      widgetConstructor: this.comment.createThankButton.bind(this.comment),
+      widgetConstructor: this.comment.createThankButton,
     });
   }
 
@@ -94,7 +94,7 @@ class CompactCommentActions extends CommentActions {
       element,
       buttonElement: /** @type {HTMLElement} */ (element.firstChild),
       action,
-      widgetConstructor: this.comment.createCopyLinkButton.bind(this.comment),
+      widgetConstructor: this.comment.createCopyLinkButton,
       href: this.comment.dtId && '#' + this.comment.dtId,
     });
   }
@@ -112,7 +112,7 @@ class CompactCommentActions extends CommentActions {
     return new CommentButton({
       buttonElement,
       action,
-      widgetConstructor: this.comment.createGoToParentButton.bind(this.comment),
+      widgetConstructor: this.comment.createGoToParentButton,
     });
   }
 
@@ -129,7 +129,7 @@ class CompactCommentActions extends CommentActions {
     return new CommentButton({
       element,
       action,
-      widgetConstructor: this.comment.createGoToChildButton.bind(this.comment),
+      widgetConstructor: this.comment.createGoToChildButton,
     });
   }
 
@@ -147,7 +147,7 @@ class CompactCommentActions extends CommentActions {
       element,
       iconElement: /** @type {HTMLElement} */ (element.querySelector('.oo-ui-iconElement-icon')),
       action,
-      widgetConstructor: this.comment.createToggleChildThreadsButton.bind(this.comment),
+      widgetConstructor: this.comment.createToggleChildThreadsButton,
     });
   }
 

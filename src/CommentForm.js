@@ -999,7 +999,7 @@ class CommentForm extends EventEmitter {
       classes: ['cd-commentForm-viewChangesButton'],
       tabIndex: this.getTabIndex(34),
     });
-    this.viewChangesButton.on('toggle', this.adjustLabels.bind(this));
+    this.viewChangesButton.on('toggle', this.adjustLabels);
 
     this.previewButton = new OO.ui.ButtonWidget({
       label: cd.s('cf-preview'),
@@ -1009,7 +1009,7 @@ class CommentForm extends EventEmitter {
     if (this.autopreview) {
       this.previewButton.toggle(false);
     }
-    this.previewButton.on('toggle', this.adjustLabels.bind(this));
+    this.previewButton.on('toggle', this.adjustLabels);
 
     this.submitButton = new OO.ui.ButtonWidget({
       label: this.submitButtonLabelStandard,
@@ -2091,7 +2091,7 @@ class CommentForm extends EventEmitter {
         .on('change', preview)
         .on('change', emitChange);
 
-      this.headlineInput.on('enter', this.submit.bind(this));
+      this.headlineInput.on('enter', this.submit);
     }
 
     this.commentInput
@@ -2193,7 +2193,7 @@ class CommentForm extends EventEmitter {
       })
       .on('change', emitChange);
 
-    this.summaryInput.on('enter', this.submit.bind(this));
+    this.summaryInput.on('enter', this.submit);
   }
 
   /**
@@ -2413,7 +2413,7 @@ class CommentForm extends EventEmitter {
    * Adjust the button labels according to the form width: if the form is to narrow, the labels will
    * shrink.
    */
-  adjustLabels() {
+  adjustLabels = () => {
     const formWidth = /** @type {number} */ (this.$element.width());
     const additive = 7;
 
@@ -2447,7 +2447,7 @@ class CommentForm extends EventEmitter {
         this.cancelButton.setLabel(cd.s('cf-cancel-short'));
       }
     }
-  }
+  };
 
   /**
    * Push the pending status of the form inputs.
@@ -3491,7 +3491,7 @@ class CommentForm extends EventEmitter {
    * @param {boolean} [clearMessages]
    * @param {boolean} [suppressTag]
    */
-  async submit(clearMessages = true, suppressTag = false) {
+  submit = async (clearMessages = true, suppressTag = false) => {
     const doDelete = Boolean(this.deleteCheckbox?.isSelected());
     if (this.isBeingSubmitted() || this.isContentBeingLoaded() || !this.runChecks({ doDelete })) {
       return;
@@ -3555,7 +3555,7 @@ class CommentForm extends EventEmitter {
     }
 
     this.reloadPage(bootData, operation);
-  }
+  };
 
   /**
    * Ask for a confirmation to close the form if necessary.

@@ -78,14 +78,14 @@ class Toc {
         this.addCommentCount();
       });
     subscriptions
-      .on('process', this.markSubscriptions.bind(this));
+      .on('process', this.markSubscriptions);
     talkPageController
-      .on('reboot', this.maybeHide.bind(this));
+      .on('reboot', this.maybeHide);
     updateChecker
       .on('commentsUpdate', ({ bySection }) => {
         this.addNewComments(bySection);
       })
-      .on('sectionsUpdate', this.addNewSections.bind(this));
+      .on('sectionsUpdate', this.addNewSections);
   }
 
   /**
@@ -95,13 +95,13 @@ class Toc {
    *
    * @private
    */
-  maybeHide() {
+  maybeHide = () => {
     if (this.isInSidebar() || !this.isPresent()) return;
 
     if (mw.cookie.get('hidetoc') === '1') {
       /** @type {HTMLInputElement} */ (this.$element.find('.toctogglecheckbox')[0]).checked = true;
     }
-  }
+  };
 
   /**
    * _For internal use._ Setup the TOC data and, for sidebar TOC, update its content. (Executed at
@@ -163,7 +163,7 @@ class Toc {
    *
    * @private
    */
-  async markSubscriptions() {
+  markSubscriptions = async () => {
     if (!this.isPresent()) return;
 
     // Ensure the bell icons are added after the TOC is updated and the comment counts are added in
@@ -175,7 +175,7 @@ class Toc {
       .forEach((section) => {
         section.updateTocLink();
       });
-  }
+  };
 
   /**
    * Add the number of comments to each section link.
@@ -231,14 +231,14 @@ class Toc {
    * @param {MouseEvent | KeyboardEvent} event
    * @private
    */
-  handleSectionClick(event) {
+  handleSectionClick = (event) => {
     event.preventDefault();
     bootManager.reboot({
       sectionId:
         getLinkedAnchor(/** @type {HTMLAnchorElement} */ (event.currentTarget)) || undefined,
       pushState: true,
     });
-  }
+  };
 
   /**
    * Add a collapse/expand toggle to a 2-level section.
@@ -303,7 +303,7 @@ class Toc {
       if (this.isInSidebar()) {
         a.className = 'vector-toc-link cd-toc-link-sidebar';
       }
-      a.addEventListener('click', this.handleSectionClick.bind(this));
+      a.addEventListener('click', this.handleSectionClick);
 
       let number;
       if (currentLevelMatch) {
@@ -384,7 +384,7 @@ class Toc {
    *   new revision of the page.
    * @private
    */
-  addNewSections(sections) {
+  addNewSections = (sections) => {
     if (!this.canBeModified || !this.isPresent()) return;
 
     if (!this.isInSidebar()) {
@@ -455,7 +455,7 @@ class Toc {
     if (!this.isInSidebar()) {
       talkPageController.restoreRelativeScrollPosition(true);
     }
-  }
+  };
 
   /**
    * Get the element to add a comment list after for a section.
@@ -501,7 +501,7 @@ class Toc {
    * @param {KeyboardEvent | MouseEvent} event
    * @private
    */
-  handleCommentClick(event) {
+  handleCommentClick = (event) => {
     event.preventDefault();
     const id = getLinkedAnchor(/** @type {HTMLAnchorElement} */ (event.currentTarget));
     if (!id) {
@@ -520,7 +520,7 @@ class Toc {
         pushState: true,
       });
     }
-  }
+  };
 
   /**
    * Add a comment list (an `ul` element) to a section.
@@ -589,7 +589,7 @@ class Toc {
         if (this.isInSidebar()) {
           a.className = 'vector-toc-link cd-toc-link-sidebar';
         }
-        a.addEventListener('click', this.handleCommentClick.bind(this));
+        a.addEventListener('click', this.handleCommentClick);
 
         let timestampSpan;
         if (settings.get('timestampFormat') !== 'default' && comment.date) {

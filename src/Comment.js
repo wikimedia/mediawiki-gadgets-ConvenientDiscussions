@@ -632,7 +632,7 @@ class Comment extends CommentSkeleton {
 
     this.isEditable = this.isActionable && (this.isOwn || settings.get('allowEditOthersComments'));
 
-    this.highlightables.forEach(this.bindEvents.bind(this));
+    this.highlightables.forEach(this.bindEvents);
 
     this.updateMarginHighlightable();
 
@@ -985,7 +985,7 @@ class Comment extends CommentSkeleton {
         label: this.spaciousTimestamp || this.timestamp,
         tooltip: this.timestampTitle,
         classes: ['cd-comment-button-labelled', 'cd-comment-timestamp', 'mw-selflink-fragment'],
-        action: this.copyLink.bind(this),
+        action: this.copyLink,
         href: this.dtId && '#' + this.dtId,
       });
 
@@ -1319,9 +1319,9 @@ class Comment extends CommentSkeleton {
    * @abstract
    * @private
    */
-  bindEvents(element) {
+  bindEvents = (element) => {
     throw new Error('bindEvents must be implemented by subclasses');
-  }
+  };
 
   /**
    * _For internal use._ Filter out floating and hidden elements from the comment's
@@ -1787,7 +1787,7 @@ class Comment extends CommentSkeleton {
    * @returns {boolean | undefined} Is the comment moved or created. `undefined` if we couldn't
    *   determine (for example, if the element is invisible).
    */
-  configureLayers(options = {}) {
+  configureLayers = (options = {}) => {
     options.add ??= true;
     options.update ??= true;
 
@@ -1810,7 +1810,7 @@ class Comment extends CommentSkeleton {
     }
 
     return true;
-  }
+  };
 
   /**
    * Calculate the underlay and overlay offset and set it to the `layersOffset` property.
@@ -2811,9 +2811,9 @@ class Comment extends CommentSkeleton {
    * @param {'top'|'center'|'bottom'} alignment Where should the element be positioned relative to
    *   the viewport.
    */
-  scrollIntoView(alignment) {
+  scrollIntoView = (alignment) => {
     (this.editForm?.$element || this.$elements).cdScrollIntoView(alignment);
-  }
+  };
 
   /**
    * Scroll to the comment and (by default) flash it as a target. See also
@@ -2959,9 +2959,9 @@ class Comment extends CommentSkeleton {
    *
    * @param {JQuery.TriggeredEvent | MouseEvent | KeyboardEvent} event
    */
-  copyLink(event) {
+  copyLink = (event) => {
     talkPageController.showCopyLinkDialog(this, event);
-  }
+  };
 
   /**
    * Find the edit that added the comment.
@@ -3557,10 +3557,10 @@ class Comment extends CommentSkeleton {
 
       // Wait until the comment form is removed - its presence can e.g. affect the presence of a
       // scrollbar, therefore the comment's offset.
-      setTimeout(this.configureLayers.bind(this));
+      setTimeout(this.configureLayers);
 
       // Wait until the comment form is unregistered
-      setTimeout(this.scrollIntoView.bind(this, 'top'));
+      setTimeout(() => this.scrollIntoView('top'));
     }
   }
 
@@ -4333,7 +4333,7 @@ class Comment extends CommentSkeleton {
     this.$elements
       .find('.ext-discussiontools-init-timestamplink')
       .off()
-      .on('click', this.copyLink.bind(this));
+      .on('click', this.copyLink);
   }
 
   /**
@@ -4443,112 +4443,98 @@ class Comment extends CommentSkeleton {
    *
    * @returns {OO.ui.ButtonWidget}
    */
-  createReplyButton() {
-    return new OO.ui.ButtonWidget({
-      label: cd.s('cm-reply'),
-      framed: false,
-      flags: ['progressive'],
-      classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
-    });
-  }
+  createReplyButton = () => new OO.ui.ButtonWidget({
+    label: cd.s('cm-reply'),
+    framed: false,
+    flags: ['progressive'],
+    classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
+  });
 
   /**
    * Create an edit button.
    *
    * @returns {OO.ui.ButtonWidget}
    */
-  createEditButton() {
-    return new OO.ui.ButtonWidget({
-      label: cd.s('cm-edit'),
-      framed: false,
-      classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
-    });
-  }
+  createEditButton = () => new OO.ui.ButtonWidget({
+    label: cd.s('cm-edit'),
+    framed: false,
+    classes: ['cd-button-ooui', 'cd-comment-button-ooui'],
+  });
 
   /**
    * Create a thank button.
    *
    * @returns {OO.ui.ButtonWidget}
    */
-  createThankButton() {
-    return new OO.ui.ButtonWidget({
-      label: cd.s('cm-thank'),
-      icon: 'heart',
-      invisibleLabel: true,
-      title: cd.s('cm-thank-tooltip'),
-      framed: false,
-      classes: [
-        'cd-button-ooui',
-        'cd-comment-button-ooui',
-        'cd-comment-button-ooui-icon',
-        'cd-comment-button-ooui-icon-thank',
-      ],
-    });
-  }
+  createThankButton = () => new OO.ui.ButtonWidget({
+    label: cd.s('cm-thank'),
+    icon: 'heart',
+    invisibleLabel: true,
+    title: cd.s('cm-thank-tooltip'),
+    framed: false,
+    classes: [
+      'cd-button-ooui',
+      'cd-comment-button-ooui',
+      'cd-comment-button-ooui-icon',
+      'cd-comment-button-ooui-icon-thank',
+    ],
+  });
 
   /**
    * Create a copy link button.
    *
    * @returns {OO.ui.ButtonWidget}
    */
-  createCopyLinkButton() {
-    return new OO.ui.ButtonWidget({
-      label: cd.s('cm-copylink'),
-      icon: 'link',
-      invisibleLabel: true,
-      title: cd.s('cm-copylink-tooltip'),
-      framed: false,
-      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
-    });
-  }
+  createCopyLinkButton = () => new OO.ui.ButtonWidget({
+    label: cd.s('cm-copylink'),
+    icon: 'link',
+    invisibleLabel: true,
+    title: cd.s('cm-copylink-tooltip'),
+    framed: false,
+    classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
+  });
 
   /**
    * Create a "Go to parent" button.
    *
    * @returns {OO.ui.ButtonWidget}
    */
-  createGoToParentButton() {
-    return new OO.ui.ButtonWidget({
-      label: cd.s('cm-gotoparent'),
-      icon: 'upTriangle',
-      invisibleLabel: true,
-      title: cd.s('cm-gotoparent-tooltip'),
-      framed: false,
-      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
-    });
-  }
+  createGoToParentButton = () => new OO.ui.ButtonWidget({
+    label: cd.s('cm-gotoparent'),
+    icon: 'upTriangle',
+    invisibleLabel: true,
+    title: cd.s('cm-gotoparent-tooltip'),
+    framed: false,
+    classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
+  });
 
   /**
    * Create a "Go to child" button.
    *
    * @returns {OO.ui.ButtonWidget}
    */
-  createGoToChildButton() {
-    return new OO.ui.ButtonWidget({
-      label: cd.s('cm-gotochild'),
-      icon: 'downTriangle',
-      invisibleLabel: true,
-      title: cd.s('cm-gotochild-tooltip'),
-      framed: false,
-      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
-    });
-  }
+  createGoToChildButton = () => new OO.ui.ButtonWidget({
+    label: cd.s('cm-gotochild'),
+    icon: 'downTriangle',
+    invisibleLabel: true,
+    title: cd.s('cm-gotochild-tooltip'),
+    framed: false,
+    classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
+  });
 
   /**
    * Create a "Toggle child threads" button.
    *
    * @returns {OO.ui.ButtonWidget}
    */
-  createToggleChildThreadsButton() {
-    return new OO.ui.ButtonWidget({
-      label: cd.s('cm-togglechildthreads'),
-      icon: this.areChildThreadsCollapsed() ? 'add' : 'subtract',
-      invisibleLabel: true,
-      title: cd.s('cm-togglechildthreads-tooltip'),
-      framed: false,
-      classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
-    });
-  }
+  createToggleChildThreadsButton = () => new OO.ui.ButtonWidget({
+    label: cd.s('cm-togglechildthreads'),
+    icon: this.areChildThreadsCollapsed() ? 'add' : 'subtract',
+    invisibleLabel: true,
+    title: cd.s('cm-togglechildthreads-tooltip'),
+    framed: false,
+    classes: ['cd-button-ooui', 'cd-comment-button-ooui', 'cd-comment-button-ooui-icon'],
+  });
 
   /**
    * Check if this comment opens a section and has a reference to it.

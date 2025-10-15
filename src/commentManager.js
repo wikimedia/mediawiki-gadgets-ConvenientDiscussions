@@ -74,10 +74,10 @@ class CommentManager extends EventEmitter {
       .save();
 
     talkPageController
-      .on('scroll', this.registerSeen.bind(this))
-      .on('mutate', this.maybeRedrawLayers.bind(this))
-      .on('resize', this.maybeRedrawLayers.bind(this))
-      .on('mouseMove', this.maybeHighlightHovered.bind(this))
+      .on('scroll', this.registerSeen)
+      .on('mutate', this.maybeRedrawLayers)
+      .on('resize', this.maybeRedrawLayers)
+      .on('mouseMove', this.maybeHighlightHovered)
       .on('popState', (fragment) => {
         // Don't jump to the comment if the user pressed "Back"/"Forward" in the browser or if
         // history.pushState() is called from Comment#scrollTo() (after clicks on added (gray)
@@ -87,7 +87,7 @@ class CommentManager extends EventEmitter {
 
         this.getByAnyId(fragment, true)?.scrollTo();
       })
-      .on('selectionChange', this.getSelectedComment.bind(this))
+      .on('selectionChange', this.getSelectedComment)
       .on('beforeReboot', (passedData) => {
         // Stop all animations, clear all timeouts.
         this.items.forEach((comment) => {
@@ -101,10 +101,10 @@ class CommentManager extends EventEmitter {
           this.resetLayers();
         }
       })
-      .on('startReboot', this.resetLayers.bind(this))
-      .on('desktopNotificationClick', this.maybeRedrawLayers.bind(this, true));
+      .on('startReboot', this.resetLayers)
+      .on('desktopNotificationClick', () => this.maybeRedrawLayers(true));
     visits
-      .on('process', this.registerSeen.bind(this))
+      .on('process', this.registerSeen)
       .on('process', async () => {
         // A workaround to fight the bug in Chromium where comments layers are misplaced after page
         // load. I couldn't establish the cause of it - comment positions are rechecked on events
@@ -133,9 +133,9 @@ class CommentManager extends EventEmitter {
         this.addNewCommentsNotes(all);
       });
     commentFormManager
-      .on('teardown', this.registerSeen.bind(this));
+      .on('teardown', this.registerSeen);
     Thread
-      .on('init', this.addToggleChildThreadsButtons.bind(this));
+      .on('init', this.addToggleChildThreadsButtons);
   }
 
   /**
@@ -153,7 +153,7 @@ class CommentManager extends EventEmitter {
 
     // Our handler may run earlier than DT's (e.g. in Chrome if the page was loaded in a background
     // tab). This hack seems to work better than adding and removing a `wikipage.content` hook.
-    $(this.handleDtTimestampsClick.bind(this));
+    $(this.handleDtTimestampsClick);
   }
 
   /**
@@ -274,7 +274,7 @@ class CommentManager extends EventEmitter {
    *
    * @param {boolean} [redrawAll] Whether to redraw all layers and not stop at first three unmoved.
    */
-  maybeRedrawLayers(redrawAll = false) {
+  maybeRedrawLayers = (redrawAll = false) => {
     if (bootManager.isBooting() || (document.hidden && !redrawAll)) return;
 
     this.layersContainers.forEach((container) => {
@@ -348,24 +348,24 @@ class CommentManager extends EventEmitter {
     comments.forEach((comment) => {
       comment.updateLayersOffset();
     });
-  }
+  };
 
   /**
    * _For internal use._ Empty the underlay registry and the layers container elements. Done on page
    * reload.
    */
-  resetLayers() {
+  resetLayers = () => {
     this.underlays = [];
     this.layersContainers.forEach((container) => {
       container.innerHTML = '';
     });
-  }
+  };
 
   /**
    * _For internal use._ Mark comments that are currently in the viewport as read, and also
    * {@link Comment#flash flash} comments that are prescribed to flash.
    */
-  registerSeen() {
+  registerSeen = () => {
     if (document.hidden) return;
 
     const commentInViewport = this.findInViewport();
@@ -395,7 +395,7 @@ class CommentManager extends EventEmitter {
       .some(registerIfInViewport);
 
     this.emit('registerSeen');
-  }
+  };
 
   /**
    * Find any one comment inside the viewport.
@@ -572,7 +572,7 @@ class CommentManager extends EventEmitter {
    *
    * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
    */
-  maybeHighlightHovered(event) {
+  maybeHighlightHovered = (event) => {
     if (this.spaciousCommentsSetting) return;
 
     const isObstructingElementHovered = talkPageController.isObstructingElementHovered();
@@ -581,7 +581,7 @@ class CommentManager extends EventEmitter {
       .forEach((comment) => {
         comment.updateHoverState(event, isObstructingElementHovered);
       });
-  }
+  };
 
   /**
    * Get a comment by ID in the CD format.
@@ -885,7 +885,7 @@ class CommentManager extends EventEmitter {
    *
    * @returns {Comment | undefined}
    */
-  getSelectedComment() {
+  getSelectedComment = () => {
     const selection = window.getSelection();
     let comment;
     if (selection.toString().trim()) {
@@ -920,7 +920,7 @@ class CommentManager extends EventEmitter {
     }
 
     return comment;
-  }
+  };
 
   /**
    * Find a previous comment by time by the specified author within a 1-day window.
@@ -1015,13 +1015,13 @@ class CommentManager extends EventEmitter {
    *
    * @private
    */
-  handleDtTimestampsClick() {
+  handleDtTimestampsClick = () => {
     if (this.spaciousCommentsSetting) return;
 
     this.items.forEach((comment) => {
       comment.handleDtTimestampClick();
     });
-  }
+  };
 
   /**
    * Combine two adjacent `.cd-commentLevel` elements into one, recursively going deeper in terms of
@@ -1214,11 +1214,11 @@ class CommentManager extends EventEmitter {
   /**
    * _For internal use._ Add "Toggle children threads" buttons to comments.
    */
-  addToggleChildThreadsButtons() {
+  addToggleChildThreadsButtons = () => {
     this.items.forEach((comment) => {
       comment.addToggleChildThreadsButton();
     });
-  }
+  };
 
   /**
    * Expand all threads of a certain level (and higher, i.e. shallower) on the page.

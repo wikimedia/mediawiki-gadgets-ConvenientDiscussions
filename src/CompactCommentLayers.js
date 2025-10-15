@@ -68,9 +68,9 @@ class CompactCommentLayers extends CommentLayers {
       this.$overlayGradient = /** @type {JQuery} */ ($(this.overlayGradient));
 
       // Set up event listeners for menu management
-      this.overlayInnerWrapper.addEventListener('contextmenu', this.hideMenu.bind(this));
-      this.overlayInnerWrapper.addEventListener('mousedown', this.deferHideMenu.bind(this));
-      this.overlayInnerWrapper.addEventListener('mouseup', this.dontHideMenu.bind(this));
+      this.overlayInnerWrapper.addEventListener('contextmenu', this.hideMenu);
+      this.overlayInnerWrapper.addEventListener('mousedown', this.deferHideMenu);
+      this.overlayInnerWrapper.addEventListener('mouseup', this.dontHideMenu);
     }
   }
 
@@ -103,32 +103,32 @@ class CompactCommentLayers extends CommentLayers {
    *
    * @param {Event} [event] The event that triggered the hide action.
    */
-  hideMenu(event) {
+  hideMenu = (event) => {
     if (!this.overlayInnerWrapper) return;
 
     event?.preventDefault();
     this.overlayInnerWrapper.style.display = 'none';
     this.comment.wasMenuHidden = true;
-  }
+  };
 
   /**
    * Defer hiding the menu after a timeout.
    *
    * @param {MouseEvent} event The mousedown event.
    */
-  deferHideMenu(event) {
+  deferHideMenu = (event) => {
     // Ignore everything other than left button clicks.
     if (event.button !== 0) return;
 
-    this.hideMenuTimeout = setTimeout(this.hideMenu.bind(this), 1200);
-  }
+    this.hideMenuTimeout = setTimeout(this.hideMenu, 1200);
+  };
 
   /**
    * Cancel the deferred menu hiding.
    */
-  dontHideMenu() {
+  dontHideMenu = () => {
     clearTimeout(this.hideMenuTimeout);
-  }
+  };
 
   /**
    * Destroy the layer elements and clean up references.

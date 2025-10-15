@@ -49,7 +49,7 @@ class CommentFormManager extends EventEmitter {
         // In case checkboxes were changed programmatically
         this.saveSession();
       })
-      .on('startReboot', this.detach.bind(this))
+      .on('startReboot', this.detach)
       .on('keyDown', (event) => {
         if (
           // Ctrl+Alt+Q
@@ -69,10 +69,10 @@ class CommentFormManager extends EventEmitter {
           }
         }
       })
-      .on('resize', this.adjustLabels.bind(this));
+      .on('resize', this.adjustLabels);
     commentManager
-      .on('select', this.toggleQuoteButtonsHighlighting.bind(this, true))
-      .on('unselect', this.toggleQuoteButtonsHighlighting.bind(this, false));
+      .on('select', () => this.toggleQuoteButtonsHighlighting(true))
+      .on('unselect', () => this.toggleQuoteButtonsHighlighting(false));
 
     mw.hook('ext.CodeMirror.toggle').add((enabled, codeMirror) => {
       this.items.find((item) => item.codeMirror === codeMirror)?.setCodeMirrorActive(enabled);
@@ -111,7 +111,7 @@ class CommentFormManager extends EventEmitter {
       cf.setup(initialState);
       this.items.push(cf);
       cf
-        .on('change', this.saveSession.bind(this))
+        .on('change', this.saveSession)
         .on('unregister', () => {
           this.remove(cf);
         })
@@ -249,27 +249,27 @@ class CommentFormManager extends EventEmitter {
    * Adjust the button labels of all comment forms according to the form width: if the form is too
    * narrow, the labels will shrink.
    */
-  adjustLabels() {
+  adjustLabels = () => {
     this.items.forEach((commentForm) => {
       commentForm.adjustLabels();
     });
-  }
+  };
 
   /**
    * Detach the comment forms keeping events. Also reset some of their properties.
    */
-  detach() {
+  detach = () => {
     this.items.forEach((commentForm) => {
       commentForm.detach();
     });
-  }
+  };
 
   /**
    * The method that does the actual work for {@link module:commentFormManager.saveSession}.
    *
    * @private
    */
-  actuallySaveSession() {
+  actuallySaveSession = () => {
     (new StorageItemWithKeysAndSaveTime('commentForms'))
       .setWithTime(
         mw.config.get('wgPageName'),
@@ -278,14 +278,14 @@ class CommentFormManager extends EventEmitter {
           .map((commentForm) => commentForm.getData())
       )
       .save();
-  }
+  };
 
   /**
    * _For internal use._ Save comment form data to the local storage.
    *
    * @param {boolean} [force] Save session immediately, without regard for save frequency.
    */
-  saveSession(force) {
+  saveSession = (force) => {
     // A check in light of the existence of RevisionSlider, see the method
     if (!bootManager.isCurrentRevision()) return;
 
@@ -294,12 +294,12 @@ class CommentFormManager extends EventEmitter {
     } else {
       // Don't save more often than once per 5 seconds.
       this.throttledSaveSession ||= OO.ui.throttle(
-        /** @type {() => void} */ (this.actuallySaveSession.bind(this)),
+        /** @type {() => void} */ (this.actuallySaveSession),
         500
       );
       this.throttledSaveSession();
     }
-  }
+  };
 
   /**
    * Restore comment forms using the data saved in the local storage.
@@ -503,11 +503,11 @@ class CommentFormManager extends EventEmitter {
    *
    * @param {boolean} highlight
    */
-  toggleQuoteButtonsHighlighting(highlight) {
+  toggleQuoteButtonsHighlighting = (highlight) => {
     this.items.forEach((item) => {
       item.highlightQuoteButton(highlight);
     });
-  }
+  };
 
   /**
    * Go to the next comment form out of sight, or just the next comment form, if `inSight` is set to

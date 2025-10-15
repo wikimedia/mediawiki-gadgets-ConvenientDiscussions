@@ -210,7 +210,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
    */
   getActionProcess(action) {
     if (action === 'save') {
-      return new OO.ui.Process(this.save.bind(this));
+      return new OO.ui.Process(this.save);
     } else if (action === 'close') {
       return new OO.ui.Process(() => {
         this.confirmClose();
@@ -225,7 +225,7 @@ class EditSubscriptionsDialog extends ProcessDialog {
    *
    * @protected
    */
-  async save() {
+  save = async () => {
     this.updateSize();
     this.pushPending();
 

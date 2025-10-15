@@ -709,7 +709,7 @@ class BootProcess {
       getElementByClassName: (el, className) => el.querySelector(`.${className}`),
       rootElement: bootManager.rootElement,
       document,
-      areThereOutdents: talkPageController.areThereOutdents.bind(talkPageController),
+      areThereOutdents: talkPageController.areThereOutdents,
       processAndRemoveDtElements,
       removeDtButtonHtmlComments,
     });

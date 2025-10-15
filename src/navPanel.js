@@ -75,7 +75,7 @@ class NavPanel {
       } else {
         this.mount();
         talkPageController
-          .on('scroll', this.updateCommentFormButton.bind(this))
+          .on('scroll', this.updateCommentFormButton)
           .on('keyDown', (event) => {
             if (isInputFocused()) return;
 

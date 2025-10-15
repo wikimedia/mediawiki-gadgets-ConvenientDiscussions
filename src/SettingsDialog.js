@@ -279,7 +279,7 @@ class SettingsDialog extends ProcessDialog {
                 settingValues[/** @type {import('./settings').SettingName} */ (name)]
               ),
             });
-            this.controls[name].input.on('change', this.updateAbilities.bind(this));
+            this.controls[name].input.on('change', this.updateAbilities);
             break;
 
           case 'radio':
@@ -289,7 +289,7 @@ class SettingsDialog extends ProcessDialog {
                 settingValues[/** @type {import('./settings').SettingName} */ (name)]
               ),
             });
-            this.controls[name].input.on('select', this.updateAbilities.bind(this));
+            this.controls[name].input.on('select', this.updateAbilities);
             break;
 
           case 'text':
@@ -299,7 +299,7 @@ class SettingsDialog extends ProcessDialog {
                 settingValues[/** @type {import('./settings').SettingName} */ (name)]
               ),
             });
-            this.controls[name].input.on('change', this.updateAbilities.bind(this));
+            this.controls[name].input.on('change', this.updateAbilities);
             break;
 
           case 'number':
@@ -309,7 +309,7 @@ class SettingsDialog extends ProcessDialog {
                 settingValues[/** @type {import('./settings').SettingName} */ (name)]
               ),
             });
-            this.controls[name].input.on('change', this.updateAbilities.bind(this));
+            this.controls[name].input.on('change', this.updateAbilities);
             break;
 
           case 'multicheckbox':
@@ -319,7 +319,7 @@ class SettingsDialog extends ProcessDialog {
                 settingValues[/** @type {import('./settings').SettingName} */ (name)]
               ),
             });
-            this.controls[name].input.on('select', this.updateAbilities.bind(this));
+            this.controls[name].input.on('select', this.updateAbilities);
             break;
 
           case 'multitag':
@@ -329,7 +329,7 @@ class SettingsDialog extends ProcessDialog {
                 settingValues[/** @type {import('./settings').SettingName} */ (name)]
               ),
             });
-            this.controls[name].input.on('change', this.updateAbilities.bind(this));
+            this.controls[name].input.on('change', this.updateAbilities);
             break;
 
           case 'button':
@@ -468,7 +468,7 @@ class SettingsDialog extends ProcessDialog {
    *
    * @protected
    */
-  async updateAbilities() {
+  updateAbilities = async () => {
     const threadsEnabled = this.controls.enableThreads.input.isSelected();
     this.controls.collapseThreads.input.setDisabled(!threadsEnabled);
     this.controls.collapseThreadsLevel.input.setDisabled(
@@ -479,7 +479,7 @@ class SettingsDialog extends ProcessDialog {
     );
     this.controls.notifyCollapsedThreads.input.setDisabled(
       this.controls.desktopNotifications.input.findSelectedItem()?.getData() === 'none' &&
-        this.controls.notifications.input.findSelectedItem()?.getData() === 'none'
+      this.controls.notifications.input.findSelectedItem()?.getData() === 'none'
     );
     this.controls.outdentLevel.input.setDisabled(!this.controls.outdent.input.isSelected());
     this.controls.showContribsLink.input.setDisabled(
@@ -506,16 +506,16 @@ class SettingsDialog extends ProcessDialog {
     this.actions.setAbilities({
       save: !areObjectsEqual(collectedSettings, this.loadedSettings) && valid,
       reset: !areObjectsEqual(
-        Object.assign({}, collectedSettings),
-        Object.assign(
-          {},
-          settings.scheme.default,
-          settings.scheme.resetsTo,
-          this.getStateSettings()
-        )
+        { ...collectedSettings },
+        {
+
+          ...settings.scheme.default,
+          ...settings.scheme.resetsTo,
+          ...this.getStateSettings(),
+        }
       ),
     });
-  }
+  };
 
   /**
    * Handler of the event of change of the desktop notifications radio select.
@@ -554,6 +554,7 @@ class SettingsDialog extends ProcessDialog {
         ]);
       } catch (error) {
         this.handleError(error, 'sd-error-removedata', false);
+
         return;
       }
 
