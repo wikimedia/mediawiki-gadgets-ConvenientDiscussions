@@ -10,10 +10,10 @@ test.describe('Comment Layers', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to a test page with comments
     // You'll need to replace this with an actual test page URL
-    await page.goto('/test-page-with-comments');
+    await page.goto('https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases');
 
     // Wait for Convenient Discussions to load
-    await page.waitForFunction(() => window.cd && window.cd.comments);
+    await page.waitForFunction(() => window.cd?.comments);
   });
 
   test('CompactComment should show overlay menu on hover', async ({ page }) => {

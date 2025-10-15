@@ -9,10 +9,10 @@ const { test, expect } = require('@playwright/test');
 test.describe('Comment Actions', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to a test page with comments
-    await page.goto('/test-page-with-comments');
+    await page.goto('https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases');
 
     // Wait for Convenient Discussions to load
-    await page.waitForFunction(() => window.cd && window.cd.comments);
+    await page.waitForFunction(() => window.cd?.comments);
   });
 
   test('SpaciousComment should show action buttons in structured layout', async ({ page }) => {

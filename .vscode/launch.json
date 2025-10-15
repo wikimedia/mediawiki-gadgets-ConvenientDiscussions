@@ -8,7 +8,7 @@
       "type": "chrome",
       "request": "launch",
       "name": "Launch Chrome",
-      "url": "https://en.wikipedia.org/wiki/Talk:Main_Page",
+      "url": "https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases",
       "webRoot": "${workspaceFolder}",
       "sourceMapPathOverrides": {
         "webpack:///./*": "${workspaceRoot}/*"
