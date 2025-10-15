@@ -134,15 +134,15 @@ class Section extends SectionSkeleton {
   /**
    * Section's source code object.
    *
-   * @type {?SectionSource | undefined}
+   * @type {SectionSource | undefined}
    */
   source;
 
   /**
    * Subscription state of the section. Currently, `true` stands for "subscribed", `false` for
-   * "unsubscribed", `null` for n/a.
+   * "unsubscribed", `undefined` for n/a.
    *
-   * @type {?boolean}
+   * @type {boolean | undefined}
    */
   subscriptionState;
 
@@ -198,7 +198,7 @@ class Section extends SectionSkeleton {
     /**
      * Automatically updated sequental number of the section.
      *
-     * @type {?number}
+     * @type {number | undefined}
      */
     this.liveSectionNumber = this.sectionNumber;
 
@@ -219,11 +219,6 @@ class Section extends SectionSkeleton {
     this.sourcePage = this.sourcePageName
       ? /** @type {import('./Page').default} */ (pageRegistry.get(this.sourcePageName))
       : cd.page;
-
-    /**
-     * @type {?string}
-     */
-    this.sourcePageName = null;
 
     /**
      * Is the section transcluded from a template (usually, that template in turn transludes
@@ -472,10 +467,10 @@ class Section extends SectionSkeleton {
   /**
    * Get the last descendant section of the section.
    *
-   * @returns {?Section}
+   * @returns {Section | undefined}
    */
   getLastDescendant() {
-    return this.getChildren(true).slice(-1)[0] || null;
+    return this.getChildren(true).slice(-1)[0];
   }
 
   /**
@@ -940,7 +935,7 @@ class Section extends SectionSkeleton {
     /**
      * Latest comment in a 2-level section.
      *
-     * @type {import('./Comment').default | null | undefined}
+     * @type {import('./Comment').default | undefined}
      */
     this.latestComment = latestComment;
 
@@ -1796,7 +1791,7 @@ class Section extends SectionSkeleton {
     this.revisionId = revision.revid;
     this.queryTimestamp = queryTimestamp;
 
-    this.getSourcePage().setRedirectTarget(query.redirects?.[0]?.to || null);
+    this.getSourcePage().setRedirectTarget(query.redirects?.[0]?.to);
 
     return this.presumedCode;
   }
@@ -1814,7 +1809,7 @@ class Section extends SectionSkeleton {
 
     let isSectionSubmitted = false;
     try {
-      if (commentForm && this.liveSectionNumber !== null) {
+      if (commentForm && this.liveSectionNumber !== undefined) {
         try {
           const sectionCode = await this.requestCode();
           source = this.locateInCode(sectionCode);
@@ -1858,7 +1853,7 @@ class Section extends SectionSkeleton {
    * @throws {CdError}
    */
   locateInCode(sectionCode) {
-    this.source = null;
+    this.source = undefined;
 
     const source = this.searchInCode(
       sectionCode || this.getSourcePage().source.getCode(),
@@ -1940,7 +1935,7 @@ class Section extends SectionSkeleton {
   /**
    * @overload
    * @param {true} forceLevel2 Guarantee a 2-level section is returned.
-   * @returns {Section | null} The base section, or `null` if no level 2 section is found.
+   * @returns {Section | undefined} The base section, or `undefined` if no level 2 section is found.
    *
    * @overload
    * @param {false} [forceLevel2] Return the closest level 2 ancestor, or the section itself
@@ -1954,10 +1949,10 @@ class Section extends SectionSkeleton {
    * higher level section (the current section may be of level 3 or 1, for example).
    *
    * @param {boolean} [forceLevel2] Guarantee a 2-level section is returned.
-   * @returns {?Section}
+   * @returns {Section | undefined}
    */
   getBase(forceLevel2 = false) {
-    const defaultValue = forceLevel2 && !this.isTopic() ? null : this;
+    const defaultValue = forceLevel2 && !this.isTopic() ? undefined : this;
 
     return this.level <= 2
       ? defaultValue
@@ -2008,7 +2003,7 @@ class Section extends SectionSkeleton {
    * Get the first upper level section relative to the current section that is subscribed to.
    *
    * @param {boolean} [includeCurrent] Check the current section too.
-   * @returns {?Section}
+   * @returns {Section | undefined}
    */
   getClosestSectionSubscribedTo(includeCurrent = false) {
     for (
@@ -2021,7 +2016,7 @@ class Section extends SectionSkeleton {
       }
     }
 
-    return null;
+    return;
   }
 
   /**
@@ -2066,10 +2061,10 @@ class Section extends SectionSkeleton {
    * section. (Used for polymorphism with {@link Comment#getRelevantComment} and
    * {@link Page#getRelevantComment}.)
    *
-   * @returns {?Comment}
+   * @returns {Comment | undefined}
    */
   getRelevantComment() {
-    return this.comments[0]?.isOpeningSection() ? this.comments[0] : null;
+    return this.comments[0]?.isOpeningSection() ? this.comments[0] : undefined;
   }
 
   /**
@@ -2183,7 +2178,7 @@ class Section extends SectionSkeleton {
       .reverse()
       .reduce(
         (comment, section) => comment || section.commentsInFirstChunk.slice(-1)[0],
-        /** @type {?Comment} */ (null)
+        /** @type {Comment | undefined} */ (undefined)
       );
   }
 
@@ -2191,7 +2186,7 @@ class Section extends SectionSkeleton {
    * After the page is reloaded and this instance doesn't relate to a rendered section on the page,
    * get the instance of this section that does.
    *
-   * @returns {?Section}
+   * @returns {Section | undefined}
    */
   findNewSelf() {
     return (
@@ -2204,8 +2199,7 @@ class Section extends SectionSkeleton {
         // We cache ancestors when saving the session, so this call will return the right value,
         // despite the fact that sectionManager.items has already changed.
         ancestors: this.getAncestors().map((section) => section.headline),
-      })?.section ||
-      null
+      })?.section
     );
   }
 
@@ -2259,14 +2253,14 @@ class Section extends SectionSkeleton {
    * Used for polymorphism with {@link Comment#getCommentFormTargetComment} and
    * {@link Page#getCommentFormTargetComment}.
    *
-   * @returns {?import('./Comment').default}
+   * @returns {import('./Comment').default | undefined}
    */
   getCommentFormTargetComment() {
     return (
       this.commentsInFirstChunk
         .slice()
         .reverse()
-        .find((c) => c.level === 0) || null
+        .find((c) => c.level === 0)
     );
   }
 
@@ -2285,7 +2279,7 @@ class Section extends SectionSkeleton {
    * @param {number} lastCheckedRevisionId
    */
   updateLiveData(lastCheckedRevisionId) {
-    this.liveSectionNumber = this.match?.sectionNumber ?? null;
+    this.liveSectionNumber = this.match?.sectionNumber;
     this.liveSectionNumberRevisionId = lastCheckedRevisionId;
     delete this.presumedCode;
     delete this.revisionId;
