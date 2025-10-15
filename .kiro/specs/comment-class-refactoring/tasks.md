@@ -1,19 +1,23 @@
 # Implementation Plan
 
-- [ ] 1. Create CommentLayers composition classes
+- [x] 1. Create CommentLayers composition classes
 
-  - [ ] 1.1 Implement CommentLayers base class
+
+  - [x] 1.1 Implement CommentLayers base class
+
     - Create src/CommentLayers.js with base layer management
     - Define create, destroy, updateStyles methods
     - Define underlay, overlay, line, marker properties and jQuery wrappers
     - _Requirements: 2.1, 2.2_
 
-  - [ ] 1.2 Implement SpaciousCommentLayers class
+  - [x] 1.2 Implement SpaciousCommentLayers class
+
     - Create src/SpaciousCommentLayers.js extending CommentLayers
     - Override create and updateStyles for spacious layout (no overlay menu)
     - _Requirements: 2.3_
 
-  - [ ] 1.3 Implement CompactCommentLayers class
+  - [x] 1.3 Implement CompactCommentLayers class
+
     - Create src/CompactCommentLayers.js extending CommentLayers
     - Add overlayInnerWrapper, overlayGradient, overlayMenu properties
     - Implement showMenu and hideMenu methods for overlay menu management
@@ -21,13 +25,16 @@
     - _Requirements: 2.3_
 
 - [ ] 2. Create CommentActions composition classes
+
   - [ ] 2.1 Implement CommentActions base class
+
     - Create src/CommentActions.js with base action management
     - Define addReplyButton, addEditButton, addThankButton, etc. methods
     - Handle button creation and event binding
     - _Requirements: 7.1, 7.2_
 
   - [ ] 2.2 Implement SpaciousCommentActions class
+
     - Create src/SpaciousCommentActions.js extending CommentActions
     - Override action creation for spacious-specific styling (menu-based)
     - _Requirements: 7.3_
@@ -38,7 +45,9 @@
     - _Requirements: 7.3_
 
 - [ ] 3. Create Comment subclasses
+
   - [ ] 3.1 Create SpaciousComment class
+
     - Create src/SpaciousComment.js extending Comment
     - Implement createLayers to use SpaciousCommentLayers
     - Add formatHeader method for author/date header management
@@ -56,6 +65,7 @@
     - _Requirements: 1.1, 1.3, 1.5_
 
 - [ ] 4. Update settings system
+
   - [ ] 4.1 Implement settings migration
     - Update src/settings.js to rename reformatComments setting to spaciousComments
     - Add reformatComments to aliases property for backward compatibility
@@ -63,6 +73,7 @@
     - _Requirements: 4.4, 4.5_
 
 - [ ] 5. Update Parser integration
+
   - [ ] 5.1 Update BootProcess.findTargets to choose appropriate Comment class
     - Modify src/BootProcess.js findTargets method to select SpaciousComment or CompactComment
     - Update CommentClass property based on spaciousComments setting
@@ -70,7 +81,9 @@
     - _Requirements: 4.1, 4.2, 4.3_
 
 - [ ] 6. Refactor existing Comment class to use composition
+
   - [ ] 6.1 Extract layers functionality to composition
+
     - Move layer-related properties from Comment to layers composition
     - Update createLayers method to delegate to appropriate layers class
     - Remove direct layer property access in favor of layers.property
@@ -78,6 +91,7 @@
     - _Requirements: 2.4, 2.6_
 
   - [ ] 6.2 Extract actions functionality to composition
+
     - Move action-related methods from Comment to actions composition
     - Update action creation to delegate to appropriate actions class
     - Remove direct action method calls in favor of actions.method()
@@ -85,6 +99,7 @@
     - _Requirements: 7.4, 7.6_
 
   - [ ] 6.3 Rename reformatted property to spacious
+
     - Update all internal references from reformatted to spacious in Comment.js
     - Update type definitions and JSDoc comments
     - Update isReformatted() method to use spacious property
@@ -98,7 +113,9 @@
     - _Requirements: 1.4, 3.1, 3.2_
 
 - [ ] 7. Update external references and type guards
+
   - [ ] 7.1 Update layer property access
+
     - Find all external references to comment.underlay, comment.overlay, etc.
     - Update to use comment.layers.underlay, comment.layers.overlay, etc.
     - Update jQuery wrapper access patterns
@@ -106,6 +123,7 @@
     - _Requirements: 5.1, 2.6_
 
   - [ ] 7.2 Update type guards and instanceof checks
+
     - Replace hasLayers() type guard with layers property check
     - Replace hasClassicUnderlay() type guard with layers property and class check
     - Update isReformatted() type guard to use spacious property
@@ -119,13 +137,16 @@
     - _Requirements: 7.6_
 
 - [ ] 8. Update prototype management
+
   - [ ] 8.1 Refactor Comment.initPrototypes method
+
     - Move shared prototypes (underlay, overlay) to Comment base class
     - Remove spacious/compact-specific prototypes from base method
     - Update existing initPrototypes method in Comment.js
     - _Requirements: 1.6_
 
   - [ ] 8.2 Implement SpaciousComment.initPrototypes
+
     - Move header wrapper and SVG icon prototypes to SpaciousComment
     - Ensure prototypes are created when spaciousComments setting is true
     - Extract spacious-specific prototype code from Comment.initPrototypes
@@ -138,7 +159,9 @@
     - _Requirements: 1.6_
 
 - [ ] 9. Remove complex generic type system
+
   - [ ] 9.1 Remove unused generic types
+
     - Delete HTMLElementIfReformatted, HTMLElementIfNotReformattedAndHasLayers, JQueryIfReformatted, JQueryIfNotReformattedAndHasLayers types from Comment.js
     - Remove HasLayers and Reformatted generic parameters from Comment class
     - Clean up conditional type definitions
@@ -151,6 +174,7 @@
     - _Requirements: 5.4_
 
 - [ ] 10. Update commentManager integration
+
   - [ ] 10.1 Update commentManager.reformatComments method
     - Update src/commentManager.js to work with new class hierarchy
     - Update reformatCommentsSetting references to use spaciousComments
@@ -158,19 +182,23 @@
     - _Requirements: 4.4, 4.5_
 
 - [ ] 11. Testing and validation
-  - [ ]* 11.1 Create unit tests for new classes
+
+  - [ ]\* 11.1 Create unit tests for new classes
+
     - Write tests for CommentLayers, CommentActions, and their subclasses
     - Write tests for SpaciousComment and CompactComment functionality
     - Test prototype management and class instantiation
     - _Requirements: 8.1, 8.2_
 
-  - [ ]* 11.2 Update existing tests
+  - [ ]\* 11.2 Update existing tests
+
     - Update Comment class tests to work with new architecture
     - Update integration tests for Parser and settings changes
     - Fix any broken tests due to property and method changes
     - _Requirements: 8.2, 5.5_
 
   - [ ] 11.3 Validate backward compatibility
+
     - Test that existing comment functionality works identically
     - Verify settings migration works correctly
     - Ensure external references continue to work
@@ -178,6 +206,7 @@
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
   - [ ] 11.4 Set up browser testing environment (requires user assistance)
+
     - User assistance needed to configure Selenium/browser testing setup
     - User assistance needed to update .vscode/launch.json for testing configuration
     - User assistance needed to install and configure any required testing dependencies
@@ -193,7 +222,9 @@
     - _Requirements: 8.3_
 
 - [ ] 12. Performance validation and cleanup
+
   - [ ] 12.1 Performance validation
+
     - Verify comment creation performance is maintained
     - Test layer rendering with many comments
     - Validate prototype caching still works effectively
