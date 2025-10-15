@@ -185,7 +185,7 @@ class TreeWalker {
       this.currentNode = node;
     }
 
-    return node;
+    return node || null;
   }
 
   /**
@@ -215,7 +215,7 @@ class TreeWalker {
       this.currentNode = node;
     }
 
-    return node;
+    return node || null;
   }
 }
 

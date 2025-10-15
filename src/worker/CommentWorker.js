@@ -314,12 +314,12 @@ export default class CommentWorker extends CommentSkeleton {
    * Replace a comment element with a marker.
    *
    * @param {import('domhandler').Element} element
-   * @returns {?import('domhandler').Element}
+   * @returns {import('domhandler').Element | undefined}
    * @private
    */
   hideElement(element) {
     if (!this.elements.includes(element)) {
-      return null;
+      return;
     }
 
     let type;

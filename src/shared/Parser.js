@@ -845,7 +845,7 @@ class Parser {
    * _For internal use._ Get a user name from a link, along with some other data about a page name.
    *
    * @param {ElementLike} element
-   * @returns {?ProcessLinkReturn}
+   * @returns {ProcessLinkReturn | undefined}
    */
   static processLink(element) {
     const href = element.getAttribute('href');
@@ -855,7 +855,7 @@ class Parser {
     if (href) {
       const { pageName, hostname, fragment } = parseWikiUrl(href) || {};
       if (!pageName || CommentSkeleton.isAnyId(fragment)) {
-        return null;
+        return;
       }
 
       const match = pageName.match(cd.g.userNamespacesRegexp);
@@ -889,7 +889,7 @@ class Parser {
         linkType = /** @type {LinkType} */ (linkType);
       }
       if (!userName) {
-        return null;
+        return;
       }
 
       userName = ucFirst(underlinesToSpaces(userName.replace(/\/.*/, ''))).trim();
@@ -902,7 +902,7 @@ class Parser {
       // page.
       userName = cd.g.pageTitle;
     } else {
-      return null;
+      return;
     }
 
     return { userName, linkType };
