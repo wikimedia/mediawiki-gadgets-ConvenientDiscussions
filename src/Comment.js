@@ -1,61 +1,3 @@
-import { id } from 'date-fns/locale';
-import { id } from 'date-fns/locale';
-import { id } from 'date-fns/locale';
-import { id } from 'date-fns/locale';
-import { el } from 'date-fns/locale';
-import { el } from 'date-fns/locale';
-import { el } from 'date-fns/locale';
-import { el } from 'date-fns/locale';
-import { set } from 'date-fns';
-import { get } from 'jquery';
-import { error } from 'jquery';
-import { error } from 'jquery';
-import { error } from 'jquery';
-import { error } from 'jquery';
-import { error } from 'jquery';
-import { format } from 'date-fns';
-import { format } from 'date-fns';
-import { format } from 'date-fns';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { type } from 'jquery';
-import { add } from 'date-fns';
-import { add } from 'date-fns';
-import { add } from 'date-fns';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { options } from 'yargs';
-import { date } from 'locutus/php/datetime';
-import { date } from 'locutus/php/datetime';
-import { date } from 'locutus/php/datetime';
-import { set } from 'date-fns';
-import { get } from 'jquery';
 import Button from './Button';
 import CommentActions from './CommentActions';
 import CommentButton from './CommentButton';
@@ -203,8 +145,6 @@ class Comment extends CommentSkeleton {
    * @private
    */
   marginHighlightable;
-
-
 
   /**
    * @type {HTMLElement | undefined}
@@ -1189,9 +1129,6 @@ class Comment extends CommentSkeleton {
       this.actions.addToggleChildThreadsButton();
     }
   }
-      this.maybeOnboardOntoToggleChildThreads();
-    });
-  }
 
   /**
    * Update the look of the "Toggle children" button.
@@ -2019,9 +1956,6 @@ class Comment extends CommentSkeleton {
   createLayers() {
     throw new Error('createLayers must be implemented by subclasses');
   }
-     */
-    mw.hook('convenientDiscussions.commentLayersCreated').fire(this, cd);
-  }
 
   /**
    * Set a timeout for hiding the menu.
@@ -2307,7 +2241,7 @@ class Comment extends CommentSkeleton {
     /** @type {JQuery} */ (this.$animatedBackground).css({
       backgroundColor: initialBackgroundColor,
     });
-    this.layers.$overlayGradient?.css({ backgroundImage: 'none' });
+    this.layers?.$overlayGradient?.css({ backgroundImage: 'none' });
 
     this.animateToColors(finalMarkerColor, finalBackgroundColor, callback);
   }
@@ -3511,7 +3445,7 @@ class Comment extends CommentSkeleton {
 
     let isSectionSubmitted = false;
     try {
-      if (commentForm && this.section && this.section.liveSectionNumber !== null) {
+      if (commentForm && this.section?.liveSectionNumber !== null) {
         try {
           const sectionCode = await this.section.requestCode();
           this.section.locateInCode(sectionCode);
