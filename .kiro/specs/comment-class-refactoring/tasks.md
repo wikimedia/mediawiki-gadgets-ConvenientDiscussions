@@ -2,7 +2,6 @@
 
 - [x] 1. Create CommentLayers composition classes
 
-
   - [x] 1.1 Implement CommentLayers base class
 
     - Create src/CommentLayers.js with base layer management
@@ -24,22 +23,24 @@
     - Override create method to include overlay menu elements
     - _Requirements: 2.3_
 
-- [ ] 2. Create CommentActions composition classes
+- [x] 2. Create CommentActions composition classes
 
-  - [ ] 2.1 Implement CommentActions base class
+
+  - [x] 2.1 Implement CommentActions base class
 
     - Create src/CommentActions.js with base action management
     - Define addReplyButton, addEditButton, addThankButton, etc. methods
     - Handle button creation and event binding
     - _Requirements: 7.1, 7.2_
 
-  - [ ] 2.2 Implement SpaciousCommentActions class
+  - [x] 2.2 Implement SpaciousCommentActions class
 
     - Create src/SpaciousCommentActions.js extending CommentActions
     - Override action creation for spacious-specific styling (menu-based)
     - _Requirements: 7.3_
 
-  - [ ] 2.3 Implement CompactCommentActions class
+  - [x] 2.3 Implement CompactCommentActions class
+
     - Create src/CompactCommentActions.js extending CommentActions
     - Override action creation for compact-specific styling (overlay-based)
     - _Requirements: 7.3_
