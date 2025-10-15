@@ -1,6 +1,7 @@
 # Implementation Plan
 
-- [ ] 1. Set up base infrastructure and type system
+- [-] 1. Set up base infrastructure and type system
+
   - Create Comment base class with composition properties and abstract methods
   - Update type definitions to remove generic parameters
   - Create PrototypeRegistry management for subclasses
@@ -144,7 +145,7 @@
 
 - [ ] 10. Cleanup and finalization
   - [ ] 10.1 Remove unused generic types
-    - Delete HTMLElementIfReformatted, HTMLElementIfNotReformattedAndHasLayers types
+    - Delete HTMLElementIfReformatted, HTMLElementIfNotReformattedAndHasLayers, JQueryIfReformatted, JQueryIfNotReformattedAndHasLayers types
     - Remove HasLayers and Reformatted generic parameters
     - Clean up conditional type definitions
     - _Requirements: 3.1, 3.2, 3.3_

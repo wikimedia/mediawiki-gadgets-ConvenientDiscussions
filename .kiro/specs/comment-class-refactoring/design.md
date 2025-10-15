@@ -203,7 +203,7 @@ $marker: JQuery
 
 - Spacious-specific layer positioning
 - Header-aware layer calculations
-- Spacious-specific overlay content
+- Standard overlay with line and marker elements (no menu)
 
 **Key Methods:**
 
@@ -219,8 +219,8 @@ updateStyles() // Spacious-specific positioning
 **Key Responsibilities:**
 
 - Compact-specific layer positioning
-- Traditional overlay menu management
-- Hover-based layer interactions
+- Standard overlay with line and marker elements PLUS overlay menu management
+- Hover-based layer interactions for menu display
 
 **Key Methods:**
 
