@@ -172,12 +172,12 @@ class Subscriptions extends EventEmitter {
    * Get the subscription state of a section or the page.
    *
    * @param {string} subscribeId
-   * @returns {?boolean}
+   * @returns {boolean | undefined}
    * @throws {CdError}
    */
   getState(subscribeId) {
     if (!cd.user.isRegistered()) {
-      return null;
+      return;
     }
 
     if (!this.areLoaded()) {
@@ -185,7 +185,7 @@ class Subscriptions extends EventEmitter {
     }
 
     if (!this.data || !(subscribeId in this.data)) {
-      return null;
+      return;
     }
 
     return this.data[subscribeId];
