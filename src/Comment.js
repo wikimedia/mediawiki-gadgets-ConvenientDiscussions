@@ -2286,7 +2286,7 @@ class Comment extends CommentSkeleton {
     // Animation will be directed to wrong properties if we keep it going.
     this.$animatedBackground?.stop(true, true);
 
-    // Add classes if the comment isn't moved. If it is moved, the layers are removed and created
+    // Update classes if the comment isn't moved. If it is moved, the layers are removed and created
     // again when the next event fires.
     if (
       // Is the comment moved?
