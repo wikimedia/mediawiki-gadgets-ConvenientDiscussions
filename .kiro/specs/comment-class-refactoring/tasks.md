@@ -25,7 +25,6 @@
 
 - [x] 2. Create CommentActions composition classes
 
-
   - [x] 2.1 Implement CommentActions base class
 
     - Create src/CommentActions.js with base action management
@@ -45,9 +44,10 @@
     - Override action creation for compact-specific styling (overlay-based)
     - _Requirements: 7.3_
 
-- [ ] 3. Create Comment subclasses
+- [x] 3. Create Comment subclasses
 
-  - [ ] 3.1 Create SpaciousComment class
+
+  - [x] 3.1 Create SpaciousComment class
 
     - Create src/SpaciousComment.js extending Comment
     - Implement createLayers to use SpaciousCommentLayers
@@ -56,7 +56,8 @@
     - Create static initPrototypes for header and SVG icon prototypes
     - _Requirements: 1.1, 1.2, 1.5_
 
-  - [ ] 3.2 Create CompactComment class
+  - [x] 3.2 Create CompactComment class
+
     - Create src/CompactComment.js extending Comment
     - Implement createLayers to use CompactCommentLayers
     - Add hover-specific properties: isHovered, wasMenuHidden
