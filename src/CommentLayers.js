@@ -116,6 +116,34 @@ class CommentLayers {
   }
 
   /**
+   * Hide the comment menu. Base implementation does nothing.
+   * Override in subclasses that have menu functionality.
+   *
+   * @param {Event} [event] The event that triggered the hide action.
+   */
+  hideMenu(event) {
+    // Base implementation - no menu to hide
+  }
+
+  /**
+   * Defer hiding the menu. Base implementation does nothing.
+   * Override in subclasses that have menu functionality.
+   *
+   * @param {MouseEvent} event The mousedown event.
+   */
+  deferHideMenu(event) {
+    // Base implementation - no menu to defer hiding
+  }
+
+  /**
+   * Cancel the deferred menu hiding. Base implementation does nothing.
+   * Override in subclasses that have menu functionality.
+   */
+  dontHideMenu() {
+    // Base implementation - no timeout to clear
+  }
+
+  /**
    * Update layer styles and positioning.
    * This method should be overridden by subclasses for specific styling needs.
    *
@@ -151,8 +179,8 @@ class CommentLayers {
     this.overlay.classList.toggle(`cd-comment-overlay-${flag}`, add);
 
     if (flag === 'deleted') {
-      this.comment.replyButton?.setDisabled(add);
-      this.comment.editButton?.setDisabled(add);
+      this.comment.actions?.replyButton?.setDisabled(add);
+      this.comment.actions?.editButton?.setDisabled(add);
     }
   }
 }

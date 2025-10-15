@@ -1,9 +1,73 @@
+import { id } from 'date-fns/locale';
+import { id } from 'date-fns/locale';
+import { id } from 'date-fns/locale';
+import { id } from 'date-fns/locale';
+import { el } from 'date-fns/locale';
+import { el } from 'date-fns/locale';
+import { el } from 'date-fns/locale';
+import { el } from 'date-fns/locale';
+import { set } from 'date-fns';
+import { get } from 'jquery';
+import { error } from 'jquery';
+import { error } from 'jquery';
+import { error } from 'jquery';
+import { error } from 'jquery';
+import { error } from 'jquery';
+import { format } from 'date-fns';
+import { format } from 'date-fns';
+import { format } from 'date-fns';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { type } from 'jquery';
+import { add } from 'date-fns';
+import { add } from 'date-fns';
+import { add } from 'date-fns';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { options } from 'yargs';
+import { date } from 'locutus/php/datetime';
+import { date } from 'locutus/php/datetime';
+import { date } from 'locutus/php/datetime';
+import { set } from 'date-fns';
+import { get } from 'jquery';
 import Button from './Button';
+import CommentActions from './CommentActions';
 import CommentButton from './CommentButton';
+import CommentLayers from './CommentLayers';
 import CommentSource from './CommentSource';
 import CommentSubitemList from './CommentSubitemList';
+import CompactCommentActions from './CompactCommentActions';
+import CompactCommentLayers from './CompactCommentLayers';
 import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
+import SpaciousCommentActions from './SpaciousCommentActions';
+import SpaciousCommentLayers from './SpaciousCommentLayers';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import bootManager from './bootManager';
 import cd from './cd';
@@ -126,10 +190,10 @@ class Comment extends CommentSkeleton {
   extraSignatures = this.extraSignatures;
 
   /**
-   * @type {Reformatted}
+   * @type {boolean}
    * @private
    */
-  reformatted;
+  spacious;
 
   /** @type {Direction | undefined} */
   direction;
@@ -178,14 +242,14 @@ class Comment extends CommentSkeleton {
   menuElement;
 
   /**
-   * Comment header. Used when comment reformatting is enabled.
+   * Comment header. Used when comment spacious formatting is enabled.
    *
    * @type {JQueryIfReformatted}
    */
   $header;
 
   /**
-   * Comment menu. Used when comment reformatting is enabled; otherwise
+   * Comment menu. Used when comment spacious formatting is enabled; otherwise
    * {@link Comment#$overlayMenu} is used.
    *
    * @type {JQueryIfReformatted}
@@ -193,94 +257,233 @@ class Comment extends CommentSkeleton {
   $menu;
 
   /**
+   * Layers composition for managing comment visual layers.
+   *
+   * @type {import('./CommentLayers').default | undefined}
+   */
+  layers;
+
+  /**
+   * Actions composition for managing comment action buttons.
+   *
+   * @type {import('./CommentActions').default | undefined}
+   */
+  actions;
+
+  /**
    * _For internal use._ Comment's underlay as a native (non-jQuery) element.
+   *
+   * @deprecated Use layers.underlay instead
    *
    * @type {HTMLElementIfHasLayers}
    */
-  underlay;
+  get underlay() {
+    return this.layers?.underlay;
+  }
 
   /**
    * Comment's overlay.
    *
+   * @deprecated Use layers.overlay instead
+   *
    * @type {HTMLElementIfHasLayers}
    * @private
    */
-  overlay;
+  get overlay() {
+    return this.layers?.overlay;
+  }
 
   /**
    * Line element in comment's overlay.
    *
-   * @type {HTMLElementIfHasLayers}
-   * @private
-   */
-  line;
-
-  /**
-   * Comment's side marker.
+   * @deprecated Use layers.line instead
    *
    * @type {HTMLElementIfHasLayers}
    * @private
    */
-  marker;
+  get line() {
+    return this.layers?.line;
+  }
+
+  /**
+   * Comment's side marker.
+   *
+   * @deprecated Use layers.marker instead
+   *
+   * @type {HTMLElementIfHasLayers}
+   * @private
+   */
+  get marker() {
+    return this.layers?.marker;
+  }
 
   /**
    * Inner wrapper in comment's overlay.
    *
+   * @deprecated Use layers.overlayInnerWrapper instead
+   *
    * @type {HTMLElementIfNotReformattedAndHasLayers}
    * @private
    */
-  overlayInnerWrapper;
+  get overlayInnerWrapper() {
+    return this.layers?.overlayInnerWrapper;
+  }
 
   /**
    * Gradient element in comment's overlay.
    *
+   * @deprecated Use layers.overlayGradient instead
+   *
    * @type {HTMLElementIfNotReformattedAndHasLayers}
    * @private
    */
-  overlayGradient;
+  get overlayGradient() {
+    return this.layers?.overlayGradient;
+  }
 
   /**
    * Menu element in comment's overlay.
    *
+   * @deprecated Use layers.overlayMenu instead
+   *
    * @type {HTMLElementIfNotReformattedAndHasLayers}
    * @private
    */
-  overlayMenu;
+  get overlayMenu() {
+    return this.layers?.overlayMenu;
+  }
 
   /**
    * Comment's underlay.
    *
+   * @deprecated Use layers.$underlay instead
+   *
    * @type {JQueryIfHasLayers}
    */
-  $underlay;
+  get $underlay() {
+    return this.layers?.$underlay;
+  }
 
   /**
    * Comment's overlay.
    *
+   * @deprecated Use layers.$overlay instead
+   *
    * @type {JQueryIfHasLayers}
    */
-  $overlay;
+  get $overlay() {
+    return this.layers?.$overlay;
+  }
 
   /**
    * Comment's side marker.
    *
+   * @deprecated Use layers.$marker instead
+   *
    * @type {JQueryIfHasLayers}
    */
-  $marker;
+  get $marker() {
+    return this.layers?.$marker;
+  }
 
   /**
    * Menu element in the comment's overlay.
    *
+   * @deprecated Use layers.$overlayMenu instead
+   *
    * @type {JQueryIfNotReformattedAndHasLayers}
    */
-  $overlayMenu;
+  get $overlayMenu() {
+    return this.layers?.$overlayMenu;
+  }
 
   /**
    * Gradient element in the comment's overlay.
    *
+   * @deprecated Use layers.$overlayGradient instead
+   *
    * @type {JQueryIfNotReformattedAndHasLayers}
    */
-  $overlayGradient;
+  get $overlayGradient() {
+    return this.layers?.$overlayGradient;
+  }
+
+  /**
+   * Reply button.
+   *
+   * @deprecated Use actions.replyButton instead
+   *
+   * @type {CommentButton | undefined}
+   */
+  get replyButton() {
+    return this.actions?.replyButton;
+  }
+
+  /**
+   * Edit button.
+   *
+   * @deprecated Use actions.editButton instead
+   *
+   * @type {CommentButton | undefined}
+   */
+  get editButton() {
+    return this.actions?.editButton;
+  }
+
+  /**
+   * Thank button.
+   *
+   * @deprecated Use actions.thankButton instead
+   *
+   * @type {CommentButton | undefined}
+   */
+  get thankButton() {
+    return this.actions?.thankButton;
+  }
+
+  /**
+   * Copy link button.
+   *
+   * @deprecated Use actions.copyLinkButton instead
+   *
+   * @type {CommentButton | undefined}
+   */
+  get copyLinkButton() {
+    return this.actions?.copyLinkButton;
+  }
+
+  /**
+   * "Go to parent" button.
+   *
+   * @deprecated Use actions.goToParentButton instead
+   *
+   * @type {CommentButton | undefined}
+   */
+  get goToParentButton() {
+    return this.actions?.goToParentButton;
+  }
+
+  /**
+   * "Go to child" button.
+   *
+   * @deprecated Use actions.goToChildButton instead
+   *
+   * @type {CommentButton | undefined}
+   */
+  get goToChildButton() {
+    return this.actions?.goToChildButton;
+  }
+
+  /**
+   * "Toggle child threads" button.
+   *
+   * @deprecated Use actions.toggleChildThreadsButton instead
+   *
+   * @type {CommentButton | undefined}
+   */
+  get toggleChildThreadsButton() {
+    return this.actions?.toggleChildThreadsButton;
+  }
 
   /**
    * Is the comment new. Is set to a boolean only on active pages (not archived pages, not old
@@ -307,7 +510,7 @@ class Comment extends CommentSkeleton {
   isTarget = false;
 
   /**
-   * Is the comment currently hovered (when comments are reformatted).
+   * Is the comment currently hovered (when comments are spacious).
    *
    * @type {boolean}
    */
@@ -455,7 +658,7 @@ class Comment extends CommentSkeleton {
   constructor(parser, signature, targets) {
     super(parser, signature, targets);
 
-    this.reformatted = /** @type {Reformatted} */ (settings.get('spaciousComments') || false);
+    this.spacious = /** @type {boolean} */ (settings.get('spaciousComments') || false);
     this.showContribsLink = settings.get('showContribsLink');
     this.hideTimezone = settings.get('hideTimezone');
     this.timestampFormat = settings.get('timestampFormat');
@@ -526,13 +729,13 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Check if the comment is reformatted.
+   * Check if the comment is spacious (reformatted).
    *
    * @returns {this is Comment<true>}
    * @private
    */
   isReformatted() {
-    return this.reformatted;
+    return this.spacious;
   }
 
   /**
@@ -542,11 +745,11 @@ class Comment extends CommentSkeleton {
    * @private
    */
   hasLayers() {
-    return Boolean(this.underlay);
+    return Boolean(this.layers?.underlay);
   }
 
   /**
-   * Check if the comment is not reformatted and its underlay is present.
+   * Check if the comment is not spacious (not reformatted) and its underlay is present.
    *
    * @returns {this is Comment<false, boolean, true>}
    * @private
@@ -838,21 +1041,26 @@ class Comment extends CommentSkeleton {
     }
 
     if (this.timestamp) {
+      // Create actions composition for spacious comments
+      if (!this.actions) {
+        this.actions = new SpaciousCommentActions(this);
+      }
+
       /**
        * "Copy link" button.
        *
        * @type {CommentButton}
        */
-      this.copyLinkButton = new CommentButton({
-        label: this.reformattedTimestamp || this.timestamp,
+      this.actions.copyLinkButton = new CommentButton({
+        label: this.spaciousTimestamp || this.timestamp,
         tooltip: this.timestampTitle,
         classes: ['cd-comment-button-labelled', 'cd-comment-timestamp', 'mw-selflink-fragment'],
         action: this.copyLink.bind(this),
         href: this.dtId && '#' + this.dtId,
       });
 
-      this.headerElement.append(this.copyLinkButton.element);
-      this.timestampElement = this.copyLinkButton.labelElement;
+      this.headerElement.append(this.actions.copyLinkButton.element);
+      this.timestampElement = this.actions.copyLinkButton.labelElement;
       if (this.date) {
         new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
       }
@@ -912,43 +1120,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   addReplyButton() {
-    if (!this.isActionable || !(this.isReformatted() || this.hasClassicUnderlay())) return;
-
-    const action = this.replyButtonClick.bind(this);
-    if (this.isReformatted()) {
-      /**
-       * Reply button.
-       *
-       * @type {CommentButton}
-       */
-      this.replyButton = new CommentButton({
-        label: cd.s('cm-reply'),
-        classes: ['cd-comment-button-labelled'],
-        // flags: ['progressive'],
-        action,
-      });
-
-      this.menuElement.append(this.replyButton.element);
-    } else {
-      this.replyButton = new CommentButton({
-        element: this.createReplyButton().$element[0],
-        action,
-        widgetConstructor: this.createReplyButton.bind(this),
-      });
-      this.overlayMenu.append(this.replyButton.element);
-    }
-
-    if (
-      commentManager.getByIndex(this.index + 1)?.isOutdented &&
-      (
-        !this.section ||
-
-        // Probably shouldn't add a comment to a numbered list
-        this.elements[0].matches('ol *')
-      )
-    ) {
-      this.replyButton.setDisabled(true);
-      this.replyButton.setTooltip(cd.s('cm-reply-outdented-tooltip'));
+    if (this.actions?.addReplyButton) {
+      this.actions.addReplyButton();
     }
   }
 
@@ -968,29 +1141,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   addEditButton() {
-    if (!this.isEditable) return;
-
-    const action = this.editButtonClick.bind(this);
-    if (this.isReformatted()) {
-      /**
-       * Edit button.
-       *
-       * @type {CommentButton}
-       */
-      this.editButton = new CommentButton({
-        label: cd.s('cm-edit'),
-        classes: ['cd-comment-button-labelled'],
-        action,
-      });
-
-      this.menuElement.append(this.editButton.element);
-    } else if (this.hasClassicUnderlay()) {
-      this.editButton = new CommentButton({
-        element: this.createEditButton().$element[0],
-        action,
-        widgetConstructor: this.createEditButton.bind(this),
-      });
-      this.overlayMenu.append(this.editButton.element);
+    if (this.actions?.addEditButton) {
+      this.actions.addEditButton();
     }
   }
 
@@ -1001,41 +1153,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   addThankButton() {
-    if (!cd.user.isRegistered() || !this.author.isRegistered() || !this.date || this.isOwn) return;
-
-    const isThanked = Object.entries(commentManager.getThanksStorage().getData()).some(
-      // TODO: Remove `|| this.dtId === thank.id || this.id === thank.id` part after migration is
-      // complete on January 1, 2026
-      ([id, thank]) =>
-        this.dtId === id || this.id === id || this.dtId === thank?.id || this.id === thank?.id
-    );
-
-    const action = this.thankButtonClick.bind(this);
-    if (this.isReformatted()) {
-      /**
-       * Thank button.
-       *
-       * @type {CommentButton}
-       */
-      this.thankButton = new CommentButton({
-        label: cd.s(isThanked ? 'cm-thanked' : 'cm-thank'),
-        tooltip: cd.s(isThanked ? 'cm-thanked-tooltip' : 'cm-thank-tooltip'),
-        classes: ['cd-comment-button-labelled'],
-        action,
-      });
-
-      this.menuElement.append(this.thankButton.element);
-    } else if (this.hasClassicUnderlay()) {
-      this.thankButton = new CommentButton({
-        element: this.createThankButton().$element[0],
-        action,
-        widgetConstructor: this.createThankButton.bind(this),
-      });
-      this.overlayMenu.append(this.thankButton.element);
-    }
-
-    if (isThanked) {
-      this.setThanked();
+    if (this.actions?.addThankButton) {
+      this.actions.addThankButton();
     }
   }
 
@@ -1046,17 +1165,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   addCopyLinkButton() {
-    if (!this.id || !this.hasClassicUnderlay()) return;
-
-    const element = this.createCopyLinkButton().$element[0];
-    this.copyLinkButton = new CommentButton({
-      element,
-      buttonElement: /** @type {HTMLElement} */ (element.firstChild),
-      action: this.copyLink.bind(this),
-      widgetConstructor: this.createCopyLinkButton.bind(this),
-      href: this.dtId && '#' + this.dtId,
-    });
-    this.overlayMenu.append(this.copyLinkButton.element);
+    if (this.actions?.addCopyLinkButton) {
+      this.actions.addCopyLinkButton();
+    }
   }
 
   /**
@@ -1066,31 +1177,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   addGoToParentButton() {
-    if (!this.getParent()) return;
-
-    const action = this.goToParentButtonClick.bind(this);
-    if (this.isReformatted()) {
-      /**
-       * "Go to the parent comment" button.
-       *
-       * @type {CommentButton}
-       */
-      this.goToParentButton = new CommentButton({
-        tooltip: cd.s('cm-gotoparent-tooltip'),
-        classes: ['cd-comment-button-icon', 'cd-comment-button-goToParent', 'cd-icon'],
-        action,
-      });
-
-      this.goToParentButton.element.append(Comment.prototypes.get('goToParentButtonSvg'));
-      this.headerElement.append(this.goToParentButton.element);
-    } else if (this.hasClassicUnderlay()) {
-      const buttonElement = this.createGoToParentButton().$element[0];
-      this.goToParentButton = new CommentButton({
-        buttonElement,
-        action,
-        widgetConstructor: this.createGoToParentButton.bind(this),
-      });
-      this.overlayMenu.append(buttonElement);
+    if (this.actions?.addGoToParentButton) {
+      this.actions.addGoToParentButton();
     }
   }
 
@@ -1110,39 +1198,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   maybeAddGoToChildButton() {
-    if (!this.targetChild) return;
-
-    this.configureLayers();
-    if (this.goToChildButton?.isConnected()) return;
-
-    const action = () => {
-      /** @type {Comment} */ (this.targetChild).scrollTo({ pushState: true });
-    };
-    if (this.isReformatted()) {
-      /**
-       * "Go to the child comment" button.
-       *
-       * @type {CommentButton}
-       */
-      this.goToChildButton = new CommentButton({
-        tooltip: cd.s('cm-gotochild-tooltip'),
-        classes: ['cd-comment-button-icon', 'cd-comment-button-goToChild', 'cd-icon'],
-        action,
-      });
-
-      this.goToChildButton.element.append(Comment.prototypes.get('goToChildButtonSvg'));
-      this.headerElement.insertBefore(
-        this.goToChildButton.element,
-        (this.goToParentButton?.element || this.timestampElement).nextSibling
-      );
-    } else if (this.overlayMenu) {
-      const element = this.createGoToChildButton().$element[0];
-      this.goToChildButton = new CommentButton({
-        element,
-        action,
-        widgetConstructor: this.createGoToChildButton.bind(this),
-      });
-      this.overlayMenu.prepend(element);
+    if (this.actions?.maybeAddGoToChildButton) {
+      this.actions.maybeAddGoToChildButton();
     }
   }
 
@@ -1153,47 +1210,10 @@ class Comment extends CommentSkeleton {
    * space there. The user may use Shift+click on a thread line instead.
    */
   addToggleChildThreadsButton() {
-    if (
-      !this.getChildren().some((child) => child.thread) ||
-      this.toggleChildThreadsButton?.isConnected()
-    ) {
-      return;
+    if (this.actions?.addToggleChildThreadsButton) {
+      this.actions.addToggleChildThreadsButton();
     }
-
-    const action = this.toggleChildThreadsButtonClick.bind(this);
-    if (this.isReformatted()) {
-      /**
-       * "Toggle children comments" button.
-       *
-       * @type {CommentButton}
-       */
-      this.toggleChildThreadsButton = new CommentButton({
-        tooltip: cd.s('cm-togglechildthreads-tooltip'),
-        classes: ['cd-comment-button-icon', 'cd-comment-button-toggleChildThreads', 'cd-icon'],
-        action,
-      });
-
-      this.updateToggleChildThreadsButton();
-      this.headerElement.insertBefore(
-        this.toggleChildThreadsButton.element,
-        this.$changeNote?.[0] || null
-      );
-    } else if (this.overlayMenu) {
-      const element = this.createToggleChildThreadsButton().$element[0];
-      this.toggleChildThreadsButton = new CommentButton({
-        element,
-        iconElement: /** @type {HTMLElement} */ (element.querySelector('.oo-ui-iconElement-icon')),
-        action,
-        widgetConstructor: this.createToggleChildThreadsButton.bind(this),
-      });
-      const targetButton = this.goToParentButton || this.goToChildButton;
-      if (targetButton) {
-        this.overlayMenu.insertBefore(element, targetButton.element.nextSibling || null);
-      } else {
-        this.overlayMenu.prepend(element);
-      }
-    }
-    this.toggleChildThreadsButton?.element.addEventListener('mouseenter', () => {
+  }
       this.maybeOnboardOntoToggleChildThreads();
     });
   }
@@ -1202,11 +1222,11 @@ class Comment extends CommentSkeleton {
    * Update the look of the "Toggle children" button.
    */
   updateToggleChildThreadsButton() {
-    if (!this.toggleChildThreadsButton) return;
+    if (!this.actions?.toggleChildThreadsButton) return;
 
     if (this.isReformatted()) {
-      this.toggleChildThreadsButton.element.innerHTML = '';
-      this.toggleChildThreadsButton.element.append(
+      this.actions.toggleChildThreadsButton.element.innerHTML = '';
+      this.actions.toggleChildThreadsButton.element.append(
         Comment.prototypes.get(
           this.areChildThreadsCollapsed()
             ? 'expandChildThreadsButtonSvg'
@@ -1214,7 +1234,7 @@ class Comment extends CommentSkeleton {
         )
       );
     } else {
-      this.toggleChildThreadsButton.setIcon(this.areChildThreadsCollapsed() ? 'add' : 'subtract');
+      this.actions.toggleChildThreadsButton.setIcon(this.areChildThreadsCollapsed() ? 'add' : 'subtract');
     }
   }
 
@@ -1234,7 +1254,7 @@ class Comment extends CommentSkeleton {
    */
   shouldOnboardOntoToggleChildThreads() {
     return Boolean(
-      this.toggleChildThreadsButton?.element.matches(':hover') &&
+      this.actions?.toggleChildThreadsButton?.element.matches(':hover') &&
       !settings.get('toggleChildThreads-onboarded') &&
       !commentManager.query((c) => Boolean(c.toggleChildThreadsPopup)).length
     );
@@ -1249,11 +1269,11 @@ class Comment extends CommentSkeleton {
     await sleep(100);
     if (!this.shouldOnboardOntoToggleChildThreads()) return;
 
-    // When comments are reformatted, wait for jumpy stuff on the page to jump to prevent
+    // When comments are spacious, wait for jumpy stuff on the page to jump to prevent
     // repositioning (e.g. the subscribe button). This is only to mitigate; too tricky to track all
     // possible events here, and it's not critical.
     //
-    // When comments are not reformatted, wait some time to be sure this isn't an accidental
+    // When comments are not spacious, wait some time to be sure this isn't an accidental
     // hovering.
 
     const button = new OO.ui.ButtonWidget({
@@ -1277,7 +1297,7 @@ class Comment extends CommentSkeleton {
         $('<p>').append(button.$element),
       ),
       head: true,
-      $floatableContainer: $(this.toggleChildThreadsButton.element),
+      $floatableContainer: $(this.actions.toggleChildThreadsButton.element),
       $container: $(document.body),
       position: 'below',
       padded: true,
@@ -1338,7 +1358,7 @@ class Comment extends CommentSkeleton {
 
     const { timestamp, title } = this.formatTimestamp(this.date, this.timestampElement.textContent);
     if (timestamp) {
-      this.reformattedTimestamp = timestamp;
+      this.spaciousTimestamp = timestamp;
       this.timestampTitle = title;
       if (!this.isReformatted() || this.extraSignatures.length) {
         this.timestampElement.textContent = timestamp;
@@ -1366,18 +1386,14 @@ class Comment extends CommentSkeleton {
   /**
    * Bind the standard events to a comment part. Executed on comment object creation and DOM
    * modifications affecting comment parts.
+   * This method should be overridden by subclasses.
    *
    * @param {HTMLElement} element
+   * @abstract
    * @private
    */
   bindEvents(element) {
-    if (this.isReformatted()) return;
-
-    element.addEventListener('mouseenter', this.highlightHovered.bind(this));
-    element.addEventListener('mouseleave', () => {
-      this.unhighlightHovered();
-    });
-    element.addEventListener('touchstart', this.highlightHovered.bind(this));
+    throw new Error('bindEvents must be implemented by subclasses');
   }
 
   /**
@@ -2019,85 +2035,15 @@ class Comment extends CommentSkeleton {
 
   /**
    * Create the comment's underlay and overlay with contents.
+   * This method should be overridden by subclasses.
    *
    * @fires commentLayersCreated
+   * @abstract
    * @private
    */
   createLayers() {
-    this.underlay = /** @type {HTMLElementIfHasLayers & HTMLElement} */ (Comment.prototypes.get('underlay'));
-    commentManager.underlays.push(this.underlay);
-
-    this.overlay = /** @type {HTMLElementIfHasLayers & HTMLElement} */ (Comment.prototypes.get('overlay'));
-    this.line = /** @type {HTMLElementIfHasLayers & HTMLElement} */ (this.overlay.firstChild);
-    this.marker = /** @type {HTMLElementIfHasLayers & HTMLElement} */ (
-      /** @type {HTMLElement} */ (this.overlay.firstChild).nextSibling
-    );
-
-    if (this.hasClassicUnderlay()) {
-      this.overlayInnerWrapper =
-        /** @type {HTMLElementIfNotReformattedAndHasLayers & HTMLElement} */ (
-          this.overlay.lastChild
-        );
-      this.overlayGradient = /** @type {HTMLElementIfNotReformattedAndHasLayers & HTMLElement} */ (
-        this.overlayInnerWrapper.firstChild
-      );
-      this.overlayMenu = /** @type {HTMLElementIfNotReformattedAndHasLayers & HTMLElement} */ (
-        this.overlayInnerWrapper.lastChild
-      );
-
-      // Hide the overlay on right click. It can block clicking the author page link.
-      this.overlayInnerWrapper.addEventListener('contextmenu', this.hideMenu.bind(this));
-
-      // Hide the overlay on long click/tap.
-      this.overlayInnerWrapper.addEventListener('mousedown', this.deferHideMenu.bind(this));
-      this.overlayInnerWrapper.addEventListener('mouseup', this.dontHideMenu.bind(this));
-
-      this.addGoToParentButton();
-      this.addCopyLinkButton();
-      this.addThankButton();
-      this.addEditButton();
-      this.addReplyButton();
-      this.addToggleChildThreadsButton();
-    }
-
-    this.updateLayersStyles(true);
-
-    /**
-     * Comment's underlay.
-     *
-     * @type {?JQuery}
-     */
-    this.$underlay = /** @type {JQueryIfHasLayers & JQuery} */ ($(this.underlay));
-
-    /**
-     * Comment's overlay.
-     *
-     * @type {?JQuery}
-     */
-    this.$overlay = /** @type {JQueryIfHasLayers & JQuery} */ ($(this.overlay));
-
-    /**
-     * Comment's side marker.
-     *
-     * @type {JQuery}
-     */
-    this.$marker = /** @type {JQueryIfHasLayers & JQuery} */ ($(this.marker));
-
-    if (this.hasClassicUnderlay()) {
-      this.$overlayMenu = /** @type {JQueryIfNotReformattedAndHasLayers & JQuery} */ (
-        /** @type {unknown} */ ($(this.overlayMenu))
-      );
-      this.$overlayGradient = /** @type {JQueryIfNotReformattedAndHasLayers & JQuery} */ (
-        /** @type {unknown} */ ($(this.overlayGradient))
-      );
-    }
-
-    /**
-     * An underlay and overlay have been created for a comment.
-     *
-     * @event commentLayersCreated
-     * @param {Comment} comment
-     * @param {object} cd {@link convenientDiscussions} object.
+    throw new Error('createLayers must be implemented by subclasses');
+  }
      */
     mw.hook('convenientDiscussions.commentLayersCreated').fire(this, cd);
   }
@@ -2109,10 +2055,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   deferHideMenu(event) {
-    // Ignore everything other than left button clicks.
-    if (event.button !== 0) return;
-
-    this.hideMenuTimeout = setTimeout(this.hideMenu.bind(this), 1200);
+    if (this.layers?.deferHideMenu) {
+      this.layers.deferHideMenu(event);
+    }
   }
 
   /**
@@ -2122,11 +2067,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   hideMenu(event) {
-    if (!this.overlayInnerWrapper) return;
-
-    event?.preventDefault();
-    this.overlayInnerWrapper.style.display = 'none';
-    this.wasMenuHidden = true;
+    if (this.layers?.hideMenu) {
+      this.layers.hideMenu(event);
+    }
   }
 
   /**
@@ -2135,7 +2078,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   dontHideMenu() {
-    clearTimeout(this.hideMenuTimeout);
+    if (this.layers?.dontHideMenu) {
+      this.layers.dontHideMenu();
+    }
   }
 
   /**
@@ -2147,13 +2092,7 @@ class Comment extends CommentSkeleton {
   updateLayersStyles(wereJustCreated = false) {
     if (!this.hasLayers()) return;
 
-    this.updateClassesForFlag('new', Boolean(this.isNew));
-    this.updateClassesForFlag('own', this.isOwn);
-    this.updateClassesForFlag('deleted', this.isDeleted);
-
-    if (wereJustCreated && this.isLineGapped) {
-      this.line.classList.add('cd-comment-overlay-line-gapCloser');
-    }
+    this.layers.updateStyles(wereJustCreated);
   }
 
   /**
@@ -2168,17 +2107,12 @@ class Comment extends CommentSkeleton {
    * @private
    */
   updateClassesForFlag(flag, add) {
-    if (!this.hasLayers() || this.underlay.classList.contains(`cd-comment-underlay-${flag}`) === add)
-      return;
+    if (!this.hasLayers()) return;
 
-    this.underlay.classList.toggle(`cd-comment-underlay-${flag}`, add);
-    this.overlay.classList.toggle(`cd-comment-overlay-${flag}`, add);
+    this.layers.updateClassesForFlag(flag, add);
 
-    if (flag === 'deleted') {
-      this.replyButton?.setDisabled(add);
-      this.editButton?.setDisabled(add);
-    } else if (flag === 'hovered' && !add) {
-      /** @type {Comment<false, boolean, true>} */ (this).overlayInnerWrapper.style.display = '';
+    if (flag === 'hovered' && !add && this.layers?.overlayInnerWrapper) {
+      this.layers.overlayInnerWrapper.style.display = '';
     }
   }
 
@@ -2189,8 +2123,8 @@ class Comment extends CommentSkeleton {
     if (!this.hasLayers()) return;
 
     this.updateLayersOffset();
-    this.getLayersContainer().append(this.underlay);
-    this.getLayersContainer().append(this.overlay);
+    this.getLayersContainer().append(this.layers.underlay);
+    this.getLayersContainer().append(this.layers.overlay);
   }
 
   /**
@@ -2203,10 +2137,10 @@ class Comment extends CommentSkeleton {
     // invisible.
     if (!this.hasLayers() || !this.layersOffset) return;
 
-    this.underlay.style.top = this.overlay.style.top = String(this.layersOffset.top) + 'px';
-    this.underlay.style.left = this.overlay.style.left = String(this.layersOffset.left) + 'px';
-    this.underlay.style.width = this.overlay.style.width = String(this.layersOffset.width) + 'px';
-    this.underlay.style.height = this.overlay.style.height = String(this.layersOffset.height) + 'px';
+    this.layers.underlay.style.top = this.layers.overlay.style.top = String(this.layersOffset.top) + 'px';
+    this.layers.underlay.style.left = this.layers.overlay.style.left = String(this.layersOffset.left) + 'px';
+    this.layers.underlay.style.width = this.layers.overlay.style.width = String(this.layersOffset.width) + 'px';
+    this.layers.underlay.style.height = this.layers.overlay.style.height = String(this.layersOffset.height) + 'px';
 
     this.toggleChildThreadsPopup?.position();
   }
@@ -2217,19 +2151,14 @@ class Comment extends CommentSkeleton {
   removeLayers() {
     if (!this.hasLayers()) return;
 
-    this.$marker.stop(true, true);
+    this.layers.$marker.stop(true, true);
     this.unhighlightHovered(true);
 
     // TODO: add add/remove methods to commentManager.underlays
-    removeFromArrayIfPresent(commentManager.underlays, this.underlay);
+    removeFromArrayIfPresent(commentManager.underlays, this.layers.underlay);
 
-    this.underlay.remove();
-    /** @type {Comment} */ (this).underlay = undefined;
-    /** @type {Comment} */ (this).$underlay = undefined;
-
-    this.overlay.remove();
-    /** @type {Comment} */ (this).overlay = undefined;
-    /** @type {Comment} */ (this).$overlay = undefined;
+    this.layers.destroy();
+    this.layers = undefined;
   }
 
   /**
@@ -2347,8 +2276,8 @@ class Comment extends CommentSkeleton {
       opacity: '',
     };
 
-    this.$marker.animate(generateProperties(markerColor), 400, 'swing', () => {
-      this.$marker.css(propertyDefaults);
+    this.layers.$marker.animate(generateProperties(markerColor), 400, 'swing', () => {
+      this.layers.$marker.css(propertyDefaults);
     });
 
     const comment = this;
@@ -2369,7 +2298,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   animateBack(flag, callback) {
-    if (!this.hasLayers() || !this.$underlay.parent().length) {
+    if (!this.hasLayers() || !this.layers.$underlay.parent().length) {
       callback?.();
 
       return;
@@ -2377,16 +2306,16 @@ class Comment extends CommentSkeleton {
 
     // Get the current colors
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const initialMarkerColor = this.$marker.css('background-color');
-    const initialBackgroundColor = this.$underlay.css('background-color');
+    const initialMarkerColor = this.layers.$marker.css('background-color');
+    const initialBackgroundColor = this.layers.$underlay.css('background-color');
 
     // Reset the classes that produce these colors
     this.updateClassesForFlag(flag, false);
 
     // Get the final (destination) colors
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const finalMarkerColor = this.$marker.css('background-color');
-    let finalBackgroundColor = this.$underlay.css('background-color');
+    const finalMarkerColor = this.layers.$marker.css('background-color');
+    let finalBackgroundColor = this.layers.$underlay.css('background-color');
 
     // That's basically if the flash color is green (when a comment is changed after an edit) and
     // the comment itself is green. We animate to transparent, then set green back, so that there is
@@ -2396,14 +2325,14 @@ class Comment extends CommentSkeleton {
     }
 
     // Set back the colors previously produced by classes
-    this.$marker.css({
+    this.layers.$marker.css({
       backgroundColor: initialMarkerColor,
       opacity: 1,
     });
     /** @type {JQuery} */ (this.$animatedBackground).css({
       backgroundColor: initialBackgroundColor,
     });
-    this.$overlayGradient?.css({ backgroundImage: 'none' });
+    this.layers.$overlayGradient?.css({ backgroundImage: 'none' });
 
     this.animateToColors(finalMarkerColor, finalBackgroundColor, callback);
   }
@@ -2429,10 +2358,10 @@ class Comment extends CommentSkeleton {
      *
      * @type {JQuery|undefined}
      */
-    this.$animatedBackground = this.$underlay.add(this.$overlayMenu || $());
+    this.$animatedBackground = this.layers.$underlay.add(this.layers.$overlayMenu || $());
 
     // Reset animations and colors
-    this.$animatedBackground.add(this.$marker).stop(true, true);
+    this.$animatedBackground.add(this.layers.$marker).stop(true, true);
 
     this.updateClassesForFlag(flag, true);
 
@@ -2511,7 +2440,7 @@ class Comment extends CommentSkeleton {
   stopAnimations() {
     if (!this.hasLayers()) return;
 
-    this.$animatedBackground?.add(this.$marker).stop(true, true);
+    this.$animatedBackground?.add(this.layers.$marker).stop(true, true);
   }
 
   /**
@@ -3294,10 +3223,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   setThanked() {
-    /** @type {import('./CommentButton').default} */ (this.thankButton)
-      .setDisabled(true)
-      .setLabel(cd.s('cm-thanked'))
-      .setTooltip(cd.s('cm-thanked-tooltip'));
+    if (this.actions?.setThanked) {
+      this.actions.setThanked();
+    }
   }
 
   /**
@@ -3345,7 +3273,7 @@ class Comment extends CommentSkeleton {
     }
 
     mw.notify(wrapHtml(text, { targetBlank: true }), { type: 'error' });
-    /** @type {import('./CommentButton').default} */ (this.thankButton).setPending(false);
+    /** @type {import('./CommentButton').default} */ (this.actions.thankButton).setPending(false);
   }
 
   /**
@@ -3354,9 +3282,9 @@ class Comment extends CommentSkeleton {
    */
   async thank() {
     const id = this.getUrlFragment();
-    if (!this.thankButton || !id) return;
+    if (!this.actions?.thankButton || !id) return;
 
-    this.thankButton.setPending(true);
+    this.actions.thankButton.setPending(true);
     let accepted;
     try {
       const versionMatch = /^(\d+\.\d+).*/.exec(mw.config.get('wgVersion'));
@@ -3370,7 +3298,7 @@ class Comment extends CommentSkeleton {
 
       return;
     } finally {
-      this.thankButton.setPending(false);
+      this.actions.thankButton.setPending(false);
     }
 
     if (accepted) {
@@ -4736,105 +4664,12 @@ class Comment extends CommentSkeleton {
   /**
    * _For internal use._ Create element prototypes to reuse them instead of creating new elements
    * from scratch (which is more expensive).
+   * This method should be overridden by subclasses.
+   *
+   * @abstract
    */
   static initPrototypes() {
-    /* Comment header element */
-    if (settings.get('spaciousComments') !== false) {
-      // true, null
-      const headerElement = document.createElement('div');
-      headerElement.className = 'cd-comment-header';
-
-      const authorWrapper = document.createElement('div');
-      authorWrapper.className = 'cd-comment-author-wrapper';
-      headerElement.append(authorWrapper);
-
-      authorWrapper.append(this.createUserInfoCardButton());
-
-      const authorLink = document.createElement('a');
-      authorLink.className = 'cd-comment-author mw-userlink';
-      authorWrapper.append(authorLink);
-
-      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-      const bdiElement = document.createElement('bdi');
-      authorLink.append(bdiElement);
-
-      const authorLinksWrapper = document.createElement('span');
-      authorLinksWrapper.className = 'cd-comment-author-links';
-
-      const authorTalkLink = document.createElement('a');
-      authorTalkLink.textContent = cd.s('comment-author-talk');
-      authorLinksWrapper.append(cd.mws('parentheses-start'), authorTalkLink);
-
-      if (settings.get('showContribsLink')) {
-        const separator = document.createElement('span');
-        separator.innerHTML = cd.sParse('dot-separator');
-
-        const contribsLink = document.createElement('a');
-        contribsLink.textContent = cd.s('comment-author-contribs');
-
-        authorLinksWrapper.append(separator, contribsLink);
-      }
-
-      authorLinksWrapper.append(cd.mws('parentheses-end'));
-      authorWrapper.append(' ', authorLinksWrapper);
-
-      // We need a wrapper to ensure correct positioning in LTR-in-RTL situations and vice versa.
-      const headerWrapper = document.createElement('div');
-      headerWrapper.className = 'cd-comment-header-wrapper';
-      headerWrapper.append(headerElement);
-
-      this.prototypes.add('headerWrapperElement', headerWrapper);
-
-      this.prototypes.add(
-        'goToParentButtonSvg',
-        createSvg(16, 16, 20, 20).html(`<path d="M10 5l8 10H2z" />`)[0]
-      );
-      this.prototypes.add(
-        'goToChildButtonSvg',
-        createSvg(16, 16, 20, 20).html(`<path d="M10 15L2 5h16z" />`)[0]
-      );
-      this.prototypes.add(
-        'collapseChildThreadsButtonSvg',
-        createSvg(16, 16, 20, 20).html(`<path d="M4 9h12v2H4z" />`)[0]
-      );
-      this.prototypes.add(
-        'expandChildThreadsButtonSvg',
-        createSvg(16, 16, 20, 20).html(`<path d="M11 9V4H9v5H4v2h5v5h2v-5h5V9z" />`)[0]
-      );
-    }
-
-    /* Comment layer elements */
-    const commentUnderlay = document.createElement('div');
-    commentUnderlay.className = 'cd-comment-underlay';
-
-    const commentOverlay = document.createElement('div');
-    commentOverlay.className = 'cd-comment-overlay';
-
-    const overlayLine = document.createElement('div');
-    overlayLine.className = 'cd-comment-overlay-line';
-    commentOverlay.append(overlayLine);
-
-    const overlayMarker = document.createElement('div');
-    overlayMarker.className = 'cd-comment-overlay-marker';
-    commentOverlay.append(overlayMarker);
-
-    if (!settings.get('spaciousComments')) {
-      const overlayInnerWrapper = document.createElement('div');
-      overlayInnerWrapper.className = 'cd-comment-overlay-innerWrapper';
-      commentOverlay.append(overlayInnerWrapper);
-
-      const overlayGradient = document.createElement('div');
-      overlayGradient.textContent = '\u00A0';
-      overlayGradient.className = 'cd-comment-overlay-gradient';
-      overlayInnerWrapper.append(overlayGradient);
-
-      const overlayContent = document.createElement('div');
-      overlayContent.className = 'cd-comment-overlay-content';
-      overlayInnerWrapper.append(overlayContent);
-    }
-
-    this.prototypes.add('underlay', commentUnderlay);
-    this.prototypes.add('overlay', commentOverlay);
+    throw new Error('initPrototypes must be implemented by subclasses');
   }
 
   /**

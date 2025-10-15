@@ -73,22 +73,24 @@
     - Add reformatComments to aliases property for backward compatibility
     - Update all references to use new setting name
     - _Requirements: 4.4, 4.5_
-- [x] 5. Update Parser integration
 
+- [x] 5. Update Parser integration
 
 - [ ] 5. Update Parser integration
 
   - [x] 5.1 Update BootProcess.findTargets to choose appropriate Comment class
-
 
     - Modify src/BootProcess.js findTargets method to select SpaciousComment or CompactComment
     - Update CommentClass property based on spaciousComments setting
     - Import and use appropriate comment class
     - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 6. Refactor existing Comment class to use composition
+-
 
-  - [ ] 6.1 Extract layers functionality to composition
+- [x] 6. Refactor existing Comment class to use composition
+
+
+  - [x] 6.1 Extract layers functionality to composition
 
     - Move layer-related properties from Comment to layers composition
     - Update createLayers method to delegate to appropriate layers class
@@ -96,7 +98,7 @@
     - Update all internal layer references
     - _Requirements: 2.4, 2.6_
 
-  - [ ] 6.2 Extract actions functionality to composition
+  - [x] 6.2 Extract actions functionality to composition
 
     - Move action-related methods from Comment to actions composition
     - Update action creation to delegate to appropriate actions class
@@ -104,14 +106,15 @@
     - Update all internal action references
     - _Requirements: 7.4, 7.6_
 
-  - [ ] 6.3 Rename reformatted property to spacious
+  - [x] 6.3 Rename reformatted property to spacious
 
     - Update all internal references from reformatted to spacious in Comment.js
     - Update type definitions and JSDoc comments
     - Update isReformatted() method to use spacious property
     - _Requirements: 3.5, 5.4_
 
-  - [ ] 6.4 Update Comment base class for inheritance
+  - [x] 6.4 Update Comment base class for inheritance
+
     - Make createLayers, bindEvents, and initPrototypes abstract methods
     - Add layers and actions composition properties
     - Update constructor to not directly set reformatted property
