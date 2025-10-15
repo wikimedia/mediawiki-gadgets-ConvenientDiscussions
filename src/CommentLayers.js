@@ -53,41 +53,6 @@ class CommentLayers {
   $marker;
 
   /**
-   * Inner wrapper in comment's overlay (for compact comments).
-   *
-   * @type {HTMLElement | undefined}
-   */
-  overlayInnerWrapper;
-
-  /**
-   * Gradient element in comment's overlay (for compact comments).
-   *
-   * @type {HTMLElement | undefined}
-   */
-  overlayGradient;
-
-  /**
-   * Menu element in comment's overlay (for compact comments).
-   *
-   * @type {HTMLElement | undefined}
-   */
-  overlayMenu;
-
-  /**
-   * Menu element in the comment's overlay as jQuery object (for compact comments).
-   *
-   * @type {JQuery | undefined}
-   */
-  $overlayMenu;
-
-  /**
-   * Gradient element in the comment's overlay as jQuery object (for compact comments).
-   *
-   * @type {JQuery | undefined}
-   */
-  $overlayGradient;
-
-  /**
    * Reference to the parent comment.
    *
    * @type {import('./Comment').default}

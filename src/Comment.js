@@ -241,7 +241,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   get overlayInnerWrapper() {
-    return this.layers?.overlayInnerWrapper;
+    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.overlayInnerWrapper;
   }
 
   /**
@@ -253,7 +253,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   get overlayGradient() {
-    return this.layers?.overlayGradient;
+    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.overlayGradient;
   }
 
   /**
@@ -265,7 +265,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   get overlayMenu() {
-    return this.layers?.overlayMenu;
+    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.overlayMenu;
   }
 
   /**
@@ -309,7 +309,7 @@ class Comment extends CommentSkeleton {
    * @type {JQuery | undefined}
    */
   get $overlayMenu() {
-    return this.layers?.$overlayMenu;
+    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.$overlayMenu;
   }
 
   /**
@@ -320,7 +320,7 @@ class Comment extends CommentSkeleton {
    * @type {JQuery | undefined}
    */
   get $overlayGradient() {
-    return this.layers?.$overlayGradient;
+    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.$overlayGradient;
   }
 
   /**
@@ -2020,8 +2020,11 @@ class Comment extends CommentSkeleton {
 
     this.layers.updateClassesForFlag(flag, add);
 
-    if (flag === 'hovered' && !add && this.layers?.overlayInnerWrapper) {
-      this.layers.overlayInnerWrapper.style.display = '';
+    if (flag === 'hovered' && !add) {
+      const compactLayers = /** @type {import('./CompactCommentLayers').default} */ (this.layers);
+      if (compactLayers?.overlayInnerWrapper) {
+        compactLayers.overlayInnerWrapper.style.display = '';
+      }
     }
   }
 
@@ -2195,7 +2198,7 @@ class Comment extends CommentSkeleton {
       if (this !== $background.get(-1)) return;
 
       callback?.();
-      $background.add(comment.$overlayGradient || $()).css(propertyDefaults);
+      $background.add(/** @type {import('./CompactCommentLayers').default} */ (comment.layers)?.$overlayGradient || $()).css(propertyDefaults);
     });
   }
 
@@ -2241,7 +2244,7 @@ class Comment extends CommentSkeleton {
     /** @type {JQuery} */ (this.$animatedBackground).css({
       backgroundColor: initialBackgroundColor,
     });
-    this.layers?.$overlayGradient?.css({ backgroundImage: 'none' });
+    /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.$overlayGradient.css({ backgroundImage: 'none' });
 
     this.animateToColors(finalMarkerColor, finalBackgroundColor, callback);
   }
@@ -2267,7 +2270,7 @@ class Comment extends CommentSkeleton {
      *
      * @type {JQuery|undefined}
      */
-    this.$animatedBackground = this.layers.$underlay.add(this.layers.$overlayMenu || $());
+    this.$animatedBackground = this.layers.$underlay.add(/** @type {import('./CompactCommentLayers').default} */ (this.layers)?.$overlayMenu || $());
 
     // Reset animations and colors
     this.$animatedBackground.add(this.layers.$marker).stop(true, true);
