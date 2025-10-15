@@ -158,6 +158,7 @@ static initPrototypes() // Creates compact-specific prototypes (overlay menu ele
 ```
 
 **Key Properties:**
+
 ```javascript
 isHovered: boolean // Track hover state for menu display
 wasMenuHidden: boolean // Track if menu was manually hidden
@@ -284,52 +285,6 @@ addToggleChildThreadsButton()
 - Hover-triggered actions
 - Compact-specific action styling
 
-## Data Models
-
-### Layer Configuration
-
-```javascript
-interface LayerConfig {
-  showOnHover: boolean;
-  showMenu: boolean;
-  highlightStyle: 'underlay' | 'border' | 'both';
-  menuPosition: 'overlay' | 'bottom';
-}
-```
-
-### Action Configuration
-
-```javascript
-interface ActionConfig {
-  enableReply: boolean;
-  enableEdit: boolean;
-  enableThank: boolean;
-  enableCopyLink: boolean;
-  enableGoToParent: boolean;
-  enableToggleThreads: boolean;
-  layout: 'overlay' | 'bottom' | 'inline';
-}
-```
-
-## Error Handling
-
-### Layer Creation Errors
-
-- **Issue:** Layer elements fail to create or position correctly
-- **Handling:** Graceful degradation without layers, log error for debugging
-- **Recovery:** Retry layer creation on next interaction
-
-### Action Button Errors
-
-- **Issue:** Action buttons fail to create or bind events
-- **Handling:** Skip failed actions, continue with available actions
-- **Recovery:** Attempt to recreate actions on user interaction
-
-### Class Instantiation Errors
-
-- **Issue:** Wrong comment class instantiated based on settings
-- **Handling:** Fall back to base Comment class functionality
-- **Recovery:** Allow user to toggle comment style to retry
 
 ## Testing Strategy
 
