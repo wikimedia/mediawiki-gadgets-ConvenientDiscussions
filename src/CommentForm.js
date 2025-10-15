@@ -161,7 +161,7 @@ class CommentForm extends EventEmitter {
    * Parent comment. This is the comment the user replies to, if any, or the comment opening the
    * section.
    *
-   * @type {?Comment}
+   * @type {Comment | undefined}
    * @private
    */
   parentComment;
@@ -419,10 +419,10 @@ class CommentForm extends EventEmitter {
   /**
    * Name of the tag of the list that this comment form is an item of.
    *
-   * @type {?ListType}
+   * @type {ListType | undefined}
    * @private
    */
-  containerListType = null;
+  containerListType;
 
   /**
    * @typedef {Promise<Source|null|void>} CheckCodeRequest
@@ -476,7 +476,7 @@ class CommentForm extends EventEmitter {
   autoSummary;
 
   /**
-   * @typedef {Mode extends 'addSection' ? null : import('./Section').default | null} CommentFormTargetSection
+   * @typedef {Mode extends 'addSection' ? undefined : import('./Section').default | undefined} CommentFormTargetSection
    */
 
   /**
@@ -588,27 +588,27 @@ class CommentForm extends EventEmitter {
      * If the user replies to a comment with outdented replies (in which case the form is created
      * like a regular section reply), this is that target comment.
      *
-     * @type {?Comment}
+     * @type {Comment | undefined}
      */
-    this.targetWithOutdentedReplies = initialState.targetWithOutdentedReplies || null;
+    this.targetWithOutdentedReplies = initialState.targetWithOutdentedReplies;
 
     /**
      * Whether a new section will be added on submit using a dedicated API request. (Filled upon
      * submitting or viewing changes.)
      *
-     * @type {?boolean}
+     * @type {boolean | undefined}
      * @private
      */
-    this.newSectionApi = null;
+    this.newSectionApi = undefined;
 
     // Making this private harms type checking.
     /**
      * Whether the wikitext of a section will be submitted to the server instead of a page. (Filled
      * upon submitting or viewing changes.)
      *
-     * @type {?boolean}
+     * @type {boolean | undefined}
      */
-    this.sectionSubmitted = null;
+    this.sectionSubmitted = undefined;
 
     /**
      * Operation registry.
@@ -747,7 +747,7 @@ class CommentForm extends EventEmitter {
     this.parentComment =
       this.isMode('reply') || this.isMode('replyInSection')
         ? this.target.getRelevantComment()
-        : null;
+        : undefined;
   }
 
   /**
@@ -2351,7 +2351,7 @@ class CommentForm extends EventEmitter {
       .map((u) => u.name);
 
     // Move the addressee to the beginning of the user list
-    for (let с = this.parentComment; с; с = с.getParent() || null) {
+    for (let с = this.parentComment; с; с = с.getParent()) {
       if (с.author !== cd.user) {
         if (!с.author.isRegistered()) break;
         defaultUserNames.unshift(с.author.getName());
@@ -2994,7 +2994,7 @@ class CommentForm extends EventEmitter {
             operation.delay();
             this.previewTimeout = setTimeout(
               () => {
-                this.previewTimeout = null;
+                this.previewTimeout = undefined;
                 this.preview(true, operation);
               },
               isTooEarly ? 1000 - (Date.now() - lastPreviewTimestamp) : 100
@@ -4196,7 +4196,7 @@ class CommentForm extends EventEmitter {
   /**
    * Get the target comment if it has outdented replies and the reply is therefore to the section.
    *
-   * @returns {?Comment}
+   * @returns {Comment | undefined}
    */
   getTargetWithOutdentedReplies() {
     return this.targetWithOutdentedReplies;
@@ -4207,7 +4207,7 @@ class CommentForm extends EventEmitter {
    * comment the user replies to, if any. If the user replies to a section, this is the comment
    * opening the section.
    *
-   * @returns {?Comment}
+   * @returns {Comment | undefined}
    */
   getParentComment() {
     return this.parentComment;
@@ -4252,7 +4252,7 @@ class CommentForm extends EventEmitter {
   /**
    * Get the name of the tag of the list that this form is an item of.
    *
-   * @returns {?ListType}
+   * @returns {ListType | undefined}
    */
   getContainerListType() {
     return this.containerListType;
