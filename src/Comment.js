@@ -194,7 +194,9 @@ class Comment extends CommentSkeleton {
    * @type {HTMLElement | undefined}
    */
   get underlay() {
-    return this.layers?.underlay;
+    if (!this.layers) return undefined;
+
+    return this.layers.underlay;
   }
 
   /**
@@ -206,7 +208,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   get overlay() {
-    return this.layers?.overlay;
+    if (!this.layers) return undefined;
+
+    return this.layers.overlay;
   }
 
   /**
@@ -218,7 +222,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   get line() {
-    return this.layers?.line;
+    if (!this.layers) return undefined;
+
+    return this.layers.line;
   }
 
   /**
@@ -230,7 +236,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   get marker() {
-    return this.layers?.marker;
+    if (!this.layers) return undefined;
+
+    return this.layers.marker;
   }
 
   /**
@@ -242,7 +250,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   get overlayInnerWrapper() {
-    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.overlayInnerWrapper;
+    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
+
+    return this.layers.overlayInnerWrapper;
   }
 
   /**
@@ -254,7 +264,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   get overlayGradient() {
-    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.overlayGradient;
+    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
+
+    return this.layers.overlayGradient;
   }
 
   /**
@@ -266,7 +278,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   get overlayMenu() {
-    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.overlayMenu;
+    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
+
+    return this.layers.overlayMenu;
   }
 
   /**
@@ -277,7 +291,9 @@ class Comment extends CommentSkeleton {
    * @type {JQuery | undefined}
    */
   get $underlay() {
-    return this.layers?.$underlay;
+    if (!this.layers) return undefined;
+
+    return this.layers.$underlay;
   }
 
   /**
@@ -288,7 +304,9 @@ class Comment extends CommentSkeleton {
    * @type {JQuery | undefined}
    */
   get $overlay() {
-    return this.layers?.$overlay;
+    if (!this.layers) return undefined;
+
+    return this.layers.$overlay;
   }
 
   /**
@@ -299,7 +317,9 @@ class Comment extends CommentSkeleton {
    * @type {JQuery | undefined}
    */
   get $marker() {
-    return this.layers?.$marker;
+    if (!this.layers) return undefined;
+
+    return this.layers.$marker;
   }
 
   /**
@@ -310,7 +330,9 @@ class Comment extends CommentSkeleton {
    * @type {JQuery | undefined}
    */
   get $overlayMenu() {
-    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.$overlayMenu;
+    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
+
+    return this.layers.$overlayMenu;
   }
 
   /**
@@ -321,7 +343,9 @@ class Comment extends CommentSkeleton {
    * @type {JQuery | undefined}
    */
   get $overlayGradient() {
-    return /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.$overlayGradient;
+    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
+
+    return this.layers.$overlayGradient;
   }
 
   /**
@@ -655,23 +679,13 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Check if the comment has layers (underlay and overlay).
-   *
-   * @returns {boolean}
-   * @private
-   */
-  hasLayers() {
-    return Boolean(this.layers?.underlay);
-  }
-
-  /**
    * Check if the comment is not spacious (not reformatted) and its underlay is present.
    *
    * @returns {boolean}
    * @private
    */
   hasClassicUnderlay() {
-    return !this.isReformatted() && this.hasLayers();
+    return !this.isReformatted() && Boolean(this.layers);
   }
 
   /**
@@ -1782,7 +1796,7 @@ class Comment extends CommentSkeleton {
 
     // Configure the layers only if they were unexistent or the comment position has changed, to
     // save time.
-    if (this.hasLayers()) {
+    if (this.layers) {
       this.updateLayersStyles();
       if (isMoved && options.update) {
         this.updateLayersOffset();
@@ -1965,9 +1979,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   deferHideMenu(event) {
-    if (this.layers?.deferHideMenu) {
-      this.layers.deferHideMenu(event);
-    }
+    if (!this.layers) return;
+
+    this.layers.deferHideMenu(event);
   }
 
   /**
@@ -1977,9 +1991,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   hideMenu(event) {
-    if (this.layers?.hideMenu) {
-      this.layers.hideMenu(event);
-    }
+    if (!this.layers) return;
+
+    this.layers.hideMenu(event);
   }
 
   /**
@@ -1988,9 +2002,9 @@ class Comment extends CommentSkeleton {
    * @private
    */
   dontHideMenu() {
-    if (this.layers?.dontHideMenu) {
-      this.layers.dontHideMenu();
-    }
+    if (!this.layers) return;
+
+    this.layers.dontHideMenu();
   }
 
   /**
@@ -2000,7 +2014,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   updateLayersStyles(wereJustCreated = false) {
-    if (!this.hasLayers()) return;
+    if (!this.layers) return;
 
     this.layers.updateStyles(wereJustCreated);
   }
@@ -2017,15 +2031,12 @@ class Comment extends CommentSkeleton {
    * @private
    */
   updateClassesForFlag(flag, add) {
-    if (!this.hasLayers()) return;
+    if (!this.layers) return;
 
     this.layers.updateClassesForFlag(flag, add);
 
-    if (flag === 'hovered' && !add) {
-      const compactLayers = /** @type {import('./CompactCommentLayers').default} */ (this.layers);
-      if (compactLayers.overlayInnerWrapper) {
-        compactLayers.overlayInnerWrapper.style.display = '';
-      }
+    if (flag === 'hovered' && !add && this.layers instanceof CompactCommentLayers && this.layers.overlayInnerWrapper) {
+      this.layers.overlayInnerWrapper.style.display = '';
     }
   }
 
@@ -2033,7 +2044,7 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Add the (already existent) comment's layers to the DOM.
    */
   addLayers() {
-    if (!this.hasLayers()) return;
+    if (!this.layers) return;
 
     this.updateLayersOffset();
     this.getLayersContainer().append(this.layers.underlay);
@@ -2048,7 +2059,7 @@ class Comment extends CommentSkeleton {
     // The underlay can be absent if called from commentManager.maybeRedrawLayers() with redrawAll
     // set to `true`. layersOffset can be absent in some rare cases when the comment became
     // invisible.
-    if (!this.hasLayers() || !this.layersOffset) return;
+    if (!this.layers || !this.layersOffset) return;
 
     this.layers.underlay.style.top = this.layers.overlay.style.top = String(this.layersOffset.top) + 'px';
     this.layers.underlay.style.left = this.layers.overlay.style.left = String(this.layersOffset.left) + 'px';
@@ -2062,7 +2073,7 @@ class Comment extends CommentSkeleton {
    * Remove the comment's underlay and overlay.
    */
   removeLayers() {
-    if (!this.hasLayers()) return;
+    if (!this.layers) return;
 
     this.layers.$marker.stop(true, true);
     this.unhighlightHovered(true);
@@ -2134,7 +2145,7 @@ class Comment extends CommentSkeleton {
       // Is the comment moved?
       this.configureLayers() ||
 
-      !this.hasLayers()
+      !this.layers
     ) {
       return;
     }
@@ -2199,7 +2210,7 @@ class Comment extends CommentSkeleton {
       if (this !== $background.get(-1)) return;
 
       callback?.();
-      $background.add(/** @type {import('./CompactCommentLayers').default} */ (comment.layers)?.$overlayGradient || $()).css(propertyDefaults);
+      $background.add(comment.layers instanceof CompactCommentLayers ? comment.layers.$overlayGradient : $()).css(propertyDefaults);
     });
   }
 
@@ -2211,7 +2222,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   animateBack(flag, callback) {
-    if (!this.hasLayers() || !this.layers.$underlay.parent().length) {
+    if (!this.layers?.$underlay.parent().length) {
       callback?.();
 
       return;
@@ -2245,7 +2256,9 @@ class Comment extends CommentSkeleton {
     /** @type {JQuery} */ (this.$animatedBackground).css({
       backgroundColor: initialBackgroundColor,
     });
-    /** @type {import('./CompactCommentLayers').default} */ (this.layers)?.$overlayGradient.css({ backgroundImage: 'none' });
+    if (this.layers instanceof CompactCommentLayers) {
+      this.layers.$overlayGradient.css({ backgroundImage: 'none' });
+    }
 
     this.animateToColors(finalMarkerColor, finalBackgroundColor, callback);
   }
@@ -2260,7 +2273,7 @@ class Comment extends CommentSkeleton {
    */
   flash(flag, delay, callback) {
     this.configureLayers();
-    if (!this.hasLayers()) {
+    if (!this.layers) {
       callback?.();
 
       return;
@@ -2271,7 +2284,7 @@ class Comment extends CommentSkeleton {
      *
      * @type {JQuery|undefined}
      */
-    this.$animatedBackground = this.layers.$underlay.add(/** @type {import('./CompactCommentLayers').default} */ (this.layers)?.$overlayMenu || $());
+    this.$animatedBackground = this.layers.$underlay.add(this.layers instanceof CompactCommentLayers ? this.layers.$overlayMenu : $());
 
     // Reset animations and colors
     this.$animatedBackground.add(this.layers.$marker).stop(true, true);
@@ -2351,7 +2364,7 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Stop all animations on the comment.
    */
   stopAnimations() {
-    if (!this.hasLayers()) return;
+    if (!this.layers) return;
 
     this.$animatedBackground?.add(this.layers.$marker).stop(true, true);
   }

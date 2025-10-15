@@ -195,11 +195,7 @@
 
 - [-] 11. Testing and validation
 
-
-
   - [x] 11.1 Create unit tests for new classes
-
-
 
     - Write tests for CommentLayers, CommentActions, and their subclasses
     - Write tests for SpaciousComment and CompactComment functionality
@@ -207,10 +203,6 @@
     - _Requirements: 8.1, 8.2_
 
   - [x] 11.2 Update existing tests
-
-
-
-
 
     - Update Comment class tests to work with new architecture
     - Update integration tests for Parser and settings changes
@@ -226,10 +218,6 @@
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
   - [x] 11.4 Set up browser testing environment (requires user assistance)
-
-
-
-
 
     - User assistance needed to configure Selenium/browser testing setup
     - User assistance needed to update .vscode/launch.json for testing configuration
@@ -255,6 +243,7 @@
     - _Requirements: 8.4_
 
   - [ ] 12.2 Final cleanup and documentation
+
     - Update JSDoc comments to reflect new class hierarchy
     - Document the new composition pattern usage
     - Remove any temporary compatibility code

@@ -17,7 +17,7 @@ describe('Comment Class Refactoring - Backward Compatibility', () => {
       const settingsModule = require('../src/settings');
 
       // The settings scheme should have aliases defined
-      if (settingsModule.default?.scheme) {
+      if (settingsModule.default.scheme) {
         const aliases = settingsModule.default.scheme.aliases;
         expect(aliases).toBeDefined();
 
@@ -126,7 +126,6 @@ describe('Comment Class Refactoring - Backward Compatibility', () => {
 
       // Check for type guard methods
       expect(commentSource).toContain('isReformatted()');
-      expect(commentSource).toContain('hasLayers()');
       expect(commentSource).toContain('hasClassicUnderlay()');
 
       // Check that isReformatted uses spacious property
