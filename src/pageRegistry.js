@@ -22,12 +22,12 @@ const pageRegistry = {
    * @overload
    * @param {string} nameOrMwTitle
    * @param {true} [isGendered]
-   * @returns {?import('./Page').default}
+   * @returns {import('./Page').default | undefined}
    *
    * @overload
    * @param {string|mw.Title} nameOrMwTitle
    * @param {false} [isGendered]
-   * @returns {?import('./Page').default}
+   * @returns {import('./Page').default | undefined}
    */
 
   /**
@@ -36,14 +36,14 @@ const pageRegistry = {
    * @param {string | mw.Title} nameOrMwTitle
    * @param {boolean} [isGendered] Used to keep the gendered namespace name (`nameOrMwTitle`
    *   should be a string).
-   * @returns {?import('./Page').default}
+   * @returns {import('./Page').default | undefined}
    */
   get(nameOrMwTitle, isGendered = false) {
     const title = nameOrMwTitle instanceof mw.Title
       ? nameOrMwTitle
       : mw.Title.newFromText(nameOrMwTitle);
     if (!title) {
-      return null;
+      return;
     }
 
     const name = title.getPrefixedText();

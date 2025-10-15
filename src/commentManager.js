@@ -179,14 +179,14 @@ class CommentManager extends EventEmitter {
    * Get a comment by index.
    *
    * @param {number} index Use a negative index to count from the end.
-   * @returns {?Comment}
+   * @returns {Comment | undefined}
    */
   getByIndex(index) {
     if (index < 0) {
       index = this.items.length + index;
     }
 
-    return this.items[index] || null;
+    return this.items[index];
   }
 
   /**
@@ -402,7 +402,7 @@ class CommentManager extends EventEmitter {
    *
    * @param {'forward' | 'backward'} [findClosestDirection] If there is no comment in the viewport,
    *   find the closest comment in the specified direction.
-   * @returns {?Comment}
+   * @returns {Comment | undefined}
    */
   findInViewport(findClosestDirection) {
     // Reset the roughOffset property. It is used only within this method.
@@ -434,13 +434,13 @@ class CommentManager extends EventEmitter {
         );
       }
 
-      return comments.find(isCommentVisible) || null;
+      return comments.find(isCommentVisible);
     };
 
     const firstVisibleComment = findVisible('forward');
     const lastVisibleComment = findVisible('backward', this.items.length - 1);
     if (!firstVisibleComment) {
-      return null;
+      return;
     }
 
     const searchArea = {
@@ -461,7 +461,7 @@ class CommentManager extends EventEmitter {
             currentSearchArea[(direction === 'forward' ? reverse : !reverse) ? 'top' : 'bottom']
               .index
           )
-        : null;
+        : undefined;
 
     // Here, we don't iterate over this.items as it may look like. We perform a so-called
     // interpolation search: narrow the search region by getting a proportion of the distance
@@ -562,7 +562,7 @@ class CommentManager extends EventEmitter {
       }
     }
 
-    return foundComment || null;
+    return foundComment;
   }
 
   /**
@@ -590,11 +590,11 @@ class CommentManager extends EventEmitter {
    * @param {boolean} [impreciseDate] Comment date is inferred from the edit date (but these
    *   may be different). If `true`, we allow the time on the page to be 1-3 minutes less than the
    *   edit time.
-   * @returns {?Comment}
+   * @returns {Comment | undefined}
    */
   getById(id, impreciseDate = false) {
     if (!this.items.length || !id) {
-      return null;
+      return;
     }
 
     const findById = (/** @type {string | undefined} */ idOrUndefined) =>
@@ -612,7 +612,7 @@ class CommentManager extends EventEmitter {
       }
     }
 
-    return comment || null;
+    return comment;
   }
 
   /**
@@ -628,12 +628,12 @@ class CommentManager extends EventEmitter {
    * @param {string} id
    * @param {ReturnComponents} [returnComponents] Whether to return the constituents of the ID (as
    *   an object) together with a comment.
-   * @returns {(ReturnComponents extends true ? DtIdComponents : Comment) | null}
+   * @returns {(ReturnComponents extends true ? DtIdComponents : Comment) | undefined}
    */
   getByDtId(id, returnComponents) {
     const data = Comment.parseDtId(id);
     if (!data) {
-      return null;
+      return;
     }
 
     let comments = this.items.filter((comment) => (
@@ -659,12 +659,12 @@ class CommentManager extends EventEmitter {
      */
 
     if (returnComponents) {
-      data.comment = comment;
+      /** @type {DtIdComponents} */ (data).comment = comment;
 
       return /** @type {DtIdComponentsOrComment} */ (data);
     }
 
-    return /** @type {DtIdComponentsOrComment} */ (comment) || null;
+    return /** @type {DtIdComponentsOrComment} */ (comment);
   }
 
   /**
@@ -674,7 +674,7 @@ class CommentManager extends EventEmitter {
    * @param {boolean} [impreciseDate] (For CD IDs.) Comment date is inferred from the edit
    *   date (but these may be different). If `true`, we allow the time on the page to be 1-3 minutes
    *   less than the edit time.
-   * @returns {Comment | null}
+   * @returns {Comment | undefined}
    */
   getByAnyId(id, impreciseDate = false) {
     return Comment.isId(id) ? this.getById(id, impreciseDate) : this.getByDtId(id);
@@ -883,7 +883,7 @@ class CommentManager extends EventEmitter {
   /**
    * Determine which comment on the page is selected.
    *
-   * @returns {?Comment}
+   * @returns {Comment | undefined}
    */
   getSelectedComment() {
     const selection = window.getSelection();
@@ -919,7 +919,7 @@ class CommentManager extends EventEmitter {
       this.resetSelectedComment();
     }
 
-    return comment || null;
+    return comment;
   }
 
   /**

@@ -129,29 +129,29 @@ class TalkPageController extends EventEmitter {
 
   /**
    * @type {{
-   *   offset: ?number;
-   *   element?: ?Element;
-   *   elementTop?: ?number;
+   *   offset?: number | undefined;
+   *   element?: Element | undefined;
+   *   elementTop?: number | undefined;
    *   touchesBottom?: boolean;
-   *   offsetBottom?: ?number;
-   *   tocHeight?: ?number;
+   *   offsetBottom?: number | undefined;
+   *   tocHeight?: number | undefined;
    * }}
    */
-  scrollData = { offset: null };
+  scrollData = {};
 
   autoScrolling = false;
   isUpdateThreadLinesHandlerAttached = false;
   lastScrollX = 0;
   originalPageTitle = document.title;
 
-  /** @type {?number} */
-  lastCheckedRevisionId = null;
+  /** @type {number | undefined} */
+  lastCheckedRevisionId;
 
   addedCommentCount = 0;
   areRelevantCommentsAdded = false;
 
-  /** @type {?(string[])} */
-  relevantAddedCommentIds = null;
+  /** @type {string[] | undefined} */
+  relevantAddedCommentIds;
 
   /** @type {import('./updateChecker').CommentWorkerMatched[]} */
   commentsNotifiedAbout = [];
@@ -181,23 +181,23 @@ class TalkPageController extends EventEmitter {
    * Save the scroll position relative to the first element in the viewport looking from the top of
    * the page.
    *
-   * @param {?boolean} [switchToAbsolute] If this value is `true` or `false` and the viewport
+   * @param {boolean | undefined} [switchToAbsolute] If this value is `true` or `false` and the viewport
    *   is above the bottom of the table of contents, then use
    *   {@link TalkPageController#saveScrollPosition} (this allows for better precision).
    * @param {number} scrollY Cached horizontal scroll value used to avoid reflow.
    */
-  saveRelativeScrollPosition(switchToAbsolute = null, scrollY = window.scrollY) {
+  saveRelativeScrollPosition(switchToAbsolute, scrollY = window.scrollY) {
     // The viewport has the TOC bottom or is above it.
     if (
-      switchToAbsolute !== null &&
+      switchToAbsolute !== undefined &&
       !toc.isInSidebar() &&
       toc.isPresent() &&
       scrollY < /** @type {number} */ (toc.getBottomOffset())
     ) {
       this.saveScrollPosition(switchToAbsolute);
     } else {
-      this.scrollData.element = null;
-      this.scrollData.elementTop = null;
+      this.scrollData.element = undefined;
+      this.scrollData.elementTop = undefined;
       this.scrollData.touchesBottom = false;
       this.scrollData.offsetBottom = (
         document.documentElement.scrollHeight - (scrollY + window.innerHeight)
@@ -263,7 +263,7 @@ class TalkPageController extends EventEmitter {
    *   {@link TalkPageController#saveScrollPosition} was previously used for saving the position.
    */
   restoreRelativeScrollPosition(switchToAbsolute = false) {
-    if (switchToAbsolute && this.scrollData.offset !== null) {
+    if (switchToAbsolute && this.scrollData.offset !== undefined) {
       this.restoreScrollPosition();
     } else if (this.scrollData.touchesBottom && window.scrollY !== 0) {
       window.scrollTo(
@@ -281,7 +281,7 @@ class TalkPageController extends EventEmitter {
         );
       } else {
         // In a collapsed thread?
-        const closestHidden = /** @type {?HTMLElement} */ (
+        const closestHidden = /** @type {HTMLElement | undefined} */ (
           this.scrollData.element.closest('[hidden]')
         );
         if (closestHidden) {
@@ -331,7 +331,7 @@ class TalkPageController extends EventEmitter {
       // There is some content below the TOC in the viewport.
       /** @type {number} */ (toc.getBottomOffset()) < window.scrollY + window.innerHeight
         ? toc.$element.outerHeight()
-        : null;
+        : undefined;
   }
 
   /**
@@ -341,7 +341,7 @@ class TalkPageController extends EventEmitter {
    *   after page reboots.
    */
   restoreScrollPosition(resetTocHeight = true) {
-    if (this.scrollData.offset === null) return;
+    if (this.scrollData.offset === undefined) return;
 
     if (this.scrollData.tocHeight) {
       this.scrollData.offset +=
@@ -349,9 +349,9 @@ class TalkPageController extends EventEmitter {
     }
     window.scrollTo(0, this.scrollData.offset);
 
-    this.scrollData.offset = null;
+    this.scrollData.offset = undefined;
     if (resetTocHeight) {
-      this.scrollData.tocHeight = null;
+      this.scrollData.tocHeight = undefined;
     }
   }
 
@@ -908,7 +908,7 @@ class TalkPageController extends EventEmitter {
     this.content = {};
     this.addedCommentCount = 0;
     this.areRelevantCommentsAdded = false;
-    this.relevantAddedCommentIds = null;
+    this.relevantAddedCommentIds = undefined;
     delete this.dtSubscribableThreads;
     this.updatePageTitle();
   }
@@ -1022,11 +1022,11 @@ class TalkPageController extends EventEmitter {
           )).getDecodedUrlWithFragment()
         : object.getUrl(true),
       jsCall: object.isComment()
-        ? `let c = convenientDiscussions.api.getCommentById('${object.id}');`
-        : `let s = convenientDiscussions.api.getSectionById('${object.id}');`,
-      jsBreakpoint: `this.id === '${object.id}'`,
+        ? `let c = convenientDiscussions.api.getCommentById('${object.id || ''}');`
+        : `let s = convenientDiscussions.api.getSectionById('${object.id || ''}');`,
+      jsBreakpoint: `this.id === '${object.id || ''}'`,
       jsBreakpointTimestamp: object.isComment()
-        ? `timestamp.element.textContent === '${object.timestampText}'`
+        ? `timestamp.element.textContent === '${object.timestampText || ''}'`
         : undefined,
     };
 
@@ -1291,7 +1291,7 @@ class TalkPageController extends EventEmitter {
             comment.author,
 
             // Where the comment is
-            comment.section?.headline
+            comment.section.headline
               ? wordSeparator + cd.s('notification-part-insection', comment.section.headline)
               : '',
 
@@ -1342,7 +1342,7 @@ class TalkPageController extends EventEmitter {
 
       // We use a tag so that there aren't duplicate notifications when the same page is opened in
       // two tabs. (Seems it doesn't work? :-/)
-      tag: 'cd-' + filteredComments[filteredComments.length - 1].id,
+      tag: 'cd-' + (filteredComments[filteredComments.length - 1].id || ''),
     });
     notification.addEventListener('click', () => {
       parent.focus();
@@ -1386,7 +1386,7 @@ class TalkPageController extends EventEmitter {
   /**
    * Get the IDs of the comments that should be jumped to after rebooting the page.
    *
-   * @returns {string[]|null}
+   * @returns {string[] | undefined}
    */
   getRelevantAddedCommentIds() {
     return this.relevantAddedCommentIds;

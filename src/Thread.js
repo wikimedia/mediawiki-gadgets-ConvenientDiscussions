@@ -1630,7 +1630,8 @@ class Thread extends mixInObject(
    * @private
    */
   static findEndElementOfZeroLevelThread(startElement, highlightables, nextForeignElement) {
-    let /** @type {HTMLElement | null} */ commonAncestor = startElement;
+    /** @type {HTMLElement | null} */
+    let commonAncestor = startElement;
     const lastHighlightable = highlightables.slice(-1)[0];
     do {
       commonAncestor = /** @type {HTMLElement} */ (commonAncestor).parentElement;

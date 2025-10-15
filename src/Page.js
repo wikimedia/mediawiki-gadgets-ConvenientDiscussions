@@ -194,7 +194,7 @@ export default class Page {
    * on {@link module:defaultConfig.pagesWithoutArchives} and
    * {@link module:defaultConfig.archivePaths}.
    *
-   * @returns {?boolean}
+   * @returns {boolean | undefined}
    */
   canHaveArchives() {
     if (this.isArchive()) {
@@ -210,11 +210,11 @@ export default class Page {
    * archive page or can't have archives, returns `null`.
    *
    * @param {boolean} [onlyExplicit]
-   * @returns {?string}
+   * @returns {string | undefined}
    */
   getArchivePrefix(onlyExplicit = false) {
     if (!this.canHaveArchives()) {
-      return null;
+      return;
     }
 
     let result;
@@ -226,7 +226,7 @@ export default class Page {
       }
     }
 
-    return result ?? (onlyExplicit ? null : name + '/');
+    return result ?? (onlyExplicit ? undefined : name + '/');
   }
 
   /**
@@ -252,14 +252,14 @@ export default class Page {
   /**
    * @overload
    * @param {import('./CommentForm').default} [_] Not used.
-   * @param {true} [tolerateMissing] Return `null` if the page is missing instead of throwing
+   * @param {true} [tolerateMissing] Return `undefined` if the page is missing instead of throwing
    *   an error.
-   * @returns {Promise<PageSource|null>} A promise resolving to the wikitext of the page, or `null`
+   * @returns {Promise<PageSource | undefined>} A promise resolving to the wikitext of the page, or `undefined`
    *   if the page is missing.
    *
    * @overload
    * @param {import('./CommentForm').default} [_] Not used.
-   * @param {false} tolerateMissing Return `null` if the page is missing instead of throwing an
+   * @param {false} tolerateMissing Return `undefined` if the page is missing instead of throwing an
    *   error.
    * @returns {Promise<PageSource>} A promise resolving to the wikitext of the page.
    *
@@ -278,9 +278,9 @@ export default class Page {
    * name.
    *
    * @param {import('./CommentForm').default} [_] Not used.
-   * @param {boolean} [tolerateMissing] Return `null` if the page is missing instead of
+   * @param {boolean} [tolerateMissing] Return `undefined` if the page is missing instead of
    *   throwing an error.
-   * @returns {Promise<PageSource|null>}
+   * @returns {Promise<PageSource | undefined>}
    * @throws {CdError}
    */
   async loadCode(_, tolerateMissing = true) {
@@ -319,7 +319,7 @@ export default class Page {
       this.queryTimestamp = queryTimestamp;
 
       if (tolerateMissing) {
-        return null;
+        return;
       }
 
       throw new CdError({
@@ -563,7 +563,7 @@ export default class Page {
   /**
    * Get a decoded URL with a fragment identifier.
    *
-   * @param {?string} [fragment]
+   * @param {string | undefined} [fragment]
    * @param {boolean} [permanent] Get a permanent URL.
    * @returns {string}
    */
@@ -704,10 +704,10 @@ export default class Page {
    * Used for polymorphism with {@link Comment#getCommentFormTargetComment} and
    * {@link Section#getCommentFormTargetComment}.
    *
-   * @returns {null}
+   * @returns {undefined}
    */
   getCommentFormTargetComment() {
-    return null;
+    return;
   }
 
   /**
@@ -817,19 +817,19 @@ export default class Page {
    * Get the section that a comment on the page belongs to. Used for debug output. Can return
    * `undefined` when no section is found.
    *
-   * @returns {null}
+   * @returns {undefined}
    */
   getRelevantSection() {
-    return null;
+    return;
   }
 
   /**
    * Get the comment that this comment is a reply to. Used for debug output.
    *
-   * @returns {null}
+   * @returns {undefined}
    */
   getRelevantComment() {
-    return null;
+    return;
   }
 
   /**
@@ -837,10 +837,10 @@ export default class Page {
    * which relate to the current page, so we don't actually need any meaningful data. Used for
    * polymorphism with {@link Comment#getIdentifyingData} and {@link Section#getIdentifyingData}.
    *
-   * @returns {null}
+   * @returns {undefined}
    */
   getIdentifyingData() {
-    return null;
+    return;
   }
 
   /**
@@ -848,10 +848,10 @@ export default class Page {
    * section. This is only needed for the current page.
    *
    * @param {import('./CommentForm').default} _commentForm
-   * @returns {?import('./Comment').default}
+   * @returns {import('./Comment').default | undefined}
    */
   getCommentAboveCommentToBeAdded(_commentForm) {
-    return null;
+    return;
   }
 
   /**

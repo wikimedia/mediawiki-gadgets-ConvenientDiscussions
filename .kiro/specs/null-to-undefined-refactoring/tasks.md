@@ -152,22 +152,33 @@
     - Test dialog initialization and cleanup
     - _Requirements: 4.1, 4.2_
 
-- [ ] 8. Process manager and controller classes (Phase 7 - Application controllers)
+- [x] 8. Process manager and controller classes (Phase 7 - Application controllers)
 
-  - [ ] 8.1 Update talkPageController.js null assignments
+
+
+
+
+
+  - [x] 8.1 Update talkPageController.js null assignments
+
+
 
     - Remove `= null` from `lastCheckedRevisionId`, `relevantAddedCommentIds`
     - Update scroll data null assignments
     - Update JSDoc types for controller properties
     - _Requirements: 2.1, 2.2, 6.1, 6.2_
 
-  - [ ] 8.2 Update commentManager.js null returns and comparisons
+  - [x] 8.2 Update commentManager.js null returns and comparisons
+
+
 
     - Replace `return null;` in `getById` and visibility methods
     - Update null comparisons in comment lookup logic
     - _Requirements: 1.1, 1.4, 3.1, 3.2_
 
-  - [ ] 8.3 Update pageRegistry.js and Page.js null handling
+  - [x] 8.3 Update pageRegistry.js and Page.js null handling
+
+
 
     - Replace `return null;` in page lookup methods
     - Update page property null assignments
