@@ -17,6 +17,30 @@
         "${workspaceFolder}/src/**/*.js",
         "!**/node_modules/**"
       ]
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome for Testing",
+      "url": "http://localhost:9000",
+      "webRoot": "${workspaceFolder}",
+      "sourceMapPathOverrides": {
+        "webpack:///./*": "${workspaceRoot}/*"
+      },
+      "outFiles": [
+        "${workspaceFolder}/src/**/*.js",
+        "!**/node_modules/**"
+      ],
+      "preLaunchTask": "npm: start"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Playwright Tests",
+      "program": "${workspaceFolder}/node_modules/@playwright/test/cli.js",
+      "args": ["test", "--debug"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     }
   ]
 }

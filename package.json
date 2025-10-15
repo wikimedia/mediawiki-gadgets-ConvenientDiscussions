@@ -29,6 +29,7 @@
     "single": "node buildConfigs.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs && cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack --env single",
     "start": "node buildConfigs.mjs && cross-env NODE_OPTIONS=--openssl-legacy-provider node buildI18n.mjs && cross-env NODE_OPTIONS=--max-old-space-size=2048 NODE_OPTIONS=--openssl-legacy-provider webpack serve --env dev",
     "test": "jest",
+    "test:browser": "playwright test",
     "webpack": "cross-env NODE_OPTIONS=--openssl-legacy-provider webpack"
   },
   "browserslist": [
@@ -91,7 +92,9 @@
     "less-loader": "^12.3.0",
     "node-fetch": "^3.2.10",
     "nodemw": "^0.24.1",
+    "@playwright/test": "^1.40.0",
     "patch-package": "^8.0.0",
+    "playwright": "^1.40.0",
     "prompts": "^2.4.2",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
