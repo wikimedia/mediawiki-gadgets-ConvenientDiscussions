@@ -1,0 +1,423 @@
+/**
+ * @jest-environment jsdom
+ */
+
+// Mock dependencies
+jest.mock('../src/CommentActions', () => {
+  return class MockCommentActions {
+    constructor(comment) {
+      this.comment = comment;
+    }
+
+    addReplyButton() {
+      this.baseAddReplyButtonCalled = true;
+    }
+
+    addEditButton() {
+      this.baseAddEditButtonCalled = true;
+    }
+
+    addThankButton() {
+      this.baseAddThankButtonCalled = true;
+    }
+
+    addGoToParentButton() {
+      this.baseAddGoToParentButtonCalled = true;
+    }
+
+    addCopyLinkButton() {
+      this.baseAddCopyLinkButtonCalled = true;
+    }
+
+    addToggleChildThreadsButton() {
+      this.baseAddToggleChildThreadsButtonCalled = true;
+    }
+
+    maybeAddGoToChildButton() {
+      this.baseMaybeAddGoToChildButtonCalled = true;
+    }
+  };
+});
+
+jest.mock('../src/CommentButton', () => {
+  return class MockCommentButton {
+    constructor(config) {
+      this.element = config.element || document.createElement('button');
+      this.buttonElement = config.buttonElement;
+      this.iconElement = config.iconElement;
+      this.config = config;
+      this.action = config.action;
+      this.href = config.href;
+      this.widgetConstructor = config.widgetConstructor;
+    }
+
+    setDisabled(disabled) {
+      this.disabled = disabled;
+      return this;
+    }
+
+    setTooltip(tooltip) {
+      this.tooltip = tooltip;
+      return this;
+    }
+
+    setLabel(label) {
+      this.label = label;
+      return this;
+    }
+
+    isConnected() {
+      return this.element.isConnected;
+    }
+  };
+});
+
+jest.mock('../src/cd', () => ({
+  s: jest.fn((key) => `mocked-${key}`),
+  user: {
+    isRegistered: jest.fn(() => true),
+  },
+}));
+
+jest.mock('../src/commentManager', () => ({
+  default: {
+    getByIndex: jest.fn(),
+    getThanksStorage: jest.fn(() => ({
+      getData: jest.fn(() => ({})),
+    })),
+  },
+}));
+
+import CompactCommentActions from '../src/CompactCommentActions';
+
+describe('CompactCommentActions', () => {
+  let mockComment;
+  let actions;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    mockComment = {
+      id: 'test-comment-id',
+      dtId: 'test-dt-id',
+      index: 0,
+      isActionable: true,
+      isEditable: true,
+      isOwn: false,
+      headerElement: null, // Compact comments don't have header element
+      author: {
+        isRegistered: jest.fn(() => true),
+      },
+      date: new Date(),
+      section: { name: 'Test Section' },
+      elements: [document.createElement('div')],
+      layers: {
+        underlay: document.createElement('div'),
+        $overlayMenu: [document.createElement('div')],
+      },
+      replyForm: null,
+      targetChild: null,
+      reply: jest.fn(),
+      edit: jest.fn(),
+      thank: jest.fn(),
+      copyLink: jest.fn(),
+      goToParent: jest.fn(),
+      getParent: jest.fn(() => ({ id: 'parent-id' })),
+      getChildren: jest.fn(() => []),
+      scrollTo: jest.fn(),
+      toggleChildThreads: jest.fn(),
+      maybeOnboardOntoToggleChildThreads: jest.fn(),
+      configureLayers: jest.fn(),
+      createReplyButton: jest.fn(() => ({ $element: [document.createElement('button')] })),
+      createEditButton: jest.fn(() => ({ $element: [document.createElement('button')] })),
+      createThankButton: jest.fn(() => ({ $element: [document.createElement('button')] })),
+      createCopyLinkButton: jest.fn(() => ({
+        $element: [(() => {
+          const wrapper = document.createElement('div');
+          wrapper.append(document.createElement('button'));
+          return wrapper;
+        })()]
+      })),
+      createGoToParentButton: jest.fn(() => ({ $element: [document.createElement('button')] })),
+      createGoToChildButton: jest.fn(() => ({ $element: [document.createElement('button')] })),
+      createToggleChildThreadsButton: jest.fn(() => {
+        const button = document.createElement('button');
+        const icon = document.createElement('span');
+        icon.className = 'oo-ui-iconElement-icon';
+        button.append(icon);
+        return { $element: [button] };
+      }),
+    };
+
+    actions = new CompactCommentActions(mockComment);
+  });
+
+  describe('constructor', () => {
+    it('should inherit from CommentActions', () => {
+      const CommentActions = require('../src/CommentActions');
+      expect(actions).toBeInstanceOf(CommentActions);
+    });
+  });
+
+  describe('hasClassicUnderlay', () => {
+    it('should return true for compact comments with layers', () => {
+      expect(actions.hasClassicUnderlay()).toBe(true);
+    });
+
+    it('should return false for spacious comments (with headerElement)', () => {
+      mockComment.headerElement = document.createElement('div');
+
+      expect(actions.hasClassicUnderlay()).toBe(false);
+    });
+
+    it('should return false when no layers exist', () => {
+      mockComment.layers = null;
+
+      expect(actions.hasClassicUnderlay()).toBe(false);
+    });
+
+    it('should return false when no underlay exists', () => {
+      mockComment.layers.underlay = null;
+
+      expect(actions.hasClassicUnderlay()).toBe(false);
+    });
+  });
+
+  describe('create', () => {
+    it('should create buttons in specific order for compact comments', () => {
+      const addGoToParentSpy = jest.spyOn(actions, 'addGoToParentButton');
+      const addCopyLinkSpy = jest.spyOn(actions, 'addCopyLinkButton');
+      const addThankSpy = jest.spyOn(actions, 'addThankButton');
+      const addEditSpy = jest.spyOn(actions, 'addEditButton');
+      const addReplySpy = jest.spyOn(actions, 'addReplyButton');
+      const addToggleSpy = jest.spyOn(actions, 'addToggleChildThreadsButton');
+
+      actions.create();
+
+      expect(addGoToParentSpy).toHaveBeenCalled();
+      expect(addCopyLinkSpy).toHaveBeenCalled();
+      expect(addThankSpy).toHaveBeenCalled();
+      expect(addEditSpy).toHaveBeenCalled();
+      expect(addReplySpy).toHaveBeenCalled();
+      expect(addToggleSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('button creation methods', () => {
+    it('should create reply button using comment method', () => {
+      const action = jest.fn();
+      const button = actions.createReplyButton(action);
+
+      expect(mockComment.createReplyButton).toHaveBeenCalled();
+      expect(button.action).toBe(action);
+      expect(button.widgetConstructor).toBe(mockComment.createReplyButton);
+    });
+
+    it('should create edit button using comment method', () => {
+      const action = jest.fn();
+      const button = actions.createEditButton(action);
+
+      expect(mockComment.createEditButton).toHaveBeenCalled();
+      expect(button.action).toBe(action);
+      expect(button.widgetConstructor).toBe(mockComment.createEditButton);
+    });
+
+    it('should create thank button using comment method', () => {
+      const action = jest.fn();
+      const button = actions.createThankButton(action, false);
+
+      expect(mockComment.createThankButton).toHaveBeenCalled();
+      expect(button.action).toBe(action);
+      expect(button.widgetConstructor).toBe(mockComment.createThankButton);
+    });
+
+    it('should create copy link button with button element', () => {
+      const action = jest.fn();
+      const button = actions.createCopyLinkButton(action);
+
+      expect(mockComment.createCopyLinkButton).toHaveBeenCalled();
+      expect(button.buttonElement).toBeInstanceOf(HTMLElement);
+      expect(button.href).toBe('#test-dt-id');
+      expect(button.action).toBe(action);
+    });
+
+    it('should create go to parent button using comment method', () => {
+      const action = jest.fn();
+      const button = actions.createGoToParentButton(action);
+
+      expect(mockComment.createGoToParentButton).toHaveBeenCalled();
+      expect(button.buttonElement).toBeInstanceOf(HTMLElement);
+      expect(button.action).toBe(action);
+    });
+
+    it('should create go to child button using comment method', () => {
+      const action = jest.fn();
+      const button = actions.createGoToChildButton(action);
+
+      expect(mockComment.createGoToChildButton).toHaveBeenCalled();
+      expect(button.action).toBe(action);
+    });
+
+    it('should create toggle child threads button with icon element', () => {
+      const action = jest.fn();
+      const button = actions.createToggleChildThreadsButton(action);
+
+      expect(mockComment.createToggleChildThreadsButton).toHaveBeenCalled();
+      expect(button.iconElement).toBeInstanceOf(HTMLElement);
+      expect(button.iconElement.className).toBe('oo-ui-iconElement-icon');
+      expect(button.action).toBe(action);
+    });
+  });
+
+  describe('appendButton', () => {
+    it('should append button to overlay menu', () => {
+      const button = { element: document.createElement('button') };
+      const appendSpy = jest.spyOn(mockComment.layers.$overlayMenu[0], 'append');
+
+      actions.appendButton(button);
+
+      expect(appendSpy).toHaveBeenCalledWith(button.element);
+    });
+
+    it('should handle missing overlay menu gracefully', () => {
+      mockComment.layers.$overlayMenu = null;
+      const button = { element: document.createElement('button') };
+
+      expect(() => actions.appendButton(button)).not.toThrow();
+    });
+  });
+
+  describe('prependButton', () => {
+    it('should prepend button to overlay menu', () => {
+      const button = { element: document.createElement('button') };
+      const prependSpy = jest.spyOn(mockComment.layers.$overlayMenu[0], 'prepend');
+
+      actions.prependButton(button);
+
+      expect(prependSpy).toHaveBeenCalledWith(button.element);
+    });
+
+    it('should handle missing overlay menu gracefully', () => {
+      mockComment.layers.$overlayMenu = null;
+      const button = { element: document.createElement('button') };
+
+      expect(() => actions.prependButton(button)).not.toThrow();
+    });
+  });
+
+  describe('addToggleChildThreadsButton', () => {
+    it('should create and position toggle button correctly', () => {
+      mockComment.getChildren.mockReturnValue([{ thread: {} }]);
+      actions.goToParentButton = { element: document.createElement('button') };
+
+      const insertBeforeSpy = jest.spyOn(mockComment.layers.$overlayMenu[0], 'insertBefore');
+
+      actions.addToggleChildThreadsButton();
+
+      expect(actions.toggleChildThreadsButton).toBeDefined();
+      expect(insertBeforeSpy).toHaveBeenCalledWith(
+        actions.toggleChildThreadsButton.element,
+        actions.goToParentButton.element.nextSibling
+      );
+    });
+
+    it('should prepend when no target button exists', () => {
+      mockComment.getChildren.mockReturnValue([{ thread: {} }]);
+      const prependSpy = jest.spyOn(actions, 'prependButton');
+
+      actions.addToggleChildThreadsButton();
+
+      expect(prependSpy).toHaveBeenCalledWith(actions.toggleChildThreadsButton);
+    });
+  });
+
+  describe('maybeAddGoToChildButton', () => {
+    it('should create go to child button when target child exists', () => {
+      mockComment.targetChild = { scrollTo: jest.fn() };
+      const prependSpy = jest.spyOn(actions, 'prependButton');
+
+      actions.maybeAddGoToChildButton();
+
+      expect(mockComment.configureLayers).toHaveBeenCalled();
+      expect(actions.goToChildButton).toBeDefined();
+      expect(prependSpy).toHaveBeenCalledWith(actions.goToChildButton);
+    });
+
+    it('should not create button when no target child exists', () => {
+      actions.maybeAddGoToChildButton();
+
+      expect(actions.goToChildButton).toBeUndefined();
+    });
+  });
+
+  describe('conditional button creation', () => {
+    it('should create reply button only when hasClassicUnderlay returns true', () => {
+      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
+
+      actions.addReplyButton();
+
+      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
+      expect(actions.replyButton).toBeDefined();
+    });
+
+    it('should not create reply button when hasClassicUnderlay returns false', () => {
+      jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(false);
+
+      actions.addReplyButton();
+
+      expect(actions.replyButton).toBeUndefined();
+    });
+
+    it('should create edit button only when hasClassicUnderlay returns true', () => {
+      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
+
+      actions.addEditButton();
+
+      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
+      expect(actions.editButton).toBeDefined();
+    });
+
+    it('should not create edit button when hasClassicUnderlay returns false', () => {
+      jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(false);
+
+      actions.addEditButton();
+
+      expect(actions.editButton).toBeUndefined();
+    });
+
+    it('should create thank button only when hasClassicUnderlay returns true', () => {
+      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
+
+      actions.addThankButton();
+
+      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
+      expect(actions.thankButton).toBeDefined();
+    });
+
+    it('should not create thank button when hasClassicUnderlay returns false', () => {
+      jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(false);
+
+      actions.addThankButton();
+
+      expect(actions.thankButton).toBeUndefined();
+    });
+
+    it('should create go to parent button only when hasClassicUnderlay returns true', () => {
+      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
+
+      actions.addGoToParentButton();
+
+      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
+      expect(actions.goToParentButton).toBeDefined();
+    });
+
+    it('should create copy link button only when hasClassicUnderlay returns true', () => {
+      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
+
+      actions.addCopyLinkButton();
+
+      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
+      expect(actions.copyLinkButton).toBeDefined();
+    });
+  });
+});

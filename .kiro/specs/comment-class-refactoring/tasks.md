@@ -193,16 +193,24 @@
     - Ensure reformatComments method works with SpaciousComment instances
     - _Requirements: 4.4, 4.5_
 
-- [ ] 11. Testing and validation
+- [-] 11. Testing and validation
 
-  - [ ] 11.1 Create unit tests for new classes
+
+
+  - [x] 11.1 Create unit tests for new classes
+
+
 
     - Write tests for CommentLayers, CommentActions, and their subclasses
     - Write tests for SpaciousComment and CompactComment functionality
     - Test prototype management and class instantiation
     - _Requirements: 8.1, 8.2_
 
-  - [ ] 11.2 Update existing tests
+  - [x] 11.2 Update existing tests
+
+
+
+
 
     - Update Comment class tests to work with new architecture
     - Update integration tests for Parser and settings changes
