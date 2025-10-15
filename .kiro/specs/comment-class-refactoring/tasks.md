@@ -73,10 +73,14 @@
     - Add reformatComments to aliases property for backward compatibility
     - Update all references to use new setting name
     - _Requirements: 4.4, 4.5_
+- [x] 5. Update Parser integration
+
 
 - [ ] 5. Update Parser integration
 
-  - [ ] 5.1 Update BootProcess.findTargets to choose appropriate Comment class
+  - [x] 5.1 Update BootProcess.findTargets to choose appropriate Comment class
+
+
     - Modify src/BootProcess.js findTargets method to select SpaciousComment or CompactComment
     - Update CommentClass property based on spaciousComments setting
     - Import and use appropriate comment class

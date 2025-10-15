@@ -1,7 +1,9 @@
 import Comment from './Comment';
 import CommentForm from './CommentForm';
 import CommentFormInputTransformer from './CommentFormInputTransformer';
+import CompactComment from './CompactComment';
 import Section from './Section';
+import SpaciousComment from './SpaciousComment';
 import Thread from './Thread';
 import bootManager from './bootManager';
 import cd from './cd';
@@ -677,7 +679,13 @@ class BootProcess {
    * @private
    */
   initPrototypes() {
-    Comment.initPrototypes();
+    // Initialize prototypes for the appropriate Comment class based on spaciousComments setting
+    if (settings.get('spaciousComments')) {
+      SpaciousComment.initPrototypes();
+    } else {
+      CompactComment.initPrototypes();
+    }
+
     Section.initPrototypes();
     Thread.initPrototypes();
   }
@@ -688,8 +696,11 @@ class BootProcess {
    * @private
    */
   findTargets() {
+    // Choose appropriate Comment class based on spaciousComments setting
+    const CommentClass = settings.get('spaciousComments') ? SpaciousComment : CompactComment;
+
     this.parser = new Parser({
-      CommentClass: Comment,
+      CommentClass,
       SectionClass: Section,
       childElementsProp: 'children',
       follows: (n1, n2) =>
