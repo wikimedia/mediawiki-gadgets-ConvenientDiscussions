@@ -123,16 +123,25 @@
     - Test comment visibility and viewport methods
     - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 6. Process Thread.js class (Phase 5 - Thread management)
+- [x] 6. Process Thread.js class (Phase 5 - Thread management)
 
-  - [ ] 6.1 Update Thread.js property initialization and null returns
+
+
+
+
+
+  - [x] 6.1 Update Thread.js property initialization and null returns
+
+
 
     - Remove `= null` from `collapsedRange` property
     - Replace `return null;` in thread methods
     - Update JSDoc types from `?(HTMLElement[])` to `HTMLElement[] | undefined`
     - _Requirements: 1.1, 1.4, 2.1, 2.2_
 
-  - [ ] 6.2 Update Thread.js null comparisons in loops
+  - [x] 6.2 Update Thread.js null comparisons in loops
+
+
 
     - Update for-loop conditions that check against `null`
     - Update thread traversal logic to handle `undefined`

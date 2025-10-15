@@ -106,9 +106,9 @@ class Thread extends mixInObject(
   /**
    * Nodes that are collapsed. These can change, at least due to comment forms showing up.
    *
-   * @type {?(HTMLElement[])}
+   * @type {HTMLElement[] | undefined}
    */
-  collapsedRange = null;
+  collapsedRange;
 
   /**
    * Whether the thread should have been autocollapsed, but haven't been because the user
@@ -535,7 +535,7 @@ class Thread extends mixInObject(
    * navigate to. Also update the cursor look.
    *
    * @param {number} delta
-   * @returns {import('./Comment').default | null}
+   * @returns {import('./Comment').default | undefined}
    * @private
    */
   getNavTarget(delta) {
@@ -569,7 +569,7 @@ class Thread extends mixInObject(
     if (!this.navCurrentThreadEscapeDirection && -clearanceSize < delta && delta < clearanceSize) {
       this.updateCursor(0);
 
-      return null;
+      return;
     }
 
     const adjustedDelta = delta - /** @type {number} */ (this.navDeltaForDelta);
@@ -716,8 +716,8 @@ class Thread extends mixInObject(
    * {@link Comment#subitemList comment subitems}.
    *
    * @param {boolean} [visual] Use the visual thread end.
-   * @returns {?HTMLElement} Logically, should never return `null`, unless something extraordinary
-   *   happens that makes the return value of `Thread.findItemElement()` `null`.
+   * @returns {HTMLElement | undefined} Logically, should never return `undefined`, unless something extraordinary
+   *   happens that makes the return value of `Thread.findItemElement()` `undefined`.
    * @private
    */
   getAdjustedEndElement(visual = false) {
@@ -963,7 +963,7 @@ class Thread extends mixInObject(
 
     this.collapsedRange = getRangeContents(
       this.getAdjustedStartElement(),
-      this.getAdjustedEndElement(),
+      this.getAdjustedEndElement() || null,
       bootManager.rootElement
     );
     if (!this.collapsedRange) return;
@@ -1586,7 +1586,7 @@ class Thread extends mixInObject(
    * @param {HTMLElement} element
    * @param {number} level
    * @param {HTMLElement} [nextForeignElement]
-   * @returns {?HTMLElement}
+   * @returns {HTMLElement | undefined}
    * @private
    */
   static findItemElement(element, level, nextForeignElement) {
@@ -1608,7 +1608,7 @@ class Thread extends mixInObject(
           // The element can contain parts of a comment that is not in the thread, for example
           // https://ru.wikipedia.org/wiki/Википедия:К_оценке_источников#202104120830_RosssW_2.
           if (nextForeignElement && item.contains(nextForeignElement)) {
-            return null;
+            return;
           }
 
           break;
@@ -1617,7 +1617,7 @@ class Thread extends mixInObject(
       previousNode = currentNode;
     } while (this.treeWalker.parentNode());
 
-    return item || null;
+    return item || undefined;
   }
 
   /**
