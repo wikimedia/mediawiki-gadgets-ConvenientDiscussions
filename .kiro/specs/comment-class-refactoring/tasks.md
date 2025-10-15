@@ -147,7 +147,6 @@
 
 - [x] 8. Update prototype management
 
-
   - [x] 8.1 Refactor Comment.initPrototypes method
 
     - Move shared prototypes (underlay, overlay) to Comment base class
@@ -169,16 +168,18 @@
     - Extract compact-specific prototype code from Comment.initPrototypes
     - _Requirements: 1.6_
 
-- [ ] 9. Remove complex generic type system
+- [x] 9. Remove complex generic type system
 
-  - [ ] 9.1 Remove unused generic types
+
+  - [x] 9.1 Remove unused generic types
 
     - Delete HTMLElementIfReformatted, HTMLElementIfNotReformattedAndHasLayers, JQueryIfReformatted, JQueryIfNotReformattedAndHasLayers types from Comment.js
     - Remove HasLayers and Reformatted generic parameters from Comment class
     - Clean up conditional type definitions
     - _Requirements: 3.1, 3.2, 3.3_
 
-  - [ ] 9.2 Update type definitions for subclasses
+  - [x] 9.2 Update type definitions for subclasses
+
     - Add concrete types to SpaciousComment and CompactComment
     - Update JSDoc comments to reflect new class hierarchy
     - Update type definitions for external consumption

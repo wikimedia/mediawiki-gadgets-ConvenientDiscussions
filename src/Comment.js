@@ -130,7 +130,7 @@ import { createSvg, extractSignatures, formatDate, formatDateNative, getExtended
 /**
  * @typedef {Map<
  *   import('./updateChecker').SectionWorkerMatched | import('./Section').default | null,
- *   import('./updateChecker').CommentWorkerMatched[] | Comment<boolean>[]
+ *   import('./updateChecker').CommentWorkerMatched[] | Comment[]
  * >} CommentsBySection
  */
 
@@ -138,9 +138,6 @@ import { createSvg, extractSignatures, formatDate, formatDateNative, getExtended
  * A comment (any signed, and in some cases unsigned, text on a wiki talk page) in the window (not
  * the web worker) context.
  *
- * @template {boolean} [Reformatted=boolean]
- * @template {boolean} [OpeningSection=boolean]
- * @template {boolean} [HasLayers=boolean]
  * @augments CommentSkeleton<Node>
  */
 class Comment extends CommentSkeleton {
@@ -207,44 +204,22 @@ class Comment extends CommentSkeleton {
    */
   marginHighlightable;
 
-  /**
-   * @typedef {Reformatted extends true ? HTMLElement : undefined} HTMLElementIfReformatted
-   */
+
 
   /**
-   * @typedef {HasLayers extends true ? HTMLElement : undefined} HTMLElementIfHasLayers
-   */
-
-  /**
-   * @typedef {Reformatted extends false ? (HasLayers extends true ? HTMLElement : undefined) : undefined} HTMLElementIfNotReformattedAndHasLayers
-   */
-
-  /**
-   * @typedef {Reformatted extends true ? JQuery<HTMLElementIfReformatted> : undefined} JQueryIfReformatted
-   */
-
-  /**
-   * @typedef {HasLayers extends true ? JQuery<HTMLElementIfHasLayers> : undefined} JQueryIfHasLayers
-   */
-
-  /**
-   * @typedef {Reformatted extends false ? (HasLayers extends true ? JQuery<HTMLElementIfHasLayers> : undefined) : undefined} JQueryIfNotReformattedAndHasLayers
-   */
-
-  /**
-   * @type {HTMLElementIfReformatted}
+   * @type {HTMLElement | undefined}
    */
   headerElement;
 
   /**
-   * @type {HTMLElementIfReformatted}
+   * @type {HTMLElement | undefined}
    */
   menuElement;
 
   /**
    * Comment header. Used when comment spacious formatting is enabled.
    *
-   * @type {JQueryIfReformatted}
+   * @type {JQuery | undefined}
    */
   $header;
 
@@ -252,7 +227,7 @@ class Comment extends CommentSkeleton {
    * Comment menu. Used when comment spacious formatting is enabled; otherwise
    * {@link Comment#$overlayMenu} is used.
    *
-   * @type {JQueryIfReformatted}
+   * @type {JQuery | undefined}
    */
   $menu;
 
@@ -275,7 +250,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.underlay instead
    *
-   * @type {HTMLElementIfHasLayers}
+   * @type {HTMLElement | undefined}
    */
   get underlay() {
     return this.layers?.underlay;
@@ -286,7 +261,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.overlay instead
    *
-   * @type {HTMLElementIfHasLayers}
+   * @type {HTMLElement | undefined}
    * @private
    */
   get overlay() {
@@ -298,7 +273,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.line instead
    *
-   * @type {HTMLElementIfHasLayers}
+   * @type {HTMLElement | undefined}
    * @private
    */
   get line() {
@@ -310,7 +285,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.marker instead
    *
-   * @type {HTMLElementIfHasLayers}
+   * @type {HTMLElement | undefined}
    * @private
    */
   get marker() {
@@ -322,7 +297,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.overlayInnerWrapper instead
    *
-   * @type {HTMLElementIfNotReformattedAndHasLayers}
+   * @type {HTMLElement | undefined}
    * @private
    */
   get overlayInnerWrapper() {
@@ -334,7 +309,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.overlayGradient instead
    *
-   * @type {HTMLElementIfNotReformattedAndHasLayers}
+   * @type {HTMLElement | undefined}
    * @private
    */
   get overlayGradient() {
@@ -346,7 +321,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.overlayMenu instead
    *
-   * @type {HTMLElementIfNotReformattedAndHasLayers}
+   * @type {HTMLElement | undefined}
    * @private
    */
   get overlayMenu() {
@@ -358,7 +333,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.$underlay instead
    *
-   * @type {JQueryIfHasLayers}
+   * @type {JQuery | undefined}
    */
   get $underlay() {
     return this.layers?.$underlay;
@@ -369,7 +344,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.$overlay instead
    *
-   * @type {JQueryIfHasLayers}
+   * @type {JQuery | undefined}
    */
   get $overlay() {
     return this.layers?.$overlay;
@@ -380,7 +355,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.$marker instead
    *
-   * @type {JQueryIfHasLayers}
+   * @type {JQuery | undefined}
    */
   get $marker() {
     return this.layers?.$marker;
@@ -391,7 +366,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.$overlayMenu instead
    *
-   * @type {JQueryIfNotReformattedAndHasLayers}
+   * @type {JQuery | undefined}
    */
   get $overlayMenu() {
     return this.layers?.$overlayMenu;
@@ -402,7 +377,7 @@ class Comment extends CommentSkeleton {
    *
    * @deprecated Use layers.$overlayGradient instead
    *
-   * @type {JQueryIfNotReformattedAndHasLayers}
+   * @type {JQuery | undefined}
    */
   get $overlayGradient() {
     return this.layers?.$overlayGradient;
@@ -731,7 +706,7 @@ class Comment extends CommentSkeleton {
   /**
    * Check if the comment is spacious (reformatted).
    *
-   * @returns {this is Comment<true>}
+   * @returns {boolean}
    * @private
    */
   isReformatted() {
@@ -741,7 +716,7 @@ class Comment extends CommentSkeleton {
   /**
    * Check if the comment has layers (underlay and overlay).
    *
-   * @returns {this is Comment<boolean, boolean, true>}
+   * @returns {boolean}
    * @private
    */
   hasLayers() {
@@ -751,7 +726,7 @@ class Comment extends CommentSkeleton {
   /**
    * Check if the comment is not spacious (not reformatted) and its underlay is present.
    *
-   * @returns {this is Comment<false, boolean, true>}
+   * @returns {boolean}
    * @private
    */
   hasClassicUnderlay() {
@@ -946,7 +921,7 @@ class Comment extends CommentSkeleton {
     const pagesToCheckExistence = [];
 
     const headerWrapper = Comment.prototypes.get('headerWrapperElement');
-    this.headerElement = /** @type {HTMLElementIfReformatted & HTMLElement} */ (
+    this.headerElement = /** @type {HTMLElement} */ (
       headerWrapper.firstChild
     );
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -1066,7 +1041,7 @@ class Comment extends CommentSkeleton {
       }
     }
 
-    this.$header = /** @type {JQueryIfReformatted & JQuery} */ ($(this.headerElement));
+    this.$header = /** @type {JQuery} */ ($(this.headerElement));
 
     this.rewrapHighlightables();
     this.highlightables[0].insertBefore(headerWrapper, this.highlightables[0].firstChild);
@@ -1093,8 +1068,8 @@ class Comment extends CommentSkeleton {
 
     const menuElement = /** @type {HTMLElement} */ (document.createElement('div'));
     menuElement.className = 'cd-comment-menu';
-    this.menuElement = /** @type {HTMLElementIfReformatted & HTMLElement} */ (menuElement);
-    this.$menu = /** @type {JQueryIfReformatted & JQuery} */ ($(menuElement));
+    this.menuElement = /** @type {HTMLElement} */ (menuElement);
+    this.$menu = /** @type {JQuery} */ ($(menuElement));
 
     this.addReplyButton();
     this.addEditButton();
@@ -2256,7 +2231,7 @@ class Comment extends CommentSkeleton {
    * @param {string} markerColor
    * @param {string} backgroundColor
    * @param {() => void} [callback] Function to run when the animation is concluded.
-   * @this {Comment<boolean, boolean, true>}
+   * @this {Comment}
    * @private
    */
   animateToColors(markerColor, backgroundColor, callback) {
@@ -4168,7 +4143,7 @@ class Comment extends CommentSkeleton {
    * Get a comment relevant to this comment which means the comment itself. (Used for polymorphism
    * with {@link Section#getRelevantComment} and {@link Page#getRelevantComment}.)
    *
-   * @returns {Comment<Reformatted>}
+   * @returns {Comment}
    */
   getRelevantComment() {
     return this;
@@ -4627,7 +4602,7 @@ class Comment extends CommentSkeleton {
   /**
    * Check if this comment opens a section and has a reference to it.
    *
-   * @returns {this is Comment<boolean, true>}
+   * @returns {boolean}
    */
   isOpeningSection() {
     return this.openingSection;
