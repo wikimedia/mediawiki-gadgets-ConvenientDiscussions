@@ -261,9 +261,9 @@ class Parser {
     const afterNode = remainedText ? document.createTextNode(remainedText) : undefined;
     node.textContent = match[1];
     if (node.parentElement) {
-      Parser.insertBefore(node.parentElement, element, node.nextSibling);
+      Parser.insertBefore(node.parentElement, element, node.nextSibling || undefined);
       if (afterNode) {
-        Parser.insertBefore(node.parentElement, afterNode, element.nextSibling);
+        Parser.insertBefore(node.parentElement, afterNode, element.nextSibling || undefined);
       }
     }
 
@@ -439,7 +439,7 @@ class Parser {
     const element = Parser.createElement('span');
     element.classList.add('cd-signature');
     signatureNodes.reverse().forEach((n) => Parser.appendChild(element, n));
-    Parser.insertBefore(signatureContainer, element, startElementNextSibling);
+    Parser.insertBefore(signatureContainer, element, startElementNextSibling || undefined);
 
     return {
       // eslint-disable-next-line object-shorthand
@@ -700,10 +700,10 @@ class Parser {
 
     let lastChild;
     while ((lastChild = parent.lastChild) && lastChild !== node) {
-      Parser.insertBefore(clone, lastChild, clone.firstChild);
+      Parser.insertBefore(clone, lastChild, clone.firstChild || undefined);
     }
     if (this.getChildElements(clone).length > 0 && parent.parentElement) {
-      Parser.insertBefore(parent.parentElement, clone, parent.nextSibling);
+      Parser.insertBefore(parent.parentElement, clone, parent.nextSibling || undefined);
     }
 
     return { parent, clone };
@@ -942,7 +942,7 @@ class Parser {
   /**
    * Checks if an element contains a node.
    *
-   * @param {ElementLike | null} el The element to check the contents of
+   * @param {ElementLike | undefined} el The element to check the contents of
    * @param {NodeLike} node The node contained or not
    * @returns {boolean}
    */
@@ -955,7 +955,7 @@ class Parser {
    *
    * @param {ElementLike} parent The parent element
    * @param {NodeLike} node The node to insert
-   * @param {NodeLike | null} referenceNode The reference node to insert before
+   * @param {NodeLike | undefined} referenceNode The reference node to insert before
    * @returns {NodeLike}
    */
   static insertBefore(parent, node, referenceNode) {

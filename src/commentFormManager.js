@@ -71,8 +71,12 @@ class CommentFormManager extends EventEmitter {
       })
       .on('resize', this.adjustLabels);
     commentManager
-      .on('select', () => this.toggleQuoteButtonsHighlighting(true))
-      .on('unselect', () => this.toggleQuoteButtonsHighlighting(false));
+      .on('select', () => {
+        this.toggleQuoteButtonsHighlighting(true); 
+      })
+      .on('unselect', () => {
+        this.toggleQuoteButtonsHighlighting(false); 
+      });
 
     mw.hook('ext.CodeMirror.toggle').add((enabled, codeMirror) => {
       this.items.find((item) => item.codeMirror === codeMirror)?.setCodeMirrorActive(enabled);
@@ -320,12 +324,12 @@ class CommentFormManager extends EventEmitter {
         .get(mw.config.get('wgPageName'))
         ?.commentForms
         .filter((data) => {
-          const target = this.getTargetByData(data.targetData);
+          const target = this.getTargetByData(data.targetData || undefined);
           if (data.targetWithOutdentedRepliesData) {
             /** @type {import('./CommentForm').CommentFormInitialState} */ (
               data
             ).targetWithOutdentedReplies = /** @type {import('./Comment').default|undefined} */ (
-              this.getTargetByData(data.targetWithOutdentedRepliesData)
+              this.getTargetByData(data.targetWithOutdentedRepliesData || undefined)
             );
           }
           if (
@@ -369,7 +373,7 @@ class CommentFormManager extends EventEmitter {
    * Given identifying data (created by e.g. {@link Comment#getIdentifyingData}), get a comment or
    * section on the page or the page itself.
    *
-   * @param {AnyByKey | null} targetData
+   * @param {AnyByKey | undefined} targetData
    * @returns {import('./CommentForm').CommentFormTarget | undefined}
    * @private
    */
@@ -386,7 +390,7 @@ class CommentFormManager extends EventEmitter {
     } else if (targetData?.id) {
       // Comment
       return commentManager.getById(targetData.id) || undefined;
-    }   // `data.mode === 'addSection'` or `targetData === null`
+    }   // `data.mode === 'addSection'` or `targetData === undefined`
 
     // Page
     return cd.page;

@@ -68,7 +68,7 @@ import { isCmdModifierPressed, isExistentAnchor, isHtmlConvertibleToWikitext, is
 /**
  * @typedef {object} CommentFormData
  * @property {CommentFormMode} mode
- * @property {AnyByKey|null} targetData
+ * @property {AnyByKey | undefined} targetData
  * @property {AnyByKey|undefined} targetWithOutdentedRepliesData
  * @property {PreloadConfig} preloadConfig
  * @property {boolean|undefined} newTopicOnTop

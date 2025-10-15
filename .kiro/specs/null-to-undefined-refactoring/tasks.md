@@ -154,14 +154,7 @@
 
 - [x] 8. Process manager and controller classes (Phase 7 - Application controllers)
 
-
-
-
-
-
   - [x] 8.1 Update talkPageController.js null assignments
-
-
 
     - Remove `= null` from `lastCheckedRevisionId`, `relevantAddedCommentIds`
     - Update scroll data null assignments
@@ -170,15 +163,11 @@
 
   - [x] 8.2 Update commentManager.js null returns and comparisons
 
-
-
     - Replace `return null;` in `getById` and visibility methods
     - Update null comparisons in comment lookup logic
     - _Requirements: 1.1, 1.4, 3.1, 3.2_
 
   - [x] 8.3 Update pageRegistry.js and Page.js null handling
-
-
 
     - Replace `return null;` in page lookup methods
     - Update page property null assignments
@@ -191,7 +180,6 @@
     - _Requirements: 4.1, 4.3_
 
 - [x] 9. Process autocomplete and specialized features (Phase 8 - Feature modules)
-
 
   - [x] 9.1 Update autocomplete classes null handling
 
@@ -212,13 +200,7 @@
 
 - [x] 10. Process worker and parsing modules (Phase 9 - Background processing)
 
-
-
-
-
   - [x] 10.1 Update worker null returns and assignments
-
-
 
     - Replace `return null;` in worker.js `restoreFunc`
     - Update CommentWorker.js null returns
@@ -226,8 +208,6 @@
     - _Requirements: 1.1, 1.4_
 
   - [x] 10.2 Update Parser.js null handling
-
-
 
     - Replace `return null;` in parsing methods
     - Update parser null comparisons and assignments
@@ -239,15 +219,15 @@
     - Test worker comment processing
     - _Requirements: 4.1, 4.2_
 
-- [ ] 11. Update function parameter types and call sites (Phase 10 - Parameter propagation)
+- [x] 11. Update function parameter types and call sites (Phase 10 - Parameter propagation)
 
-  - [ ] 11.1 Update function parameter JSDoc types
+  - [x] 11.1 Update function parameter JSDoc types
 
     - Find functions with `@param` types containing `null` but not both `null` and `undefined`
     - Update parameter types to use `undefined` instead of `null`
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ] 11.2 Update function call sites and parameter passing
+  - [x] 11.2 Update function call sites and parameter passing
 
     - Update function calls that pass `null` to parameters now expecting `undefined`
     - Update parameter validation logic in function bodies

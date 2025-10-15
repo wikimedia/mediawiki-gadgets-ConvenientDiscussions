@@ -3560,7 +3560,9 @@ class Comment extends CommentSkeleton {
       setTimeout(this.configureLayers);
 
       // Wait until the comment form is unregistered
-      setTimeout(() => this.scrollIntoView('top'));
+      setTimeout(() => {
+        this.scrollIntoView('top');
+      });
     }
   }
 
@@ -3569,7 +3571,7 @@ class Comment extends CommentSkeleton {
    * offset.
    *
    * @param {boolean} partially Return `true` even if only a part of the comment is in the viewport.
-   * @param {CommentOffset|null} [offset] Prefetched offset.
+   * @param {CommentOffset | undefined} [offset] Prefetched offset.
    * @returns {boolean | undefined}
    */
   isInViewport(partially = false, offset = this.getOffset()) {

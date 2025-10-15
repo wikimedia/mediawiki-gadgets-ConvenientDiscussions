@@ -395,7 +395,7 @@ Element.prototype.setAttribute = function setAttribute(name, value) {
       value = value.replace(/"/g, '&quot;');
     }
   }
-  this.attribs[name] = String(value) || '';
+  this.attribs[name] = value || '';
 };
 
 /**
