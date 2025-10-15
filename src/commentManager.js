@@ -306,7 +306,7 @@ class CommentManager extends EventEmitter {
         );
 
       if (
-        comment.underlay &&
+        comment.layers?.underlay &&
         !shouldBeHighlighted &&
 
         // Layers that ended up under the bottom of the page content and could be moving the page
@@ -577,7 +577,7 @@ class CommentManager extends EventEmitter {
 
     const isObstructingElementHovered = talkPageController.isObstructingElementHovered();
     this.items
-      .filter((comment) => comment.underlay)
+      .filter((comment) => comment.layers?.underlay)
       .forEach((comment) => {
         comment.updateHoverState(event, isObstructingElementHovered);
       });

@@ -89,7 +89,6 @@
 
 - [x] 6. Refactor existing Comment class to use composition
 
-
   - [x] 6.1 Extract layers functionality to composition
 
     - Move layer-related properties from Comment to layers composition
@@ -121,9 +120,10 @@
     - Remove spacious/compact-specific code from base class
     - _Requirements: 1.4, 3.1, 3.2_
 
-- [ ] 7. Update external references and type guards
+- [x] 7. Update external references and type guards
 
-  - [ ] 7.1 Update layer property access
+
+  - [x] 7.1 Update layer property access
 
     - Find all external references to comment.underlay, comment.overlay, etc.
     - Update to use comment.layers.underlay, comment.layers.overlay, etc.
@@ -131,7 +131,7 @@
     - Search and update all files that access layer properties
     - _Requirements: 5.1, 2.6_
 
-  - [ ] 7.2 Update type guards and instanceof checks
+  - [x] 7.2 Update type guards and instanceof checks
 
     - Replace hasLayers() type guard with layers property check
     - Replace hasClassicUnderlay() type guard with layers property and class check
@@ -139,7 +139,8 @@
     - Update external type guard references across codebase
     - _Requirements: 3.4, 3.5, 5.3_
 
-  - [ ] 7.3 Update action method calls
+  - [x] 7.3 Update action method calls
+
     - Find all external calls to action methods on comment instances
     - Update to use comment.actions.method() pattern where appropriate
     - Search and update all files that call action methods
