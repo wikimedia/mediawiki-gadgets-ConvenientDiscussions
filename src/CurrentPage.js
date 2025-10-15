@@ -60,7 +60,7 @@ export default class CurrentPage extends Page {
    * DOM elements.
    *
    * @override
-   * @returns {?boolean}
+   * @returns {boolean | undefined}
    */
   canHaveArchives() {
     const $archivingInfo = this.findArchivingInfoElement();
@@ -77,13 +77,13 @@ export default class CurrentPage extends Page {
    *
    * @override
    * @param {boolean} [onlyExplicit=false]
-   * @returns {?string}
+   * @returns {string | undefined}
    */
   getArchivePrefix(onlyExplicit = false) {
     const $archivingInfo = this.findArchivingInfoElement();
     if ($archivingInfo?.length) {
       if ($archivingInfo.attr('data-is-archive-page')) {
-        return null;
+        return;
       }
       const archivePrefix = $archivingInfo.attr('data-archive-prefix');
       if (archivePrefix) {
@@ -167,7 +167,7 @@ export default class CurrentPage extends Page {
   /**
    * Find an archiving info element on the page.
    *
-   * @returns {?JQuery}
+   * @returns {JQuery | undefined}
    * @private
    */
   findArchivingInfoElement() {
@@ -236,7 +236,7 @@ export default class CurrentPage extends Page {
    * @param {object} [preloadConfig=CommentForm.getDefaultPreloadConfig()] See
    *   {@link CommentForm.getDefaultPreloadConfig}.
    * @param {boolean} [newTopicOnTop=false]
-   * @returns {?import('./CommentForm').default}
+   * @returns {import('./CommentForm').default | undefined}
    */
   addSection(
     initialState,
@@ -250,7 +250,7 @@ export default class CurrentPage extends Page {
       if (!areObjectsEqual(preloadConfig, this.addSectionForm.getPreloadConfig())) {
         mw.notify(cd.s('cf-error-formconflict'), { type: 'error' });
 
-        return null;
+        return;
       }
 
       this.addSectionForm.$element.cdScrollIntoView('center');
@@ -321,9 +321,9 @@ export default class CurrentPage extends Page {
    *
    * @override
    * @param {import('./CommentForm').default} commentForm
-   * @returns {?import('./Comment').default}
+   * @returns {import('./Comment').default | undefined}
    */
   getCommentAboveCommentToBeAdded(commentForm) {
-    return commentForm.isNewTopicOnTop() ? null : commentManager.getByIndex(-1);
+    return commentForm.isNewTopicOnTop() ? undefined : commentManager.getByIndex(-1);
   }
 }

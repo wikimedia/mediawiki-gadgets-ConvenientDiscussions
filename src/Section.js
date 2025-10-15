@@ -740,7 +740,7 @@ class Section extends SectionSkeleton {
           newestComment,
           $authorLink: $('<a>')
             .text(author.getName())
-            .attr('href', `#${comments[0].getUrlFragment()}`)
+            .attr('href', `#${comments[0].getUrlFragment() || ''}`)
             .on('click', () => {
               Comment.scrollToFirstFlashAll(comments);
             }),
@@ -827,7 +827,7 @@ class Section extends SectionSkeleton {
                 cd.mws('parentheses-start'),
                 $('<a>')
                   .text(formatDate(datum.newestCommentDate))
-                  .attr('href', `#${id}`)
+                  .attr('href', `#${id || ''}`)
 
                   // Without the event handler, there will be a problem jumping to the comment when
                   // the URL already has its ID.
@@ -885,7 +885,7 @@ class Section extends SectionSkeleton {
       if (latestComment) {
         const latestCommentLink = document.createElement('a');
         const id = latestComment.getUrlFragment();
-        latestCommentLink.href = `#${id}`;
+        latestCommentLink.href = `#${id || ''}`;
         latestCommentLink.className = 'cd-clickHandled';
         latestCommentLink.addEventListener('click', this.scrollToLatestComment);
         latestCommentLink.textContent = formatDate(latestComment.date);
@@ -1305,7 +1305,7 @@ class Section extends SectionSkeleton {
 
     const newLink = document.createElement('a');
     newLink.textContent = cd.s('section-metadata-newcommentcount', String(this.newComments.length));
-    newLink.href = `#${this.newComments[0].dtId}`;
+    newLink.href = `#${this.newComments[0].dtId || ''}`;
     newLink.className = 'cd-clickHandled';
     newLink.addEventListener('click', this.scrollToNewComments);
 
@@ -2034,7 +2034,7 @@ class Section extends SectionSkeleton {
    * attribute.
    */
   updateTocLink() {
-    this.getTocItem()?.updateSubscriptionState(this.subscriptionState);
+    this.getTocItem()?.updateSubscriptionState(this.subscriptionState ?? null);
   }
 
   /**
@@ -2111,7 +2111,7 @@ class Section extends SectionSkeleton {
   /**
    * Get the section used to subscribe to new comments in this section if available.
    *
-   * @returns {?Section}
+   * @returns {Section | undefined}
    */
   getSectionSubscribedTo() {
     return this.useTopicSubscription ? this.getBase(true) : this;
@@ -2166,7 +2166,7 @@ class Section extends SectionSkeleton {
    * If this section is replied to, get the comment that will end up directly above the reply.
    *
    * @param {import('./CommentForm').default} commentForm
-   * @returns {?Comment}
+   * @returns {Comment | undefined}
    */
   getCommentAboveCommentToBeAdded(commentForm) {
     return sectionManager.getAll()

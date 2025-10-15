@@ -232,13 +232,13 @@ function parse() {
 /**
  * Restore function from its code.
  *
- * @param {?string} code
- * @returns {(() => any) | null}
+ * @param {string | undefined} code
+ * @returns {(() => any) | undefined}
  * @private
  */
 function restoreFunc(code) {
   if (!code) {
-    return null;
+    return;
   }
 
   if (code) {
