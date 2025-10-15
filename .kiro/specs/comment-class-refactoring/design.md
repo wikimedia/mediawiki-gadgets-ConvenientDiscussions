@@ -85,6 +85,7 @@ Each comment subclass will manage its own prototypes through static `initPrototy
 abstract createLayers()
 abstract updateLayersStyles()
 abstract addAttributes()
+abstract bindEvents() // Bind comment-specific events (may be no-op for spacious)
 static abstract initPrototypes() // Initialize DOM prototypes for performance
 
 // Common methods (inherited by subclasses)
@@ -101,6 +102,7 @@ static createUserInfoCardButton() // Shared prototype creation
 ```javascript
 layers?: CommentLayers
 actions?: CommentActions
+spacious: boolean // Renamed from 'reformatted'
 ```
 
 ### SpaciousComment
@@ -121,6 +123,7 @@ createLayers() // Creates SpaciousCommentLayers
 updateLayersStyles() // Spacious-specific styling
 addAttributes() // Spacious-specific attributes
 formatHeader() // Author/date header formatting
+bindEvents() // No-op for spacious comments (no hover behavior)
 static initPrototypes() // Creates spacious-specific prototypes (header, SVG icons)
 ```
 
@@ -149,7 +152,15 @@ dateElement: HTMLElement
 createLayers() // Creates CompactCommentLayers
 updateLayersStyles() // Compact-specific styling
 addAttributes() // Compact-specific attributes
+bindEvents() // Bind hover events for menu display
+highlightHovered() // Handle hover highlighting
 static initPrototypes() // Creates compact-specific prototypes (overlay menu elements)
+```
+
+**Key Properties:**
+```javascript
+isHovered: boolean // Track hover state for menu display
+wasMenuHidden: boolean // Track if menu was manually hidden
 ```
 
 ### CommentLayers (Base Class)
@@ -169,8 +180,6 @@ static initPrototypes() // Creates compact-specific prototypes (overlay menu ele
 create() // Create underlay and overlay elements
 destroy() // Clean up layers
 updateStyles() // Update layer positioning and styling
-show() // Show layers
-hide() // Hide layers
 ```
 
 **Key Properties:**
@@ -218,6 +227,8 @@ updateStyles() // Spacious-specific positioning
 create() // Override with compact-specific layer creation
 updateStyles() // Compact-specific positioning
 addMenu() // Add overlay menu for compact comments
+showMenu() // Show the overlay menu
+hideMenu() // Hide the overlay menu
 ```
 
 **Key Properties:**
@@ -437,6 +448,7 @@ interface ActionConfig {
 - All existing public methods will remain available
 - Layer properties will be accessible via `comment.layers.property`
 - Action methods will be accessible via `comment.actions.method()`
+- The `reformatted` property will be renamed to `spacious` for clarity
 
 ### Type Compatibility
 
