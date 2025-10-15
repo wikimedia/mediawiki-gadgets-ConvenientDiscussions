@@ -80,6 +80,7 @@ import { createSvg, extractSignatures, formatDate, formatDateNative, getExtended
  * A comment (any signed, and in some cases unsigned, text on a wiki talk page) in the window (not
  * the web worker) context.
  *
+ * @template {boolean} [OpeningSection=boolean]
  * @augments CommentSkeleton<Node>
  */
 class Comment extends CommentSkeleton {
@@ -2022,7 +2023,7 @@ class Comment extends CommentSkeleton {
 
     if (flag === 'hovered' && !add) {
       const compactLayers = /** @type {import('./CompactCommentLayers').default} */ (this.layers);
-      if (compactLayers?.overlayInnerWrapper) {
+      if (compactLayers.overlayInnerWrapper) {
         compactLayers.overlayInnerWrapper.style.display = '';
       }
     }
@@ -4539,7 +4540,7 @@ class Comment extends CommentSkeleton {
   /**
    * Check if this comment opens a section and has a reference to it.
    *
-   * @returns {boolean}
+   * @returns {this is Comment<true>}
    */
   isOpeningSection() {
     return this.openingSection;
