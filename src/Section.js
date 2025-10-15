@@ -457,10 +457,14 @@ class Section extends SectionSkeleton {
         this.addSubsection();
       },
     });
-    button.buttonElement.addEventListener('mouseenter', buttonsContainerInstance.resetHideAddSubsectionButtonTimeout
-      .bind(buttonsContainerInstance));
-    button.buttonElement.addEventListener('mouseleave', buttonsContainerInstance.deferAddSubsectionButtonHide
-      .bind(buttonsContainerInstance));
+    button.buttonElement.addEventListener(
+      'mouseenter',
+      buttonsContainerInstance.resetHideAddSubsectionButtonTimeout.bind(buttonsContainerInstance)
+    );
+    button.buttonElement.addEventListener(
+      'mouseleave',
+      buttonsContainerInstance.deferAddSubsectionButtonHide.bind(buttonsContainerInstance)
+    );
 
     return button;
   }

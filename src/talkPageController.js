@@ -783,7 +783,7 @@ class TalkPageController extends EventEmitter {
       $(document).on('keydown', this.handleGlobalKeyDown.bind(this));
     }
 
-    mw.hook('wikipage.content').add(bootManager.handleWikipageContentHookFirings.bind(this));
+    mw.hook('wikipage.content').add(bootManager.handleWikipageContentHookFirings.bind(bootManager));
 
     updateChecker
       .on('check', (revisionId) => {

@@ -25,9 +25,16 @@ class SectionSkeleton {
   /**
    * The name of the page the section is on in terms of wikitext.
    *
-   * @type {?string}
+   * @type {string | undefined}
    */
-  sourcePageName = null;
+  sourcePageName;
+
+  /**
+   * Sequental number of the section at the time of the page load.
+   *
+   * @type {number | undefined}
+   */
+  sectionNumber;
 
   /**
    * Nesting level of the heading relative to the root element.
@@ -146,13 +153,6 @@ class SectionSkeleton {
       /** @type {RegExpMatchArray} */ (this.hElement.tagName.match(/^H([1-6])$/))[1]
     );
 
-    /**
-     * Sequental number of the section at the time of the page load.
-     *
-     * @type {?number}
-     */
-    this.sectionNumber = null;
-
     const editLink = [
       ...(
         // Get menu links. Use two calls because our improvised .querySelectorAll() in
@@ -173,13 +173,13 @@ class SectionSkeleton {
       if (editUrl) {
         const sectionParam = editUrl.searchParams.get('section');
         if (sectionParam && sectionParam.startsWith('T-')) {
-          this.sourcePageName = editUrl.searchParams.get('title');
+          this.sourcePageName = editUrl.searchParams.get('title') || undefined;
           this.sectionNumber = Number((sectionParam.match(/\d+/) || [])[0]);
         } else {
           this.sectionNumber = Number(sectionParam);
         }
         if (Number.isNaN(this.sectionNumber)) {
-          this.sectionNumber = null;
+          this.sectionNumber = undefined;
         }
 
         /**
@@ -317,7 +317,7 @@ class SectionSkeleton {
       lastElement = /** @type {ElementLike} */ (lastElement.lastElementChild);
     }
 
-    if (cd.config.reflistTalkClasses.some((name) => lastElement.classList?.contains(name))) {
+    if (cd.config.reflistTalkClasses.some((name) => lastElement.classList.contains(name))) {
       lastElement = /** @type {ElementLike} */ (lastElement.previousElementSibling);
     }
 
@@ -356,19 +356,18 @@ class SectionSkeleton {
    * @param {boolean} [ignoreFirstLevel] Don't consider sections of the first level parent
    *   sections; stop at second level sections.
    * @param {this[]} [sections]
-   * @returns {?this}
+   * @returns {this | undefined}
    */
   getParent(ignoreFirstLevel = true, sections = /** @type {this[]} */ (cd.sections)) {
     if (ignoreFirstLevel && this.level <= 2) {
-      return null;
+      return;
     }
 
     return (
       sections
         .slice(0, this.index)
         .reverse()
-        .find((section) => section.level < this.level) ||
-        null
+        .find((section) => section.level < this.level)
     );
   }
 

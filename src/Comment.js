@@ -429,18 +429,18 @@ class Comment extends CommentSkeleton {
    * Is the comment new. Is set to a boolean only on active pages (not archived pages, not old
    * diffs) excluding pages that are visited for the first time.
    *
-   * @type {?boolean}
+   * @type {boolean | undefined}
    */
-  isNew = null;
+  isNew;
 
   /**
    * Has the comment been seen if it is new. Is set only on active pages (not archived, not old
    * diffs) excluding pages that are visited for the first time. Check using `=== false` if you
    * need to know if the comment is highlighted as new and unseen.
    *
-   * @type {?boolean}
+   * @type {boolean | undefined}
    */
-  isSeen = null;
+  isSeen;
 
   /**
    * Is the comment currently highlighted as a target comment.
@@ -459,9 +459,9 @@ class Comment extends CommentSkeleton {
   /**
    * Has the comment changed since the previous visit.
    *
-   * @type {?boolean}
+   * @type {boolean | undefined}
    */
-  isChangedSincePreviousVisit = null;
+  isChangedSincePreviousVisit;
 
   /**
    * Has the comment changed while the page was idle. (The new version may be rendered and may be
@@ -481,7 +481,7 @@ class Comment extends CommentSkeleton {
   /**
    * Should the comment be flashed as changed when it appears in sight.
    *
-   * @type {?boolean}
+   * @type {boolean | undefined}
    */
   willFlashChangedOnSight = false;
 
@@ -503,9 +503,9 @@ class Comment extends CommentSkeleton {
    * If the comment is collapsed, that's the closest collapsed thread that this comment is related
    * to.
    *
-   * @type {?import('./Thread').default}
+   * @type {import('./Thread').default | undefined}
    */
-  collapsedThread = null;
+  collapsedThread;
 
   /**
    * List of the comment's {@link CommentSubitemList subitems}.
@@ -530,10 +530,10 @@ class Comment extends CommentSkeleton {
   /**
    * Has the comment been seen before it was changed.
    *
-   * @type {?boolean}
+   * @type {boolean | undefined}
    * @private
    */
-  isSeenBeforeChanged = null;
+  isSeenBeforeChanged;
 
   /** @type {import('./Thread').default | undefined} */
   thread;
@@ -660,11 +660,11 @@ class Comment extends CommentSkeleton {
        * Name of the tag of the list that this comment is an item of. `'dl'`, `'ul'`, `'ol'`, or
        * `null`.
        *
-       * @type {?ListType}
+       * @type {ListType | undefined}
        */
-      this.containerListType = getContainerListType(this.highlightables[0]);
+      this.containerListType = getContainerListType(this.highlightables[0]) || undefined;
 
-      this.mhContainerListType = getContainerListType(this.marginHighlightable);
+      this.mhContainerListType = getContainerListType(this.marginHighlightable) || undefined;
     }
   }
 
@@ -2699,7 +2699,7 @@ class Comment extends CommentSkeleton {
       this.isSeenBeforeChanged === true
     ) {
       this.isSeen = true;
-      this.isSeenBeforeChanged = null;
+      this.isSeenBeforeChanged = undefined;
       commentManager.emit('registerSeen');
     }
 
@@ -3912,7 +3912,7 @@ class Comment extends CommentSkeleton {
     }
 
     let $note = null;
-    for (let t = this.collapsedThread; t; t = t.rootComment.getParent()?.collapsedThread || null) {
+    for (let t = this.collapsedThread; t; t = t.rootComment.getParent()?.collapsedThread) {
       $note = /** @type {JQuery} */ (t.$expandNote);
       if ($note.is(':visible')) break;
     }
@@ -4306,7 +4306,7 @@ class Comment extends CommentSkeleton {
       return this.thread.lastComment.index;
     }
     this.isCollapsed = false;
-    this.collapsedThread = null;
+    this.collapsedThread = undefined;
     this.configureLayers();
 
     return null;

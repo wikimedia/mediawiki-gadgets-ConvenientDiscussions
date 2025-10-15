@@ -45,13 +45,13 @@ class CommentSkeleton {
    */
   logicalLevel;
 
-  /** @type {?import('./SectionSkeleton').default<N>} */
+  /** @type {import('./SectionSkeleton').default<N> | undefined} */
   section;
 
   /**
    * @type {{
-   *   level?: ?CommentSkeleton;
-   *   logicalLevel?: ?CommentSkeleton;
+   *   level?: CommentSkeleton | undefined;
+   *   logicalLevel?: CommentSkeleton | undefined;
    * }}
    */
   cachedParent = {};
@@ -80,7 +80,7 @@ class CommentSkeleton {
   /**
    * Comment date.
    *
-   * @type {?Date}
+   * @type {Date | undefined}
    */
   date;
 
@@ -197,7 +197,7 @@ class CommentSkeleton {
     this.followsHeading = targets[signatureIndex - 1]?.type === 'heading';
     this.signatureElement = signature.element;
     this.signatureText = signature.element.textContent;
-    this.date = signature.date || null;
+    this.date = signature.date ?? undefined;
     this.authorName = signature.authorName;
     this.id = CommentSkeleton.generateId(
       this.date || undefined,
@@ -255,7 +255,7 @@ class CommentSkeleton {
 
     this.addAttributes();
 
-    this.section = null;
+    this.section = undefined;
     this.isOutdented = false;
 
     signature.comment = this;
