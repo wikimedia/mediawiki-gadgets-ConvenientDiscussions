@@ -122,7 +122,6 @@
 
 - [x] 7. Update external references and type guards
 
-
   - [x] 7.1 Update layer property access
 
     - Find all external references to comment.underlay, comment.overlay, etc.
@@ -146,23 +145,25 @@
     - Search and update all files that call action methods
     - _Requirements: 7.6_
 
-- [ ] 8. Update prototype management
+- [x] 8. Update prototype management
 
-  - [ ] 8.1 Refactor Comment.initPrototypes method
+
+  - [x] 8.1 Refactor Comment.initPrototypes method
 
     - Move shared prototypes (underlay, overlay) to Comment base class
     - Remove spacious/compact-specific prototypes from base method
     - Update existing initPrototypes method in Comment.js
     - _Requirements: 1.6_
 
-  - [ ] 8.2 Implement SpaciousComment.initPrototypes
+  - [x] 8.2 Implement SpaciousComment.initPrototypes
 
     - Move header wrapper and SVG icon prototypes to SpaciousComment
     - Ensure prototypes are created when spaciousComments setting is true
     - Extract spacious-specific prototype code from Comment.initPrototypes
     - _Requirements: 1.6_
 
-  - [ ] 8.3 Implement CompactComment.initPrototypes
+  - [x] 8.3 Implement CompactComment.initPrototypes
+
     - Move overlay menu prototypes to CompactComment
     - Ensure prototypes are created when spaciousComments setting is false
     - Extract compact-specific prototype code from Comment.initPrototypes

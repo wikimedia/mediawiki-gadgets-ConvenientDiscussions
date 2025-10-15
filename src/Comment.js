@@ -4664,12 +4664,29 @@ class Comment extends CommentSkeleton {
   /**
    * _For internal use._ Create element prototypes to reuse them instead of creating new elements
    * from scratch (which is more expensive).
-   * This method should be overridden by subclasses.
-   *
-   * @abstract
+   * Creates shared prototypes (underlay, overlay) that are common to all comment types.
+   * Subclasses should override this method to add their specific prototypes.
    */
   static initPrototypes() {
-    throw new Error('initPrototypes must be implemented by subclasses');
+    this.prototypes = new PrototypeRegistry();
+
+    // Create shared layer elements (underlay, overlay)
+    const commentUnderlay = document.createElement('div');
+    commentUnderlay.className = 'cd-comment-underlay';
+
+    const commentOverlay = document.createElement('div');
+    commentOverlay.className = 'cd-comment-overlay';
+
+    const overlayLine = document.createElement('div');
+    overlayLine.className = 'cd-comment-overlay-line';
+    commentOverlay.append(overlayLine);
+
+    const overlayMarker = document.createElement('div');
+    overlayMarker.className = 'cd-comment-overlay-marker';
+    commentOverlay.append(overlayMarker);
+
+    this.prototypes.add('underlay', commentUnderlay);
+    this.prototypes.add('overlay', commentOverlay);
   }
 
   /**

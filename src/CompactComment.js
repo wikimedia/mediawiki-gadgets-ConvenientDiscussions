@@ -47,27 +47,16 @@ class CompactComment extends Comment {
    * @override
    */
   static initPrototypes() {
-    this.prototypes = new PrototypeRegistry();
+    // Call parent method to create shared prototypes (underlay, overlay)
+    super.initPrototypes();
 
-    // Create shared layer elements (underlay, overlay)
-    const commentUnderlay = document.createElement('div');
-    commentUnderlay.className = 'cd-comment-underlay';
-
-    const commentOverlay = document.createElement('div');
-    commentOverlay.className = 'cd-comment-overlay';
-
-    const overlayLine = document.createElement('div');
-    overlayLine.className = 'cd-comment-overlay-line';
-    commentOverlay.append(overlayLine);
-
-    const overlayMarker = document.createElement('div');
-    overlayMarker.className = 'cd-comment-overlay-marker';
-    commentOverlay.append(overlayMarker);
+    // Get the base overlay prototype and enhance it with compact-specific elements
+    const baseOverlay = this.prototypes.get('overlay');
 
     // Create compact-specific overlay menu elements
     const overlayInnerWrapper = document.createElement('div');
     overlayInnerWrapper.className = 'cd-comment-overlay-innerWrapper';
-    commentOverlay.append(overlayInnerWrapper);
+    baseOverlay.append(overlayInnerWrapper);
 
     const overlayGradient = document.createElement('div');
     overlayGradient.textContent = '\u00A0';
@@ -78,8 +67,8 @@ class CompactComment extends Comment {
     overlayContent.className = 'cd-comment-overlay-content';
     overlayInnerWrapper.append(overlayContent);
 
-    this.prototypes.add('underlay', commentUnderlay);
-    this.prototypes.add('overlay', commentOverlay);
+    // Replace the base overlay with the enhanced version
+    this.prototypes.add('overlay', baseOverlay);
   }
 }
 

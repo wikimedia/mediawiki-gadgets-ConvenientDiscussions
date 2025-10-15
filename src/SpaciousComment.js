@@ -96,7 +96,8 @@ class SpaciousComment extends Comment {
    * @override
    */
   static initPrototypes() {
-    this.prototypes = new PrototypeRegistry();
+    // Call parent method to create shared prototypes (underlay, overlay)
+    super.initPrototypes();
 
     // Create header wrapper element
     const headerElement = document.createElement('div');
@@ -160,24 +161,6 @@ class SpaciousComment extends Comment {
       'expandChildThreadsButtonSvg',
       createSvg(16, 16, 20, 20).html(`<path d="M11 9V4H9v5H4v2h5v5h2v-5h5V9z" />`)[0]
     );
-
-    // Create shared prototypes (underlay, overlay)
-    const commentUnderlay = document.createElement('div');
-    commentUnderlay.className = 'cd-comment-underlay';
-
-    const commentOverlay = document.createElement('div');
-    commentOverlay.className = 'cd-comment-overlay';
-
-    const overlayLine = document.createElement('div');
-    overlayLine.className = 'cd-comment-overlay-line';
-    commentOverlay.append(overlayLine);
-
-    const overlayMarker = document.createElement('div');
-    overlayMarker.className = 'cd-comment-overlay-marker';
-    commentOverlay.append(overlayMarker);
-
-    this.prototypes.add('underlay', commentUnderlay);
-    this.prototypes.add('overlay', commentOverlay);
   }
 }
 
