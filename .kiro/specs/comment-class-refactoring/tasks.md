@@ -170,7 +170,6 @@
 
 - [x] 9. Remove complex generic type system
 
-
   - [x] 9.1 Remove unused generic types
 
     - Delete HTMLElementIfReformatted, HTMLElementIfNotReformattedAndHasLayers, JQueryIfReformatted, JQueryIfNotReformattedAndHasLayers types from Comment.js
@@ -185,9 +184,11 @@
     - Update type definitions for external consumption
     - _Requirements: 5.4_
 
-- [ ] 10. Update commentManager integration
+- [x] 10. Update commentManager integration
 
-  - [ ] 10.1 Update commentManager.reformatComments method
+
+  - [x] 10.1 Update commentManager.reformatComments method
+
     - Update src/commentManager.js to work with new class hierarchy
     - Update reformatCommentsSetting references to use spaciousComments
     - Ensure reformatComments method works with SpaciousComment instances

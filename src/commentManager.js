@@ -1,5 +1,6 @@
 import Comment from './Comment';
 import EventEmitter from './EventEmitter';
+import SpaciousComment from './SpaciousComment';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import Thread from './Thread';
 import bootManager from './bootManager';
@@ -67,7 +68,7 @@ class CommentManager extends EventEmitter {
    * _For internal use._ Initialize the registry.
    */
   init() {
-    this.reformatCommentsSetting = settings.get('spaciousComments');
+    this.spaciousCommentsSetting = settings.get('spaciousComments');
 
     this.thanksStorage = new StorageItemWithKeys('thanks')
       .cleanUp((entry) => (entry.thankTime || 0) < subtractDaysFromNow(60))
@@ -145,7 +146,7 @@ class CommentManager extends EventEmitter {
   setup() {
     // This can be updated after an in-script page reload if the user agrees to this setting in the
     // onboarding popup (settings.maybeSuggestEnableCommentReformatting()).
-    this.reformatCommentsSetting = settings.get('spaciousComments');
+    this.spaciousCommentsSetting = settings.get('spaciousComments');
 
     this.reformatTimestamps();
     this.findAndUpdateTableComments();
@@ -573,7 +574,7 @@ class CommentManager extends EventEmitter {
    * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
    */
   maybeHighlightHovered(event) {
-    if (this.reformatCommentsSetting) return;
+    if (this.spaciousCommentsSetting) return;
 
     const isObstructingElementHovered = talkPageController.isObstructingElementHovered();
     this.items
@@ -816,14 +817,17 @@ class CommentManager extends EventEmitter {
    * relevant setting is enabled.
    */
   async reformatComments() {
-    if (!this.reformatCommentsSetting) return;
+    if (!this.spaciousCommentsSetting) return;
 
     $(document.body).addClass('cd-reformattedComments');
     if (!cd.page.exists()) return;
 
     const pagesToCheckExistence = this.items.reduce((acc, comment) => {
-      acc.push(...comment.replaceSignatureWithHeader());
-      comment.addMenu();
+      // Only call reformatting methods on SpaciousComment instances
+      if (comment instanceof SpaciousComment) {
+        acc.push(...comment.replaceSignatureWithHeader());
+        comment.addMenu();
+      }
 
       return acc;
     }, /** @type {import('./Comment').ReplaceSignatureWithHeaderReturn} */ ([]));
@@ -1015,7 +1019,7 @@ class CommentManager extends EventEmitter {
    * @private
    */
   handleDtTimestampsClick() {
-    if (this.reformatCommentsSetting) return;
+    if (this.spaciousCommentsSetting) return;
 
     this.items.forEach((comment) => {
       comment.handleDtTimestampClick();
