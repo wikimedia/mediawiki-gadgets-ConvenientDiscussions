@@ -84,20 +84,31 @@
     - Verify section hierarchy methods work correctly with `undefined` returns
     - _Requirements: 4.1, 4.3_
 
-- [ ] 5. Process Comment.js class (Phase 4 - Most complex class)
+- [x] 5. Process Comment.js class (Phase 4 - Most complex class)
 
-  - [ ] 5.1 Update Comment.js null return statements
+
+
+
+
+
+  - [x] 5.1 Update Comment.js null return statements
+
+
 
     - Replace `return null;` in methods like `getVisibleExpandNote`, `findNewSelf`, `isInViewport`
     - Update JSDoc `@returns` tags to use `undefined`
     - Add `|| undefined` for native API calls that return `null`
     - _Requirements: 1.1, 1.2, 1.4_
 
+
+
   - [ ] 5.2 Update Comment.js null assignments and comparisons
 
     - Update `this.source = null` and `this.collapsedThread = null` assignments
     - Update null comparisons in conditional logic to use `undefined`
     - Update `isSeenBeforeChanged = null` assignment
+
+
     - _Requirements: 2.1, 3.1, 3.2_
 
   - [ ] 5.3 Update Comment.js static method null returns

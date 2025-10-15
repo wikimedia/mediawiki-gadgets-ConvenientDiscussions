@@ -558,7 +558,7 @@ class Comment extends CommentSkeleton {
 
   /**
    * @override
-   * @type {OpeningSection extends true ? import('./Section').default : import('./Section').default | null}
+   * @type {OpeningSection extends true ? import('./Section').default : import('./Section').default | undefined}
    */
   section = this.section;
 
@@ -641,7 +641,7 @@ class Comment extends CommentSkeleton {
      * and returns the tag name of the first ancestor that has the class `cd-commentLevel`.
      *
      * @param {Element} el
-     * @returns {?ListType}
+     * @returns {ListType | undefined}
      * @private
      */
     const getContainerListType = (el) => {
@@ -652,7 +652,7 @@ class Comment extends CommentSkeleton {
         }
       }
 
-      return null;
+      return;
     };
 
     if (this.level !== 0) {
@@ -1856,14 +1856,14 @@ class Comment extends CommentSkeleton {
   /**
    * _For internal use._ Get the top and left offset of the layers container.
    *
-   * @returns {?LayersContainerOffset}
+   * @returns {LayersContainerOffset | undefined}
    */
   getLayersContainerOffset() {
     const container = this.getLayersContainer();
     if (!container.cdCachedLayersContainerOffset || container.cdCouldHaveMoved) {
       const rect = container.getBoundingClientRect();
       if (!isVisible(container)) {
-        return null;
+        return;
       }
 
       container.cdCouldHaveMoved = false;
@@ -3462,7 +3462,7 @@ class Comment extends CommentSkeleton {
 
     let isSectionSubmitted = false;
     try {
-      if (commentForm && this.section?.liveSectionNumber !== null) {
+      if (commentForm && this.section?.liveSectionNumber !== undefined) {
         try {
           const sectionCode = await this.section.requestCode();
           this.section.locateInCode(sectionCode);
@@ -3570,11 +3570,11 @@ class Comment extends CommentSkeleton {
    *
    * @param {boolean} partially Return `true` even if only a part of the comment is in the viewport.
    * @param {CommentOffset|null} [offset] Prefetched offset.
-   * @returns {?boolean}
+   * @returns {boolean | undefined}
    */
   isInViewport(partially = false, offset = this.getOffset()) {
     if (!offset) {
-      return null;
+      return;
     }
 
     const scrollY = window.scrollY;
@@ -3836,7 +3836,7 @@ class Comment extends CommentSkeleton {
     const customCodePassed = typeof code === 'string';
     if (!customCodePassed) {
       code = sectionCode || this.getSourcePage().source.getCode();
-      this.source = null;
+      this.source = undefined;
     }
 
     if (code === undefined) {
@@ -3903,15 +3903,15 @@ class Comment extends CommentSkeleton {
    * nested, so there can be a number of invisible collapsed notes for a comment.) If the visible
    * collapsed note is unavailable, return the top invisible collapsed note.
    *
-   * @returns {?JQuery}
+   * @returns {JQuery | undefined}
    * @private
    */
   getVisibleExpandNote() {
     if (!this.isCollapsed) {
-      return null;
+      return;
     }
 
-    let $note = null;
+    let $note;
     for (let t = this.collapsedThread; t; t = t.rootComment.getParent()?.collapsedThread) {
       $note = /** @type {JQuery} */ (t.$expandNote);
       if ($note.is(':visible')) break;
@@ -3924,12 +3924,12 @@ class Comment extends CommentSkeleton {
    * Get a link to the comment with Unicode sequences decoded.
    *
    * @param {boolean} [permanent] Get a permanent URL.
-   * @returns {?string}
+   * @returns {string | undefined}
    */
   getUrl(permanent = false) {
     const id = this.getUrlFragment();
 
-    return id ? cd.page.getDecodedUrlWithFragment(id, permanent) : null;
+    return id ? cd.page.getDecodedUrlWithFragment(id, permanent) : undefined;
   }
 
   /**
@@ -4084,7 +4084,7 @@ class Comment extends CommentSkeleton {
    * (Used for polymorphism with {@link Section#getRelevantSection} and
    * {@link Page#getRelevantSection}.)
    *
-   * @returns {?import('./Section').default}
+   * @returns {import('./Section').default | undefined}
    */
   getRelevantSection() {
     return this.section;
@@ -4256,14 +4256,14 @@ class Comment extends CommentSkeleton {
    * After the page is reloaded and this instance doesn't relate to a rendered comment on the page,
    * get the instance of this comment that does.
    *
-   * @returns {?Comment}
+   * @returns {Comment | undefined}
    */
   findNewSelf() {
     if (!this.id) {
-      return null;
+      return;
     }
 
-    return commentManager.getById(this.id);
+    return commentManager.getById(this.id) || undefined;
   }
 
   /**
@@ -4281,7 +4281,7 @@ class Comment extends CommentSkeleton {
    * Collapse the comment in a thread.
    *
    * @param {import('./Thread').default} thread
-   * @returns {?number} If the comment is already collapsed, the index of the last comment in the
+   * @returns {number | undefined} If the comment is already collapsed, the index of the last comment in the
    *   collapsed thread.
    */
   collapse(thread) {
@@ -4292,13 +4292,13 @@ class Comment extends CommentSkeleton {
     this.collapsedThread = thread;
     this.removeLayers();
 
-    return null;
+    return;
   }
 
   /**
    * Expand the comment in a thread.
    *
-   * @returns {?number} If the comment is collapsed, the index of the last comment in the collapsed
+   * @returns {number | undefined} If the comment is collapsed, the index of the last comment in the collapsed
    *   thread.
    */
   expand() {
@@ -4309,7 +4309,7 @@ class Comment extends CommentSkeleton {
     this.collapsedThread = undefined;
     this.configureLayers();
 
-    return null;
+    return;
   }
 
   /**
@@ -4381,7 +4381,7 @@ class Comment extends CommentSkeleton {
    *
    * @param {import('./CommentForm').CommentFormMode} mode
    * @param {() => void} callback
-   * @returns {?string}
+   * @returns {string | undefined}
    */
   getCommentFormCommentInputPlaceholder(mode, callback) {
     if (mode === 'edit') {
@@ -4394,7 +4394,7 @@ class Comment extends CommentSkeleton {
 
     this.maybeRequestAuthorGender(callback, true);
 
-    return null;
+    return;
   }
 
   /**
@@ -4414,7 +4414,7 @@ class Comment extends CommentSkeleton {
    * Used for polymorphism with {@link Section#getCommentFormTargetComment} and
    * {@link Page#getCommentFormTargetComment}.
    *
-   * @returns {?this}
+   * @returns {this | undefined}
    */
   getCommentFormTargetComment() {
     return this;
@@ -4662,7 +4662,7 @@ class Comment extends CommentSkeleton {
 
   /**
    * @typedef {Map<
-   *   import('./shared/SectionSkeleton').SectionBase | null,
+   *   import('./shared/SectionSkeleton').SectionBase | undefined,
    *   import('./shared/CommentSkeleton').CommentBase[]
    * >} MapFromSectionToComments
    */
@@ -4672,7 +4672,7 @@ class Comment extends CommentSkeleton {
    *
    * @overload
    * @param {Comment[]} comments
-   * @returns {Map<import('./Section').default | null, Comment[]>}
+   * @returns {Map<import('./Section').default | undefined, Comment[]>}
    */
 
   /**
@@ -4760,12 +4760,12 @@ class Comment extends CommentSkeleton {
    * script.
    *
    * @param {string} id
-   * @returns {?ParseIdReturn}
+   * @returns {ParseIdReturn | undefined}
    */
   static parseId(id) {
     const match = id.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})_(.+)$/);
     if (!match) {
-      return null;
+      return;
     }
 
     return {
@@ -4793,12 +4793,12 @@ class Comment extends CommentSkeleton {
    *   parentDate?: Date
    *   sectionIdBeginning: string
    *   index?: number
-   * } | null}
+   * } | undefined}
    */
   static parseDtId(id) {
     const match = id.match(this.dtIdRegexp);
     if (!match) {
-      return null;
+      return;
     }
 
     const parseTimestamp = (/** @type {number} */ startIndex) => ({
