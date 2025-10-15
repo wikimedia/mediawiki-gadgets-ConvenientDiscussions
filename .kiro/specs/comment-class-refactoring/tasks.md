@@ -1,6 +1,7 @@
 # Implementation Plan
 
 - [ ] 1. Create CommentLayers composition classes
+
   - [ ] 1.1 Implement CommentLayers base class
     - Create src/CommentLayers.js with base layer management
     - Define create, destroy, updateStyles methods
@@ -175,6 +176,21 @@
     - Ensure external references continue to work
     - Test visual appearance matches original
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
+
+  - [ ] 11.4 Set up browser testing environment (requires user assistance)
+    - User assistance needed to configure Selenium/browser testing setup
+    - User assistance needed to update .vscode/launch.json for testing configuration
+    - User assistance needed to install and configure any required testing dependencies
+    - User assistance needed to verify browser testing environment is working
+    - _Requirements: 8.3_
+
+  - [ ] 11.5 Execute browser tests (after environment setup)
+    - Test comment display and interaction in actual browser
+    - Verify hover behaviors work correctly for CompactComment
+    - Test layer positioning and visual appearance
+    - Validate action button functionality
+    - Test both SpaciousComment and CompactComment modes
+    - _Requirements: 8.3_
 
 - [ ] 12. Performance validation and cleanup
   - [ ] 12.1 Performance validation

@@ -285,7 +285,6 @@ addToggleChildThreadsButton()
 - Hover-triggered actions
 - Compact-specific action styling
 
-
 ## Testing Strategy
 
 ### Unit Tests
