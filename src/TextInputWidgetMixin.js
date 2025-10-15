@@ -13,6 +13,14 @@ import { cleanUpPasteDom, getElementFromPasteHtml, isElementConvertibleToWikitex
  * {@link OO.ui.TextInputWidget OO.ui.TextInputWidget} and adds some features we need.
  */
 class TextInputWidgetMixin {
+  // eslint-disable-next-line jsdoc/require-jsdoc
+  constructor() {
+    // Workaround to make this.constructor in methods to be type-checked correctly
+    /** @type {typeof TextInputWidgetMixin} */
+    // eslint-disable-next-line no-self-assign
+    this.constructor = this.constructor;
+  }
+
   /**
    * Construct the instance. A separate method is used to allow the class to be used as a mixin.
    *
@@ -69,7 +77,10 @@ class TextInputWidgetMixin {
     this.focus();
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (!document.execCommand('insertText', false, content)) {
-      Object.getPrototypeOf(this.constructor).insertContent.call(this, content);
+      Object.getPrototypeOf(Object.getPrototypeOf(this.constructor)).prototype.insertContent.call(
+        this,
+        content
+      );
     }
 
     return this;

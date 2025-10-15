@@ -821,22 +821,23 @@ class CommentManager extends EventEmitter {
     $(document.body).addClass('cd-reformattedComments');
     if (!cd.page.exists()) return;
 
-    /** @type {import('./Comment').ReplaceSignatureWithHeaderReturn} */
-    const pagesToCheckExistence = [];
-    this.items.forEach((comment) => {
-      pagesToCheckExistence.push(...comment.replaceSignatureWithHeader());
+    const pagesToCheckExistence = this.items.reduce((acc, comment) => {
+      acc.push(...comment.replaceSignatureWithHeader());
       comment.addMenu();
-    });
+
+      return acc;
+    }, /** @type {import('./Comment').ReplaceSignatureWithHeaderReturn} */ ([]));
 
     // Check existence of user and user talk pages and apply respective changes to elements.
-    /** @type {{ [x: string]: HTMLAnchorElement[] }} */
-    const pageNamesToLinks = {};
-    pagesToCheckExistence.forEach((page) => {
-      if (!(page.pageName in pageNamesToLinks)) {
-        pageNamesToLinks[page.pageName] = [];
+    const pageNamesToLinks = pagesToCheckExistence.reduce((acc, page) => {
+      if (!(page.pageName in acc)) {
+        acc[page.pageName] = [];
       }
-      pageNamesToLinks[page.pageName].push(page.link);
-    });
+      acc[page.pageName].push(page.link);
+
+      return acc;
+    }, /** @type {{ [x: string]: HTMLAnchorElement[] }} */ ({}));
+
     const pagesExistence = await getPagesExistence(Object.keys(pageNamesToLinks));
     Object.keys(pagesExistence).forEach((name) => {
       pageNamesToLinks[name].forEach((link) => {

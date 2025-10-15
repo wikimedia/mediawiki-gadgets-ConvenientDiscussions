@@ -71,7 +71,8 @@ import { createSvg, extractSignatures, formatDate, formatDateNative, getExtended
  */
 
 /**
- * A comment (any signed, and in some cases unsigned, text on a wiki talk page).
+ * A comment (any signed, and in some cases unsigned, text on a wiki talk page) in the window (not
+ * the web worker) context.
  *
  * @template {boolean} [Reformatted=boolean]
  * @template {boolean} [OpeningSection=boolean]
@@ -528,6 +529,7 @@ class Comment extends CommentSkeleton {
    * Check if the comment is reformatted.
    *
    * @returns {this is Comment<true>}
+   * @private
    */
   isReformatted() {
     return this.reformatted;
@@ -537,6 +539,7 @@ class Comment extends CommentSkeleton {
    * Check if the comment has layers (underlay and overlay).
    *
    * @returns {this is Comment<boolean, boolean, true>}
+   * @private
    */
   hasLayers() {
     return Boolean(this.underlay);
@@ -546,6 +549,7 @@ class Comment extends CommentSkeleton {
    * Check if the comment is not reformatted and its underlay is present.
    *
    * @returns {this is Comment<false, boolean, true>}
+   * @private
    */
   hasClassicUnderlay() {
     return !this.isReformatted() && this.hasLayers();
@@ -869,8 +873,8 @@ class Comment extends CommentSkeleton {
 
   /**
    * _For internal use._ Add a menu to the bottom highlightable element of the comment and fill it
-   * with buttons. Used when comment reformatting is enabled; otherwise `Comment#createLayers` is
-   * used.
+   * with buttons. Used when comment reformatting is enabled; otherwise {@link Comment#createLayers}
+   * is used.
    *
    * @throws {CdError}
    */
@@ -4270,8 +4274,11 @@ class Comment extends CommentSkeleton {
    */
   getAncestors() {
     const ancestors = [];
-    let comment;
-    for (comment = this; comment; comment = comment.getParent()) {
+    for (
+      let /** @type {Comment | undefined} */ comment = this;
+      comment;
+      comment = comment.getParent()
+    ) {
       ancestors.push(comment);
     }
 

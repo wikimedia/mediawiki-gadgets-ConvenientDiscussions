@@ -107,10 +107,13 @@ ol > .cd-thread-button-container > .cd-thread-button {
   display: none !important;
 }
 
-// Need to override `.cd-reformattedComments
-// .cd-comment-part-first.cd-comment-part-first.cd-comment-part-first`.
-.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound {
-  margin-block: 0;
+// Need to override
+// `.cd-reformattedComments .cd-comment-part-first.cd-comment-part-first.cd-comment-part-first`
+// and also
+// `.cd-reformattedComments .cd-connectToPreviousItem.cd-connectToPreviousItem.cd-connectToPreviousItem.cd-connectToPreviousItem` ~~(I hate myself)~~
+.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound.cd-hiddenUntilFound {
+  margin: 0;
+  padding: 0;
 }
 
 // Hotfix Vector's `margin-top: -0.5em;` for `p + ul` etc.
