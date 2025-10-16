@@ -41,6 +41,31 @@ class CompactComment extends Comment {
   }
 
   /**
+   * Bind events to comment elements.
+   * Handles click and touch events for compact comment interaction.
+   *
+   * @param {HTMLElement} element
+   * @override
+   */
+  bindEvents(element) {
+    // Handle click events for comment highlighting and interaction
+    element.addEventListener('click', (event) => {
+      // Prevent default behavior for certain elements
+      if (event.target?.tagName === 'A' || event.target?.closest('a')) {
+        return;
+      }
+
+      // Highlight the comment when clicked
+      this.scrollTo();
+    });
+
+    // Handle touch events for mobile interaction
+    element.addEventListener('touchstart', (event) => {
+      this.highlightHovered(event);
+    });
+  }
+
+  /**
    * Initialize prototypes for compact comments.
    * Creates overlay menu prototypes and shared layer elements.
    *

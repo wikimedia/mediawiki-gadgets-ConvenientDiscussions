@@ -5,5 +5,7 @@ dist/
 docs/
 i18nList.json
 node_modules/
+playwright-report/
 sandbox/
 src/test*
+test-results/

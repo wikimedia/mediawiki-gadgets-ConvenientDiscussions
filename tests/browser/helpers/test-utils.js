@@ -23,8 +23,9 @@ const TEST_PAGES = {
   MAIN_PAGE: 'https://en.wikipedia.org/wiki/Talk:Main_Page',
   CD_TEST_CASES: 'https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases',
   VILLAGE_PUMP: 'https://en.wikipedia.org/wiki/Wikipedia:Village_pump_(technical)',
-  // Use a page that's likely to have comments
   SANDBOX: 'https://en.wikipedia.org/wiki/Wikipedia_talk:Sandbox',
+  // Compact test page with few comments for quick testing
+  JWBTH_TEST: 'https://test.wikipedia.org/wiki/User_talk:JWBTH',
 };
 
 /**
@@ -34,7 +35,7 @@ const TEST_PAGES = {
  * @param {import('@playwright/test').Page} page
  * @param {string} url - Wikipedia talk page URL
  */
-async function setupConvenientDiscussions(page, url = TEST_PAGES.SANDBOX) {
+async function setupConvenientDiscussions(page, url = TEST_PAGES.JWBTH_TEST) {
   console.log(`🚀 Setting up Convenient Discussions on: ${url}`);
 
   // Set up console message capture
