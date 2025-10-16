@@ -10,10 +10,10 @@
  * @param {import('@playwright/test').Page} page
  */
 async function waitForConvenientDiscussions(page) {
-  await page.waitForFunction(() => window.cd?.comments &&
-    window.cd.comments.length > 0 &&
-    window.cd.settings &&
-    window.cd.g.CURRENT_PAGE, { timeout: 15_000 });
+  await page.waitForFunction(() => window.convenientDiscussions?.comments &&
+    window.convenientDiscussions.comments.length > 0 &&
+    window.convenientDiscussions.settings &&
+    window.convenientDiscussions.g.CURRENT_PAGE, { timeout: 15_000 });
 }
 
 /**
@@ -23,6 +23,8 @@ const TEST_PAGES = {
   MAIN_PAGE: 'https://en.wikipedia.org/wiki/Talk:Main_Page',
   CD_TEST_CASES: 'https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases',
   VILLAGE_PUMP: 'https://en.wikipedia.org/wiki/Wikipedia:Village_pump_(technical)',
+  // Use a page that's likely to have comments
+  SANDBOX: 'https://en.wikipedia.org/wiki/Wikipedia_talk:Sandbox',
 };
 
 /**
@@ -32,7 +34,7 @@ const TEST_PAGES = {
  * @param {import('@playwright/test').Page} page
  * @param {string} url - Wikipedia talk page URL
  */
-async function setupConvenientDiscussions(page, url = TEST_PAGES.MAIN_PAGE) {
+async function setupConvenientDiscussions(page, url = TEST_PAGES.SANDBOX) {
   console.log(`🚀 Setting up Convenient Discussions on: ${url}`);
 
   // Navigate to Wikipedia talk page
@@ -54,7 +56,9 @@ async function setupConvenientDiscussions(page, url = TEST_PAGES.MAIN_PAGE) {
   console.log('💉 Convenient Discussions script injected');
 
   // Wait for Convenient Discussions to initialize
-  await page.waitForFunction(() => window.cd?.comments, { timeout: 15_000 });
+  await page.waitForFunction(() => window.convenientDiscussions &&
+    window.convenientDiscussions.comments !== undefined &&
+    window.convenientDiscussions.settings, { timeout: 15_000 });
   console.log('🎯 Convenient Discussions initialized');
 
   // Additional wait for comments to be fully processed
@@ -109,7 +113,7 @@ async function getCompactComment(page, index = 0) {
  */
 async function toggleSpaciousComments(page, enabled) {
   await page.evaluate((enabled) => {
-    window.cd.settings.set('spaciousComments', enabled);
+    window.convenientDiscussions.settings.set('spaciousComments', enabled);
   }, enabled);
 
   // Wait for setting to take effect
