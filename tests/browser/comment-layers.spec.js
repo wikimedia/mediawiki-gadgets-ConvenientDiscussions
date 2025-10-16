@@ -1,6 +1,8 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 
+const { setupConvenientDiscussions } = require('./helpers/test-utils');
+
 /**
  * Browser tests for Comment layers functionality
  * Tests visual layers, positioning, and hover behaviors for CompactComment and SpaciousComment
@@ -8,19 +10,7 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Comment Layers', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to Wikipedia talk page
-    await page.goto('https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases');
-
-    // Wait for MediaWiki to load
-    await page.waitForFunction(() => window.mw && window.$);
-
-    // Inject your built Convenient Discussions script
-    await page.addScriptTag({
-      path: './dist/convenientDiscussions.js',
-    });
-
-    // Wait for Convenient Discussions to initialize
-    await page.waitForFunction(() => window.cd?.comments, { timeout: 15_000 });
+    await setupConvenientDiscussions(page);
   });
 
   test('CompactComment should show overlay menu on hover', async ({ page }) => {

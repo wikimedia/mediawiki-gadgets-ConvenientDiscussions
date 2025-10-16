@@ -83,10 +83,27 @@ The tests run against live Wikipedia pages with your Convenient Discussions scri
 ### How It Works
 
 1. **Global Setup**: Runs `npm run build` to create `dist/convenientDiscussions.js`
-2. **Test Setup**: Each test navigates to a Wikipedia talk page
-3. **MediaWiki Wait**: Waits for MediaWiki globals (`mw`, `$`, `OO`) to load
-4. **Script Injection**: Injects your built script using `page.addScriptTag()`
-5. **CD Initialization**: Waits for Convenient Discussions to initialize
+2. **Test Setup**: Each test calls `setupConvenientDiscussions(page)` which:
+   - Navigates to a Wikipedia talk page
+   - Waits for page and MediaWiki to load completely
+   - Injects your built script using `page.addScriptTag()`
+   - Waits for Convenient Discussions to initialize
+   - Provides console logging for each step
+
+### Centralized Setup
+
+All test preparation is handled by a single function in `helpers/test-utils.js`:
+
+```javascript
+const { setupConvenientDiscussions, TEST_PAGES } = require('./helpers/test-utils');
+
+test.beforeEach(async ({ page }) => {
+  // Uses default test page (Talk:Main_Page)
+  await setupConvenientDiscussions(page);
+
+  // Or specify a different test page
+  await setupConvenientDiscussions(page, TEST_PAGES.CD_TEST_CASES);
+});
 
 ## Configuration
 

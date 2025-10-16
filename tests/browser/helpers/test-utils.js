@@ -17,25 +17,49 @@ async function waitForConvenientDiscussions(page) {
 }
 
 /**
- * Setup Convenient Discussions on a Wikipedia page
+ * Test page URLs for different scenarios
+ */
+const TEST_PAGES = {
+  MAIN_PAGE: 'https://en.wikipedia.org/wiki/Talk:Main_Page',
+  CD_TEST_CASES: 'https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases',
+  VILLAGE_PUMP: 'https://en.wikipedia.org/wiki/Wikipedia:Village_pump_(technical)',
+};
+
+/**
+ * Complete setup for Convenient Discussions browser testing
+ * Handles all preparation steps: navigation, MediaWiki loading, script injection, and CD initialization
  *
  * @param {import('@playwright/test').Page} page
  * @param {string} url - Wikipedia talk page URL
  */
-async function setupConvenientDiscussions(page, url = 'https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases') {
+async function setupConvenientDiscussions(page, url = TEST_PAGES.MAIN_PAGE) {
+  console.log(`🚀 Setting up Convenient Discussions on: ${url}`);
+
   // Navigate to Wikipedia talk page
   await page.goto(url);
+  console.log('📄 Navigated to Wikipedia page');
 
-  // Wait for MediaWiki to load
-  await page.waitForFunction(() => window.mw && window.$);
+  // Wait for page to load completely
+  await page.waitForLoadState('networkidle');
+  console.log('🌐 Page loaded');
+
+  // Wait for MediaWiki globals to be available
+  await page.waitForFunction(() => window.mw && window.$, { timeout: 10_000 });
+  console.log('⚙️ MediaWiki globals loaded');
 
   // Inject your built Convenient Discussions script
   await page.addScriptTag({
     path: './dist/convenientDiscussions.js',
   });
+  console.log('💉 Convenient Discussions script injected');
 
   // Wait for Convenient Discussions to initialize
-  await waitForConvenientDiscussions(page);
+  await page.waitForFunction(() => window.cd?.comments, { timeout: 15_000 });
+  console.log('🎯 Convenient Discussions initialized');
+
+  // Additional wait for comments to be fully processed
+  await page.waitForTimeout(2000);
+  console.log('✅ Setup complete - ready for testing');
 }
 
 /**
@@ -152,6 +176,7 @@ async function getCommentPositioning(comment) {
 }
 
 module.exports = {
+  TEST_PAGES,
   waitForConvenientDiscussions,
   setupConvenientDiscussions,
   getCommentByIndex,
