@@ -6,53 +6,80 @@
 
 /**
  * Wait for Convenient Discussions to be fully loaded
+ *
  * @param {import('@playwright/test').Page} page
  */
 async function waitForConvenientDiscussions(page) {
-  await page.waitForFunction(() => {
-    return window.cd &&
-           window.cd.comments &&
-           window.cd.comments.length > 0 &&
-           window.cd.settings &&
-           window.cd.g.CURRENT_PAGE;
-  }, { timeout: 10000 });
+  await page.waitForFunction(() => window.cd?.comments &&
+    window.cd.comments.length > 0 &&
+    window.cd.settings &&
+    window.cd.g.CURRENT_PAGE, { timeout: 15_000 });
+}
+
+/**
+ * Setup Convenient Discussions on a Wikipedia page
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} url - Wikipedia talk page URL
+ */
+async function setupConvenientDiscussions(page, url = 'https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases') {
+  // Navigate to Wikipedia talk page
+  await page.goto(url);
+
+  // Wait for MediaWiki to load
+  await page.waitForFunction(() => window.mw && window.$);
+
+  // Inject your built Convenient Discussions script
+  await page.addScriptTag({
+    path: './dist/convenientDiscussions.js',
+  });
+
+  // Wait for Convenient Discussions to initialize
+  await waitForConvenientDiscussions(page);
 }
 
 /**
  * Get a comment by index with proper typing
+ *
  * @param {import('@playwright/test').Page} page
  * @param {number} index
  * @returns {Promise<import('@playwright/test').Locator>}
  */
 async function getCommentByIndex(page, index = 0) {
   await waitForConvenientDiscussions(page);
+
   return page.locator('.cd-comment').nth(index);
 }
 
 /**
  * Get a spacious comment
+ *
  * @param {import('@playwright/test').Page} page
  * @param {number} index
  * @returns {Promise<import('@playwright/test').Locator>}
  */
 async function getSpaciousComment(page, index = 0) {
   await waitForConvenientDiscussions(page);
+
   return page.locator('.cd-comment.cd-comment-reformatted').nth(index);
 }
 
 /**
  * Get a compact comment
+ *
  * @param {import('@playwright/test').Page} page
  * @param {number} index
  * @returns {Promise<import('@playwright/test').Locator>}
  */
 async function getCompactComment(page, index = 0) {
   await waitForConvenientDiscussions(page);
+
   return page.locator('.cd-comment:not(.cd-comment-reformatted)').nth(index);
 }
 
 /**
  * Toggle spacious comments setting
+ *
  * @param {import('@playwright/test').Page} page
  * @param {boolean} enabled
  */
@@ -67,6 +94,7 @@ async function toggleSpaciousComments(page, enabled) {
 
 /**
  * Create a test comment for testing purposes
+ *
  * @param {import('@playwright/test').Page} page
  * @param {string} content
  * @param {boolean} spacious
@@ -81,6 +109,7 @@ async function createTestComment(page, content = 'Test comment content', spaciou
 
 /**
  * Check if comment has layers
+ *
  * @param {import('@playwright/test').Locator} comment
  * @returns {Promise<boolean>}
  */
@@ -93,6 +122,7 @@ async function commentHasLayers(comment) {
 
 /**
  * Trigger comment highlighting
+ *
  * @param {import('@playwright/test').Locator} comment
  */
 async function highlightComment(comment) {
@@ -105,6 +135,7 @@ async function highlightComment(comment) {
 
 /**
  * Check comment positioning
+ *
  * @param {import('@playwright/test').Locator} comment
  * @returns {Promise<{comment: any, underlay: any, overlay: any}>}
  */
@@ -116,12 +147,13 @@ async function getCommentPositioning(comment) {
   return {
     comment: commentBox,
     underlay: underlayBox,
-    overlay: overlayBox
+    overlay: overlayBox,
   };
 }
 
 module.exports = {
   waitForConvenientDiscussions,
+  setupConvenientDiscussions,
   getCommentByIndex,
   getSpaciousComment,
   getCompactComment,
@@ -129,5 +161,5 @@ module.exports = {
   createTestComment,
   commentHasLayers,
   highlightComment,
-  getCommentPositioning
+  getCommentPositioning,
 };

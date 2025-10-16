@@ -73,33 +73,35 @@ These tests validate the requirements from the Comment class refactoring spec:
 
 ## Test Environment
 
-The tests run against a local development server (localhost:9000) with the following setup:
+The tests run against live Wikipedia pages with your Convenient Discussions script injected:
 
-1. **Development Server**: Automatically started by Playwright
-2. **Test Page**: You'll need to configure test pages with comments
-3. **Browser Support**: Tests run on Chromium, Firefox, and WebKit
+1. **Script Building**: Automatically builds your script before tests run
+2. **Script Injection**: Injects `dist/convenientDiscussions.js` into Wikipedia pages
+3. **Test Pages**: Uses live Wikipedia talk pages (e.g., Talk:Main_Page)
+4. **Browser Support**: Tests run on Chromium, Firefox, and WebKit
+
+### How It Works
+
+1. **Global Setup**: Runs `npm run build` to create `dist/convenientDiscussions.js`
+2. **Test Setup**: Each test navigates to a Wikipedia talk page
+3. **MediaWiki Wait**: Waits for MediaWiki globals (`mw`, `$`, `OO`) to load
+4. **Script Injection**: Injects your built script using `page.addScriptTag()`
+5. **CD Initialization**: Waits for Convenient Discussions to initialize
 
 ## Configuration
 
-### Test Page Setup
+### Test Pages
 
-You'll need to update the test files to point to actual test pages with comments. Replace:
+The tests are configured to use live Wikipedia talk pages:
+- **Default**: `https://en.wikipedia.org/wiki/Talk:Main_Page`
+- **Alternative**: Any Wikipedia talk page with comments
 
-```javascript
-await page.goto('/test-page-with-comments');
-```
+### Authentication (Optional)
 
-With actual URLs like:
-```javascript
-await page.goto('https://en.wikipedia.org/wiki/Talk:Main_Page');
-```
-
-### Custom Test Data
-
-For more controlled testing, you may want to create dedicated test pages with:
-- Both spacious and compact comments
-- Comments with different action button configurations
-- Comments in various thread structures
+For testing features that require login:
+- See `auth-example.spec.js` for cookie-based authentication
+- Most Comment functionality works without login
+- Login is only needed for actions like editing, thanking, etc.
 
 ## Debugging
 

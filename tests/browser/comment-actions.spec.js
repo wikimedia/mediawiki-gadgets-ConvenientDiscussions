@@ -11,8 +11,16 @@ test.describe('Comment Actions', () => {
     // Navigate to a test page with comments
     await page.goto('https://commons.wikimedia.org/wiki/User_talk:Jack_who_built_the_house/CD_test_cases');
 
-    // Wait for Convenient Discussions to load
-    await page.waitForFunction(() => window.cd?.comments);
+    // Wait for MediaWiki to load
+    await page.waitForFunction(() => window.mw && window.$);
+
+    // Inject your built Convenient Discussions script
+    await page.addScriptTag({
+      path: './dist/convenientDiscussions.js',
+    });
+
+    // Wait for Convenient Discussions to initialize
+    await page.waitForFunction(() => window.cd?.comments, { timeout: 15_000 });
   });
 
   test('SpaciousComment should show action buttons in structured layout', async ({ page }) => {
