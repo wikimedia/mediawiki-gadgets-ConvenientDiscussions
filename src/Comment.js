@@ -632,7 +632,10 @@ class Comment extends CommentSkeleton {
 
     this.isEditable = this.isActionable && (this.isOwn || settings.get('allowEditOthersComments'));
 
-    this.highlightables.forEach(this.bindEvents);
+    // Delay bindEvents call until after construction is complete
+    setTimeout(() => {
+      this.highlightables.forEach((element) => this.bindEvents(element));
+    }, 0);
 
     this.updateMarginHighlightable();
 
@@ -1309,19 +1312,6 @@ class Comment extends CommentSkeleton {
       }
     }
   }
-
-  /**
-   * Bind the standard events to a comment part. Executed on comment object creation and DOM
-   * modifications affecting comment parts.
-   * This method should be overridden by subclasses.
-   *
-   * @param {HTMLElement} element
-   * @abstract
-   * @private
-   */
-  bindEvents = (element) => {
-    throw new Error('bindEvents must be implemented by subclasses');
-  };
 
   /**
    * _For internal use._ Filter out floating and hidden elements from the comment's
