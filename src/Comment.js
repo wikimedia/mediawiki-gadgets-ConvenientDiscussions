@@ -634,7 +634,9 @@ class Comment extends CommentSkeleton {
 
     // Delay bindEvents call until after construction is complete
     setTimeout(() => {
-      this.highlightables.forEach((element) => this.bindEvents(element));
+      this.highlightables.forEach((element) => {
+        this.bindEvents(element);
+      });
     }, 0);
 
     this.updateMarginHighlightable();
@@ -1312,6 +1314,22 @@ class Comment extends CommentSkeleton {
       }
     }
   }
+
+  /**
+   * Bind the standard events to a comment part. Executed on comment object creation and DOM
+   * modifications affecting comment parts.
+   *
+   * @param {HTMLElement} element
+   * @private
+   */
+  bindEvents = (element) => {
+    if (this.isReformatted()) return;
+    element.addEventListener('mouseenter', this.highlightHovered.bind(this));
+    element.addEventListener('mouseleave', () => {
+      this.unhighlightHovered();
+    });
+    element.addEventListener('touchstart', this.highlightHovered.bind(this));
+  };
 
   /**
    * _For internal use._ Filter out floating and hidden elements from the comment's

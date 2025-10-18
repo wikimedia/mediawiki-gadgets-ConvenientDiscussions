@@ -50,22 +50,6 @@ class SpaciousComment extends Comment {
   $menu;
 
   /**
-   * Bind the standard events to a comment part. Executed on comment object creation and DOM
-   * modifications affecting comment parts.
-   *
-   * @param {HTMLElement} element
-   * @override
-   */
-  bindEvents = (element) => {
-    if (this.isReformatted()) return;
-    element.addEventListener('mouseenter', this.highlightHovered.bind(this));
-    element.addEventListener('mouseleave', () => {
-      this.unhighlightHovered();
-    });
-    element.addEventListener('touchstart', this.highlightHovered.bind(this));
-  };
-
-  /**
    * Format the header for spacious comments.
    * Creates and manages the author/date header structure.
    */

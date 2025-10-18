@@ -41,22 +41,6 @@ class CompactComment extends Comment {
   }
 
   /**
-   * Bind the standard events to a comment part. Executed on comment object creation and DOM
-   * modifications affecting comment parts.
-   *
-   * @param {HTMLElement} element
-   * @override
-   */
-  bindEvents = (element) => {
-    if (this.isReformatted()) return;
-    element.addEventListener('mouseenter', this.highlightHovered.bind(this));
-    element.addEventListener('mouseleave', () => {
-      this.unhighlightHovered();
-    });
-    element.addEventListener('touchstart', this.highlightHovered.bind(this));
-  };
-
-  /**
    * Initialize prototypes for compact comments.
    * Creates overlay menu prototypes and shared layer elements.
    *
