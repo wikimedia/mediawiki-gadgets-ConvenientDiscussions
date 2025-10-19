@@ -1,5 +1,10 @@
+import Button from './Button';
 import Comment from './Comment';
+import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
+import cd from './cd';
+import { isInline } from './shared/utils-general';
+import { getHigherNodeAndOffsetInSelection } from './utils-window';
 
 /**
  * A compact comment class that handles compact MediaWiki talk page formatting
@@ -21,6 +26,161 @@ class CompactComment extends Comment {
    * @type {boolean}
    */
   wasMenuHidden = false;
+
+  /**
+   * Check whether the comment is reformatted (has a header and a menu instead of a signature).
+   * Always returns false for compact comments.
+   *
+   * @returns {boolean}
+   * @override
+   */
+  isReformatted() {
+    return false;
+  }
+
+  /**
+   * Bind the standard events to a comment part.
+   * For compact comments, handles hover events for overlay menu display.
+   *
+   * @param {HTMLElement} element
+   * @override
+   */
+  bindEvents = (element) => {
+    element.addEventListener('mouseenter', this.highlightHovered.bind(this));
+    element.addEventListener('mouseleave', () => {
+      this.unhighlightHovered();
+    });
+    element.addEventListener('touchstart', this.highlightHovered.bind(this));
+  };
+
+  /**
+   * Add a note that the comment has been changed.
+   * For compact comments, adds the note to the last block element.
+   *
+   * @param {JQuery} $changeNote
+   * @override
+   */
+  addChangeNote($changeNote) {
+    this.$changeNote = $changeNote;
+
+    // Add the mark to the last block element, going as many nesting levels down as needed to
+    // avoid it appearing after a block element.
+    let $last;
+    let $tested = $(this.highlightables).last();
+    do {
+      $last = $tested;
+      $tested = $last.children().last();
+    } while ($tested.length && !isInline($tested[0]));
+
+    if (!$last.find('.cd-changeNote-before').length) {
+      $last.append(' ', $('<span>').addClass('cd-changeNote-before'));
+    }
+    $last.append($changeNote);
+  }
+
+  /**
+   * Create a selection range for compact comments.
+   * Uses first element as start and signature element as end.
+   *
+   * @returns {Range}
+   * @override
+   */
+  createSelectionRange() {
+    const range = document.createRange();
+    range.setStart(this.elements[0], 0);
+    range.setEnd(this.signatureElement, 0);
+
+    return range;
+  }
+
+  /**
+   * Make sure the selection doesn't include any subsequent text.
+   * For compact comments, creates a temporary boundary element.
+   *
+   * @override
+   */
+  fixSelection() {
+    const endBoundary = document.createElement('span');
+    this.$elements.last().append(endBoundary);
+
+    const selection = window.getSelection();
+    if (selection.containsNode(endBoundary, true)) {
+      const { higherNode, higherOffset } =
+        /** @type {import('./utils-window').HigherNodeAndOffsetInSelection} */ (
+          getHigherNodeAndOffsetInSelection(selection)
+        );
+      selection.setBaseAndExtent(higherNode, higherOffset, endBoundary, 0);
+    }
+
+    endBoundary.remove();
+  }
+
+  /**
+   * Update the toggle child threads button implementation for compact comments.
+   * Uses OOUI icons.
+   *
+   * @override
+   */
+  updateToggleChildThreadsButtonImpl() {
+    this.actions.toggleChildThreadsButton.setIcon(this.areChildThreadsCollapsed() ? 'add' : 'subtract');
+  }
+
+  /**
+   * Update timestamp elements for compact comments.
+   * Always updates timestamp elements since compact comments don't use headers.
+   *
+   * @param {string} timestamp
+   * @param {string} title
+   * @override
+   */
+  updateTimestampElements(timestamp, title) {
+    this.timestampElement.textContent = timestamp;
+    this.timestampElement.title = title;
+    new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
+    this.extraSignatures.forEach((sig) => {
+      if (!sig.timestampText) return;
+
+      const { timestamp: extraSigTimestamp, title: extraSigTitle } = this.formatTimestamp(
+        /** @type {Date} */ (sig.date),
+        sig.timestampText
+      );
+      sig.timestampElement.textContent = extraSigTimestamp;
+      sig.timestampElement.title = extraSigTitle;
+      new LiveTimestamp(
+        sig.timestampElement,
+        /** @type {Date} */ (sig.date),
+        !this.hideTimezone
+      ).init();
+    });
+  }
+
+  /**
+   * Get separators for change note links in compact comments.
+   * Uses space separators with conditional dot separator for diff link.
+   *
+   * @param {string} stringName
+   * @param {Button} [refreshLink]
+   * @returns {{ updatedStringName: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
+   * @override
+   */
+  getChangeNoteSeparators(stringName, refreshLink) {
+    return {
+      updatedStringName: stringName,
+      refreshLinkSeparator: ' ',
+      diffLinkSeparator: refreshLink ? cd.sParse('dot-separator') : ' ',
+    };
+  }
+
+  /**
+   * Initialize compact comment structure after parsing.
+   * Sets up timestamp element and reformats timestamp.
+   *
+   * @override
+   */
+  initializeCommentStructure() {
+    this.timestampElement = this.$elements.find('.cd-signature .cd-timestamp')[0];
+    this.reformatTimestamp();
+  }
 
   /**
    * Highlight the comment when hovered.

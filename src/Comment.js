@@ -598,7 +598,6 @@ class Comment extends CommentSkeleton {
   constructor(parser, signature, targets) {
     super(parser, signature, targets);
 
-    this.spacious = /** @type {boolean} */ (settings.get('spaciousComments') || false);
     this.showContribsLink = settings.get('showContribsLink');
     this.hideTimezone = settings.get('hideTimezone');
     this.timestampFormat = settings.get('timestampFormat');
@@ -680,7 +679,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   isReformatted() {
-    return this.spacious;
+    // This will be overridden by subclasses
+    return false;
   }
 
   /**
@@ -867,188 +867,6 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * _For internal use._ Add a comment header to the top highlightable element. Remove the comment
-   * signature unless there is more than one of them.
-   *
-   * @returns {ReplaceSignatureWithHeaderReturn} Pages to check existence of.
-   * @throws {CdError}
-   */
-  replaceSignatureWithHeader() {
-    if (!this.isReformatted()) {
-      throw new CdError();
-    }
-
-    const pagesToCheckExistence = [];
-
-    const headerWrapper = Comment.prototypes.get('headerWrapperElement');
-    this.headerElement = /** @type {HTMLElement} */ (
-      headerWrapper.firstChild
-    );
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const authorWrapper = /** @type {HTMLElement} */ (this.headerElement.firstChild);
-    const userInfoCardButton = /** @type {HTMLAnchorElement} */ (authorWrapper.firstChild);
-    const authorLink = /** @type {HTMLAnchorElement} */ (userInfoCardButton.nextElementSibling);
-    const authorLinksWrapper = /** @type {HTMLElement} */ (authorLink.nextElementSibling);
-    const bdiElement = /** @type {HTMLElement} */ (authorLink.firstChild);
-    const authorTalkLink = /** @type {HTMLAnchorElement} */ (authorLinksWrapper.firstElementChild);
-    let contribsLink;
-    if (this.showContribsLink) {
-      contribsLink = /** @type {HTMLAnchorElement} */ (authorLinksWrapper.lastElementChild);
-      if (!this.author.isRegistered()) {
-        /** @type {HTMLElement} */ (contribsLink.previousSibling).remove();
-        contribsLink.remove();
-      }
-    }
-
-    if (mw.user.options.get('checkuser-userinfocard-enable') && this.author.isRegistered()) {
-      userInfoCardButton.dataset.username = this.author.getName();
-      if (this.author.isTemporary()) {
-        const span = /** @type {HTMLElement} */ (userInfoCardButton.firstChild);
-        span.classList.remove('ext-checkuser-userinfocard-button__icon--userAvatar');
-        span.classList.add('ext-checkuser-userinfocard-button__icon--userTemporary');
-      }
-    } else {
-      userInfoCardButton.remove();
-    }
-
-    if (this.authorLink) {
-      // Move the existing author link to the header.
-
-      if (this.extraSignatures.length) {
-        this.authorLink = /** @type {HTMLAnchorElement} */ (this.authorLink.cloneNode(true));
-      }
-
-      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-      const beforeAuthorLinkParseReturn = cd.config.beforeAuthorLinkParse?.(
-        this.authorLink,
-        authorLink
-      );
-      authorLink.replaceWith(this.authorLink);
-      this.authorLink.classList.add('cd-comment-author');
-      this.authorLink.innerHTML = '';
-      this.authorLink.append(bdiElement);
-
-      cd.config.afterAuthorLinkParse?.(this.authorLink, beforeAuthorLinkParseReturn);
-    } else {
-      // Use the bootstrap author link.
-      this.authorLink = authorLink;
-      let pageName;
-      if (this.author.isRegistered()) {
-        pageName = 'User:' + this.author.getName();
-        pagesToCheckExistence.push({
-          pageName,
-          link: this.authorLink,
-        });
-      } else {
-        pageName = `${cd.g.contribsPages[0]}/${this.author.getName()}`;
-      }
-      this.authorLink.title = pageName;
-      this.authorLink.href = mw.util.getUrl(pageName);
-    }
-
-    if (this.authorTalkLink) {
-      // Move the existing author talk link to the header.
-      if (this.extraSignatures.length) {
-        this.authorTalkLink = /** @type {HTMLAnchorElement} */ (
-          this.authorTalkLink.cloneNode(true)
-        );
-      }
-      authorTalkLink.replaceWith(this.authorTalkLink);
-      this.authorTalkLink.textContent = cd.s('comment-author-talk');
-    } else {
-      // Use the bootstrap author talk link.
-      this.authorTalkLink = authorTalkLink;
-      const pageName = 'User talk:' + this.author.getName();
-      pagesToCheckExistence.push({
-        pageName,
-        link: this.authorTalkLink,
-      });
-      this.authorTalkLink.title = pageName;
-      this.authorTalkLink.href = mw.util.getUrl(pageName);
-    }
-
-    bdiElement.textContent = this.author.getName();
-
-    if (contribsLink && this.author.isRegistered()) {
-      const pageName = `${cd.g.contribsPages[0]}/${this.author.getName()}`;
-      contribsLink.title = pageName;
-      contribsLink.href = mw.util.getUrl(pageName);
-    }
-
-    if (this.timestamp) {
-      // Create actions composition for spacious comments
-      if (!this.actions) {
-        this.actions = new SpaciousCommentActions(this);
-      }
-
-      /**
-       * "Copy link" button.
-       *
-       * @type {CommentButton}
-       */
-      this.actions.copyLinkButton = new CommentButton({
-        label: this.spaciousTimestamp || this.timestamp,
-        tooltip: this.timestampTitle,
-        classes: ['cd-comment-button-labelled', 'cd-comment-timestamp', 'mw-selflink-fragment'],
-        action: this.copyLink,
-        href: this.dtId && '#' + this.dtId,
-      });
-
-      this.headerElement.append(this.actions.copyLinkButton.element);
-      this.timestampElement = this.actions.copyLinkButton.labelElement;
-      if (this.date) {
-        new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
-      }
-    }
-
-    this.$header = /** @type {JQuery} */ ($(this.headerElement));
-
-    this.rewrapHighlightables();
-    this.highlightables[0].insertBefore(headerWrapper, this.highlightables[0].firstChild);
-
-    if (!this.extraSignatures.length) {
-      this.cleanUpSignature();
-      this.signatureElement.remove();
-    }
-
-    return pagesToCheckExistence;
-  }
-
-  /**
-   * _For internal use._ Add a menu to the bottom highlightable element of the comment and fill it
-   * with buttons. Used when comment reformatting is enabled; otherwise {@link Comment#createLayers}
-   * is used.
-   *
-   * @throws {CdError}
-   */
-  addMenu() {
-    if (!this.isReformatted()) {
-      throw new CdError();
-    }
-
-    const menuElement = /** @type {HTMLElement} */ (document.createElement('div'));
-    menuElement.className = 'cd-comment-menu';
-    this.menuElement = /** @type {HTMLElement} */ (menuElement);
-    this.$menu = /** @type {JQuery} */ ($(menuElement));
-
-    this.addReplyButton();
-    this.addEditButton();
-    this.addThankButton();
-    this.addGoToParentButton();
-
-    // The menu may be re-added (after a comment's content is updated). We need to restore
-    // something.
-    this.maybeAddGoToChildButton();
-
-    // We need a wrapper to ensure correct positioning in LTR-in-RTL situations and vice versa.
-    const menuWrapper = document.createElement('div');
-    menuWrapper.className = 'cd-comment-menu-wrapper';
-    menuWrapper.append(this.menuElement);
-
-    this.highlightables[this.highlightables.length - 1].append(menuWrapper);
-  }
-
-  /**
    * Create a {@link Comment#replyButton reply button} and add it to the comment menu
    * ({@link Comment#$menu} or {@link Comment#$overlayMenu}).
    *
@@ -1156,18 +974,52 @@ class Comment extends CommentSkeleton {
   updateToggleChildThreadsButton() {
     if (!this.actions?.toggleChildThreadsButton) return;
 
-    if (this.isReformatted()) {
-      this.actions.toggleChildThreadsButton.element.innerHTML = '';
-      this.actions.toggleChildThreadsButton.element.append(
-        Comment.prototypes.get(
-          this.areChildThreadsCollapsed()
-            ? 'expandChildThreadsButtonSvg'
-            : 'collapseChildThreadsButtonSvg'
-        )
-      );
-    } else {
-      this.actions.toggleChildThreadsButton.setIcon(this.areChildThreadsCollapsed() ? 'add' : 'subtract');
-    }
+    // This will be handled by subclass implementations
+    this.updateToggleChildThreadsButtonImpl();
+  }
+
+  /**
+   * Update the toggle child threads button implementation.
+   * This method should be overridden by subclasses.
+   */
+  updateToggleChildThreadsButtonImpl() {
+    // Default implementation - will be overridden by subclasses
+  }
+
+  /**
+   * Update timestamp elements with formatted timestamp and title.
+   * This method should be overridden by subclasses.
+   *
+   * @param {string} timestamp
+   * @param {string} title
+   */
+  updateTimestampElements(timestamp, title) {
+    // Default implementation - will be overridden by subclasses
+  }
+
+  /**
+   * Get separators for change note links.
+   * This method should be overridden by subclasses.
+   *
+   * @param {string} stringName
+   * @param {Button} [refreshLink]
+   * @returns {{ updatedStringName: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
+   */
+  getChangeNoteSeparators(stringName, refreshLink) {
+    // Default implementation - will be overridden by subclasses
+    return {
+      updatedStringName: stringName,
+      refreshLinkSeparator: ' ',
+      diffLinkSeparator: ' ',
+    };
+  }
+
+  /**
+   * Initialize comment structure after parsing.
+   * This method should be overridden by subclasses.
+   */
+  initializeCommentStructure() {
+    // Default implementation - will be overridden by subclasses
   }
 
   /**
@@ -1290,45 +1142,22 @@ class Comment extends CommentSkeleton {
 
     const { timestamp, title } = this.formatTimestamp(this.date, this.timestampElement.textContent);
     if (timestamp) {
-      this.spaciousTimestamp = timestamp;
+      this.reformattedTimestamp = timestamp;
       this.timestampTitle = title;
-      if (!this.isReformatted() || this.extraSignatures.length) {
-        this.timestampElement.textContent = timestamp;
-        this.timestampElement.title = title;
-        new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
-        this.extraSignatures.forEach((sig) => {
-          if (!sig.timestampText) return;
-
-          const { timestamp: extraSigTimestamp, title: extraSigTitle } = this.formatTimestamp(
-            /** @type {Date} */ (sig.date),
-            sig.timestampText
-          );
-          sig.timestampElement.textContent = extraSigTimestamp;
-          sig.timestampElement.title = extraSigTitle;
-          new LiveTimestamp(
-            sig.timestampElement,
-            /** @type {Date} */ (sig.date),
-            !this.hideTimezone
-          ).init();
-        });
-      }
+      this.updateTimestampElements(timestamp, title);
     }
   }
 
   /**
    * Bind the standard events to a comment part. Executed on comment object creation and DOM
    * modifications affecting comment parts.
+   * This method should be overridden by subclasses.
    *
    * @param {HTMLElement} element
    * @private
    */
   bindEvents = (element) => {
-    if (this.isReformatted()) return;
-    element.addEventListener('mouseenter', this.highlightHovered.bind(this));
-    element.addEventListener('mouseleave', () => {
-      this.unhighlightHovered();
-    });
-    element.addEventListener('touchstart', this.highlightHovered.bind(this));
+    // Default implementation - will be overridden by subclasses
   };
 
   /**
@@ -2127,7 +1956,7 @@ class Comment extends CommentSkeleton {
    * @param {MouseEvent | TouchEvent} [event]
    */
   highlightHovered(event) {
-    if (this.isHovered || bootManager.isPageOverlayOn() || this.isReformatted()) return;
+    if (this.isHovered || bootManager.isPageOverlayOn()) return;
 
     if (event?.type === 'touchstart') {
       if (this.wasMenuHidden) {
@@ -2168,7 +1997,7 @@ class Comment extends CommentSkeleton {
    * @param {boolean} [force] Unhighlight even if the "Toggle child threads" popup is open.
    */
   unhighlightHovered(force = false) {
-    if (!this.isHovered || this.isReformatted() || (this.toggleChildThreadsPopup && !force)) return;
+    if (!this.isHovered || (this.toggleChildThreadsPopup && !force)) return;
 
     // Animation will be directed to wrong properties if we keep it going.
     this.$animatedBackground?.stop(true, true);
@@ -2608,15 +2437,8 @@ class Comment extends CommentSkeleton {
         })
         : undefined;
 
-    let refreshLinkSeparator;
-    let diffLinkSeparator;
-    if (this.isReformatted()) {
-      stringName += '-short';
-      refreshLinkSeparator = diffLinkSeparator = cd.sParse('dot-separator');
-    } else {
-      refreshLinkSeparator = ' ';
-      diffLinkSeparator = refreshLink ? cd.sParse('dot-separator') : ' ';
-    }
+    const { updatedStringName, refreshLinkSeparator, diffLinkSeparator } = this.getChangeNoteSeparators(stringName, refreshLink);
+    stringName = updatedStringName;
 
     this.$changeNote?.remove();
 
@@ -2648,30 +2470,14 @@ class Comment extends CommentSkeleton {
 
   /**
    * Add a note that the comment has been changed.
+   * This method should be overridden by subclasses.
    *
    * @param {JQuery} $changeNote
    * @private
    */
   addChangeNote($changeNote) {
     this.$changeNote = $changeNote;
-
-    if (this.isReformatted()) {
-      /** @type {JQuery} */ (this.$header).append(this.$changeNote);
-    } else {
-      // Add the mark to the last block element, going as many nesting levels down as needed to
-      // avoid it appearing after a block element.
-      let $last;
-      let $tested = $(this.highlightables).last();
-      do {
-        $last = $tested;
-        $tested = $last.children().last();
-      } while ($tested.length && !isInline($tested[0]));
-
-      if (!$last.find('.cd-changeNote-before').length) {
-        $last.append(' ', $('<span>').addClass('cd-changeNote-before'));
-      }
-      $last.append($changeNote);
-    }
+    // Default implementation - will be overridden by subclasses
   }
 
   /**
@@ -2793,14 +2599,7 @@ class Comment extends CommentSkeleton {
       });
       this.$elements.attr('data-cd-comment-index', this.index);
 
-      if (this.isReformatted()) {
-        this.signatureElement = this.$elements.find('.cd-signature')[0];
-        this.replaceSignatureWithHeader();
-        this.addMenu();
-      } else {
-        this.timestampElement = this.$elements.find('.cd-signature .cd-timestamp')[0];
-        this.reformatTimestamp();
-      }
+      this.initializeCommentStructure();
 
       mw.hook('wikipage.content').fire(this.$elements);
 
@@ -3364,17 +3163,7 @@ class Comment extends CommentSkeleton {
         }
         const selection = window.getSelection();
         if (selection.type !== 'Range') {
-          const range = document.createRange();
-          if (this.isReformatted()) {
-            range.setStart(this.headerElement, this.headerElement.childNodes.length);
-          } else {
-            range.setStart(this.elements[0], 0);
-          }
-          if (this.isReformatted()) {
-            range.setEnd(this.menuElement, 0);
-          } else {
-            range.setEnd(this.signatureElement, 0);
-          }
+          const range = this.createSelectionRange();
           selection.removeAllRanges();
           selection.addRange(range);
         }
@@ -3400,32 +3189,25 @@ class Comment extends CommentSkeleton {
   }
 
   /**
+   * Create a selection range for the comment.
+   * This method should be overridden by subclasses.
+   *
+   * @returns {Range}
+   */
+  createSelectionRange() {
+    // Default implementation - will be overridden by subclasses
+    return document.createRange();
+  }
+
+  /**
    * Make sure the selection doesn't include any subsequent text even though it doesn't look like
    * this (e.g. Chrome includes subsequent text on triple click; if you try quotting the last
    * comment on the page without running fixSelection(), the `NewPP limit report` comment will be
    * included).
+   * This method should be overridden by subclasses.
    */
   fixSelection() {
-    let endBoundary;
-    if (this.isReformatted()) {
-      endBoundary = this.menuElement;
-    } else {
-      endBoundary = document.createElement('span');
-      this.$elements.last().append(endBoundary);
-    }
-
-    const selection = window.getSelection();
-    if (selection.containsNode(endBoundary, true)) {
-      const { higherNode, higherOffset } =
-        /** @type {import('./utils-window').HigherNodeAndOffsetInSelection} */ (
-          getHigherNodeAndOffsetInSelection(selection)
-        );
-      selection.setBaseAndExtent(higherNode, higherOffset, endBoundary, 0);
-    }
-
-    if (!this.isReformatted()) {
-      endBoundary.remove();
-    }
+    // Default implementation - will be overridden by subclasses
   }
 
   /**
