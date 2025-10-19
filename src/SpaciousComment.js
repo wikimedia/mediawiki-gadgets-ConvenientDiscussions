@@ -75,10 +75,10 @@ class SpaciousComment extends Comment {
    * Bind the standard events to a comment part.
    * For spacious comments, this is a no-op since they don't use hover events.
    *
-   * @param {HTMLElement} element
+   * @param {HTMLElement} _element
    * @override
    */
-  bindEvents = (element) => {
+  bindEvents(_element) {
     // No-op for spacious comments
   };
 
@@ -86,10 +86,10 @@ class SpaciousComment extends Comment {
    * Highlight the comment when hovered.
    * For spacious comments, this is a no-op since they don't use hover highlighting.
    *
-   * @param {MouseEvent | TouchEvent} [event]
+   * @param {MouseEvent | TouchEvent} [_event]
    * @override
    */
-  highlightHovered(event) {
+  highlightHovered(_event) {
     // No-op for spacious comments
   }
 
@@ -97,10 +97,10 @@ class SpaciousComment extends Comment {
    * Unhighlight the comment when it has lost focus.
    * For spacious comments, this is a no-op since they don't use hover highlighting.
    *
-   * @param {boolean} [force]
+   * @param {boolean} [_force]
    * @override
    */
-  unhighlightHovered(force = false) {
+  unhighlightHovered(_force = false) {
     // No-op for spacious comments
   }
 
@@ -108,6 +108,7 @@ class SpaciousComment extends Comment {
    * Update the toggle child threads button implementation for spacious comments.
    * Uses SVG icons from prototypes.
    *
+   * @this {this & { actions: { toggleChildThreadsButton: { element: HTMLElement } } }}
    * @override
    */
   updateToggleChildThreadsButtonImpl() {
@@ -127,13 +128,17 @@ class SpaciousComment extends Comment {
    *
    * @param {string} timestamp
    * @param {string} title
-   * @protected
+   * @override
    */
   updateMainTimestampElement(timestamp, title) {
     if (this.extraSignatures.length) {
       this.timestampElement.textContent = timestamp;
       this.timestampElement.title = title;
-      new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
+      new LiveTimestamp(
+        this.timestampElement,
+        /** @type {Date} */ (this.date),
+        !this.hideTimezone
+      ).init();
     }
   }
 
@@ -143,12 +148,12 @@ class SpaciousComment extends Comment {
    *
    * @param {string} stringName
    * @param {Button} [_refreshLink]
-   * @returns {{ updatedStringName: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
+   * @returns {{ noteText: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
    * @override
    */
   getChangeNoteSeparators(stringName, _refreshLink) {
     return {
-      updatedStringName: stringName + '-short',
+      noteText: cd.s(stringName + '-short'),
       refreshLinkSeparator: cd.sParse('dot-separator'),
       diffLinkSeparator: cd.sParse('dot-separator'),
     };
@@ -159,6 +164,7 @@ class SpaciousComment extends Comment {
    * Replaces signature with header and adds menu.
    *
    * @protected
+   * @override
    */
   initializeCommentStructureImpl() {
     this.replaceSignatureWithHeader();
@@ -312,9 +318,10 @@ class SpaciousComment extends Comment {
    *
    * @param {JQuery} $changeNote
    * @protected
+   * @override
    */
   addChangeNoteImpl($changeNote) {
-    /** @type {JQuery} */ (this.$header).append($changeNote);
+    this.$header.append($changeNote);
   }
 
   /**
@@ -349,8 +356,9 @@ class SpaciousComment extends Comment {
    * Get the end boundary element for spacious comments.
    * Uses the menu element as the boundary.
    *
-   * @returns {Element}
+   * @returns {HTMLElement}
    * @protected
+   * @override
    */
   getSelectionEndBoundary() {
     return this.menuElement;
@@ -361,10 +369,10 @@ class SpaciousComment extends Comment {
    * with buttons. Used when comment reformatting is enabled.
    */
   addMenu() {
-    const menuElement = /** @type {HTMLElement} */ (document.createElement('div'));
+    const menuElement = document.createElement('div');
     menuElement.className = 'cd-comment-menu';
-    this.menuElement = /** @type {HTMLElement} */ (menuElement);
-    this.$menu = /** @type {JQuery} */ ($(menuElement));
+    this.menuElement = menuElement;
+    this.$menu = $(menuElement);
 
     this.addReplyButton();
     this.addEditButton();

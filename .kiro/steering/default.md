@@ -74,6 +74,8 @@ This is a JavaScript project with type checking supplied by TypeScript through t
 - Maximum line length is 100.
 - When adding inline comments, place 2 spaces before them: `expression;  // Comment`.
 - Put a space between inline JSDoc comments and the following expression: `/** @type {string} */ (variable)`, not `/** @type {string} */(variable)`.
+- When a function parameter is not used in the function, put an underscore in front of it.
+- When a class method is overriding a method of the parent class, add `@override` tag to its  JSDoc comment.
 
 ## JSDoc code style
 

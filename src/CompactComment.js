@@ -43,15 +43,16 @@ class CompactComment extends Comment {
    * For compact comments, handles hover events for overlay menu display.
    *
    * @param {HTMLElement} element
+   * @protected
    * @override
    */
-  bindEvents = (element) => {
+  bindEvents(element) {
     element.addEventListener('mouseenter', this.highlightHovered.bind(this));
     element.addEventListener('mouseleave', () => {
       this.unhighlightHovered();
     });
     element.addEventListener('touchstart', this.highlightHovered.bind(this));
-  };
+  }
 
   /**
    * Implementation-specific logic for adding change note to compact comments.
@@ -59,6 +60,7 @@ class CompactComment extends Comment {
    *
    * @param {JQuery} $changeNote
    * @protected
+   * @override
    */
   addChangeNoteImpl($changeNote) {
     // Add the mark to the last block element, going as many nesting levels down as needed to
@@ -82,6 +84,7 @@ class CompactComment extends Comment {
    *
    * @returns {{ startNode: Node, startOffset: number }}
    * @protected
+   * @override
    */
   getSelectionStartPoint() {
     return {
@@ -96,6 +99,7 @@ class CompactComment extends Comment {
    *
    * @returns {{ endNode: Node, endOffset: number }}
    * @protected
+   * @override
    */
   getSelectionEndPoint() {
     return {
@@ -110,6 +114,7 @@ class CompactComment extends Comment {
    *
    * @returns {Element}
    * @protected
+   * @override
    */
   getSelectionEndBoundary() {
     const dummyEndBoundary = document.createElement('span');
@@ -123,6 +128,7 @@ class CompactComment extends Comment {
    *
    * @param {Element} endBoundary
    * @protected
+   * @override
    */
   cleanupSelectionEndBoundary(endBoundary) {
     endBoundary.remove();
@@ -132,6 +138,7 @@ class CompactComment extends Comment {
    * Update the toggle child threads button implementation for compact comments.
    * Uses OOUI icons.
    *
+   * @this {this & { actions: { toggleChildThreadsButton: { element: HTMLElement } } }}
    * @override
    */
   updateToggleChildThreadsButtonImpl() {
@@ -144,12 +151,16 @@ class CompactComment extends Comment {
    *
    * @param {string} timestamp
    * @param {string} title
-   * @protected
+   * @override
    */
   updateMainTimestampElement(timestamp, title) {
     this.timestampElement.textContent = timestamp;
     this.timestampElement.title = title;
-    new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
+    new LiveTimestamp(
+      this.timestampElement,
+      /** @type {Date} */ (this.date),
+      !this.hideTimezone
+    ).init();
   }
 
   /**
@@ -158,12 +169,12 @@ class CompactComment extends Comment {
    *
    * @param {string} stringName
    * @param {Button} [refreshLink]
-   * @returns {{ updatedStringName: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
+   * @returns {{ noteText: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
    * @override
    */
   getChangeNoteSeparators(stringName, refreshLink) {
     return {
-      updatedStringName: stringName,
+      noteText: cd.s(stringName),
       refreshLinkSeparator: ' ',
       diffLinkSeparator: refreshLink ? cd.sParse('dot-separator') : ' ',
     };
@@ -174,6 +185,7 @@ class CompactComment extends Comment {
    * Sets up timestamp element and reformats timestamp.
    *
    * @protected
+   * @override
    */
   initializeCommentStructureImpl() {
     this.timestampElement = this.$elements.find('.cd-signature .cd-timestamp')[0];
@@ -199,8 +211,8 @@ class CompactComment extends Comment {
   }
 
   /**
-   * Initialize prototypes for compact comments.
-   * Creates overlay menu prototypes and shared layer elements.
+   * Initialize prototypes for compact comments. Creates overlay menu prototypes and shared layer
+   * elements.
    *
    * @override
    */

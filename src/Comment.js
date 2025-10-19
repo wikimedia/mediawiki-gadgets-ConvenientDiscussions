@@ -999,11 +999,11 @@ class Comment extends CommentSkeleton {
    * Update the main timestamp element.
    * This method should be overridden by subclasses.
    *
-   * @param {string} timestamp
-   * @param {string} title
+   * @param {string} _timestamp
+   * @param {string} _title
    * @protected
    */
-  updateMainTimestampElement(timestamp, title) {
+  updateMainTimestampElement(_timestamp, _title) {
     // Default implementation - will be overridden by subclasses
   }
 
@@ -1034,17 +1034,14 @@ class Comment extends CommentSkeleton {
    * Get separators for change note links.
    * This method should be overridden by subclasses.
    *
-   * @param {string} stringName
-   * @param {Button} [refreshLink]
-   * @returns {{ updatedStringName: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
+   * @param {string} _stringName
+   * @param {Button} [_refreshLink]
+   * @returns {{ noteText: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
+   * @protected
+   * @abstract
    */
-  getChangeNoteSeparators(stringName, refreshLink) {
-    // Default implementation - will be overridden by subclasses
-    return {
-      updatedStringName: stringName,
-      refreshLinkSeparator: ' ',
-      diffLinkSeparator: ' ',
-    };
+  getChangeNoteSeparators(_stringName, _refreshLink) {
+    throw new Error('getChangeNoteSeparators must be implemented by subclasses');
   }
 
   /**
@@ -1078,7 +1075,7 @@ class Comment extends CommentSkeleton {
   /**
    * Check if a popup onboarding onto the "Toggle child threads" feature should be shown.
    *
-   * @returns {this is { toggleChildThreadsButton: CommentButton }}
+   * @returns {this is { actions: { toggleChildThreadsButton: CommentButton } }}
    */
   shouldOnboardOntoToggleChildThreads() {
     return Boolean(
@@ -1197,12 +1194,12 @@ class Comment extends CommentSkeleton {
    * modifications affecting comment parts.
    * This method should be overridden by subclasses.
    *
-   * @param {HTMLElement} element
+   * @param {HTMLElement} _element
    * @private
    */
-  bindEvents = (element) => {
+  bindEvents(_element) {
     // Default implementation - will be overridden by subclasses
-  };
+  }
 
   /**
    * _For internal use._ Filter out floating and hidden elements from the comment's
@@ -2481,12 +2478,12 @@ class Comment extends CommentSkeleton {
         })
         : undefined;
 
-    const { updatedStringName, refreshLinkSeparator, diffLinkSeparator } = this.getChangeNoteSeparators(stringName, refreshLink);
-    stringName = updatedStringName;
+    const { noteText, refreshLinkSeparator, diffLinkSeparator } =
+      this.getChangeNoteSeparators(stringName, refreshLink);
 
     this.$changeNote?.remove();
 
-    const $changeNote = $('<span>').addClass('cd-changeNote').text(cd.s(stringName));
+    const $changeNote = $('<span>').addClass('cd-changeNote').text(noteText);
     if (refreshLink) {
       $changeNote.append(refreshLinkSeparator, refreshLink.element);
     } else {
@@ -2528,10 +2525,10 @@ class Comment extends CommentSkeleton {
    * Implementation-specific logic for adding change note.
    * This method should be overridden by subclasses.
    *
-   * @param {JQuery} $changeNote
+   * @param {JQuery} _$changeNote
    * @protected
    */
-  addChangeNoteImpl($changeNote) {
+  addChangeNoteImpl(_$changeNote) {
     // Default implementation - will be overridden by subclasses
   }
 
@@ -3314,10 +3311,10 @@ class Comment extends CommentSkeleton {
    * Clean up the end boundary element after selection limiting.
    * This method can be overridden by subclasses if cleanup is needed.
    *
-   * @param {Element} endBoundary
+   * @param {Element} _endBoundary
    * @protected
    */
-  cleanupSelectionEndBoundary(endBoundary) {
+  cleanupSelectionEndBoundary(_endBoundary) {
     // Default implementation - no cleanup needed
   }
 
