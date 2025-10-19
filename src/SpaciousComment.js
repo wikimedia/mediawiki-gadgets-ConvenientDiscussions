@@ -7,7 +7,7 @@ import SpaciousCommentActions from './SpaciousCommentActions';
 import cd from './cd';
 import settings from './settings';
 import CdError from './shared/CdError';
-import { createSvg, getHigherNodeAndOffsetInSelection, limitSelectionAtEndBoundary } from './utils-window';
+import { createSvg, getHigherNodeAndOffsetInSelection } from './utils-window';
 
 /**
  * @typedef {object[]} ReplaceSignatureWithHeaderReturn
@@ -122,33 +122,18 @@ class SpaciousComment extends Comment {
   }
 
   /**
-   * Update timestamp elements for spacious comments.
-   * For spacious comments, timestamp is handled in the header, so this only updates extra signatures.
+   * Update the main timestamp element for spacious comments.
+   * Only updates if there are extra signatures (timestamp is handled in header otherwise).
    *
    * @param {string} timestamp
    * @param {string} title
-   * @override
+   * @protected
    */
-  updateTimestampElements(timestamp, title) {
+  updateMainTimestampElement(timestamp, title) {
     if (this.extraSignatures.length) {
       this.timestampElement.textContent = timestamp;
       this.timestampElement.title = title;
       new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
-      this.extraSignatures.forEach((sig) => {
-        if (!sig.timestampText) return;
-
-        const { timestamp: extraSigTimestamp, title: extraSigTitle } = this.formatTimestamp(
-          /** @type {Date} */ (sig.date),
-          sig.timestampText
-        );
-        sig.timestampElement.textContent = extraSigTimestamp;
-        sig.timestampElement.title = extraSigTitle;
-        new LiveTimestamp(
-          sig.timestampElement,
-          /** @type {Date} */ (sig.date),
-          !this.hideTimezone
-        ).init();
-      });
     }
   }
 
@@ -170,13 +155,12 @@ class SpaciousComment extends Comment {
   }
 
   /**
-   * Initialize spacious comment structure after parsing.
-   * Sets up signature element, replaces with header, and adds menu.
+   * Implementation-specific structure initialization for spacious comments.
+   * Replaces signature with header and adds menu.
    *
-   * @override
+   * @protected
    */
-  initializeCommentStructure() {
-    this.signatureElement = this.$elements.find('.cd-signature')[0];
+  initializeCommentStructureImpl() {
     this.replaceSignatureWithHeader();
     this.addMenu();
   }
@@ -323,40 +307,53 @@ class SpaciousComment extends Comment {
   }
 
   /**
-   * Add a note that the comment has been changed.
-   * For spacious comments, adds the note to the header.
+   * Implementation-specific logic for adding change note to spacious comments.
+   * Adds the note to the header.
    *
    * @param {JQuery} $changeNote
-   * @override
+   * @protected
    */
-  addChangeNote($changeNote) {
-    this.$changeNote = $changeNote;
-    /** @type {JQuery} */ (this.$header).append(this.$changeNote);
+  addChangeNoteImpl($changeNote) {
+    /** @type {JQuery} */ (this.$header).append($changeNote);
   }
 
   /**
-   * Create a selection range for spacious comments.
-   * Uses header element as start and menu element as end.
+   * Get the start point for selection range in spacious comments.
+   * Uses the end of header element.
    *
-   * @returns {Range}
-   * @override
+   * @returns {{ startNode: Node, startOffset: number }}
+   * @protected
    */
-  createSelectionRange() {
-    const range = document.createRange();
-    range.setStart(this.headerElement, this.headerElement.childNodes.length);
-    range.setEnd(this.menuElement, 0);
-
-    return range;
+  getSelectionStartPoint() {
+    return {
+      startNode: this.headerElement,
+      startOffset: this.headerElement.childNodes.length,
+    };
   }
 
   /**
-   * Make sure the selection doesn't include any subsequent text.
-   * For spacious comments, uses the menu element as the end boundary.
+   * Get the end point for selection range in spacious comments.
+   * Uses the beginning of menu element.
    *
-   * @override
+   * @returns {{ endNode: Node, endOffset: number }}
+   * @protected
    */
-  fixSelection() {
-    limitSelectionAtEndBoundary(this.menuElement);
+  getSelectionEndPoint() {
+    return {
+      endNode: this.menuElement,
+      endOffset: 0,
+    };
+  }
+
+  /**
+   * Get the end boundary element for spacious comments.
+   * Uses the menu element as the boundary.
+   *
+   * @returns {Element}
+   * @protected
+   */
+  getSelectionEndBoundary() {
+    return this.menuElement;
   }
 
   /**

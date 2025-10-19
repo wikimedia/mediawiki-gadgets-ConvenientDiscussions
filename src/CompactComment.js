@@ -4,7 +4,7 @@ import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
 import cd from './cd';
 import { isInline } from './shared/utils-general';
-import { getHigherNodeAndOffsetInSelection, limitSelectionAtEndBoundary } from './utils-window';
+import { getHigherNodeAndOffsetInSelection } from './utils-window';
 
 /**
  * A compact comment class that handles compact MediaWiki talk page formatting
@@ -54,15 +54,13 @@ class CompactComment extends Comment {
   };
 
   /**
-   * Add a note that the comment has been changed.
-   * For compact comments, adds the note to the last block element.
+   * Implementation-specific logic for adding change note to compact comments.
+   * Adds the note to the last block element.
    *
    * @param {JQuery} $changeNote
-   * @override
+   * @protected
    */
-  addChangeNote($changeNote) {
-    this.$changeNote = $changeNote;
-
+  addChangeNoteImpl($changeNote) {
     // Add the mark to the last block element, going as many nesting levels down as needed to
     // avoid it appearing after a block element.
     let $last;
@@ -79,31 +77,55 @@ class CompactComment extends Comment {
   }
 
   /**
-   * Create a selection range for compact comments.
-   * Uses first element as start and signature element as end.
+   * Get the start point for selection range in compact comments.
+   * Uses the beginning of first element.
    *
-   * @returns {Range}
-   * @override
+   * @returns {{ startNode: Node, startOffset: number }}
+   * @protected
    */
-  createSelectionRange() {
-    const range = document.createRange();
-    range.setStart(this.elements[0], 0);
-    range.setEnd(this.signatureElement, 0);
-
-    return range;
+  getSelectionStartPoint() {
+    return {
+      startNode: this.elements[0],
+      startOffset: 0,
+    };
   }
 
   /**
-   * Make sure the selection doesn't include any subsequent text.
-   * For compact comments, creates a temporary boundary element.
+   * Get the end point for selection range in compact comments.
+   * Uses the beginning of signature element.
    *
-   * @override
+   * @returns {{ endNode: Node, endOffset: number }}
+   * @protected
    */
-  fixSelection() {
+  getSelectionEndPoint() {
+    return {
+      endNode: this.signatureElement,
+      endOffset: 0,
+    };
+  }
+
+  /**
+   * Get the end boundary element for compact comments.
+   * Creates a temporary boundary element.
+   *
+   * @returns {Element}
+   * @protected
+   */
+  getSelectionEndBoundary() {
     const dummyEndBoundary = document.createElement('span');
     this.$elements.last().append(dummyEndBoundary);
-    limitSelectionAtEndBoundary(dummyEndBoundary);
-    dummyEndBoundary.remove();
+
+    return dummyEndBoundary;
+  }
+
+  /**
+   * Clean up the temporary boundary element for compact comments.
+   *
+   * @param {Element} endBoundary
+   * @protected
+   */
+  cleanupSelectionEndBoundary(endBoundary) {
+    endBoundary.remove();
   }
 
   /**
@@ -117,32 +139,17 @@ class CompactComment extends Comment {
   }
 
   /**
-   * Update timestamp elements for compact comments.
-   * Always updates timestamp elements since compact comments don't use headers.
+   * Update the main timestamp element for compact comments.
+   * Always updates since compact comments don't use headers.
    *
    * @param {string} timestamp
    * @param {string} title
-   * @override
+   * @protected
    */
-  updateTimestampElements(timestamp, title) {
+  updateMainTimestampElement(timestamp, title) {
     this.timestampElement.textContent = timestamp;
     this.timestampElement.title = title;
     new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
-    this.extraSignatures.forEach((sig) => {
-      if (!sig.timestampText) return;
-
-      const { timestamp: extraSigTimestamp, title: extraSigTitle } = this.formatTimestamp(
-        /** @type {Date} */ (sig.date),
-        sig.timestampText
-      );
-      sig.timestampElement.textContent = extraSigTimestamp;
-      sig.timestampElement.title = extraSigTitle;
-      new LiveTimestamp(
-        sig.timestampElement,
-        /** @type {Date} */ (sig.date),
-        !this.hideTimezone
-      ).init();
-    });
   }
 
   /**
@@ -163,12 +170,12 @@ class CompactComment extends Comment {
   }
 
   /**
-   * Initialize compact comment structure after parsing.
+   * Implementation-specific structure initialization for compact comments.
    * Sets up timestamp element and reformats timestamp.
    *
-   * @override
+   * @protected
    */
-  initializeCommentStructure() {
+  initializeCommentStructureImpl() {
     this.timestampElement = this.$elements.find('.cd-signature .cd-timestamp')[0];
     this.reformatTimestamp();
   }

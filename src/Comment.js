@@ -26,7 +26,7 @@ import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
 import { handleApiReject, loadUserGenders, parseCode } from './utils-api';
 import { showConfirmDialog } from './utils-oojs';
-import { createSvg, extractSignatures, formatDate, formatDateNative, getExtendedRect, getHigherNodeAndOffsetInSelection, isVisible, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
+import { createSvg, extractSignatures, formatDate, formatDateNative, getExtendedRect, getHigherNodeAndOffsetInSelection, isVisible, limitSelectionAtEndBoundary, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**
  * @typedef {object} CommentOffset
@@ -982,13 +982,52 @@ class Comment extends CommentSkeleton {
 
   /**
    * Update timestamp elements with formatted timestamp and title.
-   * This method should be overridden by subclasses.
+   * Handles main timestamp update, then processes extra signatures.
    *
    * @param {string} timestamp
    * @param {string} title
    */
   updateTimestampElements(timestamp, title) {
+    // Let subclass handle main timestamp element
+    this.updateMainTimestampElement(timestamp, title);
+
+    // Handle extra signatures (common logic)
+    this.updateExtraSignatureTimestamps();
+  }
+
+  /**
+   * Update the main timestamp element.
+   * This method should be overridden by subclasses.
+   *
+   * @param {string} timestamp
+   * @param {string} title
+   * @protected
+   */
+  updateMainTimestampElement(timestamp, title) {
     // Default implementation - will be overridden by subclasses
+  }
+
+  /**
+   * Update extra signature timestamps (common logic).
+   *
+   * @private
+   */
+  updateExtraSignatureTimestamps() {
+    this.extraSignatures.forEach((sig) => {
+      if (!sig.timestampText) return;
+
+      const { timestamp: extraSigTimestamp, title: extraSigTitle } = this.formatTimestamp(
+        /** @type {Date} */ (sig.date),
+        sig.timestampText
+      );
+      sig.timestampElement.textContent = extraSigTimestamp;
+      sig.timestampElement.title = extraSigTitle;
+      new LiveTimestamp(
+        sig.timestampElement,
+        /** @type {Date} */ (sig.date),
+        !this.hideTimezone
+      ).init();
+    });
   }
 
   /**
@@ -1010,9 +1049,20 @@ class Comment extends CommentSkeleton {
 
   /**
    * Initialize comment structure after parsing.
-   * This method should be overridden by subclasses.
+   * Finds signature element, then delegates to subclass implementation.
    */
   initializeCommentStructure() {
+    this.signatureElement = this.$elements.find('.cd-signature')[0];
+    this.initializeCommentStructureImpl();
+  }
+
+  /**
+   * Implementation-specific comment structure initialization.
+   * This method should be overridden by subclasses.
+   *
+   * @protected
+   */
+  initializeCommentStructureImpl() {
     // Default implementation - will be overridden by subclasses
   }
 
@@ -2464,13 +2514,24 @@ class Comment extends CommentSkeleton {
 
   /**
    * Add a note that the comment has been changed.
-   * This method should be overridden by subclasses.
+   * Handles common setup, then delegates to subclass implementation.
    *
    * @param {JQuery} $changeNote
    * @private
    */
   addChangeNote($changeNote) {
     this.$changeNote = $changeNote;
+    this.addChangeNoteImpl($changeNote);
+  }
+
+  /**
+   * Implementation-specific logic for adding change note.
+   * This method should be overridden by subclasses.
+   *
+   * @param {JQuery} $changeNote
+   * @protected
+   */
+  addChangeNoteImpl($changeNote) {
     // Default implementation - will be overridden by subclasses
   }
 
@@ -3184,13 +3245,43 @@ class Comment extends CommentSkeleton {
 
   /**
    * Create a selection range for the comment.
-   * This method should be overridden by subclasses.
+   * Uses template method pattern to get start and end points from subclasses.
    *
    * @returns {Range}
    */
   createSelectionRange() {
+    const range = document.createRange();
+    const { startNode, startOffset } = this.getSelectionStartPoint();
+    const { endNode, endOffset } = this.getSelectionEndPoint();
+
+    range.setStart(startNode, startOffset);
+    range.setEnd(endNode, endOffset);
+
+    return range;
+  }
+
+  /**
+   * Get the start point for selection range.
+   * This method should be overridden by subclasses.
+   *
+   * @returns {{ startNode: Node, startOffset: number }}
+   * @protected
+   */
+  getSelectionStartPoint() {
     // Default implementation - will be overridden by subclasses
-    return document.createRange();
+    return { startNode: document.body, startOffset: 0 };
+  }
+
+  /**
+   * Get the end point for selection range.
+   * This method should be overridden by subclasses.
+   *
+   * @returns {{ endNode: Node, endOffset: number }}
+   * @protected
+   */
+  getSelectionEndPoint() {
+    // Default implementation - will be overridden by subclasses
+    return { endNode: document.body, endOffset: 0 };
   }
 
   /**
@@ -3198,10 +3289,36 @@ class Comment extends CommentSkeleton {
    * this (e.g. Chrome includes subsequent text on triple click; if you try quotting the last
    * comment on the page without running fixSelection(), the `NewPP limit report` comment will be
    * included).
-   * This method should be overridden by subclasses.
    */
   fixSelection() {
+    const endBoundary = this.getSelectionEndBoundary();
+    if (endBoundary) {
+      limitSelectionAtEndBoundary(endBoundary);
+      this.cleanupSelectionEndBoundary(endBoundary);
+    }
+  }
+
+  /**
+   * Get the end boundary element for selection limiting.
+   * This method should be overridden by subclasses.
+   *
+   * @returns {Element | undefined}
+   * @protected
+   */
+  getSelectionEndBoundary() {
     // Default implementation - will be overridden by subclasses
+    return undefined;
+  }
+
+  /**
+   * Clean up the end boundary element after selection limiting.
+   * This method can be overridden by subclasses if cleanup is needed.
+   *
+   * @param {Element} endBoundary
+   * @protected
+   */
+  cleanupSelectionEndBoundary(endBoundary) {
+    // Default implementation - no cleanup needed
   }
 
   /**
