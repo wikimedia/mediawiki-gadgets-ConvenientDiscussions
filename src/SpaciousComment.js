@@ -182,46 +182,6 @@ class SpaciousComment extends Comment {
   }
 
   /**
-   * Format the header for spacious comments.
-   * Creates and manages the author/date header structure.
-   */
-  formatHeader() {
-    if (!this.headerElement) {
-      this.headerElement = /** @type {HTMLElement} */ (
-        SpaciousComment.prototypes.get('headerWrapperElement')
-      );
-
-      // Find the author and date elements within the header
-      const authorElement = this.headerElement.querySelector('.cd-comment-author');
-      const dateElement = this.headerElement.querySelector('.cd-comment-timestamp');
-
-      if (authorElement) {
-        this.authorElement = /** @type {HTMLElement} */ (authorElement);
-      }
-      if (dateElement) {
-        this.dateElement = /** @type {HTMLElement} */ (dateElement);
-      }
-
-      this.$header = $(this.headerElement);
-    }
-
-    // Update author information
-    if (this.authorElement) {
-      this.authorElement.textContent = this.author.name;
-      if (this.authorElement instanceof HTMLAnchorElement) {
-        const userPageName = `${this.author.getNamespaceAlias()}:${this.author.name}`;
-        this.authorElement.href = mw.util.getUrl(userPageName);
-      }
-    }
-
-    // Update timestamp information
-    if (this.dateElement) {
-      this.dateElement.textContent = this.timestampElement.textContent;
-      this.dateElement.title = this.timestampElement.title;
-    }
-  }
-
-  /**
    * _For internal use._ Add a comment header to the top highlightable element. Remove the comment
    * signature unless there is more than one of them.
    *
@@ -231,9 +191,7 @@ class SpaciousComment extends Comment {
     const pagesToCheckExistence = [];
 
     const headerWrapper = Comment.prototypes.get('headerWrapperElement');
-    this.headerElement = /** @type {HTMLElement} */ (
-      headerWrapper.firstChild
-    );
+    this.headerElement = /** @type {HTMLElement} */ (headerWrapper.firstChild);
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const authorWrapper = /** @type {HTMLElement} */ (this.headerElement.firstChild);
     const userInfoCardButton = /** @type {HTMLAnchorElement} */ (authorWrapper.firstChild);
