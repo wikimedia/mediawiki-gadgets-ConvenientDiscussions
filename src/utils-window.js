@@ -1360,3 +1360,18 @@ export function formatDateRelative(date) {
     locale: cd.i18n[cd.g.userLanguage].dateFnsLocale,
   });
 }
+
+/**
+ * Provided an end boundary element, make sure the selection doesn't go beyond it.
+ *
+ * @param {Element} endBoundary
+ */
+export function limitSelectionAtEndBoundary(endBoundary) {
+  const selection = window.getSelection();
+  if (selection.containsNode(endBoundary, true)) {
+    const { higherNode, higherOffset } = /** @type {HigherNodeAndOffsetInSelection} */ (
+      getHigherNodeAndOffsetInSelection(selection)
+    );
+    selection.setBaseAndExtent(higherNode, higherOffset, endBoundary, 0);
+  }
+}

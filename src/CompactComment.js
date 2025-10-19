@@ -4,7 +4,7 @@ import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
 import cd from './cd';
 import { isInline } from './shared/utils-general';
-import { getHigherNodeAndOffsetInSelection } from './utils-window';
+import { getHigherNodeAndOffsetInSelection, limitSelectionAtEndBoundary } from './utils-window';
 
 /**
  * A compact comment class that handles compact MediaWiki talk page formatting
@@ -100,19 +100,10 @@ class CompactComment extends Comment {
    * @override
    */
   fixSelection() {
-    const endBoundary = document.createElement('span');
-    this.$elements.last().append(endBoundary);
-
-    const selection = window.getSelection();
-    if (selection.containsNode(endBoundary, true)) {
-      const { higherNode, higherOffset } =
-        /** @type {import('./utils-window').HigherNodeAndOffsetInSelection} */ (
-          getHigherNodeAndOffsetInSelection(selection)
-        );
-      selection.setBaseAndExtent(higherNode, higherOffset, endBoundary, 0);
-    }
-
-    endBoundary.remove();
+    const dummyEndBoundary = document.createElement('span');
+    this.$elements.last().append(dummyEndBoundary);
+    limitSelectionAtEndBoundary(dummyEndBoundary);
+    dummyEndBoundary.remove();
   }
 
   /**

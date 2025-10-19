@@ -7,7 +7,13 @@ import SpaciousCommentActions from './SpaciousCommentActions';
 import cd from './cd';
 import settings from './settings';
 import CdError from './shared/CdError';
-import { createSvg, getHigherNodeAndOffsetInSelection } from './utils-window';
+import { createSvg, getHigherNodeAndOffsetInSelection, limitSelectionAtEndBoundary } from './utils-window';
+
+/**
+ * @typedef {object[]} ReplaceSignatureWithHeaderReturn
+ * @property {string} pageName
+ * @property {HTMLAnchorElement} link
+ */
 
 /**
  * A spacious comment class that handles spacious comment formatting with author/date headers
@@ -151,11 +157,11 @@ class SpaciousComment extends Comment {
    * Uses short format with dot separators.
    *
    * @param {string} stringName
-   * @param {Button} [refreshLink]
+   * @param {Button} [_refreshLink]
    * @returns {{ updatedStringName: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
    * @override
    */
-  getChangeNoteSeparators(stringName, refreshLink) {
+  getChangeNoteSeparators(stringName, _refreshLink) {
     return {
       updatedStringName: stringName + '-short',
       refreshLinkSeparator: cd.sParse('dot-separator'),
@@ -392,15 +398,7 @@ class SpaciousComment extends Comment {
    * @override
    */
   fixSelection() {
-    const endBoundary = this.menuElement;
-    const selection = window.getSelection();
-    if (selection.containsNode(endBoundary, true)) {
-      const { higherNode, higherOffset } =
-        /** @type {import('./utils-window').HigherNodeAndOffsetInSelection} */ (
-          getHigherNodeAndOffsetInSelection(selection)
-        );
-      selection.setBaseAndExtent(higherNode, higherOffset, endBoundary, 0);
-    }
+    limitSelectionAtEndBoundary(this.menuElement);
   }
 
   /**

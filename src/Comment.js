@@ -64,12 +64,6 @@ import { createSvg, extractSignatures, formatDate, formatDateNative, getExtended
  */
 
 /**
- * @typedef {object[]} ReplaceSignatureWithHeaderReturn
- * @property {string} pageName
- * @property {HTMLAnchorElement} link
- */
-
-/**
  * @typedef {Map<
  *   import('./updateChecker').SectionWorkerMatched | import('./Section').default | null,
  *   import('./updateChecker').CommentWorkerMatched[] | Comment[]

@@ -827,7 +827,7 @@ class CommentManager extends EventEmitter {
       comment.addMenu();
 
       return acc;
-    }, /** @type {import('./Comment').ReplaceSignatureWithHeaderReturn} */ ([]));
+    }, /** @type {import('./SpaciousComment').ReplaceSignatureWithHeaderReturn} */ ([]));
 
     // Check existence of user and user talk pages and apply respective changes to elements.
     const pageNamesToLinks = pagesToCheckExistence.reduce((acc, page) => {

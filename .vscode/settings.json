@@ -1,7 +1,5 @@
 {
-  "editor.rulers": [
-    100
-  ],
+  "editor.rulers": [100],
   "editor.wordWrapColumn": 100,
   "editor.tabSize": 2,
   "editor.codeActionsOnSave": {
@@ -31,8 +29,4 @@
 
   // Without this, `export {};` is changed to `export { };` by `source.organizeImports`
   "typescript.format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces": false,
-
-  "vs-docblockr.alignTags": false,
-  "vs-docblockr.columnSpacing": 1,
-  "vs-docblockr.newLinesBetweenTags": false,
 }
