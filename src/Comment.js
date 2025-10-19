@@ -181,245 +181,6 @@ class Comment extends CommentSkeleton {
   actions;
 
   /**
-   * _For internal use._ Comment's underlay as a native (non-jQuery) element.
-   *
-   * @deprecated Use layers.underlay instead
-   *
-   * @type {HTMLElement | undefined}
-   */
-  get underlay() {
-    if (!this.layers) return undefined;
-
-    return this.layers.underlay;
-  }
-
-  /**
-   * Comment's overlay.
-   *
-   * @deprecated Use layers.overlay instead
-   *
-   * @type {HTMLElement | undefined}
-   * @private
-   */
-  get overlay() {
-    if (!this.layers) return undefined;
-
-    return this.layers.overlay;
-  }
-
-  /**
-   * Line element in comment's overlay.
-   *
-   * @deprecated Use layers.line instead
-   *
-   * @type {HTMLElement | undefined}
-   * @private
-   */
-  get line() {
-    if (!this.layers) return undefined;
-
-    return this.layers.line;
-  }
-
-  /**
-   * Comment's side marker.
-   *
-   * @deprecated Use layers.marker instead
-   *
-   * @type {HTMLElement | undefined}
-   * @private
-   */
-  get marker() {
-    if (!this.layers) return undefined;
-
-    return this.layers.marker;
-  }
-
-  /**
-   * Inner wrapper in comment's overlay.
-   *
-   * @deprecated Use layers.overlayInnerWrapper instead
-   *
-   * @type {HTMLElement | undefined}
-   * @private
-   */
-  get overlayInnerWrapper() {
-    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
-
-    return this.layers.overlayInnerWrapper;
-  }
-
-  /**
-   * Gradient element in comment's overlay.
-   *
-   * @deprecated Use layers.overlayGradient instead
-   *
-   * @type {HTMLElement | undefined}
-   * @private
-   */
-  get overlayGradient() {
-    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
-
-    return this.layers.overlayGradient;
-  }
-
-  /**
-   * Menu element in comment's overlay.
-   *
-   * @deprecated Use layers.overlayMenu instead
-   *
-   * @type {HTMLElement | undefined}
-   * @private
-   */
-  get overlayMenu() {
-    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
-
-    return this.layers.overlayMenu;
-  }
-
-  /**
-   * Comment's underlay.
-   *
-   * @deprecated Use layers.$underlay instead
-   *
-   * @type {JQuery | undefined}
-   */
-  get $underlay() {
-    if (!this.layers) return undefined;
-
-    return this.layers.$underlay;
-  }
-
-  /**
-   * Comment's overlay.
-   *
-   * @deprecated Use layers.$overlay instead
-   *
-   * @type {JQuery | undefined}
-   */
-  get $overlay() {
-    if (!this.layers) return undefined;
-
-    return this.layers.$overlay;
-  }
-
-  /**
-   * Comment's side marker.
-   *
-   * @deprecated Use layers.$marker instead
-   *
-   * @type {JQuery | undefined}
-   */
-  get $marker() {
-    if (!this.layers) return undefined;
-
-    return this.layers.$marker;
-  }
-
-  /**
-   * Menu element in the comment's overlay.
-   *
-   * @deprecated Use layers.$overlayMenu instead
-   *
-   * @type {JQuery | undefined}
-   */
-  get $overlayMenu() {
-    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
-
-    return this.layers.$overlayMenu;
-  }
-
-  /**
-   * Gradient element in the comment's overlay.
-   *
-   * @deprecated Use layers.$overlayGradient instead
-   *
-   * @type {JQuery | undefined}
-   */
-  get $overlayGradient() {
-    if (!this.layers || !(this.layers instanceof CompactCommentLayers)) return undefined;
-
-    return this.layers.$overlayGradient;
-  }
-
-  /**
-   * Reply button.
-   *
-   * @deprecated Use actions.replyButton instead
-   *
-   * @type {CommentButton | undefined}
-   */
-  get replyButton() {
-    return this.actions?.replyButton;
-  }
-
-  /**
-   * Edit button.
-   *
-   * @deprecated Use actions.editButton instead
-   *
-   * @type {CommentButton | undefined}
-   */
-  get editButton() {
-    return this.actions?.editButton;
-  }
-
-  /**
-   * Thank button.
-   *
-   * @deprecated Use actions.thankButton instead
-   *
-   * @type {CommentButton | undefined}
-   */
-  get thankButton() {
-    return this.actions?.thankButton;
-  }
-
-  /**
-   * Copy link button.
-   *
-   * @deprecated Use actions.copyLinkButton instead
-   *
-   * @type {CommentButton | undefined}
-   */
-  get copyLinkButton() {
-    return this.actions?.copyLinkButton;
-  }
-
-  /**
-   * "Go to parent" button.
-   *
-   * @deprecated Use actions.goToParentButton instead
-   *
-   * @type {CommentButton | undefined}
-   */
-  get goToParentButton() {
-    return this.actions?.goToParentButton;
-  }
-
-  /**
-   * "Go to child" button.
-   *
-   * @deprecated Use actions.goToChildButton instead
-   *
-   * @type {CommentButton | undefined}
-   */
-  get goToChildButton() {
-    return this.actions?.goToChildButton;
-  }
-
-  /**
-   * "Toggle child threads" button.
-   *
-   * @deprecated Use actions.toggleChildThreadsButton instead
-   *
-   * @type {CommentButton | undefined}
-   */
-  get toggleChildThreadsButton() {
-    return this.actions?.toggleChildThreadsButton;
-  }
-
-  /**
    * Is the comment new. Is set to a boolean only on active pages (not archived pages, not old
    * diffs) excluding pages that are visited for the first time.
    *
@@ -673,8 +434,17 @@ class Comment extends CommentSkeleton {
    * @private
    */
   isReformatted() {
-    // This will be overridden by subclasses
-    return false;
+    return this.spacious;
+  }
+
+  /**
+   * Check if the comment has layers (underlay and overlay).
+   *
+   * @returns {boolean}
+   * @private
+   */
+  hasLayers() {
+    return Boolean(this.layers?.underlay);
   }
 
   /**
@@ -684,7 +454,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   hasClassicUnderlay() {
-    return !this.isReformatted() && Boolean(this.layers);
+    return !this.isReformatted() && this.hasLayers();
   }
 
   /**
@@ -861,72 +631,12 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Create a {@link Comment#replyButton reply button} and add it to the comment menu
-   * ({@link Comment#$menu} or {@link Comment#$overlayMenu}).
-   *
-   * @private
-   */
-  addReplyButton() {
-    if (this.actions?.addReplyButton) {
-      this.actions.addReplyButton();
-    }
-  }
-
-  /**
    * Check whether the comment can be edited.
    *
    * @returns {boolean}
    */
   canBeEdited() {
     return this.isEditable;
-  }
-
-  /**
-   * Create an {@link Comment#editButton edit button} and add it to the comment menu
-   * ({@link Comment#$menu} or {@link Comment#$overlayMenu}).
-   *
-   * @private
-   */
-  addEditButton() {
-    if (this.actions?.addEditButton) {
-      this.actions.addEditButton();
-    }
-  }
-
-  /**
-   * Create a {@link Comment#thankButton thank button} and add it to the comment menu
-   * ({@link Comment#$menu} or {@link Comment#$overlayMenu}).
-   *
-   * @private
-   */
-  addThankButton() {
-    if (this.actions?.addThankButton) {
-      this.actions.addThankButton();
-    }
-  }
-
-  /**
-   * Create a {@link Comment#copyLinkButton copy link button} and add it to the comment menu
-   * ({@link Comment#$overlayMenu}).
-   *
-   * @private
-   */
-  addCopyLinkButton() {
-    if (this.actions?.addCopyLinkButton) {
-      this.actions.addCopyLinkButton();
-    }
-  }
-
-  /**
-   * Create a {@link Comment#goToParentButton "Go to parent" button} and add it to the comment
-   * header ({@link Comment#$header} or {@link Comment#$overlayMenu}).
-   *
-   * @private
-   */
-  addGoToParentButton() {
-    if (this.actions?.addGoToParentButton) {
-      this.actions.addGoToParentButton();
-    }
   }
 
   /**
@@ -1017,14 +727,14 @@ class Comment extends CommentSkeleton {
       if (!sig.timestampText) return;
 
       const { timestamp: extraSigTimestamp, title: extraSigTitle } = this.formatTimestamp(
-        /** @type {Date} */ (sig.date),
+        /** @type {Date} */(sig.date),
         sig.timestampText
       );
       sig.timestampElement.textContent = extraSigTimestamp;
       sig.timestampElement.title = extraSigTitle;
       new LiveTimestamp(
         sig.timestampElement,
-        /** @type {Date} */ (sig.date),
+        /** @type {Date} */(sig.date),
         !this.hideTimezone
       ).init();
     });
@@ -1721,6 +1431,22 @@ class Comment extends CommentSkeleton {
     }
 
     return hasMoved;
+  }
+
+  /**
+   * Configure the comment's action buttons. Create the actions composition if it doesn't exist.
+   */
+  configureActions() {
+    if (!this.actions) {
+      // Import here to avoid circular dependency
+      const CommentActions = require('./CommentActions').default;
+      const SpaciousCommentActions = require('./SpaciousCommentActions').default;
+      const CompactCommentActions = require('./CompactCommentActions').default;
+
+      this.actions = this.spacious ? new SpaciousCommentActions(this) : new CompactCommentActions(this);
+
+      this.actions.create();
+    }
   }
 
   /**
@@ -2450,13 +2176,13 @@ class Comment extends CommentSkeleton {
             /** @type {Button} */ (diffLink).setPending(true);
             try {
               await this.showDiff(
-                /** @type {number} */ (
+                /** @type {number} */(
                   type === 'changedSince' ? comparedRevisionId : currentRevisionId
                 ),
-                /** @type {number} */ (
+                /** @type {number} */(
                   type === 'changedSince' ? currentRevisionId : comparedRevisionId
                 ),
-                /** @type {NonNullable<typeof commentsData>} */ (commentsData)
+                /** @type {NonNullable<typeof commentsData>} */(commentsData)
               );
             } catch (error) {
               let text = cd.sParse('comment-diff-error');
@@ -2972,7 +2698,7 @@ class Comment extends CommentSkeleton {
         diffBody,
         wordOverlap,
         dateProximity: Math.abs(
-          /** @type {Date} */ (this.date).getTime() - new Date(revision.timestamp).setSeconds(0)
+          /** @type {Date} */(this.date).getTime() - new Date(revision.timestamp).setSeconds(0)
         ),
       });
     }
@@ -3079,7 +2805,7 @@ class Comment extends CommentSkeleton {
           : this.thankStandard()
       );
     } catch (error) {
-      this.thankFail(/** @type {Error|CdError} */ (error));
+      this.thankFail(/** @type {Error|CdError} */(error));
 
       return;
     } finally {
@@ -3578,7 +3304,7 @@ class Comment extends CommentSkeleton {
       newElement = newElementOrHtml;
       /** @type {HTMLElement} */ (nativeElement.parentElement).replaceChild(
         newElement,
-        /** @type {HTMLElement} */ (element)
+        /** @type {HTMLElement} */(element)
       );
     }
 
@@ -4138,7 +3864,7 @@ class Comment extends CommentSkeleton {
       potentialElement.tagName === 'DIV'
     ) {
       previousComment.parser.splitParentAfterNode(
-        /** @type {Node} */ (potentialElement.previousSibling)
+        /** @type {Node} */(potentialElement.previousSibling)
       );
     }
   }
