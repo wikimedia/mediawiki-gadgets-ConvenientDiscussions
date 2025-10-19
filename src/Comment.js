@@ -205,13 +205,6 @@ class Comment extends CommentSkeleton {
   isTarget = false;
 
   /**
-   * Is the comment currently hovered (when comments are spacious).
-   *
-   * @type {boolean}
-   */
-  isHovered = false;
-
-  /**
    * Has the comment changed since the previous visit.
    *
    * @type {boolean | undefined}
@@ -268,8 +261,6 @@ class Comment extends CommentSkeleton {
    * @type {CommentSubitemList}
    */
   subitemList = new CommentSubitemList();
-
-  wasMenuHidden = false;
 
   /** @type {Array<() => void>} */
   genderRequestCallbacks = [];
@@ -389,7 +380,9 @@ class Comment extends CommentSkeleton {
     // Delay bindEvents call until after construction is complete
     setTimeout(() => {
       this.highlightables.forEach((element) => {
-        this.bindEvents(element);
+        if ('bindEvents' in this && typeof this.bindEvents === 'function') {
+          this.bindEvents(element);
+        }
       });
     }, 0);
 
@@ -897,18 +890,6 @@ class Comment extends CommentSkeleton {
       this.timestampTitle = title;
       this.updateTimestampElements(timestamp, title);
     }
-  }
-
-  /**
-   * Bind the standard events to a comment part. Executed on comment object creation and DOM
-   * modifications affecting comment parts.
-   * This method should be overridden by subclasses.
-   *
-   * @param {HTMLElement} _element
-   * @private
-   */
-  bindEvents(_element) {
-    // Default implementation - will be overridden by subclasses
   }
 
   /**
@@ -1680,7 +1661,9 @@ class Comment extends CommentSkeleton {
     if (!this.layers) return;
 
     this.layers.$marker.stop(true, true);
-    this.unhighlightHovered(true);
+    if ('unhighlightHovered' in this && typeof this.unhighlightHovered === 'function') {
+      this.unhighlightHovered(true);
+    }
 
     // TODO: add add/remove methods to commentManager.underlays
     removeFromArrayIfPresent(commentManager.underlays, this.layers.underlay);
@@ -1711,70 +1694,12 @@ class Comment extends CommentSkeleton {
       event.pageX >= layersOffset.left + layersContainerOffset.left &&
       event.pageX <= layersOffset.left + layersOffset.width + layersContainerOffset.left
     ) {
-      this.highlightHovered();
-    } else {
+      if ('highlightHovered' in this && typeof this.highlightHovered === 'function') {
+        this.highlightHovered();
+      }
+    } else if ('unhighlightHovered' in this && typeof this.unhighlightHovered === 'function') {
       this.unhighlightHovered();
     }
-  }
-
-  /**
-   * Highlight the comment (show the underlay and overlay) when it is hovered.
-   *
-   * @param {MouseEvent | TouchEvent} [event]
-   */
-  highlightHovered(event) {
-    if (this.isHovered || bootManager.isPageOverlayOn()) return;
-
-    if (event?.type === 'touchstart') {
-      if (this.wasMenuHidden) {
-        this.wasMenuHidden = false;
-
-        return;
-      }
-
-      // FIXME: decouple
-      commentManager
-        .query((comment) => comment.isHovered)
-        .forEach((comment) => {
-          comment.unhighlightHovered();
-        });
-    }
-
-    // Animation will be directed to wrong properties if we keep it going.
-    this.$animatedBackground?.stop(true, true);
-
-    // Update classes if the comment isn't moved. If it is moved, the layers are removed and created
-    // again when the next event fires.
-    if (
-      // Is the comment moved?
-      this.configureLayers() ||
-
-      !this.layers
-    ) {
-      return;
-    }
-
-    this.isHovered = true;
-    this.updateClassesForFlag('hovered', true);
-  }
-
-  /**
-   * Unhighlight the comment when it has lost focus.
-   *
-   * @param {boolean} [force] Unhighlight even if the "Toggle child threads" popup is open.
-   */
-  unhighlightHovered(force = false) {
-    if (!this.isHovered || (this.toggleChildThreadsPopup && !force)) return;
-
-    // Animation will be directed to wrong properties if we keep it going.
-    this.$animatedBackground?.stop(true, true);
-
-    this.dontHideMenu();
-
-    this.updateClassesForFlag('hovered', false);
-    this.isHovered = false;
-
-    this.teardownOnboardOntoToggleChildThreadsPopup();
   }
 
   /**
@@ -3132,7 +3057,9 @@ class Comment extends CommentSkeleton {
       // We use a class, not .hide(), here because there can be elements in the comment that are
       // hidden from the beginning and should stay so when reshowing the comment.
       this.$elements.addClass('cd-hidden').data('cd-comment-form', commentForm);
-      this.unhighlightHovered();
+      if ('unhighlightHovered' in this && typeof this.unhighlightHovered === 'function') {
+        this.unhighlightHovered();
+      }
       if (this.isOpeningSection()) {
         this.section.hideBar();
       }
@@ -3318,7 +3245,9 @@ class Comment extends CommentSkeleton {
 
     if (this.highlightables.includes(nativeElement)) {
       this.highlightables.splice(this.highlightables.indexOf(nativeElement), 1, newElement);
-      this.bindEvents(newElement);
+      if ('bindEvents' in this && typeof this.bindEvents === 'function') {
+        this.bindEvents(newElement);
+      }
     }
     if (this.marginHighlightable === nativeElement) {
       this.marginHighlightable = newElement;

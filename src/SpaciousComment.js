@@ -2,12 +2,10 @@ import Button from './Button';
 import Comment from './Comment';
 import CommentButton from './CommentButton';
 import LiveTimestamp from './LiveTimestamp';
-import PrototypeRegistry from './PrototypeRegistry';
 import SpaciousCommentActions from './SpaciousCommentActions';
 import cd from './cd';
 import settings from './settings';
-import CdError from './shared/CdError';
-import { createSvg, getHigherNodeAndOffsetInSelection } from './utils-window';
+import { createSvg } from './utils-window';
 
 /**
  * @typedef {object[]} ReplaceSignatureWithHeaderReturn
@@ -69,39 +67,6 @@ class SpaciousComment extends Comment {
    */
   isReformatted() {
     return true;
-  }
-
-  /**
-   * Bind the standard events to a comment part.
-   * For spacious comments, this is a no-op since they don't use hover events.
-   *
-   * @param {HTMLElement} _element
-   * @override
-   */
-  bindEvents(_element) {
-    // No-op for spacious comments
-  };
-
-  /**
-   * Highlight the comment when hovered.
-   * For spacious comments, this is a no-op since they don't use hover highlighting.
-   *
-   * @param {MouseEvent | TouchEvent} [_event]
-   * @override
-   */
-  highlightHovered(_event) {
-    // No-op for spacious comments
-  }
-
-  /**
-   * Unhighlight the comment when it has lost focus.
-   * For spacious comments, this is a no-op since they don't use hover highlighting.
-   *
-   * @param {boolean} [_force]
-   * @override
-   */
-  unhighlightHovered(_force = false) {
-    // No-op for spacious comments
   }
 
   /**

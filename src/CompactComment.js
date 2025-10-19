@@ -1,10 +1,10 @@
 import Button from './Button';
 import Comment from './Comment';
 import LiveTimestamp from './LiveTimestamp';
-import PrototypeRegistry from './PrototypeRegistry';
+import bootManager from './bootManager';
 import cd from './cd';
+import commentManager from './commentManager';
 import { isInline } from './shared/utils-general';
-import { getHigherNodeAndOffsetInSelection } from './utils-window';
 
 /**
  * A compact comment class that handles compact MediaWiki talk page formatting
@@ -44,7 +44,6 @@ class CompactComment extends Comment {
    *
    * @param {HTMLElement} element
    * @protected
-   * @override
    */
   bindEvents(element) {
     element.addEventListener('mouseenter', this.highlightHovered.bind(this));
@@ -193,21 +192,65 @@ class CompactComment extends Comment {
   }
 
   /**
-   * Highlight the comment when hovered.
+   * Highlight the comment (show the underlay and overlay) when it is hovered.
    * Handles hover behavior and menu display for compact comments.
    *
-   * @override
    * @param {MouseEvent | TouchEvent} [event] The triggering event
    */
   highlightHovered(event) {
-    if (this.wasMenuHidden && event?.type === 'touchstart') {
-      this.wasMenuHidden = false;
+    if (this.isHovered || bootManager.isPageOverlayOn()) return;
 
+    if (event?.type === 'touchstart') {
+      if (this.wasMenuHidden) {
+        this.wasMenuHidden = false;
+
+        return;
+      }
+
+      // FIXME: decouple
+      commentManager
+        .query((comment) => comment.isHovered)
+        .forEach((comment) => {
+          comment.unhighlightHovered();
+        });
+    }
+
+    // Animation will be directed to wrong properties if we keep it going.
+    this.$animatedBackground?.stop(true, true);
+
+    // Update classes if the comment isn't moved. If it is moved, the layers are removed and created
+    // again when the next event fires.
+    if (
+      // Is the comment moved?
+      this.configureLayers() ||
+
+      !this.layers
+    ) {
       return;
     }
 
-    // Call parent method
-    super.highlightHovered(event);
+    this.isHovered = true;
+    this.updateClassesForFlag('hovered', true);
+  }
+
+  /**
+   * Unhighlight the comment when it has lost focus.
+   * Handles cleanup of hover state and menu hiding for compact comments.
+   *
+   * @param {boolean} [force] Unhighlight even if the "Toggle child threads" popup is open.
+   */
+  unhighlightHovered(force = false) {
+    if (!this.isHovered || (this.toggleChildThreadsPopup && !force)) return;
+
+    // Animation will be directed to wrong properties if we keep it going.
+    this.$animatedBackground?.stop(true, true);
+
+    this.dontHideMenu();
+
+    this.updateClassesForFlag('hovered', false);
+    this.isHovered = false;
+
+    this.teardownOnboardOntoToggleChildThreadsPopup();
   }
 
   /**
