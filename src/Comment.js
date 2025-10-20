@@ -800,6 +800,28 @@ class Comment extends CommentSkeleton {
   }
 
   /**
+   * Handle hover event for the comment.
+   * This method can be overridden by subclasses that need hover behavior.
+   *
+   * @param {MouseEvent | TouchEvent} [_event] The triggering event
+   * @protected
+   */
+  handleHover(_event) {
+    // Default implementation - can be overridden by subclasses
+  }
+
+  /**
+   * Handle unhover event for the comment.
+   * This method can be overridden by subclasses that need hover behavior.
+   *
+   * @param {boolean} [_force] Force unhover even if conditions would normally prevent it
+   * @protected
+   */
+  handleUnhover(_force = false) {
+    // Default implementation - can be overridden by subclasses
+  }
+
+  /**
    * _For internal use._ Filter out floating and hidden elements from the comment's
    * {@link CommentSkeleton#highlightables highlightables}, change their attributes, and update the
    * comment's level and parent elements' level classes.
@@ -1492,7 +1514,7 @@ class Comment extends CommentSkeleton {
    *
    * @param {CommentFlag} flag
    * @param {boolean} add
-   * @private
+   * @protected
    */
   updateClassesForFlag(flag, add) {
     if (!this.layers) return;
@@ -1538,7 +1560,7 @@ class Comment extends CommentSkeleton {
     if (!this.layers) return;
 
     this.layers.$marker.stop(true, true);
-    this.handleUnhover?.(true);
+    this.handleUnhover(true);
 
     // TODO: add add/remove methods to commentManager.underlays
     removeFromArrayIfPresent(commentManager.underlays, this.layers.underlay);
@@ -2563,7 +2585,7 @@ class Comment extends CommentSkeleton {
     const id = this.getUrlFragment();
     if (!this.actions?.thankButton || !id) return;
 
-    this.actions.thankButton?.setPending(true);
+    this.actions.thankButton.setPending(true);
     let accepted;
     try {
       const versionMatch = /^(\d+\.\d+).*/.exec(mw.config.get('wgVersion'));
@@ -2900,7 +2922,7 @@ class Comment extends CommentSkeleton {
       // We use a class, not .hide(), here because there can be elements in the comment that are
       // hidden from the beginning and should stay so when reshowing the comment.
       this.$elements.addClass('cd-hidden').data('cd-comment-form', commentForm);
-      this.handleUnhover?.();
+      this.handleUnhover();
       if (this.isOpeningSection()) {
         this.section.hideBar();
       }

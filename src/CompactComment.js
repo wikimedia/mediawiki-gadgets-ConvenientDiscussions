@@ -197,6 +197,7 @@ class CompactComment extends Comment {
    * Shows the underlay and overlay when the comment is hovered.
    *
    * @param {MouseEvent | TouchEvent} [event] The triggering event
+   * @override
    */
   handleHover = (event) => {
     if (this.isHovered || bootManager.isPageOverlayOn()) return;
@@ -211,8 +212,8 @@ class CompactComment extends Comment {
       // FIXME: decouple
       commentManager
         .query((comment) => comment instanceof CompactComment && comment.isHovered)
-        .forEach((/** @type {CompactComment} */ comment) => {
-          comment.handleUnhover();
+        .forEach((comment) => {
+          /** @type {CompactComment} */ (comment).handleUnhover();
         });
     }
 
@@ -239,6 +240,7 @@ class CompactComment extends Comment {
    * Cleans up hover state and hides menu for compact comments.
    *
    * @param {boolean} [force] Unhover even if the "Toggle child threads" popup is open.
+   * @override
    */
   handleUnhover(force = false) {
     if (!this.isHovered || (this.toggleChildThreadsPopup && !force)) return;
@@ -246,7 +248,7 @@ class CompactComment extends Comment {
     // Animation will be directed to wrong properties if we keep it going.
     this.$animatedBackground?.stop(true, true);
 
-    this.dontHideMenu();
+    this.layers?.dontHideMenu();
 
     this.updateClassesForFlag('hovered', false);
     this.isHovered = false;
