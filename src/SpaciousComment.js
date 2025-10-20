@@ -1,4 +1,3 @@
-import Button from './Button';
 import Comment from './Comment';
 import CommentButton from './CommentButton';
 import LiveTimestamp from './LiveTimestamp';
@@ -157,7 +156,7 @@ class SpaciousComment extends Comment {
    * Uses short format with dot separators.
    *
    * @param {string} stringName
-   * @param {Button} [_refreshLink]
+   * @param {*} [_refreshLink]
    * @returns {{ noteText: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
    * @override
    */
@@ -453,7 +452,7 @@ class SpaciousComment extends Comment {
    */
   getSelectionEndPoint() {
     return {
-      endNode: this.menuElement,
+      endNode: this.menuElement || this.headerElement,
       endOffset: 0,
     };
   }
@@ -467,7 +466,7 @@ class SpaciousComment extends Comment {
    * @override
    */
   getSelectionEndBoundary() {
-    return this.menuElement;
+    return this.menuElement || this.headerElement;
   }
 
   /**
@@ -480,14 +479,14 @@ class SpaciousComment extends Comment {
     this.menuElement = menuElement;
     this.$menu = $(menuElement);
 
-    this.actions.addReplyButton();
-    this.actions.addEditButton();
-    this.actions.addThankButton();
-    this.actions.addGoToParentButton();
+    this.actions?.addReplyButton();
+    this.actions?.addEditButton();
+    this.actions?.addThankButton();
+    this.actions?.addGoToParentButton();
 
     // The menu may be re-added (after a comment's content is updated). We need to restore
     // something.
-    this.actions.maybeAddGoToChildButton();
+    this.actions?.maybeAddGoToChildButton();
 
     // We need a wrapper to ensure correct positioning in LTR-in-RTL situations and vice versa.
     const menuWrapper = document.createElement('div');
