@@ -1,5 +1,7 @@
 import Comment from './Comment';
+import _CompactComment from './CompactComment';
 import EventEmitter from './EventEmitter';
+import _SpaciousComment from './SpaciousComment';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import Thread from './Thread';
 import bootManager from './bootManager';
@@ -63,6 +65,24 @@ class CommentManager extends EventEmitter {
    * @private
    */
   thanksStorage;
+
+  /**
+   * Type guard to check if this is a CommentManager managing SpaciousComment instances.
+   *
+   * @returns {this is CommentManager<_SpaciousComment>}
+   */
+  isSpaciousCommentManager() {
+    return this.spaciousComments === true;
+  }
+
+  /**
+   * Type guard to check if this is a CommentManager managing CompactComment instances.
+   *
+   * @returns {this is CommentManager<_CompactComment>}
+   */
+  isCompactCommentManager() {
+    return this.spaciousComments === false;
+  }
 
   /**
    * _For internal use._ Initialize the registry.
@@ -574,13 +594,14 @@ class CommentManager extends EventEmitter {
    * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
    */
   maybeHighlightHovered = (event) => {
-    if (this.spaciousComments) return;
+    if (!this.isCompactCommentManager()) return;
 
     const isObstructingElementHovered = talkPageController.isObstructingElementHovered();
     this.items
       .filter((comment) => Boolean(comment.layers))
       .forEach((comment) => {
-        comment.updateHoverState(event, isObstructingElementHovered);
+        comment
+          .updateHoverState(event, isObstructingElementHovered);
       });
   };
 
@@ -817,15 +838,16 @@ class CommentManager extends EventEmitter {
    * relevant setting is enabled.
    */
   async reformatComments() {
-    if (!this.spaciousComments) return;
+    if (!this.isSpaciousCommentManager()) return;
 
     $(document.body).addClass('cd-reformattedComments');
     if (!cd.page.exists()) return;
 
     const pagesToCheckExistence = this.items.reduce((acc, comment) => {
       // Only call reformatting methods on SpaciousComment instances
-      acc.push(...comment.replaceSignatureWithHeader());
-      comment.addMenu();
+      const spaciousComment = /** @type {_SpaciousComment} */ (/** @type {unknown} */ (comment));
+      acc.push(...spaciousComment.replaceSignatureWithHeader());
+      spaciousComment.addMenu();
 
       return acc;
     }, /** @type {import('./SpaciousComment').ReplaceSignatureWithHeaderReturn} */ ([]));
@@ -1017,7 +1039,7 @@ class CommentManager extends EventEmitter {
    * @private
    */
   handleDtTimestampsClick = () => {
-    if (this.spaciousComments) return;
+    if (this.isSpaciousCommentManager()) return;
 
     this.items.forEach((comment) => {
       comment.handleDtTimestampClick();
