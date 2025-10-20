@@ -1,11 +1,11 @@
-import Button from './Button';
 import Comment from './Comment';
 import CommentButton from './CommentButton';
 import LiveTimestamp from './LiveTimestamp';
 import SpaciousCommentActions from './SpaciousCommentActions';
+import SpaciousCommentLayers from './SpaciousCommentLayers';
 import cd from './cd';
 import settings from './settings';
-import { isInline, unique } from './shared/utils-general';
+import { isInline } from './shared/utils-general';
 import { createSvg } from './utils-window';
 
 /**
@@ -68,6 +68,32 @@ class SpaciousComment extends Comment {
    */
   isReformatted() {
     return true;
+  }
+
+  /**
+   * Create the comment's underlay and overlay with contents for spacious comments.
+   *
+   * @fires commentLayersCreated
+   * @private
+   * @override
+   */
+  createLayers() {
+    // Create spacious layers
+    this.layers = new SpaciousCommentLayers(this);
+    this.layers.create();
+
+    // Create spacious actions
+    this.actions = new SpaciousCommentActions(this);
+    this.actions.create();
+
+    /**
+     * An underlay and overlay have been created for a comment.
+     *
+     * @event commentLayersCreated
+     * @param {Comment} comment
+     * @param {object} cd {@link convenientDiscussions} object.
+     */
+    mw.hook('convenientDiscussions.commentLayersCreated').fire(this, cd);
   }
 
   /**

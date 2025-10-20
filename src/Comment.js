@@ -1460,37 +1460,14 @@ class Comment extends CommentSkeleton {
 
   /**
    * Create the comment's underlay and overlay with contents.
+   * This method should be implemented by subclasses.
    *
    * @fires commentLayersCreated
+   * @abstract
    * @private
    */
   createLayers() {
-    // Create appropriate layers class based on comment type
-    this.layers = this.isReformatted() ? new SpaciousCommentLayers(this) : new CompactCommentLayers(this);
-
-    // Create the layers
-    this.layers.create();
-
-    // Create actions composition
-    if (this.isReformatted()) {
-      this.actions = new SpaciousCommentActions(this);
-      this.actions.create();
-    } else {
-      this.actions = new CompactCommentActions(this);
-      this.actions.create();
-      if (this.hasClassicUnderlay()) {
-        this.actions.addToggleChildThreadsButton();
-      }
-    }
-
-    /**
-     * An underlay and overlay have been created for a comment.
-     *
-     * @event commentLayersCreated
-     * @param {Comment} comment
-     * @param {object} cd {@link convenientDiscussions} object.
-     */
-    mw.hook('convenientDiscussions.commentLayersCreated').fire(this, cd);
+    throw new Error('createLayers must be implemented by subclasses');
   }
 
   /**
