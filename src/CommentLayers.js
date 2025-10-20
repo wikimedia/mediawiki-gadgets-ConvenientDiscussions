@@ -91,9 +91,9 @@ class CommentLayers {
     this.updateStyles(true);
 
     // Create jQuery wrappers
-    this.$underlay = /** @type {JQuery} */ ($(this.underlay));
-    this.$overlay = /** @type {JQuery} */ ($(this.overlay));
-    this.$marker = /** @type {JQuery} */ ($(this.marker));
+    this.$underlay = $(this.underlay);
+    this.$overlay = $(this.overlay);
+    this.$marker = $(this.marker);
   }
 
   /**
@@ -139,7 +139,6 @@ class CommentLayers {
    * @param {boolean} add
    */
   updateClassesForFlag(flag, add) {
-    if (!this.underlay || !this.overlay) return;
     if (this.underlay.classList.contains(`cd-comment-underlay-${flag}`) === add) return;
 
     this.underlay.classList.toggle(`cd-comment-underlay-${flag}`, add);

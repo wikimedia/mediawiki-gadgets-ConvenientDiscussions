@@ -157,7 +157,7 @@ class Comment extends CommentSkeleton {
 
   /**
    * Comment menu. Used when comment spacious formatting is enabled; otherwise
-   * {@link Comment#$overlayMenu} is used.
+   * the overlay menu from layers is used.
    *
    * @type {JQuery | undefined}
    */
@@ -567,7 +567,7 @@ class Comment extends CommentSkeleton {
 
   /**
    * Create a {@link Comment#goToChildButton "Go to child" button} and add it to the comment header
-   * ({@link Comment#$header} or {@link Comment#$overlayMenu}), if it was not already added.
+   * ({@link Comment#$header} or the overlay menu from layers), if it was not already added.
    *
    * @private
    */
@@ -4128,87 +4128,6 @@ class Comment extends CommentSkeleton {
       },
       ...scrollToConfig,
     });
-  }
-  // Deprecated getters for backward compatibility
-
-  /**
-   * Get the comment's underlay element.
-   *
-   * @deprecated Use layers.underlay instead
-   * @returns {HTMLElement | undefined}
-   */
-  get underlay() {
-    return this.layers?.underlay;
-  }
-
-  /**
-   * Get the comment's overlay element.
-   *
-   * @deprecated Use layers.overlay instead
-   * @returns {HTMLElement | undefined}
-   */
-  get overlay() {
-    return this.layers?.overlay;
-  }
-
-  /**
-   * Get the comment's underlay element as jQuery object.
-   *
-   * @deprecated Use layers.$underlay instead
-   * @returns {JQuery | undefined}
-   */
-  get $underlay() {
-    return this.layers?.$underlay;
-  }
-
-  /**
-   * Get the comment's overlay element as jQuery object.
-   *
-   * @deprecated Use layers.$overlay instead
-   * @returns {JQuery | undefined}
-   */
-  get $overlay() {
-    return this.layers?.$overlay;
-  }
-
-  /**
-   * Get the comment's marker element as jQuery object.
-   *
-   * @deprecated Use layers.$marker instead
-   * @returns {JQuery | undefined}
-   */
-  get $marker() {
-    return this.layers?.$marker;
-  }
-
-  /**
-   * Get the reply button.
-   *
-   * @deprecated Use actions.replyButton instead
-   * @returns {OO.ui.ButtonWidget | undefined}
-   */
-  get replyButton() {
-    return this.actions?.replyButton;
-  }
-
-  /**
-   * Get the edit button.
-   *
-   * @deprecated Use actions.editButton instead
-   * @returns {OO.ui.ButtonWidget | undefined}
-   */
-  get editButton() {
-    return this.actions?.editButton;
-  }
-
-  /**
-   * Get the thank button.
-   *
-   * @deprecated Use actions.thankButton instead
-   * @returns {OO.ui.ButtonWidget | undefined}
-   */
-  get thankButton() {
-    return this.actions?.thankButton;
   }
 }
 

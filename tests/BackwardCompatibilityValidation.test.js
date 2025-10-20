@@ -80,17 +80,14 @@ describe('Comment Class Refactoring - Backward Compatibility', () => {
         'utf8'
       );
 
-      // Check for backward compatibility getters
-      expect(commentSource).toContain('get underlay()');
-      expect(commentSource).toContain('get overlay()');
-      expect(commentSource).toContain('get $underlay()');
-      expect(commentSource).toContain('get $overlay()');
-      expect(commentSource).toContain('get replyButton()');
-      expect(commentSource).toContain('get editButton()');
-
       // Check for composition properties
       expect(commentSource).toContain('layers;');
       expect(commentSource).toContain('actions;');
+
+      // Check that old direct property access is not used
+      expect(commentSource).not.toMatch(/this\.underlay(?!\s*=)/);
+      expect(commentSource).not.toMatch(/this\.overlay(?!\s*=)/);
+      expect(commentSource).not.toMatch(/this\.replyButton(?!\s*=)/);
 
       // Check for spacious property
       expect(commentSource).toContain('spacious');
@@ -171,17 +168,19 @@ describe('Comment Class Refactoring - Backward Compatibility', () => {
   });
 
   describe('Deprecation Warnings', () => {
-    test('deprecated getters should have @deprecated JSDoc tags', () => {
+    test('composition pattern should be used instead of direct properties', () => {
       const commentSource = require('node:fs').readFileSync(
         require('node:path').join(__dirname, '../src/Comment.js'),
         'utf8'
       );
 
-      // Check for deprecation warnings on layer getters
-      expect(commentSource).toContain('@deprecated Use layers.underlay instead');
-      expect(commentSource).toContain('@deprecated Use layers.overlay instead');
-      expect(commentSource).toContain('@deprecated Use layers.$underlay instead');
-      expect(commentSource).toContain('@deprecated Use actions.replyButton instead');
+      // Check that composition pattern is used
+      expect(commentSource).toContain('this.layers');
+      expect(commentSource).toContain('this.actions');
+
+      // Check that old direct property access is not used (except in deprecated getters)
+      expect(commentSource).not.toMatch(/this\.underlay(?!\s*=)/);
+      expect(commentSource).not.toMatch(/this\.overlay(?!\s*=)/);
     });
   });
 
