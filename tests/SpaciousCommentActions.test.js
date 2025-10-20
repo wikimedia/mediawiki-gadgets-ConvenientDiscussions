@@ -85,29 +85,26 @@ describe('SpaciousCommentActions', () => {
     const Comment = require('../src/Comment').default;
     Comment.prototypes.get.mockImplementation((key) => {
       const mockSvgs = {
-        goToParentButtonSvg: { tagName: 'svg' },
-        goToChildButtonSvg: { tagName: 'svg' },
-        collapseChildThreadsButtonSvg: { tagName: 'svg' },
-        expandChildThreadsButtonSvg: { tagName: 'svg' },
-      };
-
-      return mockSvgs[key] || { tagName: 'div' };
-    });
-
-    // Set up SpaciousCommentActions prototypes mock
-    SpaciousCommentActions.prototypes.get = jest.fn((key) => {
-      const mockSvgs = {
         goToParentButtonSvg: { tagName: 'svg', cloneNode: () => ({ tagName: 'svg' }) },
         goToChildButtonSvg: { tagName: 'svg', cloneNode: () => ({ tagName: 'svg' }) },
+        collapseChildThreadsButtonSvg: { tagName: 'svg', cloneNode: () => ({ tagName: 'svg' }) },
+        expandChildThreadsButtonSvg: { tagName: 'svg', cloneNode: () => ({ tagName: 'svg' }) },
       };
 
-      return mockSvgs[key] || { cloneNode: () => ({}) };
+      return mockSvgs[key] || { tagName: 'div', cloneNode: () => ({ tagName: 'div' }) };
     });
+
+    // SpaciousCommentActions no longer has its own prototypes - they're on SpaciousComment
 
     mockComment = {
       dtId: 'test-dt-id',
       headerElement: document.createElement('div'),
       menuElement: document.createElement('div'),
+      constructor: {
+        prototypes: {
+          get: Comment.prototypes.get,
+        },
+      },
       timestampElement: document.createElement('time'),
       $changeNote: [document.createElement('span')],
       getChildren: jest.fn(() => []),
