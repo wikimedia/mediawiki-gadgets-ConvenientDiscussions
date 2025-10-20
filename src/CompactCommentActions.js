@@ -9,6 +9,14 @@ import commentManager from './commentManager';
  */
 class CompactCommentActions extends CommentActions {
   /**
+   * The comment this actions instance belongs to.
+   *
+   * @type {import('./CompactComment').default}
+   * @override
+   */
+  comment = this.comment;
+
+  /**
    * Create and add all appropriate action buttons for compact comments.
    * The order is specific for compact comments.
    *

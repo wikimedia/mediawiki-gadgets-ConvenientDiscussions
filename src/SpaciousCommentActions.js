@@ -10,6 +10,14 @@ import { createSvg } from './utils-window';
  */
 class SpaciousCommentActions extends CommentActions {
   /**
+   * The comment this actions instance belongs to.
+   *
+   * @type {import('./CompactComment').default}
+   * @override
+   */
+  comment = this.comment;
+
+  /**
    * @type {PrototypeRegistry<{
    *   goToParentButtonSvg: SVGElement
    *   goToChildButtonSvg: SVGElement

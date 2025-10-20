@@ -32,20 +32,6 @@ class CompactComment extends Comment {
   actions;
 
   /**
-   * Is the comment currently being hovered over.
-   *
-   * @type {boolean}
-   */
-  isHovered = false;
-
-  /**
-   * Was the overlay menu manually hidden by the user.
-   *
-   * @type {boolean}
-   */
-  wasMenuHidden = false;
-
-  /**
    * Create the comment's underlay and overlay with contents for compact comments.
    *
    * @fires commentLayersCreated
@@ -239,8 +225,8 @@ class CompactComment extends Comment {
     if (this.isHovered || bootManager.isPageOverlayOn()) return;
 
     if (event?.type === 'touchstart') {
-      if (this.wasMenuHidden) {
-        this.wasMenuHidden = false;
+      if (this.layers?.wasMenuHidden) {
+        this.layers.wasMenuHidden = false;
 
         return;
       }
@@ -254,7 +240,7 @@ class CompactComment extends Comment {
     }
 
     // Animation will be directed to wrong properties if we keep it going.
-    this.$animatedBackground?.stop(true, true);
+    this.layers?.$animatedBackground?.stop(true, true);
 
     // Update classes if the comment isn't moved. If it is moved, the layers are removed and created
     // again when the next event fires.
@@ -282,7 +268,7 @@ class CompactComment extends Comment {
     if (!this.isHovered || (this.toggleChildThreadsPopup && !force)) return;
 
     // Animation will be directed to wrong properties if we keep it going.
-    this.$animatedBackground?.stop(true, true);
+    this.layers?.$animatedBackground?.stop(true, true);
 
     this.layers?.dontHideMenu();
 
@@ -300,8 +286,8 @@ class CompactComment extends Comment {
    * @param {boolean} isObstructingElementHovered
    */
   updateHoverState(event, isObstructingElementHovered) {
-    const layersOffset = this.layersOffset;
-    const layersContainerOffset = this.getLayersContainerOffset();
+    const layersOffset = this.layers?.layersOffset;
+    const layersContainerOffset = this.layers?.getLayersContainerOffset();
     if (!layersOffset || !layersContainerOffset) {
       // Something has happened with the comment (or the layers container); it disappeared.
       this.removeLayers();

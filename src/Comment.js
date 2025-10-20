@@ -11,8 +11,7 @@ import settings from './settings';
 import CdError from './shared/CdError';
 import CommentSkeleton from './shared/CommentSkeleton';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
-import TreeWalker from './shared/TreeWalker';
-import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, removeFromArrayIfPresent, sleep, underlinesToSpaces, unique } from './shared/utils-general';
+import { areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, removeFromArrayIfPresent, sleep, underlinesToSpaces, unique } from './shared/utils-general';
 import { extractNumeralAndConvertToNumber, removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
@@ -295,34 +294,6 @@ class Comment extends CommentSkeleton {
   roughOffset;
 
   /**
-   * The comment's layers offset.
-   *
-   * @type {{ top: number; left: number; width: number; height: number } | undefined}
-   */
-  layersOffset;
-
-  /**
-   * Container for the comment's layers.
-   *
-   * @type {Element | undefined}
-   */
-  layersContainer;
-
-  /**
-   * Comment underlay and menu, whose colors are animated in some events.
-   *
-   * @type {JQuery | undefined}
-   */
-  $animatedBackground;
-
-  /**
-   * Deferred object for unhighlighting animations.
-   *
-   * @type {JQuery.Deferred<void> | undefined}
-   */
-  unhighlightDeferred;
-
-  /**
    * @override
    * @type {OpeningSection extends true ? import('./Section').default : import('./Section').default | undefined}
    */
@@ -351,6 +322,13 @@ class Comment extends CommentSkeleton {
    * @type {boolean}
    */
   isSelected = false;
+
+  /**
+   * Was the menu hidden (used for compact comments).
+   *
+   * @type {boolean | undefined}
+   */
+  wasMenuHidden;
 
   /**
    * Create a comment object.
@@ -1166,7 +1144,7 @@ class Comment extends CommentSkeleton {
      */
     this.isEndStretched = false;
 
-    if (!this.getLayersContainer().cdIsTopLayersContainer) return;
+    if (!this.layers?.getLayersContainer().cdIsTopLayersContainer) return;
 
     if (this.level === 0) {
       const offsets = bootManager.getContentColumnOffsets();
@@ -1283,15 +1261,15 @@ class Comment extends CommentSkeleton {
     options.add ??= true;
     options.update ??= true;
 
-    const isMoved = this.computeLayersOffset(options);
+    const isMoved = this.layers?.computeLayersOffset(options);
     if (isMoved === undefined) return;
 
     // Configure the layers only if they were unexistent or the comment position has changed, to
     // save time.
     if (this.layers) {
-      this.updateLayersStyles();
+      this.layers.updateStyles();
       if (isMoved && options.update) {
-        this.updateLayersOffset();
+        this.layers.updateLayersOffset();
       }
 
       return isMoved;
@@ -1303,132 +1281,6 @@ class Comment extends CommentSkeleton {
 
     return true;
   };
-
-  /**
-   * Calculate the underlay and overlay offset and set it to the `layersOffset` property.
-   *
-   * @param {GetOffsetOptions} [options]
-   * @returns {boolean | undefined} Is the comment moved. `null` if it is invisible.
-   * @private
-   */
-  computeLayersOffset(options = {}) {
-    return this.layers?.computeLayersOffset(options);
-  }
-
-  /**
-   * @typedef {object} LayersContainerOffset
-   * @property {number} top Top offset.
-   * @property {number} left Left offset.
-   * @memberof Comment
-   * @inner
-   */
-
-  /**
-   * _For internal use._ Get the top and left offset of the layers container.
-   *
-   * @returns {LayersContainerOffset | undefined}
-   */
-  getLayersContainerOffset() {
-    const container = this.getLayersContainer();
-    if (!container.cdCachedLayersContainerOffset || container.cdCouldHaveMoved) {
-      const rect = container.getBoundingClientRect();
-      if (!isVisible(container)) {
-        return;
-      }
-
-      container.cdCouldHaveMoved = false;
-      container.cdCachedLayersContainerOffset = {
-        top: rect.top + window.scrollY,
-        left: rect.left + window.scrollX,
-      };
-    }
-
-    return container.cdCachedLayersContainerOffset;
-  }
-
-  /**
-   * _For internal use._ Get and sometimes create the container for the comment's underlay and
-   * overlay.
-   *
-   * @returns {Element}
-   */
-  getLayersContainer() {
-    if (this.layersContainer === undefined) {
-      let offsetParent;
-
-      const treeWalker = new TreeWalker(
-        document.body,
-        undefined,
-        true,
-
-        // Start with the first or last element dependent on which is higher in the DOM hierarchy in
-        // terms of nesting level. There were issues with RTL in LTR (and vice versa) when we
-        // started with the first element, see
-        // https://github.com/jwbth/convenient-discussions/commit/9fcad9226a7019d6a643d7b17f1e824657302ebd.
-        // On the other hand, if we start with the first/last element, we get can in trouble when
-        // the start/end of the comment is inside a container while the end/start is not. A good
-        // example that combines both cases (press "up" on the "comments" "These images are too
-        // monochrome" and "So my suggestion is just, to..."):
-        // https://en.wikipedia.org/w/index.php?title=Wikipedia:Village_pump_(technical)&oldid=1217857130#c-Example-20240401111100-Indented_tables.
-        // This is a error, of course, that quoted comments are treated as real, but we can't do
-        // anything here.
-        this.elements.length === 1 ||
-        this.parser.getNestingLevel(this.elements[0]) <=
-        this.parser.getNestingLevel(this.elements.slice(-1)[0])
-          ? this.elements[0]
-          : this.elements.slice(-1)[0]
-      );
-
-      while (treeWalker.parentNode()) {
-        const node = treeWalker.currentNode;
-
-        // These elements have `position: relative` for the purpose we know.
-        if (node.classList.contains('cd-connectToPreviousItem')) continue;
-
-        let style = node.cdStyle;
-        if (!style) {
-          // window.getComputedStyle is expensive, so we save the result to the node's property.
-          style = window.getComputedStyle(node);
-          node.cdStyle = style;
-        }
-        const classList = new Set(Array.from(node.classList));
-        if (
-          ['absolute', 'relative'].includes(style.position) ||
-          (
-            node !== bootManager.$content[0] &&
-            (classList.has('mw-content-ltr') || classList.has('mw-content-rtl'))
-          )
-        ) {
-          offsetParent = node;
-        }
-        if (
-          style.backgroundColor.includes('rgb(') ||
-          (style.backgroundImage !== 'none' && !offsetParent)
-        ) {
-          offsetParent = node;
-          offsetParent.classList.add('cd-commentLayersContainer-parent-relative');
-        }
-        if (offsetParent) break;
-      }
-      offsetParent ||= document.body;
-      offsetParent.classList.add('cd-commentLayersContainer-parent');
-      let container = /** @type {HTMLElement} */ (offsetParent.firstElementChild);
-      if (!container.classList.contains('cd-commentLayersContainer')) {
-        container = document.createElement('div');
-        container.classList.add('cd-commentLayersContainer');
-        offsetParent.insertBefore(container, offsetParent.firstChild);
-
-        container.cdIsTopLayersContainer = !container.parentElement?.parentElement?.closest(
-          '.cd-commentLayersContainer-parent'
-        );
-      }
-      this.layersContainer = container;
-
-      addToArrayIfAbsent(commentManager.layersContainers, container);
-    }
-
-    return this.layersContainer;
-  }
 
   /**
    * Create the comment's underlay and overlay with contents.
@@ -1443,20 +1295,15 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Update the styles of the layers according to the comment's properties.
-   *
-   * @param {boolean} [wereJustCreated] Were the layers just created.
-   * @private
-   */
-  updateLayersStyles(wereJustCreated = false) {
-    if (!this.layers) return;
-
-    this.layers.updateStyles(wereJustCreated);
-  }
-
-  /**
    * @typedef {'new' | 'own' | 'target' | 'hovered' | 'deleted' | 'changed'} CommentFlag
    */
+
+  /**
+   * _For internal use._ Add the (already existent) comment's layers to the DOM.
+   */
+  addLayers() {
+    this.layers?.addLayers();
+  }
 
   /**
    * Set classes to the underlay, overlay, and other elements according to a comment flag.
@@ -1467,41 +1314,6 @@ class Comment extends CommentSkeleton {
    */
   updateClassesForFlag(flag, add) {
     this.layers?.updateClassesForFlag(flag, add);
-
-    if (flag === 'hovered' && !add && /** @type {any} */ (this.layers)?.overlayInnerWrapper) {
-      /** @type {any} */ (this.layers).overlayInnerWrapper.style.display = '';
-    }
-  }
-
-  /**
-   * _For internal use._ Add the (already existent) comment's layers to the DOM.
-   */
-  addLayers() {
-    this.layers?.addLayers();
-  }
-
-  /**
-   * _For internal use._ Transfer the `layers(Top|Left|Width|Height)` values to the style of the
-   * layers.
-   */
-  updateLayersOffset() {
-    this.layers?.updateLayersOffset();
-  }
-
-  /**
-   * Remove the comment's underlay and overlay.
-   */
-  removeLayers() {
-    if (!this.layers) return;
-
-    this.layers.$marker.stop(true, true);
-    this.handleUnhover(true);
-
-    // TODO: add add/remove methods to commentManager.underlays
-    removeFromArrayIfPresent(commentManager.underlays, this.layers.underlay);
-
-    this.layers.destroy();
-    /** @type {any} */ (this).layers = undefined;
   }
 
   /**
@@ -1527,6 +1339,22 @@ class Comment extends CommentSkeleton {
    */
   animateBack(flag, callback) {
     this.layers?.animateBack(flag, callback);
+  }
+
+  /**
+   * Remove the comment's underlay and overlay.
+   */
+  removeLayers() {
+    if (!this.layers) return;
+
+    this.layers.$marker.stop(true, true);
+    this.handleUnhover(true);
+
+    // TODO: add add/remove methods to commentManager.underlays
+    removeFromArrayIfPresent(commentManager.underlays, this.layers.underlay);
+
+    this.layers.destroy();
+    /** @type {any} */ (this).layers = undefined;
   }
 
   /**
@@ -1606,7 +1434,7 @@ class Comment extends CommentSkeleton {
   stopAnimations() {
     if (!this.layers) return;
 
-    this.$animatedBackground?.add(this.layers.$marker).stop(true, true);
+    this.layers.$animatedBackground?.add(this.layers.$marker).stop(true, true);
   }
 
   /**
@@ -1913,7 +1741,7 @@ class Comment extends CommentSkeleton {
         // commentManager.maybeRedrawLayers(), that is called on DOM updates, could circumvent
         // this comment if it has no property signalling that it should be highlighted, so we update
         // its styles manually.
-        this.updateLayersStyles();
+        this.layers?.updateStyles();
 
         break;
     }

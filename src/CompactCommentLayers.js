@@ -6,6 +6,20 @@ import CommentLayers from './CommentLayers.js';
  */
 class CompactCommentLayers extends CommentLayers {
   /**
+   * Is the comment currently being hovered over.
+   *
+   * @type {boolean}
+   */
+  isHovered = false;
+
+  /**
+   * Was the overlay menu manually hidden by the user.
+   *
+   * @type {boolean}
+   */
+  wasMenuHidden = false;
+
+  /**
    * Create a CompactCommentLayers instance.
    *
    * @param {import('./CompactComment').default} comment The parent comment.
@@ -115,9 +129,7 @@ class CompactCommentLayers extends CommentLayers {
 
     event?.preventDefault();
     this.overlayInnerWrapper.style.display = 'none';
-    if (this.comment) {
-      this.comment.wasMenuHidden = true;
-    }
+    this.comment.wasMenuHidden = true;
   };
 
   /**

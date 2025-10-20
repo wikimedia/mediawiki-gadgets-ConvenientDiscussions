@@ -72,6 +72,34 @@ class CommentLayers {
   comment;
 
   /**
+   * The comment's layers offset.
+   *
+   * @type {{ top: number; left: number; width: number; height: number } | undefined}
+   */
+  layersOffset;
+
+  /**
+   * Container for the comment's layers.
+   *
+   * @type {Element | undefined}
+   */
+  layersContainer;
+
+  /**
+   * Comment underlay and menu, whose colors are animated in some events.
+   *
+   * @type {JQuery | undefined}
+   */
+  $animatedBackground;
+
+  /**
+   * Deferred object for unhighlighting animations.
+   *
+   * @type {JQuery.Deferred<void> | undefined}
+   */
+  unhighlightDeferred;
+
+  /**
    * Create a CommentLayers instance.
    *
    * @param {import('./Comment').default} comment The parent comment.
@@ -109,8 +137,8 @@ class CommentLayers {
    * Destroy the layer elements and clean up references.
    */
   destroy() {
-    this.underlay?.remove?.();
-    this.overlay?.remove();
+    this.underlay?.remove();
+    this.overlay.remove();
 
     // Note: Properties are set to undefined for cleanup, but TypeScript expects them to always exist
     // This is acceptable since destroy() should only be called when the comment is being removed
@@ -158,6 +186,10 @@ class CommentLayers {
       this.comment.actions?.replyButton?.setDisabled(add);
       this.comment.actions?.editButton?.setDisabled(add);
     }
+
+    if (flag === 'hovered' && !add && /** @type {any} */ (this).overlayInnerWrapper) {
+      /** @type {any} */ (this).overlayInnerWrapper.style.display = '';
+    }
   }
 
   /**
@@ -193,8 +225,8 @@ class CommentLayers {
    */
   addLayers() {
     this.updateLayersOffset();
-    this.comment.getLayersContainer().append(this.underlay);
-    this.comment.getLayersContainer().append(this.overlay);
+    this.getLayersContainer().append(this.underlay);
+    this.getLayersContainer().append(this.overlay);
   }
 
   /**
@@ -205,12 +237,12 @@ class CommentLayers {
     // The underlay can be absent if called from commentManager.maybeRedrawLayers() with redrawAll
     // set to `true`. layersOffset can be absent in some rare cases when the comment became
     // invisible.
-    if (!this.comment.layersOffset) return;
+    if (!this.layersOffset) return;
 
-    this.underlay.style.top = this.overlay.style.top = String(this.comment.layersOffset.top) + 'px';
-    this.underlay.style.left = this.overlay.style.left = String(this.comment.layersOffset.left) + 'px';
-    this.underlay.style.width = this.overlay.style.width = String(this.comment.layersOffset.width) + 'px';
-    this.underlay.style.height = this.overlay.style.height = String(this.comment.layersOffset.height) + 'px';
+    this.underlay.style.top = this.overlay.style.top = String(this.layersOffset.top) + 'px';
+    this.underlay.style.left = this.overlay.style.left = String(this.layersOffset.left) + 'px';
+    this.underlay.style.width = this.overlay.style.width = String(this.layersOffset.width) + 'px';
+    this.underlay.style.height = this.overlay.style.height = String(this.layersOffset.height) + 'px';
 
     this.comment.toggleChildThreadsPopup?.position();
   }
@@ -222,7 +254,7 @@ class CommentLayers {
    * @returns {boolean | undefined} Is the comment moved. `null` if it is invisible.
    */
   computeLayersOffset(options = {}) {
-    const layersContainerOffset = this.comment.getLayersContainerOffset();
+    const layersContainerOffset = this.getLayersContainerOffset();
     if (!layersContainerOffset) return;
 
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
@@ -234,14 +266,14 @@ class CommentLayers {
 
     if (this.comment.offset) {
       const margins = this.comment.getMargins();
-      this.comment.layersOffset = {
+      this.layersOffset = {
         top: this.comment.offset.top - layersContainerOffset.top,
         left: this.comment.offset.left - margins.left - layersContainerOffset.left,
         width: this.comment.offset.right + margins.right - (this.comment.offset.left - margins.left),
         height: this.comment.offset.bottom - this.comment.offset.top,
       };
     } else {
-      this.comment.layersOffset = undefined;
+      this.layersOffset = undefined;
     }
 
     return hasMoved;
@@ -276,7 +308,7 @@ class CommentLayers {
       this.$marker.css(propertyDefaults);
     });
 
-    const $background = /** @type {JQuery} */ (this.comment.$animatedBackground);
+    const $background = /** @type {JQuery} */ (this.$animatedBackground);
     const layers = this;
     $background.animate(generateProperties(backgroundColor), 400, 'swing', function complete() {
       if (this !== $background.get(-1)) return;
@@ -327,7 +359,7 @@ class CommentLayers {
       backgroundColor: initialMarkerColor,
       opacity: 1,
     });
-    /** @type {JQuery} */ (this.comment.$animatedBackground).css({
+    /** @type {JQuery} */ (this.$animatedBackground).css({
       backgroundColor: initialBackgroundColor,
     });
     // Check if this is a CompactCommentLayers instance by checking for $overlayGradient property
@@ -360,24 +392,147 @@ class CommentLayers {
      * @type {JQuery|undefined}
      */
     // Check if this is a CompactCommentLayers instance by checking for $overlayMenu property
-    this.comment.$animatedBackground = this.$underlay.add(
+    this.$animatedBackground = this.$underlay.add(
       /** @type {any} */ (this).$overlayMenu || $()
     );
 
     // Reset animations and colors
-    this.comment.$animatedBackground.add(this.$marker).stop(true, true);
+    this.$animatedBackground.add(this.$marker).stop(true, true);
 
     this.updateClassesForFlag(flag, true);
 
     // If there was an animation scheduled, cancel it
-    this.comment.unhighlightDeferred?.reject();
+    this.unhighlightDeferred?.reject();
 
-    this.comment.unhighlightDeferred = $.Deferred();
-    this.comment.unhighlightDeferred.then(() => {
+    this.unhighlightDeferred = $.Deferred();
+    this.unhighlightDeferred.then(() => {
       this.animateBack(flag, callback);
     });
 
-    sleep(delay).then(() => this.comment.unhighlightDeferred?.resolve());
+    sleep(delay).then(() => this.unhighlightDeferred?.resolve());
+  }
+
+  /**
+   * @typedef {object} LayersContainerOffset
+   * @property {number} top Top offset.
+   * @property {number} left Left offset.
+   * @memberof CommentLayers
+   * @inner
+   */
+
+  /**
+   * _For internal use._ Get the top and left offset of the layers container.
+   *
+   * @returns {LayersContainerOffset | undefined}
+   */
+  getLayersContainerOffset() {
+    const container = this.getLayersContainer();
+    if (!container.cdCachedLayersContainerOffset || container.cdCouldHaveMoved) {
+      const rect = container.getBoundingClientRect();
+      // Import here to avoid circular dependency
+      const { isVisible } = require('./utils-window');
+      if (!isVisible(container)) {
+        return;
+      }
+
+      container.cdCouldHaveMoved = false;
+      container.cdCachedLayersContainerOffset = {
+        top: rect.top + window.scrollY,
+        left: rect.left + window.scrollX,
+      };
+    }
+
+    return container.cdCachedLayersContainerOffset;
+  }
+
+  /**
+   * _For internal use._ Get and sometimes create the container for the comment's underlay and
+   * overlay.
+   *
+   * @returns {Element}
+   */
+  getLayersContainer() {
+    if (this.layersContainer === undefined) {
+      // Import here to avoid circular dependency
+      const bootManager = require('./bootManager').default;
+      const commentManager = require('./commentManager').default;
+      const TreeWalker = require('./shared/TreeWalker').default;
+      const { addToArrayIfAbsent } = require('./shared/utils-general');
+
+      let offsetParent;
+
+      const treeWalker = new TreeWalker(
+        document.body,
+        undefined,
+        true,
+
+        // Start with the first or last element dependent on which is higher in the DOM hierarchy in
+        // terms of nesting level. There were issues with RTL in LTR (and vice versa) when we
+        // started with the first element, see
+        // https://github.com/jwbth/convenient-discussions/commit/9fcad9226a7019d6a643d7b17f1e824657302ebd.
+        // On the other hand, if we start with the first/last element, we get can in trouble when
+        // the start/end of the comment is inside a container while the end/start is not. A good
+        // example that combines both cases (press "up" on the "comments" "These images are too
+        // monochrome" and "So my suggestion is just, to..."):
+        // https://en.wikipedia.org/w/index.php?title=Wikipedia:Village_pump_(technical)&oldid=1217857130#c-Example-20240401111100-Indented_tables.
+        // This is a error, of course, that quoted comments are treated as real, but we can't do
+        // anything here.
+        this.comment.elements.length === 1 ||
+        this.comment.parser.getNestingLevel(this.comment.elements[0]) <=
+        this.comment.parser.getNestingLevel(this.comment.elements.slice(-1)[0])
+          ? this.comment.elements[0]
+          : this.comment.elements.slice(-1)[0]
+      );
+
+      while (treeWalker.parentNode()) {
+        const node = treeWalker.currentNode;
+
+        // These elements have `position: relative` for the purpose we know.
+        if (node.classList.contains('cd-connectToPreviousItem')) continue;
+
+        let style = node.cdStyle;
+        if (!style) {
+          // window.getComputedStyle is expensive, so we save the result to the node's property.
+          style = window.getComputedStyle(node);
+          node.cdStyle = style;
+        }
+        const classList = new Set(Array.from(node.classList));
+        if (
+          ['absolute', 'relative'].includes(style.position) ||
+          (
+            node !== bootManager.$content[0] &&
+            (classList.has('mw-content-ltr') || classList.has('mw-content-rtl'))
+          )
+        ) {
+          offsetParent = node;
+        }
+        if (
+          style.backgroundColor.includes('rgb(') ||
+          (style.backgroundImage !== 'none' && !offsetParent)
+        ) {
+          offsetParent = node;
+          offsetParent.classList.add('cd-commentLayersContainer-parent-relative');
+        }
+        if (offsetParent) break;
+      }
+      offsetParent ||= document.body;
+      offsetParent.classList.add('cd-commentLayersContainer-parent');
+      let container = /** @type {HTMLElement} */ (offsetParent.firstElementChild);
+      if (!container.classList.contains('cd-commentLayersContainer')) {
+        container = document.createElement('div');
+        container.classList.add('cd-commentLayersContainer');
+        offsetParent.insertBefore(container, offsetParent.firstChild);
+
+        container.cdIsTopLayersContainer = !container.parentElement?.parentElement?.closest(
+          '.cd-commentLayersContainer-parent'
+        );
+      }
+      this.layersContainer = container;
+
+      addToArrayIfAbsent(commentManager.layersContainers, container);
+    }
+
+    return this.layersContainer;
   }
 
   /**

@@ -597,6 +597,9 @@ class CommentManager extends EventEmitter {
     if (!this.isCompactCommentManager()) return;
 
     const isObstructingElementHovered = talkPageController.isObstructingElementHovered();
+
+    this.items[0].$animatedBackground;
+
     this.items
       .filter((comment) => Boolean(comment.layers))
       .forEach((comment) => {
