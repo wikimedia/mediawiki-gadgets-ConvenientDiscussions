@@ -85,6 +85,7 @@ class CommentActions {
 
   /**
    * Create a reply button and add it to the appropriate container.
+   *
    * This method should be overridden by subclasses for specific styling.
    */
   addReplyButton() {
@@ -116,6 +117,7 @@ class CommentActions {
 
   /**
    * Create an edit button and add it to the appropriate container.
+   *
    * This method should be overridden by subclasses for specific styling.
    */
   addEditButton() {
@@ -130,6 +132,7 @@ class CommentActions {
 
   /**
    * Create a thank button and add it to the appropriate container.
+   *
    * This method should be overridden by subclasses for specific styling.
    */
   addThankButton() {
@@ -162,6 +165,7 @@ class CommentActions {
 
   /**
    * Create a copy link button and add it to the appropriate container.
+   *
    * This method should be overridden by subclasses for specific styling.
    */
   addCopyLinkButton() {
@@ -176,6 +180,7 @@ class CommentActions {
 
   /**
    * Create a "Go to parent" button and add it to the appropriate container.
+   *
    * This method should be overridden by subclasses for specific styling.
    */
   addGoToParentButton() {
@@ -190,6 +195,7 @@ class CommentActions {
 
   /**
    * Create a "Go to child" button and add it to the appropriate container.
+   *
    * This method should be overridden by subclasses for specific styling.
    */
   maybeAddGoToChildButton() {
@@ -207,6 +213,7 @@ class CommentActions {
 
   /**
    * Create a "Toggle child threads" button and add it to the appropriate container.
+   *
    * This method should be overridden by subclasses for specific styling.
    */
   addToggleChildThreadsButton() {
