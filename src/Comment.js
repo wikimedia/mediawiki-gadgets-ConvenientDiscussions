@@ -1415,22 +1415,6 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Configure the comment's action buttons. Create the actions composition if it doesn't exist.
-   */
-  configureActions() {
-    if (!this.actions) {
-      // Import here to avoid circular dependency
-      const CommentActions = require('./CommentActions').default;
-      const SpaciousCommentActions = require('./SpaciousCommentActions').default;
-      const CompactCommentActions = require('./CompactCommentActions').default;
-
-      this.actions = this.spacious ? new SpaciousCommentActions(this) : new CompactCommentActions(this);
-
-      this.actions.create();
-    }
-  }
-
-  /**
    * @typedef {object} LayersContainerOffset
    * @property {number} top Top offset.
    * @property {number} left Left offset.

@@ -209,7 +209,7 @@ class CompactComment extends Comment {
 
       // FIXME: decouple
       commentManager
-        .query((comment) => comment.isHovered)
+        .query((/** @type {CompactComment} */ comment) => comment.isHovered)
         .forEach((comment) => {
           comment.unhighlightHovered();
         });

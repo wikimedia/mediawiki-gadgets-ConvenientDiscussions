@@ -298,7 +298,7 @@ class CommentManager extends EventEmitter {
           comment.isNew ||
           comment.isOwn ||
           comment.isTarget ||
-          comment.isHovered ||
+          ('isHovered' in comment && comment.isHovered) ||
           comment.isDeleted ||
 
           // Need to generate a gray line to close the gaps between adjacent list item elements.

@@ -133,8 +133,13 @@ class CommentActions {
    * This method should be overridden by subclasses for specific styling.
    */
   addThankButton() {
-    if (!cd.user.isRegistered() || !this.comment.author.isRegistered() ||
-      !this.comment.date || this.comment.isOwn) return;
+    if (
+      !cd.user.isRegistered() ||
+      !this.comment.author.isRegistered() ||
+      !this.comment.date ||
+      this.comment.isOwn
+    )
+      return;
 
     const isThanked = Object.entries(commentManager.getThanksStorage().getData()).some(
       // TODO: Remove `|| this.comment.dtId === thank.id || this.comment.id === thank.id` part
