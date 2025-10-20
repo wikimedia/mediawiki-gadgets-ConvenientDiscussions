@@ -44,13 +44,14 @@ class CompactComment extends Comment {
    *
    * @param {HTMLElement} element
    * @protected
+   * @override
    */
   bindEvents(element) {
-    element.addEventListener('mouseenter', this.highlightHovered.bind(this));
+    element.addEventListener('mouseenter', this.handleHover);
     element.addEventListener('mouseleave', () => {
-      this.unhighlightHovered();
+      this.handleUnhover();
     });
-    element.addEventListener('touchstart', this.highlightHovered.bind(this));
+    element.addEventListener('touchstart', this.handleHover);
   }
 
   /**
@@ -192,12 +193,12 @@ class CompactComment extends Comment {
   }
 
   /**
-   * Highlight the comment (show the underlay and overlay) when it is hovered.
-   * Handles hover behavior and menu display for compact comments.
+   * Handle hover event for compact comments.
+   * Shows the underlay and overlay when the comment is hovered.
    *
    * @param {MouseEvent | TouchEvent} [event] The triggering event
    */
-  highlightHovered(event) {
+  handleHover = (event) => {
     if (this.isHovered || bootManager.isPageOverlayOn()) return;
 
     if (event?.type === 'touchstart') {
@@ -209,9 +210,9 @@ class CompactComment extends Comment {
 
       // FIXME: decouple
       commentManager
-        .query((/** @type {CompactComment} */ comment) => comment.isHovered)
-        .forEach((comment) => {
-          comment.unhighlightHovered();
+        .query((comment) => comment instanceof CompactComment && comment.isHovered)
+        .forEach((/** @type {CompactComment} */ comment) => {
+          comment.handleUnhover();
         });
     }
 
@@ -231,15 +232,15 @@ class CompactComment extends Comment {
 
     this.isHovered = true;
     this.updateClassesForFlag('hovered', true);
-  }
+  };
 
   /**
-   * Unhighlight the comment when it has lost focus.
-   * Handles cleanup of hover state and menu hiding for compact comments.
+   * Handle unhover event for compact comments.
+   * Cleans up hover state and hides menu for compact comments.
    *
-   * @param {boolean} [force] Unhighlight even if the "Toggle child threads" popup is open.
+   * @param {boolean} [force] Unhover even if the "Toggle child threads" popup is open.
    */
-  unhighlightHovered(force = false) {
+  handleUnhover(force = false) {
     if (!this.isHovered || (this.toggleChildThreadsPopup && !force)) return;
 
     // Animation will be directed to wrong properties if we keep it going.
@@ -251,6 +252,35 @@ class CompactComment extends Comment {
     this.isHovered = false;
 
     this.teardownOnboardOntoToggleChildThreadsPopup();
+  }
+
+  /**
+   * Update the comment's hover state based on a `mousemove` event.
+   * Only applicable to compact comments that use hover interactions.
+   *
+   * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
+   * @param {boolean} isObstructingElementHovered
+   */
+  updateHoverState(event, isObstructingElementHovered) {
+    const layersOffset = this.layersOffset;
+    const layersContainerOffset = this.getLayersContainerOffset();
+    if (!layersOffset || !layersContainerOffset) {
+      // Something has happened with the comment (or the layers container); it disappeared.
+      this.removeLayers();
+
+      return;
+    }
+    if (
+      !isObstructingElementHovered &&
+      event.pageY >= layersOffset.top + layersContainerOffset.top &&
+      event.pageY <= layersOffset.top + layersOffset.height + layersContainerOffset.top &&
+      event.pageX >= layersOffset.left + layersContainerOffset.left &&
+      event.pageX <= layersOffset.left + layersOffset.width + layersContainerOffset.left
+    ) {
+      this.handleHover();
+    } else {
+      this.handleUnhover();
+    }
   }
 
   /**

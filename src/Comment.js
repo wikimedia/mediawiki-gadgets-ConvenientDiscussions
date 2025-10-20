@@ -380,9 +380,7 @@ class Comment extends CommentSkeleton {
     // Delay bindEvents call until after construction is complete
     setTimeout(() => {
       this.highlightables.forEach((element) => {
-        if ('bindEvents' in this && typeof this.bindEvents === 'function') {
-          this.bindEvents(element);
-        }
+        this.bindEvents(element);
       });
     }, 0);
 
@@ -890,6 +888,18 @@ class Comment extends CommentSkeleton {
       this.timestampTitle = title;
       this.updateTimestampElements(timestamp, title);
     }
+  }
+
+  /**
+   * Bind the standard events to a comment part. Executed on comment object creation and DOM
+   * modifications affecting comment parts.
+   * This method can be overridden by subclasses.
+   *
+   * @param {HTMLElement} _element
+   * @protected
+   */
+  bindEvents(_element) {
+    // Default implementation - can be overridden by subclasses
   }
 
   /**
@@ -1542,41 +1552,6 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Set a timeout for hiding the menu.
-   *
-   * @param {MouseEvent} event
-   * @private
-   */
-  deferHideMenu(event) {
-    if (!this.layers) return;
-
-    this.layers.deferHideMenu(event);
-  }
-
-  /**
-   * Hide the comment menu (in fact, the comment overlay's inner wrapper).
-   *
-   * @param {MouseEvent} [event]
-   * @private
-   */
-  hideMenu(event) {
-    if (!this.layers) return;
-
-    this.layers.hideMenu(event);
-  }
-
-  /**
-   * Remove timeout for hiding the menu set in {@link Comment#deferHideMenu}.
-   *
-   * @private
-   */
-  dontHideMenu() {
-    if (!this.layers) return;
-
-    this.layers.dontHideMenu();
-  }
-
-  /**
    * Update the styles of the layers according to the comment's properties.
    *
    * @param {boolean} [wereJustCreated] Were the layers just created.
@@ -1645,45 +1620,13 @@ class Comment extends CommentSkeleton {
     if (!this.layers) return;
 
     this.layers.$marker.stop(true, true);
-    if ('unhighlightHovered' in this && typeof this.unhighlightHovered === 'function') {
-      this.unhighlightHovered(true);
-    }
+    this.handleUnhover?.(true);
 
     // TODO: add add/remove methods to commentManager.underlays
     removeFromArrayIfPresent(commentManager.underlays, this.layers.underlay);
 
     this.layers.destroy();
     this.layers = undefined;
-  }
-
-  /**
-   * _For internal use._ Update the comment's hover state based on a `mousemove` event.
-   *
-   * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
-   * @param {boolean} isObstructingElementHovered
-   */
-  updateHoverState(event, isObstructingElementHovered) {
-    const layersOffset = this.layersOffset;
-    const layersContainerOffset = this.getLayersContainerOffset();
-    if (!layersOffset || !layersContainerOffset) {
-      // Something has happened with the comment (or the layers container); it disappeared.
-      this.removeLayers();
-
-      return;
-    }
-    if (
-      !isObstructingElementHovered &&
-      event.pageY >= layersOffset.top + layersContainerOffset.top &&
-      event.pageY <= layersOffset.top + layersOffset.height + layersContainerOffset.top &&
-      event.pageX >= layersOffset.left + layersContainerOffset.left &&
-      event.pageX <= layersOffset.left + layersOffset.width + layersContainerOffset.left
-    ) {
-      if ('highlightHovered' in this && typeof this.highlightHovered === 'function') {
-        this.highlightHovered();
-      }
-    } else if ('unhighlightHovered' in this && typeof this.unhighlightHovered === 'function') {
-      this.unhighlightHovered();
-    }
   }
 
   /**
@@ -3041,9 +2984,7 @@ class Comment extends CommentSkeleton {
       // We use a class, not .hide(), here because there can be elements in the comment that are
       // hidden from the beginning and should stay so when reshowing the comment.
       this.$elements.addClass('cd-hidden').data('cd-comment-form', commentForm);
-      if ('unhighlightHovered' in this && typeof this.unhighlightHovered === 'function') {
-        this.unhighlightHovered();
-      }
+      this.handleUnhover?.();
       if (this.isOpeningSection()) {
         this.section.hideBar();
       }
@@ -3229,9 +3170,7 @@ class Comment extends CommentSkeleton {
 
     if (this.highlightables.includes(nativeElement)) {
       this.highlightables.splice(this.highlightables.indexOf(nativeElement), 1, newElement);
-      if ('bindEvents' in this && typeof this.bindEvents === 'function') {
-        this.bindEvents(newElement);
-      }
+      this.bindEvents(newElement);
     }
     if (this.marginHighlightable === nativeElement) {
       this.marginHighlightable = newElement;

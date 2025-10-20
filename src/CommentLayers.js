@@ -116,34 +116,6 @@ class CommentLayers {
   }
 
   /**
-   * Hide the comment menu. Base implementation does nothing.
-   * Override in subclasses that have menu functionality.
-   *
-   * @param {Event} [_event] The event that triggered the hide action.
-   */
-  hideMenu(_event) {
-    // Base implementation - no menu to hide
-  }
-
-  /**
-   * Defer hiding the menu. Base implementation does nothing.
-   * Override in subclasses that have menu functionality.
-   *
-   * @param {MouseEvent} _event The mousedown event.
-   */
-  deferHideMenu(_event) {
-    // Base implementation - no menu to defer hiding
-  }
-
-  /**
-   * Cancel the deferred menu hiding. Base implementation does nothing.
-   * Override in subclasses that have menu functionality.
-   */
-  dontHideMenu() {
-    // Base implementation - no timeout to clear
-  }
-
-  /**
    * Update layer styles and positioning.
    * This method should be overridden by subclasses for specific styling needs.
    *

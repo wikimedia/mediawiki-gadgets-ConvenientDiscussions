@@ -102,7 +102,9 @@ class CommentManager extends EventEmitter {
         }
       })
       .on('startReboot', this.resetLayers)
-      .on('desktopNotificationClick', () => this.maybeRedrawLayers(true));
+      .on('desktopNotificationClick', () => {
+        this.maybeRedrawLayers(true);
+      });
     visits
       .on('process', this.registerSeen)
       .on('process', async () => {
@@ -577,7 +579,7 @@ class CommentManager extends EventEmitter {
 
     const isObstructingElementHovered = talkPageController.isObstructingElementHovered();
     this.items
-      .filter((comment) => comment.layers?.underlay)
+      .filter((/** @type {import('./CompactComment').default} */ comment) => Boolean(comment.layers?.underlay))
       .forEach((comment) => {
         comment.updateHoverState(event, isObstructingElementHovered);
       });
