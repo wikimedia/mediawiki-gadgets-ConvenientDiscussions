@@ -292,7 +292,7 @@ const config = defineConfig(
       'unicorn/prefer-string-slice': 'off',
 
       // Callback references make the code neat, but the concern of the rule is legit
-      'unicorn/no-array-callback-reference': 'off',
+      // 'unicorn/no-array-callback-reference': 'off',
 
       // Less readable for me (jwbth)
       'unicorn/prefer-regexp-test': 'off',

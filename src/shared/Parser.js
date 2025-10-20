@@ -239,7 +239,7 @@ class Parser {
    * @returns {Timestamp | undefined}
    * @private
    */
-  findTimestamp = (node) => {
+  findTimestamp(node) {
     const text = node.textContent;
 
     // While we're here, wrap outdents inserted by Factotum into a span.
@@ -268,7 +268,7 @@ class Parser {
     }
 
     return { element, date };
-  };
+  }
 
   /**
    * @typedef {object} AuthorData
@@ -288,7 +288,7 @@ class Parser {
    * @returns {Partial<SignatureTarget<N>> | undefined}
    * @private
    */
-  getSignatureFromTimestamp = (timestamp) => {
+  getSignatureFromTimestamp(timestamp) {
     let unsignedElement;
     {
       /** @type {ElementLike | null} */
@@ -453,7 +453,7 @@ class Parser {
       isUnsigned: Boolean(unsignedElement),
       isExtraSignature,
     };
-  };
+  }
 
   /**
    * Find outputs of unsigned templates that we weren't able to find using the standard procedure
@@ -535,9 +535,9 @@ class Parser {
 
     return /** @type {SignatureTarget<N>[]} */ (this.context
       .getAllTextNodes()
-      .map(this.findTimestamp)
+      .map((node) => this.findTimestamp(node))
       .filter(defined)
-      .map(this.getSignatureFromTimestamp)
+      .map((node) => this.getSignatureFromTimestamp(node))
       .filter(defined)
       .concat(this.findRemainingUnsigneds())
       .slice()
