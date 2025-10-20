@@ -14,9 +14,9 @@ class CompactCommentActions extends CommentActions {
    * @returns {boolean}
    */
   hasClassicUnderlay() {
-    // A comment has classic underlay if it's not reformatted and has layers
+    // A comment has classic underlay if it's not reformatted and has layers with underlay
     // We can determine if it's reformatted by checking for the presence of headerElement
-    return !this.comment.headerElement && Boolean(this.comment.layers);
+    return !this.comment.headerElement && Boolean(this.comment.layers?.underlay);
   }
 
   /**
@@ -152,15 +152,29 @@ class CompactCommentActions extends CommentActions {
   }
 
   /**
+   * Get the overlay menu container for compact comments.
+   *
+   * @override
+   * @returns {JQuery | undefined} The overlay menu jQuery object, or undefined if not available.
+   * @protected
+   */
+  getOverlayMenu() {
+    const layers = this.comment.layers;
+    if (layers && 'overlayMenu' in layers) {
+      return /** @type {import('./CompactCommentLayers').default} */ (layers).$overlayMenu;
+    }
+  }
+
+  /**
    * Append a button to the compact comment overlay menu.
    *
    * @override
    * @param {CommentButton} button The button to append.
    */
   appendButton(button) {
-    // Access overlayMenu through the jQuery property which is public
-    if (!this.comment.$overlayMenu) return;
-    this.comment.$overlayMenu.append(button.element);
+    const overlayMenu = this.getOverlayMenu();
+    if (!overlayMenu) return;
+    overlayMenu.append(button.element);
   }
 
   /**
@@ -170,9 +184,9 @@ class CompactCommentActions extends CommentActions {
    * @param {CommentButton} button The button to prepend.
    */
   prependButton(button) {
-    // Access overlayMenu through the jQuery property which is public
-    if (!this.comment.$overlayMenu) return;
-    this.comment.$overlayMenu.prepend(button.element);
+    const overlayMenu = this.getOverlayMenu();
+    if (!overlayMenu) return;
+    overlayMenu.prepend(button.element);
   }
 
   /**
@@ -195,8 +209,9 @@ class CompactCommentActions extends CommentActions {
 
     // Insert after go to parent/child buttons if they exist
     const targetButton = this.goToParentButton || this.goToChildButton;
-    if (targetButton && this.comment.$overlayMenu) {
-      this.comment.$overlayMenu[0].insertBefore(
+    const overlayMenu = this.getOverlayMenu();
+    if (targetButton && overlayMenu) {
+      overlayMenu[0].insertBefore(
         this.toggleChildThreadsButton.element,
         targetButton.element.nextSibling || null
       );

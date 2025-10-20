@@ -152,9 +152,9 @@ class CommentLayers {
    * Hide the comment menu. Base implementation does nothing.
    * Override in subclasses that have menu functionality.
    *
-   * @param {Event} [event] The event that triggered the hide action.
+   * @param {Event} [_event] The event that triggered the hide action.
    */
-  hideMenu(event) {
+  hideMenu(_event) {
     // Base implementation - no menu to hide
   }
 
@@ -162,9 +162,9 @@ class CommentLayers {
    * Defer hiding the menu. Base implementation does nothing.
    * Override in subclasses that have menu functionality.
    *
-   * @param {MouseEvent} event The mousedown event.
+   * @param {MouseEvent} _event The mousedown event.
    */
-  deferHideMenu(event) {
+  deferHideMenu(_event) {
     // Base implementation - no menu to defer hiding
   }
 

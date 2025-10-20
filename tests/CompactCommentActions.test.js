@@ -3,73 +3,72 @@
  */
 
 // Mock dependencies
-jest.mock('../src/CommentActions', () => {
-  return class MockCommentActions {
-    constructor(comment) {
-      this.comment = comment;
-    }
+jest.mock('../src/CommentActions', () => class MockCommentActions {
+  constructor(comment) {
+    this.comment = comment;
+  }
 
-    addReplyButton() {
-      this.baseAddReplyButtonCalled = true;
-    }
+  addReplyButton() {
+    this.baseAddReplyButtonCalled = true;
+  }
 
-    addEditButton() {
-      this.baseAddEditButtonCalled = true;
-    }
+  addEditButton() {
+    this.baseAddEditButtonCalled = true;
+  }
 
-    addThankButton() {
-      this.baseAddThankButtonCalled = true;
-    }
+  addThankButton() {
+    this.baseAddThankButtonCalled = true;
+  }
 
-    addGoToParentButton() {
-      this.baseAddGoToParentButtonCalled = true;
-    }
+  addGoToParentButton() {
+    this.baseAddGoToParentButtonCalled = true;
+  }
 
-    addCopyLinkButton() {
-      this.baseAddCopyLinkButtonCalled = true;
-    }
+  addCopyLinkButton() {
+    this.baseAddCopyLinkButtonCalled = true;
+  }
 
-    addToggleChildThreadsButton() {
-      this.baseAddToggleChildThreadsButtonCalled = true;
-    }
+  addToggleChildThreadsButton() {
+    this.baseAddToggleChildThreadsButtonCalled = true;
+  }
 
-    maybeAddGoToChildButton() {
-      this.baseMaybeAddGoToChildButtonCalled = true;
-    }
-  };
+  maybeAddGoToChildButton() {
+    this.baseMaybeAddGoToChildButtonCalled = true;
+  }
 });
 
-jest.mock('../src/CommentButton', () => {
-  return class MockCommentButton {
-    constructor(config) {
-      this.element = config.element || document.createElement('button');
-      this.buttonElement = config.buttonElement;
-      this.iconElement = config.iconElement;
-      this.config = config;
-      this.action = config.action;
-      this.href = config.href;
-      this.widgetConstructor = config.widgetConstructor;
-    }
+jest.mock('../src/CommentButton', () => class MockCommentButton {
+  constructor(config) {
+    this.element = config.element || { tagName: 'BUTTON' };
+    this.buttonElement = config.buttonElement;
+    this.iconElement = config.iconElement;
+    this.config = config;
+    this.action = config.action;
+    this.href = config.href;
+    this.widgetConstructor = config.widgetConstructor;
+  }
 
-    setDisabled(disabled) {
-      this.disabled = disabled;
-      return this;
-    }
+  setDisabled(disabled) {
+    this.disabled = disabled;
 
-    setTooltip(tooltip) {
-      this.tooltip = tooltip;
-      return this;
-    }
+    return this;
+  }
 
-    setLabel(label) {
-      this.label = label;
-      return this;
-    }
+  setTooltip(tooltip) {
+    this.tooltip = tooltip;
 
-    isConnected() {
-      return this.element.isConnected;
-    }
-  };
+    return this;
+  }
+
+  setLabel(label) {
+    this.label = label;
+
+    return this;
+  }
+
+  isConnected() {
+    return this.element.isConnected;
+  }
 });
 
 jest.mock('../src/cd', () => ({
@@ -81,7 +80,7 @@ jest.mock('../src/cd', () => ({
 
 jest.mock('../src/commentManager', () => ({
   default: {
-    getByIndex: jest.fn(),
+    getByIndex: jest.fn(() => undefined),
     getThanksStorage: jest.fn(() => ({
       getData: jest.fn(() => ({})),
     })),
@@ -89,6 +88,7 @@ jest.mock('../src/commentManager', () => ({
 }));
 
 import CompactCommentActions from '../src/CompactCommentActions';
+import commentManager from '../src/commentManager';
 
 describe('CompactCommentActions', () => {
   let mockComment;
@@ -96,6 +96,12 @@ describe('CompactCommentActions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock commentManager methods
+    commentManager.getByIndex = jest.fn(() => undefined);
+    commentManager.getThanksStorage = jest.fn(() => ({
+      getData: jest.fn(() => ({})),
+    }));
 
     mockComment = {
       id: 'test-comment-id',
@@ -113,7 +119,15 @@ describe('CompactCommentActions', () => {
       elements: [document.createElement('div')],
       layers: {
         underlay: document.createElement('div'),
-        $overlayMenu: [document.createElement('div')],
+        overlayMenu: document.createElement('div'), // Add the overlayMenu property
+        $overlayMenu: (() => {
+          const element = document.createElement('div');
+          const jQueryLike = [element];
+          jQueryLike.append = jest.fn();
+          jQueryLike.prepend = jest.fn();
+
+          return jQueryLike;
+        })(),
       },
       replyForm: null,
       targetChild: null,
@@ -135,8 +149,9 @@ describe('CompactCommentActions', () => {
         $element: [(() => {
           const wrapper = document.createElement('div');
           wrapper.append(document.createElement('button'));
+
           return wrapper;
-        })()]
+        })()],
       })),
       createGoToParentButton: jest.fn(() => ({ $element: [document.createElement('button')] })),
       createGoToChildButton: jest.fn(() => ({ $element: [document.createElement('button')] })),
@@ -145,6 +160,7 @@ describe('CompactCommentActions', () => {
         const icon = document.createElement('span');
         icon.className = 'oo-ui-iconElement-icon';
         button.append(icon);
+
         return { $element: [button] };
       }),
     };
@@ -272,11 +288,10 @@ describe('CompactCommentActions', () => {
   describe('appendButton', () => {
     it('should append button to overlay menu', () => {
       const button = { element: document.createElement('button') };
-      const appendSpy = jest.spyOn(mockComment.layers.$overlayMenu[0], 'append');
 
       actions.appendButton(button);
 
-      expect(appendSpy).toHaveBeenCalledWith(button.element);
+      expect(mockComment.layers.$overlayMenu.append).toHaveBeenCalledWith(button.element);
     });
 
     it('should handle missing overlay menu gracefully', () => {
@@ -290,11 +305,10 @@ describe('CompactCommentActions', () => {
   describe('prependButton', () => {
     it('should prepend button to overlay menu', () => {
       const button = { element: document.createElement('button') };
-      const prependSpy = jest.spyOn(mockComment.layers.$overlayMenu[0], 'prepend');
 
       actions.prependButton(button);
 
-      expect(prependSpy).toHaveBeenCalledWith(button.element);
+      expect(mockComment.layers.$overlayMenu.prepend).toHaveBeenCalledWith(button.element);
     });
 
     it('should handle missing overlay menu gracefully', () => {

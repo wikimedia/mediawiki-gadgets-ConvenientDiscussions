@@ -344,6 +344,28 @@ class CommentActions {
   prependButton(_button) {
     throw new Error('prependButton must be implemented by subclasses');
   }
+
+  /**
+   * Get the overlay menu container if available.
+   * This provides a clean abstraction for accessing overlay menu functionality.
+   *
+   * @returns {JQuery | undefined} The overlay menu jQuery object, or undefined if not available.
+   * @protected
+   */
+  getOverlayMenu() {
+    // Default implementation returns undefined - overlay menu is not available for all comment types
+    return undefined;
+  }
+
+  /**
+   * Check if overlay menu is available for this comment type.
+   *
+   * @returns {boolean} True if overlay menu is available.
+   * @protected
+   */
+  hasOverlayMenu() {
+    return Boolean(this.getOverlayMenu());
+  }
 }
 
 export default CommentActions;
