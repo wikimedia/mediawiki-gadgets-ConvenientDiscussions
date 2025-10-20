@@ -156,7 +156,7 @@ class SpaciousComment extends Comment {
    * Uses short format with dot separators.
    *
    * @param {string} stringName
-   * @param {*} [_refreshLink]
+   * @param {import('./Button').default} [_refreshLink]
    * @returns {{ noteText: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
    * @override
    */
@@ -509,8 +509,6 @@ class SpaciousComment extends Comment {
   /**
    * Initialize prototypes for spacious comments.
    * Creates header wrapper and SVG icon prototypes.
-   *
-   * @override
    */
   static initPrototypes() {
     // Initialize shared layer prototypes (underlay, overlay)

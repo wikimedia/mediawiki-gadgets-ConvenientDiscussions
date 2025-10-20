@@ -16,7 +16,7 @@ class CompactCommentActions extends CommentActions {
   hasClassicUnderlay() {
     // A comment has classic underlay if it's not reformatted and has layers with underlay
     // We can determine if it's reformatted by checking for the presence of headerElement
-    return !this.comment.headerElement && Boolean(this.comment.layers?.underlay);
+    return !this.comment.headerElement && Boolean(this.comment.layers);
   }
 
   /**
@@ -295,8 +295,14 @@ class CompactCommentActions extends CommentActions {
    * @override
    */
   addThankButton() {
-    if (!cd.user.isRegistered() || !this.comment.author.isRegistered() ||
-      !this.comment.date || this.comment.isOwn || !this.hasClassicUnderlay()) return;
+    if (
+      !cd.user.isRegistered() ||
+      !this.comment.author.isRegistered() ||
+      !this.comment.date ||
+      this.comment.isOwn ||
+      !this.hasClassicUnderlay()
+    )
+      return;
 
     const isThanked = Object.entries(commentManager.getThanksStorage().getData()).some(
       // TODO: Remove `|| this.comment.dtId === thank.id || this.comment.id === thank.id` part

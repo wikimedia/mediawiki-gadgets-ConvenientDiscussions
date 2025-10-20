@@ -344,8 +344,6 @@ class CompactComment extends Comment {
   /**
    * Initialize prototypes for compact comments. Creates overlay menu prototypes and shared layer
    * elements.
-   *
-   * @override
    */
   static initPrototypes() {
     // Initialize shared layer prototypes (underlay, overlay)
