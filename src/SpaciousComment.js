@@ -561,15 +561,7 @@ class SpaciousComment extends Comment {
 
     this.prototypes.add('headerWrapperElement', headerWrapper);
 
-    // Create SVG icon prototypes for navigation and toggle buttons
-    this.prototypes.add(
-      'goToParentButtonSvg',
-      createSvg(16, 16, 20, 20).html(`<path d="M10 5l8 10H2z" />`)[0]
-    );
-    this.prototypes.add(
-      'goToChildButtonSvg',
-      createSvg(16, 16, 20, 20).html(`<path d="M10 15L2 5h16z" />`)[0]
-    );
+    // Create SVG icon prototypes for toggle child threads button
     this.prototypes.add(
       'collapseChildThreadsButtonSvg',
       createSvg(16, 16, 20, 20).html(`<path d="M4 9h12v2H4z" />`)[0]

@@ -60,11 +60,6 @@ describe('CommentLayers', () => {
         replyButton: { setDisabled: jest.fn() },
         editButton: { setDisabled: jest.fn() },
       },
-      constructor: {
-        prototypes: {
-          get: Comment.prototypes.get,
-        },
-      },
     };
 
     layers = new CommentLayers(mockComment);

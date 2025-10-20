@@ -351,8 +351,8 @@ class CompactComment extends Comment {
     // Call parent method to create shared prototypes (underlay, overlay)
     super.initPrototypes();
 
-    // Get the base overlay prototype and clone it to avoid modifying the shared prototype
-    const baseOverlay = /** @type {HTMLElement} */ (this.prototypes.get('overlay').cloneNode(true));
+    // Get the base overlay prototype and enhance it with compact-specific elements
+    const baseOverlay = this.prototypes.get('overlay');
 
     // Create compact-specific overlay menu elements
     const overlayInnerWrapper = document.createElement('div');

@@ -79,12 +79,10 @@ class CommentLayers {
     const Comment = require('./Comment').default;
     const commentManager = require('./commentManager').default;
 
-    // Get the appropriate prototypes based on the comment type
-    const CommentClass = this.comment.constructor;
-    this.underlay = /** @type {HTMLElement} */ (CommentClass.prototypes.get('underlay').cloneNode(true));
+    this.underlay = /** @type {HTMLElement} */ (Comment.prototypes.get('underlay'));
     commentManager.underlays.push(this.underlay);
 
-    this.overlay = /** @type {HTMLElement} */ (CommentClass.prototypes.get('overlay').cloneNode(true));
+    this.overlay = /** @type {HTMLElement} */ (Comment.prototypes.get('overlay'));
     this.line = /** @type {HTMLElement} */ (this.overlay.firstChild);
     this.marker = /** @type {HTMLElement} */ (
       /** @type {HTMLElement} */ (this.overlay.firstChild).nextSibling

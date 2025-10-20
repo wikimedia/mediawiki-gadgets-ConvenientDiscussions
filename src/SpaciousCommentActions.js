@@ -1,12 +1,20 @@
 import CommentActions from './CommentActions';
 import CommentButton from './CommentButton';
+import PrototypeRegistry from './PrototypeRegistry';
 import cd from './cd';
+import { createSvg } from './utils-window';
 
 /**
  * Actions management for spacious comments with menu-based styling.
  * Spacious comments display action buttons in a structured menu layout.
  */
 class SpaciousCommentActions extends CommentActions {
+  /**
+   * @type {PrototypeRegistry<{
+   *   goToParentButtonSvg: SVGElement
+   *   goToChildButtonSvg: SVGElement
+    }>} */
+  static prototypes = new PrototypeRegistry();
   /**
    * Create a reply button for spacious comments.
    *
@@ -86,7 +94,7 @@ class SpaciousCommentActions extends CommentActions {
       action,
     });
 
-    button.element.append(this.comment.constructor.prototypes.get('goToParentButtonSvg').cloneNode(true));
+    button.element.append(SpaciousCommentActions.prototypes.get('goToParentButtonSvg'));
 
     return button;
   }
@@ -105,7 +113,7 @@ class SpaciousCommentActions extends CommentActions {
       action,
     });
 
-    button.element.append(this.comment.constructor.prototypes.get('goToChildButtonSvg').cloneNode(true));
+    button.element.append(SpaciousCommentActions.prototypes.get('goToChildButtonSvg'));
 
     return button;
   }
@@ -191,6 +199,22 @@ class SpaciousCommentActions extends CommentActions {
     this.toggleChildThreadsButton.element.addEventListener('mouseenter', () => {
       this.comment.maybeOnboardOntoToggleChildThreads();
     });
+  }
+
+  /**
+   * Initialize prototypes for spacious comment actions.
+   * Creates SVG icon prototypes for navigation buttons.
+   */
+  static initPrototypes() {
+    // Create SVG icon prototypes
+    this.prototypes.add(
+      'goToParentButtonSvg',
+      createSvg(16, 16, 20, 20).html(`<path d="M10 5l8 10H2z" />`)[0]
+    );
+    this.prototypes.add(
+      'goToChildButtonSvg',
+      createSvg(16, 16, 20, 20).html(`<path d="M10 15L2 5h16z" />`)[0]
+    );
   }
 }
 
