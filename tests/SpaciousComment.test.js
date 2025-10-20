@@ -2,33 +2,28 @@
  * @jest-environment jsdom
  */
 
+// Mock global dependencies
+global.OO = {
+  EventEmitter: class EventEmitter {
+    on() {}
+
+    off() {}
+
+    emit() {}
+  },
+};
+
+jest.mock('../src/EventEmitter.js', () => class EventEmitter {
+  on() {}
+
+  off() {}
+
+  emit() {}
+});
+
 // Mock dependencies
-jest.mock('../src/Comment', () => {
-  const mockComment = class MockComment {
-    static prototypes = {
-      get: jest.fn((key) => {
-        // Use a factory function to avoid accessing document in module factory
-        const createElement = () => ({ cloneNode: () => ({}) });
-
-        const mockElements = {
-          underlay: createElement(),
-          overlay: (() => {
-            const overlay = createElement();
-            const line = createElement();
-            const marker = createElement();
-            if (overlay.append) {
-              overlay.append(line, marker);
-            }
-
-            return overlay;
-          })(),
-        };
-
-        return mockElements[key]?.cloneNode ? mockElements[key].cloneNode(true) : mockElements[key];
-      }),
-      add: jest.fn(),
-    };
-
+jest.mock('../src/Comment', () => ({
+  default: class MockComment {
     static initPrototypes() {
       // Mock parent initPrototypes
     }
@@ -48,10 +43,8 @@ jest.mock('../src/Comment', () => {
         getNamespaceAlias: () => 'User',
       };
     }
-  };
-
-  return { default: mockComment };
-});
+  },
+}));
 
 jest.mock('../src/cd', () => ({
   s: jest.fn((key) => `mocked-${key}`),

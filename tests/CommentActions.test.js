@@ -2,6 +2,25 @@
  * @jest-environment jsdom
  */
 
+// Mock global dependencies
+global.OO = {
+  EventEmitter: class EventEmitter {
+    on() {}
+
+    off() {}
+
+    emit() {}
+  },
+};
+
+jest.mock('../src/EventEmitter.js', () => class EventEmitter {
+  on() {}
+
+  off() {}
+
+  emit() {}
+});
+
 // Mock dependencies
 jest.mock('../src/cd', () => ({
   s: jest.fn((key) => `mocked-${key}`),

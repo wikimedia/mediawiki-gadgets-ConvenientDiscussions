@@ -2,9 +2,28 @@
  * @jest-environment jsdom
  */
 
+// Mock global dependencies
+global.OO = {
+  EventEmitter: class EventEmitter {
+    on() {}
+
+    off() {}
+
+    emit() {}
+  },
+};
+
+jest.mock('../src/EventEmitter.js', () => class EventEmitter {
+  on() {}
+
+  off() {}
+
+  emit() {}
+});
+
 // Mock dependencies
-jest.mock('../src/CommentLayers', () => ({
-  default: class MockCommentLayers {
+jest.mock('../src/CommentLayers', () => {
+  const MockCommentLayers = class MockCommentLayers {
     static prototypes = {
       get: jest.fn(),
       add: jest.fn(),
@@ -13,8 +32,24 @@ jest.mock('../src/CommentLayers', () => ({
     static initPrototypes() {
       // Mock CommentLayers initPrototypes
     }
-  },
-}));
+
+    constructor(comment) {
+      this.comment = comment;
+    }
+  };
+
+  return { default: MockCommentLayers };
+});
+
+jest.mock('../src/CompactCommentLayers', () => {
+  const MockCompactCommentLayers = class MockCompactCommentLayers {
+    constructor(comment) {
+      this.comment = comment;
+    }
+  };
+
+  return { default: MockCompactCommentLayers };
+});
 
 jest.mock('../src/Comment', () => {
   const mockComment = class MockComment {
