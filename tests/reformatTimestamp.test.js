@@ -143,7 +143,6 @@ function testWithSettings({
     const adaptedReformatTimestamp = (/** @type {Timestamp} */ d) => {
       comment.date = new Date(d);
       comment.formatTimestamp = Comment.prototype.formatTimestamp;
-      comment.isReformatted = Comment.prototype.isReformatted;
       comment.updateTimestampElements = Comment.prototype.updateTimestampElements;
       comment.updateMainTimestampElement = Comment.prototype.updateMainTimestampElement;
       comment.updateExtraSignatureTimestamps = Comment.prototype.updateExtraSignatureTimestamps;
@@ -153,7 +152,7 @@ function testWithSettings({
         reformattedTimestamp: comment.reformattedTimestamp,
         timestampTitle: comment.timestampTitle,
       };
-    }
+    };
 
     const dateObj = new Date(date);
     cd.g.uiTimezone = timezone || 'UTC';
@@ -470,7 +469,6 @@ testWithSettings({
     timestampTitle: '03:48, 28 May 2021 (UTC)',
   },
 });
-
 
 testWithSettings({
   timestamp: '2021-05-28T10:21:47.000Z',

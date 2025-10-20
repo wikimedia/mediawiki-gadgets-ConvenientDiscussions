@@ -163,7 +163,6 @@ describe('CompactCommentActions', () => {
 
         return { $element: [button] };
       }),
-      isReformatted: jest.fn(() => false), // Compact comments are not reformatted
     };
 
     actions = new CompactCommentActions(mockComment);
@@ -173,18 +172,6 @@ describe('CompactCommentActions', () => {
     it('should inherit from CommentActions', () => {
       const CommentActions = require('../src/CommentActions');
       expect(actions).toBeInstanceOf(CommentActions);
-    });
-  });
-
-  describe('hasClassicUnderlay', () => {
-    it('should return true for compact comments with layers', () => {
-      expect(actions.hasClassicUnderlay()).toBe(true);
-    });
-
-    it('should return false when no layers exist', () => {
-      mockComment.layers = null;
-
-      expect(actions.hasClassicUnderlay()).toBe(false);
     });
   });
 
@@ -353,74 +340,76 @@ describe('CompactCommentActions', () => {
     });
   });
 
-  describe('conditional button creation', () => {
-    it('should create reply button only when hasClassicUnderlay returns true', () => {
-      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
-
+  describe('button creation', () => {
+    it('should create reply button when comment is actionable', () => {
       actions.addReplyButton();
 
-      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
       expect(actions.replyButton).toBeDefined();
     });
 
-    it('should not create reply button when hasClassicUnderlay returns false', () => {
-      jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(false);
+    it('should not create reply button when comment is not actionable', () => {
+      mockComment.isActionable = false;
 
       actions.addReplyButton();
 
       expect(actions.replyButton).toBeUndefined();
     });
 
-    it('should create edit button only when hasClassicUnderlay returns true', () => {
-      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
-
+    it('should create edit button when comment is editable', () => {
       actions.addEditButton();
 
-      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
       expect(actions.editButton).toBeDefined();
     });
 
-    it('should not create edit button when hasClassicUnderlay returns false', () => {
-      jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(false);
+    it('should not create edit button when comment is not editable', () => {
+      mockComment.isEditable = false;
 
       actions.addEditButton();
 
       expect(actions.editButton).toBeUndefined();
     });
 
-    it('should create thank button only when hasClassicUnderlay returns true', () => {
-      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
-
+    it('should create thank button when conditions are met', () => {
       actions.addThankButton();
 
-      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
       expect(actions.thankButton).toBeDefined();
     });
 
-    it('should not create thank button when hasClassicUnderlay returns false', () => {
-      jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(false);
+    it('should not create thank button when user is not registered', () => {
+      const cd = require('../src/cd');
+      cd.user.isRegistered.mockReturnValue(false);
 
       actions.addThankButton();
 
       expect(actions.thankButton).toBeUndefined();
     });
 
-    it('should create go to parent button only when hasClassicUnderlay returns true', () => {
-      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
-
+    it('should create go to parent button when parent exists', () => {
       actions.addGoToParentButton();
 
-      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
       expect(actions.goToParentButton).toBeDefined();
     });
 
-    it('should create copy link button only when hasClassicUnderlay returns true', () => {
-      const hasClassicUnderlaySpy = jest.spyOn(actions, 'hasClassicUnderlay').mockReturnValue(true);
+    it('should not create go to parent button when no parent exists', () => {
+      mockComment.getParent.mockReturnValue(null);
+
+      actions.addGoToParentButton();
+
+      expect(actions.goToParentButton).toBeUndefined();
+    });
+
+    it('should create copy link button when comment has id', () => {
+      actions.addCopyLinkButton();
+
+      expect(actions.copyLinkButton).toBeDefined();
+    });
+
+    it('should not create copy link button when comment has no id', () => {
+      mockComment.id = null;
 
       actions.addCopyLinkButton();
 
-      expect(hasClassicUnderlaySpy).toHaveBeenCalled();
-      expect(actions.copyLinkButton).toBeDefined();
+      expect(actions.copyLinkButton).toBeUndefined();
     });
   });
 });

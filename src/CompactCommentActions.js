@@ -9,17 +9,6 @@ import commentManager from './commentManager';
  */
 class CompactCommentActions extends CommentActions {
   /**
-   * Check if the comment has classic underlay (not reformatted and has layers).
-   *
-   * @returns {boolean}
-   */
-  hasClassicUnderlay() {
-    // CompactCommentActions is only used with compact comments, which are never reformatted
-    // Since this class is only instantiated when layers exist, we can assume layers are present
-    return Boolean(this.comment.layers);
-  }
-
-  /**
    * Create and add all appropriate action buttons for compact comments.
    * The order is specific for compact comments.
    *
@@ -243,12 +232,12 @@ class CompactCommentActions extends CommentActions {
   }
 
   /**
-   * Override addReplyButton to check for hasClassicUnderlay condition.
+   * Override addReplyButton for compact comments.
    *
    * @override
    */
   addReplyButton() {
-    if (!this.comment.isActionable || !this.hasClassicUnderlay()) return;
+    if (!this.comment.isActionable) return;
 
     const action = () => {
       if (this.comment.replyForm) {
@@ -275,12 +264,12 @@ class CompactCommentActions extends CommentActions {
   }
 
   /**
-   * Override addEditButton to check for hasClassicUnderlay condition.
+   * Override addEditButton for compact comments.
    *
    * @override
    */
   addEditButton() {
-    if (!this.comment.isEditable || !this.hasClassicUnderlay()) return;
+    if (!this.comment.isEditable) return;
 
     const action = () => {
       this.comment.edit();
@@ -290,7 +279,7 @@ class CompactCommentActions extends CommentActions {
   }
 
   /**
-   * Override addThankButton to check for hasClassicUnderlay condition.
+   * Override addThankButton for compact comments.
    *
    * @override
    */
@@ -299,8 +288,7 @@ class CompactCommentActions extends CommentActions {
       !cd.user.isRegistered() ||
       !this.comment.author.isRegistered() ||
       !this.comment.date ||
-      this.comment.isOwn ||
-      !this.hasClassicUnderlay()
+      this.comment.isOwn
     )
       return;
 
@@ -324,12 +312,12 @@ class CompactCommentActions extends CommentActions {
   }
 
   /**
-   * Override addGoToParentButton to check for hasClassicUnderlay condition.
+   * Override addGoToParentButton for compact comments.
    *
    * @override
    */
   addGoToParentButton() {
-    if (!this.comment.getParent() || !this.hasClassicUnderlay()) return;
+    if (!this.comment.getParent()) return;
 
     const action = () => {
       this.comment.goToParent();
@@ -339,12 +327,12 @@ class CompactCommentActions extends CommentActions {
   }
 
   /**
-   * Override addCopyLinkButton to check for hasClassicUnderlay condition.
+   * Override addCopyLinkButton for compact comments.
    *
    * @override
    */
   addCopyLinkButton() {
-    if (!this.comment.id || !this.hasClassicUnderlay()) return;
+    if (!this.comment.id) return;
 
     const action = (/** @type {MouseEvent | KeyboardEvent} */ event) => {
       this.comment.copyLink(event);

@@ -276,12 +276,12 @@ describe('SpaciousCommentActions', () => {
     });
 
     it('should prepend go to child button in correct position', () => {
+      // Add the goToParentButton to the header first to establish parent-child relationship
+      mockComment.headerElement.append(actions.goToParentButton.element);
+
       // Mock the nextSibling property by overriding the getter
       const mockNextSibling = document.createElement('span');
-      Object.defineProperty(actions.goToParentButton.element, 'nextSibling', {
-        value: mockNextSibling,
-        writable: true,
-      });
+      mockComment.headerElement.append(mockNextSibling);
 
       const insertBeforeSpy = jest.spyOn(mockComment.headerElement, 'insertBefore');
 
@@ -326,6 +326,9 @@ describe('SpaciousCommentActions', () => {
 
     it('should create and position toggle button when children with threads exist', () => {
       mockComment.getChildren.mockReturnValue([{ thread: {} }]);
+      // Add the change note to the header to establish parent-child relationship
+      mockComment.headerElement.append(mockComment.$changeNote[0]);
+
       const insertBeforeSpy = jest.spyOn(mockComment.headerElement, 'insertBefore');
 
       actions.addToggleChildThreadsButton();
@@ -357,22 +360,35 @@ describe('SpaciousCommentActions', () => {
 
     it('should add mouseenter event listener', () => {
       mockComment.getChildren.mockReturnValue([{ thread: {} }]);
+      // Add the change note to the header to establish parent-child relationship
+      mockComment.headerElement.append(mockComment.$changeNote[0]);
 
       actions.addToggleChildThreadsButton();
 
-      const addEventListenerSpy = jest.spyOn(actions.toggleChildThreadsButton.element, 'addEventListener');
-
-      // Simulate the event listener addition (it's done in the method)
-      actions.toggleChildThreadsButton.element.addEventListener('mouseenter', expect.any(Function));
-
-      expect(addEventListenerSpy).toHaveBeenCalledWith('mouseenter', expect.any(Function));
+      // The addEventListener spy should have been called during button creation
+      expect(actions.toggleChildThreadsButton.element.addEventListener).toHaveBeenCalledWith('mouseenter', expect.any(Function));
     });
 
     it('should call toggleChildThreads when button action is triggered', () => {
       mockComment.getChildren.mockReturnValue([{ thread: {} }]);
+      // Add the change note to the header to establish parent-child relationship
+      mockComment.headerElement.append(mockComment.$changeNote[0]);
+
+      // Override the mock to capture the actual action function
+      let capturedAction;
+      actions.createToggleChildThreadsButton = jest.fn((action) => {
+        capturedAction = action;
+
+        return {
+          element: document.createElement('button'),
+          action: capturedAction,
+        };
+      });
 
       actions.addToggleChildThreadsButton();
-      actions.toggleChildThreadsButton.action();
+
+      // Call the captured action function
+      capturedAction();
 
       expect(mockComment.toggleChildThreads).toHaveBeenCalled();
     });

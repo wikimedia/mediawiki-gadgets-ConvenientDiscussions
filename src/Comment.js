@@ -1,11 +1,7 @@
 import Button from './Button';
-import CommentActions from './CommentActions';
-import CommentLayers from './CommentLayers';
 import CommentSource from './CommentSource';
 import CommentSubitemList from './CommentSubitemList';
-import CompactCommentLayers from './CompactCommentLayers';
 import LiveTimestamp from './LiveTimestamp';
-import SpaciousCommentLayers from './SpaciousCommentLayers';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import bootManager from './bootManager';
 import cd from './cd';
@@ -443,36 +439,6 @@ class Comment extends CommentSkeleton {
   }
 
   /**
-   * Check if the comment is spacious (reformatted).
-   *
-   * @returns {boolean}
-   * @protected
-   */
-  isReformatted() {
-    return this.spacious;
-  }
-
-  /**
-   * Check if the comment has layers (underlay and overlay).
-   *
-   * @returns {boolean}
-   * @private
-   */
-  hasLayers() {
-    return Boolean(this.layers);
-  }
-
-  /**
-   * Check if the comment is not spacious (not reformatted) and its underlay is present.
-   *
-   * @returns {boolean}
-   * @protected
-   */
-  hasClassicUnderlay() {
-    return !this.isReformatted() && this.hasLayers();
-  }
-
-  /**
    * Set the {@link Comment#marginHighlightable} element.
    *
    * @private
@@ -621,10 +587,8 @@ class Comment extends CommentSkeleton {
    * Update the main timestamp element.
    * This method should be overridden by subclasses.
    *
-   * @param {string} _timestamp
-   * @param {string} _title
-   * @param timestamp
-   * @param title
+   * @param {string} timestamp
+   * @param {string} title
    * @protected
    */
   updateMainTimestampElement(timestamp, title) {

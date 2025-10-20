@@ -1,4 +1,3 @@
-import Button from './Button';
 import Comment from './Comment';
 import CompactCommentActions from './CompactCommentActions';
 import CompactCommentLayers from './CompactCommentLayers';
@@ -47,17 +46,6 @@ class CompactComment extends Comment {
   wasMenuHidden = false;
 
   /**
-   * Check whether the comment is reformatted (has a header and a menu instead of a signature).
-   * Always returns false for compact comments.
-   *
-   * @returns {boolean}
-   * @override
-   */
-  isReformatted() {
-    return false;
-  }
-
-  /**
    * Create the comment's underlay and overlay with contents for compact comments.
    *
    * @fires commentLayersCreated
@@ -73,9 +61,8 @@ class CompactComment extends Comment {
     this.actions = new CompactCommentActions(this);
     this.actions.create();
 
-    if (this.hasClassicUnderlay()) {
-      this.actions.addToggleChildThreadsButton();
-    }
+    // Add toggle child threads button since compact comments always have layers when actions exist
+    this.actions.addToggleChildThreadsButton();
 
     /**
      * An underlay and overlay have been created for a comment.
@@ -207,7 +194,7 @@ class CompactComment extends Comment {
     this.timestampElement.title = title;
     new LiveTimestamp(
       this.timestampElement,
-      /** @type {Date} */ (this.date),
+      /** @type {Date} */(this.date),
       !this.hideTimezone
     ).init();
   }
@@ -217,7 +204,7 @@ class CompactComment extends Comment {
    * Uses space separators with conditional dot separator for diff link.
    *
    * @param {string} stringName
-   * @param {Button} [refreshLink]
+   * @param {import('./Button').default} [refreshLink]
    * @returns {{ noteText: string, refreshLinkSeparator: string, diffLinkSeparator: string }}
    * @override
    */

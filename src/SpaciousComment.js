@@ -77,17 +77,6 @@ class SpaciousComment extends Comment {
   $menu;
 
   /**
-   * Check whether the comment is reformatted (has a header and a menu instead of a signature).
-   * Always returns true for spacious comments.
-   *
-   * @returns {boolean}
-   * @override
-   */
-  isReformatted() {
-    return true;
-  }
-
-  /**
    * Create the comment's underlay and overlay with contents for spacious comments.
    *
    * @fires commentLayersCreated
@@ -145,7 +134,7 @@ class SpaciousComment extends Comment {
       this.timestampElement.title = title;
       new LiveTimestamp(
         this.timestampElement,
-        /** @type {Date} */ (this.date),
+        /** @type {Date} */(this.date),
         !this.hideTimezone
       ).init();
     }
@@ -288,16 +277,18 @@ class SpaciousComment extends Comment {
        *
        * @type {CommentButton}
        */
-      this.actions.copyLinkButton = new CommentButton({
-        label: this.reformattedTimestamp || this.timestamp,
-        tooltip: this.timestampTitle,
-        classes: ['cd-comment-button-labelled', 'cd-comment-timestamp', 'mw-selflink-fragment'],
-        action: this.copyLink,
-        href: this.dtId && '#' + this.dtId,
-      });
+      if (this.actions) {
+        this.actions.copyLinkButton = new CommentButton({
+          label: this.reformattedTimestamp || this.timestamp,
+          tooltip: this.timestampTitle,
+          classes: ['cd-comment-button-labelled', 'cd-comment-timestamp', 'mw-selflink-fragment'],
+          action: this.copyLink,
+          href: this.dtId && '#' + this.dtId,
+        });
 
-      this.headerElement.append(this.actions.copyLinkButton.element);
-      this.timestampElement = this.actions.copyLinkButton.labelElement;
+        this.headerElement.append(this.actions.copyLinkButton.element);
+        this.timestampElement = this.actions.copyLinkButton.labelElement;
+      }
       if (this.date) {
         new LiveTimestamp(this.timestampElement, this.date, !this.hideTimezone).init();
       }

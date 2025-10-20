@@ -92,29 +92,18 @@ test('Comment class maintains essential methods', () => {
   const commentSource = readFile('src/Comment.js');
 
   return commentSource.includes('configureLayers()') &&
-    commentSource.includes('configureActions()');
+    commentSource.includes('updateTimestampElements') &&
+    commentSource.includes('formatTimestamp');
 });
 
-// Test 5: Type Guards (Essential for runtime behavior)
-test('isReformatted() method uses spacious property', () => {
-  const commentSource = readFile('src/Comment.js');
+test('CompactCommentActions no longer needs hasClassicUnderlay checks', () => {
+  const compactActionsSource = readFile('src/CompactCommentActions.js');
 
-  return commentSource.includes('isReformatted()') &&
-    commentSource.includes('return this.spacious');
-});
-
-test('hasLayers() method checks layers property', () => {
-  const commentSource = readFile('src/Comment.js');
-
-  return commentSource.includes('hasLayers()') &&
-    commentSource.includes('Boolean(this.layers?.underlay)');
-});
-
-test('hasClassicUnderlay() method works correctly', () => {
-  const commentSource = readFile('src/Comment.js');
-
-  return commentSource.includes('hasClassicUnderlay()') &&
-    commentSource.includes('!this.isReformatted() && this.hasLayers()');
+  // The hasClassicUnderlay method has been removed since the presence of layers
+  // is guaranteed by the class structure when CompactCommentActions is instantiated
+  return !compactActionsSource.includes('hasClassicUnderlay()') &&
+    compactActionsSource.includes('addReplyButton') &&
+    compactActionsSource.includes('addEditButton');
 });
 
 // Test 6: BootProcess Integration (Critical for class selection)
@@ -133,11 +122,13 @@ test('BootProcess uses spaciousComments setting for class selection', () => {
 });
 
 // Test 7: Composition Pattern (Essential for new architecture)
-test('Comment imports composition classes', () => {
+test('Comment no longer imports composition classes directly', () => {
   const commentSource = readFile('src/Comment.js');
 
-  return commentSource.includes("import CommentLayers from './CommentLayers'") &&
-    commentSource.includes("import CommentActions from './CommentActions'");
+  // Comment base class no longer imports composition classes directly
+  // They are imported by the specific subclasses (CompactComment, SpaciousComment)
+  return !commentSource.includes("import CommentLayers from './CommentLayers'") &&
+    !commentSource.includes("import CommentActions from './CommentActions'");
 });
 
 test('CommentLayers has expected methods', () => {
@@ -203,7 +194,6 @@ if (passedTests === totalTests) {
 console.log('\n🔍 Key Functional Compatibility Features Validated:');
 console.log('• Settings migration (reformatComments → spaciousComments)');
 console.log('• Class inheritance structure (CompactComment, SpaciousComment extend Comment)');
-console.log('• Type guard methods (isReformatted, hasLayers, hasClassicUnderlay)');
 console.log('• Composition pattern implementation (layers, actions)');
 console.log('• BootProcess integration for class selection');
 console.log('• Visual compatibility (CSS classes maintained)');
