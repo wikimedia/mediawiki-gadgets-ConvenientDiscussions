@@ -291,8 +291,9 @@ const config = defineConfig(
       // .substring() swaps values if start > end
       'unicorn/prefer-string-slice': 'off',
 
-      // Callback references make the code neat, but the concern of the rule is legit
-      // 'unicorn/no-array-callback-reference': 'off',
+      // Callback references make the code neat (e.g. `.filter(defined)`), but the concern of the
+      // rule is legit, so better not use this trick in less obvious places
+      'unicorn/no-array-callback-reference': 'off',
 
       // Less readable for me (jwbth)
       'unicorn/prefer-regexp-test': 'off',

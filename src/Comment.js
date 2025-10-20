@@ -720,7 +720,7 @@ class Comment extends CommentSkeleton {
         $('<p>').append(button.$element),
       ),
       head: true,
-      $floatableContainer: $(this.actions?.toggleChildThreadsButton?.element),
+      $floatableContainer: $(this.actions.toggleChildThreadsButton.element),
       $container: $(document.body),
       position: 'below',
       padded: true,
@@ -2563,7 +2563,7 @@ class Comment extends CommentSkeleton {
     const id = this.getUrlFragment();
     if (!this.actions?.thankButton || !id) return;
 
-    this.actions?.thankButton?.setPending(true);
+    this.actions.thankButton?.setPending(true);
     let accepted;
     try {
       const versionMatch = /^(\d+\.\d+).*/.exec(mw.config.get('wgVersion'));
@@ -2577,7 +2577,7 @@ class Comment extends CommentSkeleton {
 
       return;
     } finally {
-      this.actions?.thankButton.setPending(false);
+      this.actions.thankButton.setPending(false);
     }
 
     if (accepted) {
