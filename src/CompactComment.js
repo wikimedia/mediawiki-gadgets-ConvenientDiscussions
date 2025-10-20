@@ -1,5 +1,7 @@
 import Button from './Button';
 import Comment from './Comment';
+import CompactCommentActions from './CompactCommentActions';
+import CompactCommentLayers from './CompactCommentLayers';
 import LiveTimestamp from './LiveTimestamp';
 import bootManager from './bootManager';
 import cd from './cd';
@@ -36,6 +38,36 @@ class CompactComment extends Comment {
    */
   isReformatted() {
     return false;
+  }
+
+  /**
+   * Create the comment's underlay and overlay with contents for compact comments.
+   *
+   * @fires commentLayersCreated
+   * @protected
+   * @override
+   */
+  createLayers() {
+    // Create compact layers
+    this.layers = new CompactCommentLayers(this);
+    this.layers.create();
+
+    // Create compact actions
+    this.actions = new CompactCommentActions(this);
+    this.actions.create();
+
+    if (this.hasClassicUnderlay()) {
+      this.actions.addToggleChildThreadsButton();
+    }
+
+    /**
+     * An underlay and overlay have been created for a comment.
+     *
+     * @event commentLayersCreated
+     * @param {Comment} comment
+     * @param {object} cd {@link convenientDiscussions} object.
+     */
+    mw.hook('convenientDiscussions.commentLayersCreated').fire(this, cd);
   }
 
   /**
