@@ -27,12 +27,13 @@ import visits from './visits';
  * Singleton storing data about comments on the page and managing them.
  *
  * @augments EventEmitter<EventMap>
+ * @template {Comment} C
  */
 class CommentManager extends EventEmitter {
   /**
    * List of comments.
    *
-   * @type {Comment[]}
+   * @type {C[]}
    * @private
    */
   items = [];
@@ -67,8 +68,6 @@ class CommentManager extends EventEmitter {
    * _For internal use._ Initialize the registry.
    */
   init() {
-    this.spaciousCommentsSetting = settings.get('spaciousComments');
-
     this.thanksStorage = new StorageItemWithKeys('thanks')
       .cleanUp((entry) => (entry.thankTime || 0) < subtractDaysFromNow(60))
       .save();
@@ -147,7 +146,7 @@ class CommentManager extends EventEmitter {
   setup() {
     // This can be updated after an in-script page reload if the user agrees to this setting in the
     // onboarding popup (settings.maybeSuggestEnableCommentReformatting()).
-    this.spaciousCommentsSetting = settings.get('spaciousComments');
+    this.spaciousComments = settings.get('spaciousComments');
 
     this.reformatTimestamps();
     this.findAndUpdateTableComments();
@@ -161,7 +160,7 @@ class CommentManager extends EventEmitter {
   /**
    * Add a comment to the list.
    *
-   * @param {Comment} item
+   * @param {C} item
    */
   add(item) {
     this.items.push(item);
@@ -171,7 +170,7 @@ class CommentManager extends EventEmitter {
    * Get all comments on the page ordered the same way as in the DOM. It returns the original array,
    * so use `.slice()` when changing it.
    *
-   * @returns {Comment[]}
+   * @returns {C[]}
    */
   getAll() {
     return this.items;
@@ -181,7 +180,7 @@ class CommentManager extends EventEmitter {
    * Get a comment by index.
    *
    * @param {number} index Use a negative index to count from the end.
-   * @returns {Comment | undefined}
+   * @returns {C | undefined}
    */
   getByIndex(index) {
     if (index < 0) {
@@ -203,8 +202,8 @@ class CommentManager extends EventEmitter {
   /**
    * Get comments by a condition.
    *
-   * @param {(comment: Comment) => boolean} condition
-   * @returns {Comment[]}
+   * @param {(comment: C) => boolean} condition
+   * @returns {C[]}
    */
   query(condition) {
     return this.items.filter(condition);
@@ -248,7 +247,7 @@ class CommentManager extends EventEmitter {
   /**
    * Configure and add layers for a group of comments.
    *
-   * @param {(comment: Comment) => boolean} condition
+   * @param {(comment: C) => boolean} condition
    */
   configureAndAddLayers(condition) {
     const comments = this.items.filter(condition);
@@ -284,7 +283,7 @@ class CommentManager extends EventEmitter {
     });
 
     let floatingRects;
-    /** @type {Comment[]} */
+    /** @type {C[]} */
     const comments = [];
     const rootBottom = bootManager.$root[0].getBoundingClientRect().bottom + window.scrollY;
     let notMovedCount = 0;
@@ -308,7 +307,7 @@ class CommentManager extends EventEmitter {
         );
 
       if (
-        comment.layers?.underlay &&
+        comment.layers &&
         !shouldBeHighlighted &&
 
         // Layers that ended up under the bottom of the page content and could be moving the page
@@ -373,7 +372,7 @@ class CommentManager extends EventEmitter {
     const commentInViewport = this.findInViewport();
     if (!commentInViewport) return;
 
-    const registerIfInViewport = (/** @type {Comment} */ comment) => {
+    const registerIfInViewport = (/** @type {C} */ comment) => {
       const isInViewport = comment.isInViewport();
       if (isInViewport) {
         comment.registerSeen();
@@ -404,7 +403,7 @@ class CommentManager extends EventEmitter {
    *
    * @param {'forward' | 'backward'} [findClosestDirection] If there is no comment in the viewport,
    *   find the closest comment in the specified direction.
-   * @returns {Comment | undefined}
+   * @returns {C | undefined}
    */
   findInViewport(findClosestDirection) {
     // Reset the roughOffset property. It is used only within this method.
@@ -417,7 +416,7 @@ class CommentManager extends EventEmitter {
 
     // Visibility is checked in the sense that an element is visible on the page, not necessarily in
     // the viewport.
-    const isCommentVisible = (/** @type {Comment} */ comment) => {
+    const isCommentVisible = (/** @type {C} */ comment) => {
       comment.getOffset({ set: true });
 
       return Boolean(comment.roughOffset);
@@ -447,7 +446,7 @@ class CommentManager extends EventEmitter {
 
     const searchArea = {
       top: firstVisibleComment,
-      bottom: /** @type {Comment} */ (lastVisibleComment),
+      bottom: /** @type {C} */ (lastVisibleComment),
     };
     let comment = searchArea.top;
     let foundComment;
@@ -575,11 +574,11 @@ class CommentManager extends EventEmitter {
    * @param {MouseEvent | JQuery.MouseMoveEvent | JQuery.MouseOverEvent} event
    */
   maybeHighlightHovered = (event) => {
-    if (this.spaciousCommentsSetting) return;
+    if (this.spaciousComments) return;
 
     const isObstructingElementHovered = talkPageController.isObstructingElementHovered();
     this.items
-      .filter((/** @type {import('./CompactComment').default} */ comment) => Boolean(comment.layers?.underlay))
+      .filter((comment) => Boolean(comment.layers))
       .forEach((comment) => {
         comment.updateHoverState(event, isObstructingElementHovered);
       });
@@ -657,7 +656,7 @@ class CommentManager extends EventEmitter {
     }
 
     /**
-     * @typedef {ReturnComponents extends true ? DtIdComponents : Comment} DtIdComponentsOrComment
+     * @typedef {ReturnComponents extends true ? DtIdComponents : C} DtIdComponentsOrComment
      */
 
     if (returnComponents) {
@@ -818,7 +817,7 @@ class CommentManager extends EventEmitter {
    * relevant setting is enabled.
    */
   async reformatComments() {
-    if (!this.spaciousCommentsSetting) return;
+    if (!this.spaciousComments) return;
 
     $(document.body).addClass('cd-reformattedComments');
     if (!cd.page.exists()) return;
@@ -1018,7 +1017,7 @@ class CommentManager extends EventEmitter {
    * @private
    */
   handleDtTimestampsClick = () => {
-    if (this.spaciousCommentsSetting) return;
+    if (this.spaciousComments) return;
 
     this.items.forEach((comment) => {
       comment.handleDtTimestampClick();

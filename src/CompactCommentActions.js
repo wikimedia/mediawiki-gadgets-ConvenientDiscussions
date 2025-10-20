@@ -16,7 +16,7 @@ class CompactCommentActions extends CommentActions {
   hasClassicUnderlay() {
     // A comment has classic underlay if it's not reformatted and has layers
     // We can determine if it's reformatted by checking for the presence of headerElement
-    return !this.comment.headerElement && Boolean(this.comment.layers?.underlay);
+    return !this.comment.headerElement && Boolean(this.comment.layers);
   }
 
   /**

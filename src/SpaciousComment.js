@@ -5,6 +5,7 @@ import LiveTimestamp from './LiveTimestamp';
 import SpaciousCommentActions from './SpaciousCommentActions';
 import cd from './cd';
 import settings from './settings';
+import { isInline, unique } from './shared/utils-general';
 import { createSvg } from './utils-window';
 
 /**
@@ -239,11 +240,6 @@ class SpaciousComment extends Comment {
     }
 
     if (this.timestamp) {
-      // Create actions composition for spacious comments
-      if (!this.actions) {
-        this.actions = new SpaciousCommentActions(this);
-      }
-
       /**
        * "Copy link" button.
        *
@@ -275,6 +271,105 @@ class SpaciousComment extends Comment {
     }
 
     return pagesToCheckExistence;
+  }
+
+  /**
+   * Clean up the signature and elements in front of it.
+   *
+   * @protected
+   */
+  cleanUpSignature() {
+    let previousNode = this.signatureElement.previousSibling;
+
+    // Cases like https://ru.wikipedia.org/?diff=117350706
+    if (!previousNode) {
+      const parentElement = this.signatureElement.parentElement;
+      const parentPreviousNode = parentElement?.previousSibling;
+      if (parentPreviousNode && isInline(parentPreviousNode, true)) {
+        const parentPreviousElementNode = parentElement.previousElementSibling;
+
+        // Make sure we don't erase some blockquote with little content.
+        if (!parentPreviousElementNode || isInline(parentPreviousElementNode)) {
+          previousNode = parentPreviousNode;
+        }
+      }
+    }
+
+    const previousPreviousNode = previousNode?.previousSibling;
+
+    // Use this to tell the cases where a styled element should be kept
+    // https://commons.wikimedia.org/?diff=850489596 from cases where it should be removed
+    // https://en.wikipedia.org/?diff=1229675944
+    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+    const isPpnSpaced = previousNode?.textContent.startsWith(' ');
+
+    this.processPossibleSignatureNode(previousNode);
+    if (
+      previousNode &&
+      previousPreviousNode &&
+      (!previousNode.parentNode || !previousNode.textContent.trim())
+    ) {
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+      const previousPreviousPreviousNode = previousPreviousNode.previousSibling;
+      // eslint-disable-next-line no-one-time-vars/no-one-time-vars
+      const isPppnSpaced = previousPreviousNode.textContent.startsWith(' ');
+      this.processPossibleSignatureNode(previousPreviousNode, isPpnSpaced);
+
+      // Rare cases like https://en.wikipedia.org/?diff=1022471527
+      if (!previousPreviousNode.parentNode) {
+        this.processPossibleSignatureNode(previousPreviousPreviousNode, isPppnSpaced);
+      }
+    }
+  }
+
+  /**
+   * Process a possible signature node or a node that contains text which is part of a signature.
+   *
+   * @param {?Node} node
+   * @param {boolean} [isSpaced] Was the previously removed node start with a space.
+   * @private
+   */
+  processPossibleSignatureNode(node, isSpaced = false) {
+    if (!node) return;
+
+    // Remove text at the end of the element that looks like a part of the signature.
+    if (
+      cd.config.signaturePrefixRegexp &&
+      (node instanceof Text || (node instanceof Element && !node.children.length))
+    ) {
+      node.textContent = node.textContent
+        .replace(cd.config.signaturePrefixRegexp, '')
+        .replace(cd.config.signaturePrefixRegexp, '');
+    }
+
+    // Remove the entire element.
+    if (
+      node instanceof Element &&
+      node.textContent.length < 30 &&
+      (
+        (
+          !isSpaced &&
+          (node.getAttribute('style') || ['SUP', 'SUB'].includes(node.tagName)) &&
+
+          // Templates like "citation needed" or https://ru.wikipedia.org/wiki/Template:-:
+          !node.classList.length
+        ) ||
+
+        // Cases like https://ru.wikipedia.org/?diff=119667594
+        (
+          (
+            // https://ru.wikipedia.org/wiki/Обсуждение_участника:Adamant.pwn/Архив/2023#c-Adamant.pwn-20230722131600-Rampion-20230722130800
+            node.getAttribute('style') ||
+
+            // https://en.wikipedia.org/?oldid=1220458782#c-Dxneo-20240423211700-Dilettante-20240423210300
+            ['B', 'STRONG'].includes(node.tagName)
+          ) &&
+          node.textContent.toLowerCase() === this.author.getName().toLowerCase()
+        )
+      )
+    ) {
+      node.remove();
+    }
   }
 
   /**
