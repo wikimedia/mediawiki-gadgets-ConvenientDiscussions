@@ -2,6 +2,7 @@ import Button from './Button';
 import Comment from './Comment';
 import CommentButton from './CommentButton';
 import LiveTimestamp from './LiveTimestamp';
+import PrototypeRegistry from './PrototypeRegistry';
 import SpaciousCommentActions from './SpaciousCommentActions';
 import SpaciousCommentLayers from './SpaciousCommentLayers';
 import cd from './cd';
@@ -123,7 +124,7 @@ class SpaciousComment extends Comment {
   updateToggleChildThreadsButtonImpl() {
     this.actions.toggleChildThreadsButton.element.innerHTML = '';
     this.actions.toggleChildThreadsButton.element.append(
-      Comment.prototypes.get(
+      SpaciousComment.prototypes.get(
         this.areChildThreadsCollapsed()
           ? 'expandChildThreadsButtonSvg'
           : 'collapseChildThreadsButtonSvg'
@@ -189,7 +190,7 @@ class SpaciousComment extends Comment {
   replaceSignatureWithHeader() {
     const pagesToCheckExistence = [];
 
-    const headerWrapper = Comment.prototypes.get('headerWrapperElement');
+    const headerWrapper = SpaciousComment.prototypes.get('headerWrapperElement');
     this.headerElement = /** @type {HTMLElement} */ (headerWrapper.firstChild);
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const authorWrapper = /** @type {HTMLElement} */ (this.headerElement.firstChild);
@@ -433,6 +434,7 @@ class SpaciousComment extends Comment {
    *
    * @returns {{ startNode: Node, startOffset: number }}
    * @protected
+   * @override
    */
   getSelectionStartPoint() {
     return {
@@ -447,6 +449,7 @@ class SpaciousComment extends Comment {
    *
    * @returns {{ endNode: Node, endOffset: number }}
    * @protected
+   * @override
    */
   getSelectionEndPoint() {
     return {
@@ -477,14 +480,14 @@ class SpaciousComment extends Comment {
     this.menuElement = menuElement;
     this.$menu = $(menuElement);
 
-    this.addReplyButton();
-    this.addEditButton();
-    this.addThankButton();
-    this.addGoToParentButton();
+    this.actions.addReplyButton();
+    this.actions.addEditButton();
+    this.actions.addThankButton();
+    this.actions.addGoToParentButton();
 
     // The menu may be re-added (after a comment's content is updated). We need to restore
     // something.
-    this.maybeAddGoToChildButton();
+    this.actions.maybeAddGoToChildButton();
 
     // We need a wrapper to ensure correct positioning in LTR-in-RTL situations and vice versa.
     const menuWrapper = document.createElement('div');
@@ -493,6 +496,16 @@ class SpaciousComment extends Comment {
 
     this.highlightables[this.highlightables.length - 1].append(menuWrapper);
   }
+
+  /**
+   * @type {PrototypeRegistry<{
+   *   headerWrapperElement: HTMLElement
+   *   collapseChildThreadsButtonSvg: SVGElement
+   *   expandChildThreadsButtonSvg: SVGElement
+   *   underlay: HTMLElement
+   *   overlay: HTMLElement
+    }>} */
+  static prototypes = new PrototypeRegistry();
 
   /**
    * Initialize prototypes for spacious comments.
@@ -549,15 +562,7 @@ class SpaciousComment extends Comment {
 
     this.prototypes.add('headerWrapperElement', headerWrapper);
 
-    // Create SVG icon prototypes
-    this.prototypes.add(
-      'goToParentButtonSvg',
-      createSvg(16, 16, 20, 20).html(`<path d="M10 5l8 10H2z" />`)[0]
-    );
-    this.prototypes.add(
-      'goToChildButtonSvg',
-      createSvg(16, 16, 20, 20).html(`<path d="M10 15L2 5h16z" />`)[0]
-    );
+    // Create SVG icon prototypes for toggle child threads button
     this.prototypes.add(
       'collapseChildThreadsButtonSvg',
       createSvg(16, 16, 20, 20).html(`<path d="M4 9h12v2H4z" />`)[0]

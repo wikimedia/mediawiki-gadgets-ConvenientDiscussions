@@ -100,8 +100,8 @@ class CommentLayers {
    * Destroy the layer elements and clean up references.
    */
   destroy() {
-    this.underlay.remove();
-    this.overlay.remove();
+    this.underlay?.remove?.();
+    this.overlay?.remove?.();
 
     // Note: Properties are set to undefined for cleanup, but TypeScript expects them to always exist
     // This is acceptable since destroy() should only be called when the comment is being removed
@@ -139,6 +139,7 @@ class CommentLayers {
    * @param {boolean} add
    */
   updateClassesForFlag(flag, add) {
+    if (!this.underlay || !this.overlay) return;
     if (this.underlay.classList.contains(`cd-comment-underlay-${flag}`) === add) return;
 
     this.underlay.classList.toggle(`cd-comment-underlay-${flag}`, add);

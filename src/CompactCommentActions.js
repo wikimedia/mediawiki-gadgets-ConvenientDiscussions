@@ -9,13 +9,6 @@ import commentManager from './commentManager';
  */
 class CompactCommentActions extends CommentActions {
   /**
-   * The comment this actions instance belongs to.
-   *
-   * @type {import('./CompactComment').default}
-   * @override
-   */
-  comment;
-  /**
    * Check if the comment has classic underlay (not reformatted and has layers).
    *
    * @returns {boolean}

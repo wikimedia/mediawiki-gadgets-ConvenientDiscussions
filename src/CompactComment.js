@@ -3,6 +3,7 @@ import Comment from './Comment';
 import CompactCommentActions from './CompactCommentActions';
 import CompactCommentLayers from './CompactCommentLayers';
 import LiveTimestamp from './LiveTimestamp';
+import PrototypeRegistry from './PrototypeRegistry';
 import bootManager from './bootManager';
 import cd from './cd';
 import commentManager from './commentManager';
@@ -332,6 +333,13 @@ class CompactComment extends Comment {
       this.handleUnhover();
     }
   }
+
+  /**
+   * @type {PrototypeRegistry<{
+   *   underlay: HTMLElement
+   *   overlay: HTMLElement
+    }>} */
+  static prototypes = new PrototypeRegistry();
 
   /**
    * Initialize prototypes for compact comments. Creates overlay menu prototypes and shared layer

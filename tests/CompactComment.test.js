@@ -7,17 +7,27 @@ jest.mock('../src/Comment', () => {
   const mockComment = class MockComment {
     static prototypes = {
       get: jest.fn((key) => {
+        // Use a factory function to avoid accessing document in module factory
+        const createElement = () => {
+          if (typeof document !== 'undefined') {
+            return document.createElement('div');
+          }
+          return { cloneNode: () => ({}), append: jest.fn() };
+        };
+
         const mockElements = {
-          underlay: document.createElement('div'),
+          underlay: createElement(),
           overlay: (() => {
-            const overlay = document.createElement('div');
-            const line = document.createElement('div');
-            const marker = document.createElement('div');
-            overlay.append(line, marker);
+            const overlay = createElement();
+            const line = createElement();
+            const marker = createElement();
+            if (overlay.append) {
+              overlay.append(line, marker);
+            }
             return overlay;
           })(),
         };
-        return mockElements[key]?.cloneNode(true);
+        return mockElements[key]?.cloneNode ? mockElements[key].cloneNode(true) : mockElements[key];
       }),
       add: jest.fn(),
     };

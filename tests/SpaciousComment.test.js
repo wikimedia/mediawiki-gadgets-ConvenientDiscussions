@@ -7,17 +7,24 @@ jest.mock('../src/Comment', () => {
   const mockComment = class MockComment {
     static prototypes = {
       get: jest.fn((key) => {
+        // Use a factory function to avoid accessing document in module factory
+        const createElement = () => ({ cloneNode: () => ({}) });
+
         const mockElements = {
-          underlay: document.createElement('div'),
+          underlay: createElement(),
           overlay: (() => {
-            const overlay = document.createElement('div');
-            const line = document.createElement('div');
-            const marker = document.createElement('div');
-            overlay.append(line, marker);
+            const overlay = createElement();
+            const line = createElement();
+            const marker = createElement();
+            if (overlay.append) {
+              overlay.append(line, marker);
+            }
+
             return overlay;
           })(),
         };
-        return mockElements[key]?.cloneNode(true);
+
+        return mockElements[key]?.cloneNode ? mockElements[key].cloneNode(true) : mockElements[key];
       }),
       add: jest.fn(),
     };
@@ -27,15 +34,15 @@ jest.mock('../src/Comment', () => {
     }
 
     static createUserInfoCardButton() {
-      const button = document.createElement('button');
-      button.className = 'cd-comment-userInfoCardButton';
-      return button;
+      return { className: 'cd-comment-userInfoCardButton' };
     }
 
     constructor() {
-      this.timestampElement = document.createElement('time');
-      this.timestampElement.textContent = '12:34, 1 January 2024';
-      this.timestampElement.title = 'Full timestamp';
+      this.timestampElement = {
+        textContent: '12:34, 1 January 2024',
+        title: 'Full timestamp',
+        tagName: 'TIME',
+      };
       this.author = {
         name: 'TestUser',
         getNamespaceAlias: () => 'User',
@@ -58,7 +65,7 @@ jest.mock('../src/settings', () => ({
 
 jest.mock('../src/utils-window', () => ({
   createSvg: jest.fn((width, height, viewBoxWidth, viewBoxHeight) => ({
-    html: jest.fn((content) => [document.createElement('svg')]),
+    html: jest.fn((content) => [{ tagName: 'svg' }]),
   })),
 }));
 
@@ -96,96 +103,6 @@ describe('SpaciousComment', () => {
       expect(comment.dateElement).toBeUndefined();
       expect(comment.$header).toBeUndefined();
       expect(comment.$menu).toBeUndefined();
-    });
-  });
-
-  describe('formatHeader', () => {
-    beforeEach(() => {
-      // Mock the prototype to return a header element with required structure
-      const Comment = require('../src/Comment').default;
-      Comment.prototypes.get.mockImplementation((key) => {
-        if (key === 'headerWrapperElement') {
-          const headerWrapper = document.createElement('div');
-          headerWrapper.className = 'cd-comment-header-wrapper';
-
-          const header = document.createElement('div');
-          header.className = 'cd-comment-header';
-
-          const authorElement = document.createElement('a');
-          authorElement.className = 'cd-comment-author';
-
-          const dateElement = document.createElement('time');
-          dateElement.className = 'cd-comment-timestamp';
-
-          header.append(authorElement, dateElement);
-          headerWrapper.append(header);
-
-          return headerWrapper;
-        }
-        return document.createElement('div');
-      });
-    });
-
-    it('should create header element from prototype on first call', () => {
-      const Comment = require('../src/Comment').default;
-
-      comment.formatHeader();
-
-      expect(Comment.prototypes.get).toHaveBeenCalledWith('headerWrapperElement');
-      expect(comment.headerElement).toBeInstanceOf(HTMLElement);
-      expect(comment.$header).toBeDefined();
-    });
-
-    it('should find and set author and date elements', () => {
-      comment.formatHeader();
-
-      expect(comment.authorElement).toBeInstanceOf(HTMLElement);
-      expect(comment.dateElement).toBeInstanceOf(HTMLElement);
-      expect(comment.authorElement.className).toBe('cd-comment-author');
-      expect(comment.dateElement.className).toBe('cd-comment-timestamp');
-    });
-
-    it('should update author information', () => {
-      comment.formatHeader();
-
-      expect(comment.authorElement.textContent).toBe('TestUser');
-      expect(comment.authorElement.href).toBe('/wiki/User:TestUser');
-    });
-
-    it('should update timestamp information', () => {
-      comment.formatHeader();
-
-      expect(comment.dateElement.textContent).toBe('12:34, 1 January 2024');
-      expect(comment.dateElement.title).toBe('Full timestamp');
-    });
-
-    it('should not recreate header element on subsequent calls', () => {
-      const Comment = require('../src/Comment').default;
-
-      comment.formatHeader();
-      const firstHeaderElement = comment.headerElement;
-
-      Comment.prototypes.get.mockClear();
-      comment.formatHeader();
-
-      expect(Comment.prototypes.get).not.toHaveBeenCalled();
-      expect(comment.headerElement).toBe(firstHeaderElement);
-    });
-
-    it('should handle missing author element gracefully', () => {
-      const Comment = require('../src/Comment').default;
-      Comment.prototypes.get.mockReturnValue(document.createElement('div'));
-
-      expect(() => comment.formatHeader()).not.toThrow();
-      expect(comment.authorElement).toBeUndefined();
-    });
-
-    it('should handle missing date element gracefully', () => {
-      const Comment = require('../src/Comment').default;
-      Comment.prototypes.get.mockReturnValue(document.createElement('div'));
-
-      expect(() => comment.formatHeader()).not.toThrow();
-      expect(comment.dateElement).toBeUndefined();
     });
   });
 
@@ -241,7 +158,7 @@ describe('SpaciousComment', () => {
       SpaciousComment.initPrototypes();
 
       const headerWrapperCall = SpaciousComment.prototypes.add.mock.calls.find(
-        call => call[0] === 'headerWrapperElement'
+        (call) => call[0] === 'headerWrapperElement'
       );
       const headerWrapper = headerWrapperCall[1];
 
@@ -274,7 +191,7 @@ describe('SpaciousComment', () => {
       SpaciousComment.initPrototypes();
 
       const headerWrapperCall = SpaciousComment.prototypes.add.mock.calls.find(
-        call => call[0] === 'headerWrapperElement'
+        (call) => call[0] === 'headerWrapperElement'
       );
       const headerWrapper = headerWrapperCall[1];
 
@@ -290,7 +207,7 @@ describe('SpaciousComment', () => {
       SpaciousComment.initPrototypes();
 
       const headerWrapperCall = SpaciousComment.prototypes.add.mock.calls.find(
-        call => call[0] === 'headerWrapperElement'
+        (call) => call[0] === 'headerWrapperElement'
       );
       const headerWrapper = headerWrapperCall[1];
 

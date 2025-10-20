@@ -3844,14 +3844,12 @@ class Comment extends CommentSkeleton {
 
   /**
    * @type {PrototypeRegistry<{
-   *   headerWrapperElement: HTMLElement
-   *   goToParentButtonSvg: SVGElement
-   *   goToChildButtonSvg: SVGElement
-   *   collapseChildThreadsButtonSvg: SVGElement
-   *   expandChildThreadsButtonSvg: SVGElement
    *   underlay: HTMLElement
    *   overlay: HTMLElement
     }>} */
+  /**
+   * @type {PrototypeRegistry<any>}
+   */
   static prototypes = new PrototypeRegistry();
 
   /** @type {RegExp} */

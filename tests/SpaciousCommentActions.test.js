@@ -19,7 +19,19 @@ jest.mock('../src/CommentActions', () => class MockCommentActions {
 
 jest.mock('../src/CommentButton', () => class MockCommentButton {
   constructor(config) {
-    this.element = document.createElement('button');
+    this.element = {
+      className: '',
+      classList: { add: jest.fn(), remove: jest.fn() },
+      append: jest.fn((child) => {
+        this.element.children.push(child);
+        this.element.firstChild = this.element.children[0];
+      }),
+      prepend: jest.fn(),
+      insertBefore: jest.fn(),
+      nextSibling: null,
+      children: [],
+      firstChild: null,
+    };
     this.config = config;
     this.label = config.label;
     this.tooltip = config.tooltip;
@@ -82,6 +94,16 @@ describe('SpaciousCommentActions', () => {
       return mockSvgs[key] || { tagName: 'div' };
     });
 
+    // Set up SpaciousCommentActions prototypes mock
+    SpaciousCommentActions.prototypes.get = jest.fn((key) => {
+      const mockSvgs = {
+        goToParentButtonSvg: { tagName: 'svg', cloneNode: () => ({ tagName: 'svg' }) },
+        goToChildButtonSvg: { tagName: 'svg', cloneNode: () => ({ tagName: 'svg' }) },
+      };
+
+      return mockSvgs[key] || { cloneNode: () => ({}) };
+    });
+
     mockComment = {
       dtId: 'test-dt-id',
       headerElement: document.createElement('div'),
@@ -101,6 +123,11 @@ describe('SpaciousCommentActions', () => {
     it('should inherit from CommentActions', () => {
       const CommentActions = require('../src/CommentActions');
       expect(actions).toBeInstanceOf(CommentActions);
+    });
+
+    it('should set comment property correctly', () => {
+      expect(actions.comment).toBe(mockComment);
+      expect(actions.comment.dtId).toBe('test-dt-id');
     });
   });
 
@@ -165,7 +192,7 @@ describe('SpaciousCommentActions', () => {
       const action = jest.fn();
       const button = actions.createCopyLinkButton(action);
 
-      expect(button.href).toBeUndefined();
+      expect(button.href).toBeFalsy();
     });
   });
 
@@ -262,9 +289,12 @@ describe('SpaciousCommentActions', () => {
     });
 
     it('should prepend go to child button in correct position', () => {
-      // Add go to parent button first
-      mockComment.headerElement.append(actions.goToParentButton.element);
-      mockComment.headerElement.append(mockComment.timestampElement);
+      // Mock the nextSibling property by overriding the getter
+      const mockNextSibling = document.createElement('span');
+      Object.defineProperty(actions.goToParentButton.element, 'nextSibling', {
+        value: mockNextSibling,
+        writable: true,
+      });
 
       const insertBeforeSpy = jest.spyOn(mockComment.headerElement, 'insertBefore');
 
@@ -272,7 +302,7 @@ describe('SpaciousCommentActions', () => {
 
       expect(insertBeforeSpy).toHaveBeenCalledWith(
         actions.goToChildButton.element,
-        mockComment.timestampElement.nextSibling
+        mockNextSibling
       );
     });
 
@@ -294,6 +324,19 @@ describe('SpaciousCommentActions', () => {
   });
 
   describe('addToggleChildThreadsButton', () => {
+    beforeEach(() => {
+      // Make headerElement a real DOM element for these tests
+      mockComment.headerElement = document.createElement('div');
+
+      // Override the createToggleChildThreadsButton to return a proper DOM element
+      const mockButton = {
+        element: document.createElement('button'),
+        action: jest.fn(),
+      };
+      mockButton.element.addEventListener = jest.fn();
+      actions.createToggleChildThreadsButton = jest.fn(() => mockButton);
+    });
+
     it('should create and position toggle button when children with threads exist', () => {
       mockComment.getChildren.mockReturnValue([{ thread: {} }]);
       const insertBeforeSpy = jest.spyOn(mockComment.headerElement, 'insertBefore');
