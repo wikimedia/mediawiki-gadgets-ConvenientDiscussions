@@ -60,28 +60,40 @@ class SpaciousComment extends Comment {
   $menu;
 
   /**
-   * @param {import('./shared/Parser').default} parser
-   * @param {import('./shared/Parser').SignatureTarget<Node>} signature
-   * @param {import('./shared/Parser').Target<Node>[]} targets
-   */
-  constructor(parser, signature, targets) {
-    super(parser, signature, targets);
-
-    // Create spacious-specific layers and actions
-    this.layers = new SpaciousCommentLayers(this);
-    this.actions = new SpaciousCommentActions(this);
-  }
-
-  /**
    * Check whether the comment is reformatted (has a header and a menu instead of a signature).
    * Always returns true for spacious comments.
    *
    * @returns {boolean}
-   * @protected
    * @override
    */
   isReformatted() {
     return true;
+  }
+
+  /**
+   * Create the comment's underlay and overlay with contents for spacious comments.
+   *
+   * @fires commentLayersCreated
+   * @private
+   * @override
+   */
+  createLayers() {
+    // Create spacious layers
+    this.layers = new SpaciousCommentLayers(this);
+    this.layers.create();
+
+    // Create spacious actions
+    this.actions = new SpaciousCommentActions(this);
+    this.actions.create();
+
+    /**
+     * An underlay and overlay have been created for a comment.
+     *
+     * @event commentLayersCreated
+     * @param {Comment} comment
+     * @param {object} cd {@link convenientDiscussions} object.
+     */
+    mw.hook('convenientDiscussions.commentLayersCreated').fire(this, cd);
   }
 
   /**

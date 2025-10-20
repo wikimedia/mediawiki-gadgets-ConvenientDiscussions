@@ -1302,30 +1302,7 @@ class Comment extends CommentSkeleton {
 
       return isMoved;
     }
-
-    // Layers should have been created in constructor, but if not, create them now
-    if (!this.layers) {
-      throw new Error('Layers should have been created in constructor');
-    }
-
-    // Create the actual DOM elements for the layers
-    this.layers.create();
-    this.actions.create();
-
-    // Add toggle button for compact comments with classic underlay
-    if (!this.isReformatted() && this.hasClassicUnderlay()) {
-      this.actions.addToggleChildThreadsButton();
-    }
-
-    /**
-     * An underlay and overlay have been created for a comment.
-     *
-     * @event commentLayersCreated
-     * @param {Comment} comment
-     * @param {object} cd {@link convenientDiscussions} object.
-     */
-    mw.hook('convenientDiscussions.commentLayersCreated').fire(this, cd);
-
+    this.createLayers();
     if (options.add) {
       this.addLayers();
     }
