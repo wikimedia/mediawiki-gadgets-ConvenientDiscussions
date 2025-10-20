@@ -14,9 +14,9 @@ class CompactCommentActions extends CommentActions {
    * @returns {boolean}
    */
   hasClassicUnderlay() {
-    // A comment has classic underlay if it's not reformatted and has layers with underlay
-    // We can determine if it's reformatted by checking for the presence of headerElement
-    return !this.comment.headerElement && Boolean(this.comment.layers);
+    // CompactCommentActions is only used with compact comments, which are never reformatted
+    // Since this class is only instantiated when layers exist, we can assume layers are present
+    return Boolean(this.comment.layers);
   }
 
   /**

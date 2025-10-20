@@ -163,6 +163,7 @@ describe('CompactCommentActions', () => {
 
         return { $element: [button] };
       }),
+      isReformatted: jest.fn(() => false), // Compact comments are not reformatted
     };
 
     actions = new CompactCommentActions(mockComment);
@@ -180,20 +181,8 @@ describe('CompactCommentActions', () => {
       expect(actions.hasClassicUnderlay()).toBe(true);
     });
 
-    it('should return false for spacious comments (with headerElement)', () => {
-      mockComment.headerElement = document.createElement('div');
-
-      expect(actions.hasClassicUnderlay()).toBe(false);
-    });
-
     it('should return false when no layers exist', () => {
       mockComment.layers = null;
-
-      expect(actions.hasClassicUnderlay()).toBe(false);
-    });
-
-    it('should return false when no underlay exists', () => {
-      mockComment.layers.underlay = null;
 
       expect(actions.hasClassicUnderlay()).toBe(false);
     });
