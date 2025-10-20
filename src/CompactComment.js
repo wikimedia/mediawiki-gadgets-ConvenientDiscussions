@@ -1,6 +1,5 @@
+import Button from './Button';
 import Comment from './Comment';
-import CompactCommentActions from './CompactCommentActions';
-import CompactCommentLayers from './CompactCommentLayers';
 import LiveTimestamp from './LiveTimestamp';
 import bootManager from './bootManager';
 import cd from './cd';
@@ -29,24 +28,10 @@ class CompactComment extends Comment {
   wasMenuHidden = false;
 
   /**
-   * @param {import('./shared/Parser').default} parser
-   * @param {import('./shared/Parser').SignatureTarget<Node>} signature
-   * @param {import('./shared/Parser').Target<Node>[]} targets
-   */
-  constructor(parser, signature, targets) {
-    super(parser, signature, targets);
-
-    // Create compact-specific layers and actions
-    this.layers = new CompactCommentLayers(this);
-    this.actions = new CompactCommentActions(this);
-  }
-
-  /**
    * Check whether the comment is reformatted (has a header and a menu instead of a signature).
    * Always returns false for compact comments.
    *
    * @returns {boolean}
-   * @protected
    * @override
    */
   isReformatted() {
