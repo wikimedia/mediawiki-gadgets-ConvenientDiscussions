@@ -1,10 +1,12 @@
 import Button from './Button';
-import CommentButton from './CommentButton';
+import CommentActions from './CommentActions';
+import CommentLayers from './CommentLayers';
 import CommentSource from './CommentSource';
 import CommentSubitemList from './CommentSubitemList';
 import CompactCommentLayers from './CompactCommentLayers';
 import LiveTimestamp from './LiveTimestamp';
 import PrototypeRegistry from './PrototypeRegistry';
+import SpaciousCommentLayers from './SpaciousCommentLayers';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import bootManager from './bootManager';
 import cd from './cd';
@@ -15,13 +17,13 @@ import CdError from './shared/CdError';
 import CommentSkeleton from './shared/CommentSkeleton';
 import ElementsTreeWalker from './shared/ElementsTreeWalker';
 import TreeWalker from './shared/TreeWalker';
-import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, isInline, removeFromArrayIfPresent, sleep, underlinesToSpaces, unique } from './shared/utils-general';
+import { addToArrayIfAbsent, areObjectsEqual, calculateWordOverlap, countOccurrences, decodeHtmlEntities, defined, getHeadingLevel, removeFromArrayIfPresent, sleep, underlinesToSpaces, unique } from './shared/utils-general';
 import { extractNumeralAndConvertToNumber, removeWikiMarkup } from './shared/utils-wikitext';
 import talkPageController from './talkPageController';
 import userRegistry from './userRegistry';
 import { handleApiReject, loadUserGenders, parseCode } from './utils-api';
 import { showConfirmDialog } from './utils-oojs';
-import { createSvg, extractSignatures, formatDate, formatDateNative, getExtendedRect, getHigherNodeAndOffsetInSelection, isVisible, limitSelectionAtEndBoundary, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
+import { extractSignatures, formatDate, formatDateNative, getExtendedRect, isVisible, limitSelectionAtEndBoundary, mergeJquery, wrapDiffBody, wrapHtml } from './utils-window';
 
 /**
  * @typedef {object} CommentOffset
@@ -296,6 +298,34 @@ class Comment extends CommentSkeleton {
    * @type {CommentOffset | undefined}
    */
   roughOffset;
+
+  /**
+   * The comment's layers offset.
+   *
+   * @type {{ top: number; left: number; width: number; height: number } | undefined}
+   */
+  layersOffset;
+
+  /**
+   * Container for the comment's layers.
+   *
+   * @type {Element | undefined}
+   */
+  layersContainer;
+
+  /**
+   * Comment underlay and menu, whose colors are animated in some events.
+   *
+   * @type {JQuery | undefined}
+   */
+  $animatedBackground;
+
+  /**
+   * Deferred object for unhighlighting animations.
+   *
+   * @type {JQuery.Deferred<void> | undefined}
+   */
+  unhighlightDeferred;
 
   /**
    * @override
@@ -594,10 +624,16 @@ class Comment extends CommentSkeleton {
    *
    * @param {string} _timestamp
    * @param {string} _title
+   * @param timestamp
+   * @param title
    * @protected
    */
-  updateMainTimestampElement(_timestamp, _title) {
-    // Default implementation - will be overridden by subclasses
+  updateMainTimestampElement(timestamp, title) {
+    // Default implementation for base class and tests
+    if (this.timestampElement) {
+      this.timestampElement.textContent = timestamp;
+      this.timestampElement.title = title;
+    }
   }
 
   /**
@@ -668,7 +704,7 @@ class Comment extends CommentSkeleton {
   /**
    * Check if a popup onboarding onto the "Toggle child threads" feature should be shown.
    *
-   * @returns {this is { actions: { toggleChildThreadsButton: CommentButton } }}
+   * @returns {this is { actions: { toggleChildThreadsButton: import('./CommentButton').default } }}
    */
   shouldOnboardOntoToggleChildThreads() {
     return Boolean(
@@ -1313,29 +1349,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   computeLayersOffset(options = {}) {
-    const layersContainerOffset = this.getLayersContainerOffset();
-    if (!layersContainerOffset) return;
-
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const hasMoved = this.getOffset({
-      ...options,
-      considerFloating: true,
-      set: true,
-    });
-
-    if (this.offset) {
-      const margins = this.getMargins();
-      this.layersOffset = {
-        top: this.offset.top - layersContainerOffset.top,
-        left: this.offset.left - margins.left - layersContainerOffset.left,
-        width: this.offset.right + margins.right - (this.offset.left - margins.left),
-        height: this.offset.bottom - this.offset.top,
-      };
-    } else {
-      this.layersOffset = undefined;
-    }
-
-    return hasMoved;
+    return this.layers?.computeLayersOffset(options);
   }
 
   /**
@@ -1489,12 +1503,10 @@ class Comment extends CommentSkeleton {
    * @protected
    */
   updateClassesForFlag(flag, add) {
-    if (!this.layers) return;
+    this.layers?.updateClassesForFlag(flag, add);
 
-    this.layers.updateClassesForFlag(flag, add);
-
-    if (flag === 'hovered' && !add && this.layers instanceof CompactCommentLayers && this.layers.overlayInnerWrapper) {
-      this.layers.overlayInnerWrapper.style.display = '';
+    if (flag === 'hovered' && !add && /** @type {any} */ (this.layers)?.overlayInnerWrapper) {
+      /** @type {any} */ (this.layers).overlayInnerWrapper.style.display = '';
     }
   }
 
@@ -1502,9 +1514,7 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Add the (already existent) comment's layers to the DOM.
    */
   addLayers() {
-    if (!this.layers) return;
-
-    this.layers.addLayers();
+    this.layers?.addLayers();
   }
 
   /**
@@ -1512,17 +1522,7 @@ class Comment extends CommentSkeleton {
    * layers.
    */
   updateLayersOffset() {
-    // The underlay can be absent if called from commentManager.maybeRedrawLayers() with redrawAll
-    // set to `true`. layersOffset can be absent in some rare cases when the comment became
-    // invisible.
-    if (!this.layers || !this.layersOffset) return;
-
-    this.layers.underlay.style.top = this.layers.overlay.style.top = String(this.layersOffset.top) + 'px';
-    this.layers.underlay.style.left = this.layers.overlay.style.left = String(this.layersOffset.left) + 'px';
-    this.layers.underlay.style.width = this.layers.overlay.style.width = String(this.layersOffset.width) + 'px';
-    this.layers.underlay.style.height = this.layers.overlay.style.height = String(this.layersOffset.height) + 'px';
-
-    this.toggleChildThreadsPopup?.position();
+    this.layers?.updateLayersOffset();
   }
 
   /**
@@ -1552,34 +1552,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   animateToColors(markerColor, backgroundColor, callback) {
-    const generateProperties = (/** @type {string} */ color) => {
-      const properties = /** @type {CSSStyleDeclaration} */ ({ backgroundColor: color });
-
-      // jquery.color module can't animate to the transparent color.
-      if (properties.backgroundColor === 'rgba(0, 0, 0, 0)') {
-        properties.opacity = '0';
-      }
-
-      return properties;
-    };
-    const propertyDefaults = {
-      backgroundColor: '',
-      backgroundImage: '',
-      opacity: '',
-    };
-
-    this.layers.$marker.animate(generateProperties(markerColor), 400, 'swing', () => {
-      this.layers.$marker.css(propertyDefaults);
-    });
-
-    const comment = this;
-    const $background = /** @type {JQuery} */ (this.$animatedBackground);
-    $background.animate(generateProperties(backgroundColor), 400, 'swing', function complete() {
-      if (this !== $background.get(-1)) return;
-
-      callback?.();
-      $background.add(comment.layers instanceof CompactCommentLayers ? comment.layers.$overlayGradient : $()).css(propertyDefaults);
-    });
+    this.layers?.animateToColors(markerColor, backgroundColor, callback);
   }
 
   /**
@@ -1590,45 +1563,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   animateBack(flag, callback) {
-    if (!this.layers?.$underlay.parent().length) {
-      callback?.();
-
-      return;
-    }
-
-    // Get the current colors
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const initialMarkerColor = this.layers.$marker.css('background-color');
-    const initialBackgroundColor = this.layers.$underlay.css('background-color');
-
-    // Reset the classes that produce these colors
-    this.updateClassesForFlag(flag, false);
-
-    // Get the final (destination) colors
-    // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const finalMarkerColor = this.layers.$marker.css('background-color');
-    let finalBackgroundColor = this.layers.$underlay.css('background-color');
-
-    // That's basically if the flash color is green (when a comment is changed after an edit) and
-    // the comment itself is green. We animate to transparent, then set green back, so that there is
-    // any animation at all.
-    if (finalBackgroundColor === initialBackgroundColor) {
-      finalBackgroundColor = 'rgba(0, 0, 0, 0)';
-    }
-
-    // Set back the colors previously produced by classes
-    this.layers.$marker.css({
-      backgroundColor: initialMarkerColor,
-      opacity: 1,
-    });
-    /** @type {JQuery} */ (this.$animatedBackground).css({
-      backgroundColor: initialBackgroundColor,
-    });
-    if (this.layers instanceof CompactCommentLayers) {
-      this.layers.$overlayGradient.css({ backgroundImage: 'none' });
-    }
-
-    this.animateToColors(finalMarkerColor, finalBackgroundColor, callback);
+    this.layers?.animateBack(flag, callback);
   }
 
   /**
@@ -1640,33 +1575,7 @@ class Comment extends CommentSkeleton {
    * @param {() => void} [callback]
    */
   flash(flag, delay, callback) {
-    this.configureLayers();
-    if (!this.layers) {
-      callback?.();
-
-      return;
-    }
-
-    /**
-     * Comment underlay and menu, whose colors are animated in some events.
-     *
-     * @type {JQuery|undefined}
-     */
-    this.$animatedBackground = this.layers.$underlay.add(this.layers instanceof CompactCommentLayers ? this.layers.$overlayMenu : $());
-
-    // Reset animations and colors
-    this.$animatedBackground.add(this.layers.$marker).stop(true, true);
-
-    this.updateClassesForFlag(flag, true);
-
-    // If there was an animation scheduled, cancel it
-    this.unhighlightDeferred?.reject();
-
-    this.unhighlightDeferred = $.Deferred();
-    this.unhighlightDeferred.then(() => {
-      this.animateBack(flag, callback);
-    });
-    sleep(delay).then(() => this.unhighlightDeferred?.resolve());
+    this.layers?.flash(flag, delay, callback);
   }
 
   /**
@@ -4048,7 +3957,6 @@ class Comment extends CommentSkeleton {
    * @param {Comment[]} comments
    * @returns {Map<import('./Section').default | undefined, Comment[]>}
    */
-
   /**
    * Turn a CommentWorkerMatched[] into a map with SectionWorkerMatched as keys.
    *
@@ -4060,16 +3968,16 @@ class Comment extends CommentSkeleton {
   /**
    * Turn a comment array into an object with sections or their IDs as keys.
    *
-   * @param {import('./shared/CommentSkeleton').CommentBase[]} comments
-   * @returns {MapFromSectionToComments}
+   * @param {Comment[] | import('./updateChecker').CommentWorkerMatched[]} comments
+   * @returns {MapFromSectionToComments | import('./updateChecker').AddedComments['bySection']}
    */
   static groupBySection(comments) {
-    const map = /** @type {MapFromSectionToComments} */ (new Map());
+    const map = /** @type {any} */ (new Map());
     for (const comment of comments) {
       if (!map.has(comment.section)) {
         map.set(comment.section, []);
       }
-      /** @type {import('./shared/CommentSkeleton').CommentBase[]} */ (
+      /** @type {any[]} */ (
         map.get(comment.section)
       ).push(comment);
     }
@@ -4220,6 +4128,87 @@ class Comment extends CommentSkeleton {
       },
       ...scrollToConfig,
     });
+  }
+  // Deprecated getters for backward compatibility
+
+  /**
+   * Get the comment's underlay element.
+   *
+   * @deprecated Use layers.underlay instead
+   * @returns {HTMLElement | undefined}
+   */
+  get underlay() {
+    return this.layers?.underlay;
+  }
+
+  /**
+   * Get the comment's overlay element.
+   *
+   * @deprecated Use layers.overlay instead
+   * @returns {HTMLElement | undefined}
+   */
+  get overlay() {
+    return this.layers?.overlay;
+  }
+
+  /**
+   * Get the comment's underlay element as jQuery object.
+   *
+   * @deprecated Use layers.$underlay instead
+   * @returns {JQuery | undefined}
+   */
+  get $underlay() {
+    return this.layers?.$underlay;
+  }
+
+  /**
+   * Get the comment's overlay element as jQuery object.
+   *
+   * @deprecated Use layers.$overlay instead
+   * @returns {JQuery | undefined}
+   */
+  get $overlay() {
+    return this.layers?.$overlay;
+  }
+
+  /**
+   * Get the comment's marker element as jQuery object.
+   *
+   * @deprecated Use layers.$marker instead
+   * @returns {JQuery | undefined}
+   */
+  get $marker() {
+    return this.layers?.$marker;
+  }
+
+  /**
+   * Get the reply button.
+   *
+   * @deprecated Use actions.replyButton instead
+   * @returns {OO.ui.ButtonWidget | undefined}
+   */
+  get replyButton() {
+    return this.actions?.replyButton;
+  }
+
+  /**
+   * Get the edit button.
+   *
+   * @deprecated Use actions.editButton instead
+   * @returns {OO.ui.ButtonWidget | undefined}
+   */
+  get editButton() {
+    return this.actions?.editButton;
+  }
+
+  /**
+   * Get the thank button.
+   *
+   * @deprecated Use actions.thankButton instead
+   * @returns {OO.ui.ButtonWidget | undefined}
+   */
+  get thankButton() {
+    return this.actions?.thankButton;
   }
 }
 

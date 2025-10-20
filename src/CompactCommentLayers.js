@@ -1,4 +1,4 @@
-import CommentLayers from './CommentLayers';
+import CommentLayers from './CommentLayers.js';
 
 /**
  * Specialized layer management for compact comments.
@@ -6,12 +6,11 @@ import CommentLayers from './CommentLayers';
  */
 class CompactCommentLayers extends CommentLayers {
   /**
-   * Reference to the parent comment.
+   * Create a CompactCommentLayers instance.
    *
-   * @type {import('./CompactComment').default}
-   * @override
+   * @param {import('./CompactComment').default} comment The parent comment.
    */
-  comment;
+
   /**
    * Inner wrapper in comment's overlay.
    *
@@ -109,19 +108,23 @@ class CompactCommentLayers extends CommentLayers {
    * Hide the overlay menu.
    *
    * @param {Event} [event] The event that triggered the hide action.
+   * @override
    */
   hideMenu = (event) => {
     if (!this.overlayInnerWrapper) return;
 
     event?.preventDefault();
     this.overlayInnerWrapper.style.display = 'none';
-    this.comment.wasMenuHidden = true;
+    if (this.comment) {
+      this.comment.wasMenuHidden = true;
+    }
   };
 
   /**
    * Defer hiding the menu after a timeout.
    *
    * @param {MouseEvent} event The mousedown event.
+   * @override
    */
   deferHideMenu = (event) => {
     // Ignore everything other than left button clicks.
@@ -132,6 +135,8 @@ class CompactCommentLayers extends CommentLayers {
 
   /**
    * Cancel the deferred menu hiding.
+   *
+   * @override
    */
   dontHideMenu = () => {
     clearTimeout(this.hideMenuTimeout);

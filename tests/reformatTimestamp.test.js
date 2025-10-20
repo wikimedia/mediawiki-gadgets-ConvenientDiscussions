@@ -144,6 +144,9 @@ function testWithSettings({
       comment.date = new Date(d);
       comment.formatTimestamp = Comment.prototype.formatTimestamp;
       comment.isReformatted = Comment.prototype.isReformatted;
+      comment.updateTimestampElements = Comment.prototype.updateTimestampElements;
+      comment.updateMainTimestampElement = Comment.prototype.updateMainTimestampElement;
+      comment.updateExtraSignatureTimestamps = Comment.prototype.updateExtraSignatureTimestamps;
       Comment.prototype.reformatTimestamp.call(comment);
 
       return {

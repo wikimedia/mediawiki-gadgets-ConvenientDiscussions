@@ -1,17 +1,21 @@
-import CommentLayers from './CommentLayers';
+import CommentLayers from './CommentLayers.js';
 
 /**
  * Specialized layer management for spacious comments.
  * Handles spacious-specific layer positioning and styling without overlay menu.
  */
 class SpaciousCommentLayers extends CommentLayers {
+
+
   /**
-   * Reference to the parent comment.
+   * Create a SpaciousCommentLayers instance.
    *
-   * @type {import('./SpaciousComment').default}
-   * @override
+   * @param {import('./SpaciousComment').default} comment The parent comment.
    */
-  comment;
+  constructor(comment) {
+    super(comment);
+  }
+
   /**
    * Create the layer elements for spacious comments.
    * Spacious comments have standard underlay, overlay, line, and marker elements
