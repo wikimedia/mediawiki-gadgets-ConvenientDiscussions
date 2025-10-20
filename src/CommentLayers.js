@@ -143,8 +143,8 @@ class CommentLayers {
     this.overlay.classList.toggle(`cd-comment-overlay-${flag}`, add);
 
     if (flag === 'deleted') {
-      this.comment.actions.replyButton?.setDisabled(add);
-      this.comment.actions.editButton?.setDisabled(add);
+      this.comment.actions?.replyButton?.setDisabled(add);
+      this.comment.actions?.editButton?.setDisabled(add);
     }
   }
 

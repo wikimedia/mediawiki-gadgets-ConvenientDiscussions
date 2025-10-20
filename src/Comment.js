@@ -169,14 +169,14 @@ class Comment extends CommentSkeleton {
   /**
    * Layers composition for managing comment visual layers.
    *
-   * @type {import('./CommentLayers').default}
+   * @type {import('./CommentLayers').default | undefined}
    */
   layers;
 
   /**
    * Actions composition for managing comment action buttons.
    *
-   * @type {import('./CommentActions').default}
+   * @type {import('./CommentActions').default | undefined}
    */
   actions;
 
@@ -547,7 +547,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   maybeAddGoToChildButton() {
-    this.actions.maybeAddGoToChildButton();
+    this.actions?.maybeAddGoToChildButton();
   }
 
   /**
@@ -557,14 +557,14 @@ class Comment extends CommentSkeleton {
    * space there. The user may use Shift+click on a thread line instead.
    */
   addToggleChildThreadsButton() {
-    this.actions.addToggleChildThreadsButton();
+    this.actions?.addToggleChildThreadsButton();
   }
 
   /**
    * Update the look of the "Toggle children" button.
    */
   updateToggleChildThreadsButton() {
-    if (!this.actions.toggleChildThreadsButton) return;
+    if (!this.actions?.toggleChildThreadsButton) return;
 
     // This will be handled by subclass implementations
     this.updateToggleChildThreadsButtonImpl();
@@ -677,7 +677,7 @@ class Comment extends CommentSkeleton {
    */
   shouldOnboardOntoToggleChildThreads() {
     return Boolean(
-      this.actions.toggleChildThreadsButton?.element.matches(':hover') &&
+      this.actions?.toggleChildThreadsButton?.element.matches(':hover') &&
       !settings.get('toggleChildThreads-onboarded') &&
       !commentManager.query((c) => Boolean(c.toggleChildThreadsPopup)).length
     );
@@ -720,7 +720,7 @@ class Comment extends CommentSkeleton {
         $('<p>').append(button.$element),
       ),
       head: true,
-      $floatableContainer: $(this.actions.toggleChildThreadsButton.element),
+      $floatableContainer: $(this.actions?.toggleChildThreadsButton?.element),
       $container: $(document.body),
       position: 'below',
       padded: true,
@@ -1478,6 +1478,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   updateLayersStyles(wereJustCreated = false) {
+    if (!this.layers) return;
+
     this.layers.updateStyles(wereJustCreated);
   }
 
@@ -1493,6 +1495,8 @@ class Comment extends CommentSkeleton {
    * @private
    */
   updateClassesForFlag(flag, add) {
+    if (!this.layers) return;
+
     this.layers.updateClassesForFlag(flag, add);
 
     if (flag === 'hovered' && !add && this.layers instanceof CompactCommentLayers && this.layers.overlayInnerWrapper) {
@@ -1504,6 +1508,8 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Add the (already existent) comment's layers to the DOM.
    */
   addLayers() {
+    if (!this.layers) return;
+
     this.layers.addLayers();
   }
 
@@ -1515,7 +1521,7 @@ class Comment extends CommentSkeleton {
     // The underlay can be absent if called from commentManager.maybeRedrawLayers() with redrawAll
     // set to `true`. layersOffset can be absent in some rare cases when the comment became
     // invisible.
-    if (!this.layersOffset) return;
+    if (!this.layers || !this.layersOffset) return;
 
     this.layers.underlay.style.top = this.layers.overlay.style.top = String(this.layersOffset.top) + 'px';
     this.layers.underlay.style.left = this.layers.overlay.style.left = String(this.layersOffset.left) + 'px';
@@ -1529,6 +1535,8 @@ class Comment extends CommentSkeleton {
    * Remove the comment's underlay and overlay.
    */
   removeLayers() {
+    if (!this.layers) return;
+
     this.layers.$marker.stop(true, true);
     this.handleUnhover?.(true);
 
@@ -1588,7 +1596,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   animateBack(flag, callback) {
-    if (!this.layers.$underlay.parent().length) {
+    if (!this.layers?.$underlay.parent().length) {
       callback?.();
 
       return;
@@ -1730,6 +1738,8 @@ class Comment extends CommentSkeleton {
    * _For internal use._ Stop all animations on the comment.
    */
   stopAnimations() {
+    if (!this.layers) return;
+
     this.$animatedBackground?.add(this.layers.$marker).stop(true, true);
   }
 
@@ -2494,7 +2504,7 @@ class Comment extends CommentSkeleton {
    * @private
    */
   setThanked() {
-    this.actions.setThanked();
+    this.actions?.setThanked();
   }
 
   /**
@@ -2542,7 +2552,7 @@ class Comment extends CommentSkeleton {
     }
 
     mw.notify(wrapHtml(text, { targetBlank: true }), { type: 'error' });
-    /** @type {import('./CommentButton').default} */ (this.actions.thankButton).setPending(false);
+    /** @type {import('./CommentButton').default} */ (this.actions?.thankButton)?.setPending(false);
   }
 
   /**
@@ -2551,9 +2561,9 @@ class Comment extends CommentSkeleton {
    */
   async thank() {
     const id = this.getUrlFragment();
-    if (!this.actions.thankButton || !id) return;
+    if (!this.actions?.thankButton || !id) return;
 
-    this.actions.thankButton.setPending(true);
+    this.actions?.thankButton?.setPending(true);
     let accepted;
     try {
       const versionMatch = /^(\d+\.\d+).*/.exec(mw.config.get('wgVersion'));
@@ -2567,7 +2577,7 @@ class Comment extends CommentSkeleton {
 
       return;
     } finally {
-      this.actions.thankButton.setPending(false);
+      this.actions?.thankButton.setPending(false);
     }
 
     if (accepted) {
