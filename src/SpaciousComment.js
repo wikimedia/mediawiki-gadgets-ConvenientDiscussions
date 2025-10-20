@@ -513,8 +513,9 @@ class SpaciousComment extends Comment {
    * @override
    */
   static initPrototypes() {
-    // Call parent method to create shared prototypes (underlay, overlay)
-    super.initPrototypes();
+    // Initialize shared layer prototypes (underlay, overlay)
+    const CommentLayers = require('./CommentLayers').default;
+    CommentLayers.initPrototypes();
 
     // Create header wrapper element
     const headerElement = document.createElement('div');

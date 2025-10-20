@@ -1,3 +1,4 @@
+import PrototypeRegistry from './PrototypeRegistry';
 import { sleep } from './shared/utils-general.js';
 
 /**
@@ -5,6 +6,15 @@ import { sleep } from './shared/utils-general.js';
  * Handles layer creation, destruction, positioning, and styling.
  */
 class CommentLayers {
+  /**
+   * Registry for element prototypes to reuse instead of creating new elements from scratch.
+   *
+   * @type {PrototypeRegistry<{
+   *   underlay: HTMLElement
+   *   overlay: HTMLElement
+   * }>}
+   */
+  static prototypes = new PrototypeRegistry();
   /**
    * Comment's underlay as a native (non-jQuery) element.
    *
@@ -76,13 +86,12 @@ class CommentLayers {
    */
   create() {
     // Import here to avoid circular dependency
-    const Comment = require('./Comment').default;
     const commentManager = require('./commentManager').default;
 
-    this.underlay = /** @type {HTMLElement} */ (Comment.prototypes.get('underlay'));
+    this.underlay = CommentLayers.prototypes.get('underlay');
     commentManager.underlays.push(this.underlay);
 
-    this.overlay = /** @type {HTMLElement} */ (Comment.prototypes.get('overlay'));
+    this.overlay = CommentLayers.prototypes.get('overlay');
     this.line = /** @type {HTMLElement} */ (this.overlay.firstChild);
     this.marker = /** @type {HTMLElement} */ (
       /** @type {HTMLElement} */ (this.overlay.firstChild).nextSibling
@@ -101,7 +110,7 @@ class CommentLayers {
    */
   destroy() {
     this.underlay?.remove?.();
-    this.overlay?.remove?.();
+    this.overlay?.remove();
 
     // Note: Properties are set to undefined for cleanup, but TypeScript expects them to always exist
     // This is acceptable since destroy() should only be called when the comment is being removed
@@ -369,6 +378,33 @@ class CommentLayers {
     });
 
     sleep(delay).then(() => this.comment.unhighlightDeferred?.resolve());
+  }
+
+  /**
+   * _For internal use._ Create element prototypes to reuse them instead of creating new elements
+   * from scratch (which is more expensive).
+   * Creates shared prototypes (underlay, overlay) that are common to all comment types.
+   */
+  static initPrototypes() {
+    this.prototypes = new PrototypeRegistry();
+
+    // Create shared layer elements (underlay, overlay)
+    const commentUnderlay = document.createElement('div');
+    commentUnderlay.className = 'cd-comment-underlay';
+
+    const commentOverlay = document.createElement('div');
+    commentOverlay.className = 'cd-comment-overlay';
+
+    const overlayLine = document.createElement('div');
+    overlayLine.className = 'cd-comment-overlay-line';
+    commentOverlay.append(overlayLine);
+
+    const overlayMarker = document.createElement('div');
+    overlayMarker.className = 'cd-comment-overlay-marker';
+    commentOverlay.append(overlayMarker);
+
+    this.prototypes.add('underlay', commentUnderlay);
+    this.prototypes.add('overlay', commentOverlay);
   }
 }
 

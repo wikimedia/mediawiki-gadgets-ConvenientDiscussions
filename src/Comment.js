@@ -5,7 +5,6 @@ import CommentSource from './CommentSource';
 import CommentSubitemList from './CommentSubitemList';
 import CompactCommentLayers from './CompactCommentLayers';
 import LiveTimestamp from './LiveTimestamp';
-import PrototypeRegistry from './PrototypeRegistry';
 import SpaciousCommentLayers from './SpaciousCommentLayers';
 import StorageItemWithKeys from './StorageItemWithKeys';
 import bootManager from './bootManager';
@@ -3842,16 +3841,6 @@ class Comment extends CommentSkeleton {
     return this.openingSection;
   }
 
-  /**
-   * @type {PrototypeRegistry<{
-   *   underlay: HTMLElement
-   *   overlay: HTMLElement
-    }>} */
-  /**
-   * @type {PrototypeRegistry<any>}
-   */
-  static prototypes = new PrototypeRegistry();
-
   /** @type {RegExp} */
   static dtIdRegexp;
 
@@ -3866,34 +3855,6 @@ class Comment extends CommentSkeleton {
       `(?:-(?:(.+?)-(?:${newDtTimestampPattern}|${oldDtTimestampPattern})|(.+?))` +
       `(?:-(\\d+))?)?$`
     );
-  }
-
-  /**
-   * _For internal use._ Create element prototypes to reuse them instead of creating new elements
-   * from scratch (which is more expensive).
-   * Creates shared prototypes (underlay, overlay) that are common to all comment types.
-   * Subclasses should override this method to add their specific prototypes.
-   */
-  static initPrototypes() {
-    this.prototypes = new PrototypeRegistry();
-
-    // Create shared layer elements (underlay, overlay)
-    const commentUnderlay = document.createElement('div');
-    commentUnderlay.className = 'cd-comment-underlay';
-
-    const commentOverlay = document.createElement('div');
-    commentOverlay.className = 'cd-comment-overlay';
-
-    const overlayLine = document.createElement('div');
-    overlayLine.className = 'cd-comment-overlay-line';
-    commentOverlay.append(overlayLine);
-
-    const overlayMarker = document.createElement('div');
-    overlayMarker.className = 'cd-comment-overlay-marker';
-    commentOverlay.append(overlayMarker);
-
-    this.prototypes.add('underlay', commentUnderlay);
-    this.prototypes.add('overlay', commentOverlay);
   }
 
   /**

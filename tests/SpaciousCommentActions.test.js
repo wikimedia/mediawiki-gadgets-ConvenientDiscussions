@@ -81,19 +81,6 @@ describe('SpaciousCommentActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Set up Comment prototypes mock
-    const Comment = require('../src/Comment').default;
-    Comment.prototypes.get.mockImplementation((key) => {
-      const mockSvgs = {
-        goToParentButtonSvg: { tagName: 'svg' },
-        goToChildButtonSvg: { tagName: 'svg' },
-        collapseChildThreadsButtonSvg: { tagName: 'svg' },
-        expandChildThreadsButtonSvg: { tagName: 'svg' },
-      };
-
-      return mockSvgs[key] || { tagName: 'div' };
-    });
-
     // Set up SpaciousCommentActions prototypes mock
     SpaciousCommentActions.prototypes.get = jest.fn((key) => {
       const mockSvgs = {

@@ -348,11 +348,12 @@ class CompactComment extends Comment {
    * @override
    */
   static initPrototypes() {
-    // Call parent method to create shared prototypes (underlay, overlay)
-    super.initPrototypes();
+    // Initialize shared layer prototypes (underlay, overlay)
+    const CommentLayers = require('./CommentLayers').default;
+    CommentLayers.initPrototypes();
 
     // Get the base overlay prototype and enhance it with compact-specific elements
-    const baseOverlay = this.prototypes.get('overlay');
+    const baseOverlay = CommentLayers.prototypes.get('overlay');
 
     // Create compact-specific overlay menu elements
     const overlayInnerWrapper = document.createElement('div');

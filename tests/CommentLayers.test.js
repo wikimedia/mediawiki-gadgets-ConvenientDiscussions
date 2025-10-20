@@ -3,14 +3,6 @@
  */
 
 // Mock dependencies
-jest.mock('../src/Comment', () => ({
-  default: {
-    prototypes: {
-      get: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('../src/commentManager', () => ({
   default: {
     underlays: [],
@@ -21,6 +13,12 @@ jest.mock('../src/commentManager', () => ({
 global.$ = jest.fn((element) => ({
   element,
 }));
+
+// Mock PrototypeRegistry
+jest.mock('../src/PrototypeRegistry', () => jest.fn().mockImplementation(() => ({
+  get: jest.fn(),
+  add: jest.fn(),
+})));
 
 import CommentLayers from '../src/CommentLayers';
 
@@ -33,8 +31,7 @@ describe('CommentLayers', () => {
     jest.clearAllMocks();
 
     // Set up mock prototypes
-    const Comment = require('../src/Comment').default;
-    Comment.prototypes.get.mockImplementation((key) => {
+    CommentLayers.prototypes.get.mockImplementation((key) => {
       if (key === 'underlay') {
         return document.createElement('div');
       }

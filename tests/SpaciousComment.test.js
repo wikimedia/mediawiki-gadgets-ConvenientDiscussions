@@ -115,13 +115,13 @@ describe('SpaciousComment', () => {
       };
     });
 
-    it('should call parent initPrototypes', () => {
-      const Comment = require('../src/Comment').default;
-      const parentInitSpy = jest.spyOn(Comment, 'initPrototypes');
+    it('should call CommentLayers initPrototypes', () => {
+      const CommentLayers = require('../src/CommentLayers').default;
+      const layersInitSpy = jest.spyOn(CommentLayers, 'initPrototypes');
 
       SpaciousComment.initPrototypes();
 
-      expect(parentInitSpy).toHaveBeenCalled();
+      expect(layersInitSpy).toHaveBeenCalled();
     });
 
     it('should create header wrapper element prototype', () => {

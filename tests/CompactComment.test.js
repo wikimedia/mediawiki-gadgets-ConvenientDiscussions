@@ -3,35 +3,21 @@
  */
 
 // Mock dependencies
-jest.mock('../src/Comment', () => {
-  const mockComment = class MockComment {
+jest.mock('../src/CommentLayers', () => ({
+  default: class MockCommentLayers {
     static prototypes = {
-      get: jest.fn((key) => {
-        // Use a factory function to avoid accessing document in module factory
-        const createElement = () => {
-          if (typeof document !== 'undefined') {
-            return document.createElement('div');
-          }
-          return { cloneNode: () => ({}), append: jest.fn() };
-        };
-
-        const mockElements = {
-          underlay: createElement(),
-          overlay: (() => {
-            const overlay = createElement();
-            const line = createElement();
-            const marker = createElement();
-            if (overlay.append) {
-              overlay.append(line, marker);
-            }
-            return overlay;
-          })(),
-        };
-        return mockElements[key]?.cloneNode ? mockElements[key].cloneNode(true) : mockElements[key];
-      }),
+      get: jest.fn(),
       add: jest.fn(),
     };
 
+    static initPrototypes() {
+      // Mock CommentLayers initPrototypes
+    }
+  },
+}));
+
+jest.mock('../src/Comment', () => {
+  const mockComment = class MockComment {
     static initPrototypes() {
       // Mock parent initPrototypes
     }
@@ -117,34 +103,45 @@ describe('CompactComment', () => {
   describe('initPrototypes', () => {
     beforeEach(() => {
       // Reset the prototypes mock
-      CompactComment.prototypes = {
+      const CommentLayers = require('../src/CommentLayers').default;
+      CommentLayers.prototypes = {
         get: jest.fn((key) => {
           if (key === 'overlay') {
             const overlay = document.createElement('div');
             const line = document.createElement('div');
             const marker = document.createElement('div');
             overlay.append(line, marker);
+
             return overlay;
           }
+
           return document.createElement('div');
         }),
         add: jest.fn(),
       };
+
+      CompactComment.prototypes = {
+        get: jest.fn(),
+        add: jest.fn(),
+      };
     });
 
-    it('should call parent initPrototypes', () => {
-      const Comment = require('../src/Comment').default;
-      const parentInitSpy = jest.spyOn(Comment, 'initPrototypes');
+    it('should call CommentLayers initPrototypes', () => {
+      const CommentLayers = require('../src/CommentLayers').default;
+      const layersInitSpy = jest.spyOn(CommentLayers, 'initPrototypes');
 
       CompactComment.initPrototypes();
 
-      expect(parentInitSpy).toHaveBeenCalled();
+      expect(layersInitSpy).toHaveBeenCalled();
     });
 
-    it('should get base overlay prototype', () => {
+    it('should get base overlay prototype from CommentLayers', () => {
+      const CommentLayers = require('../src/CommentLayers').default;
+      const layersGetSpy = jest.spyOn(CommentLayers.prototypes, 'get');
+
       CompactComment.initPrototypes();
 
-      expect(CompactComment.prototypes.get).toHaveBeenCalledWith('overlay');
+      expect(layersGetSpy).toHaveBeenCalledWith('overlay');
     });
 
     it('should enhance overlay with compact-specific elements', () => {
@@ -161,7 +158,7 @@ describe('CompactComment', () => {
       CompactComment.initPrototypes();
 
       const overlayCall = CompactComment.prototypes.add.mock.calls.find(
-        call => call[0] === 'overlay'
+        (call) => call[0] === 'overlay'
       );
       const overlay = overlayCall[1];
 
@@ -183,7 +180,7 @@ describe('CompactComment', () => {
       CompactComment.initPrototypes();
 
       const overlayCall = CompactComment.prototypes.add.mock.calls.find(
-        call => call[0] === 'overlay'
+        (call) => call[0] === 'overlay'
       );
       const overlay = overlayCall[1];
 
@@ -195,7 +192,7 @@ describe('CompactComment', () => {
       CompactComment.initPrototypes();
 
       const overlayCall = CompactComment.prototypes.add.mock.calls.find(
-        call => call[0] === 'overlay'
+        (call) => call[0] === 'overlay'
       );
       const overlay = overlayCall[1];
 
@@ -207,7 +204,7 @@ describe('CompactComment', () => {
       CompactComment.initPrototypes();
 
       const overlayCall = CompactComment.prototypes.add.mock.calls.find(
-        call => call[0] === 'overlay'
+        (call) => call[0] === 'overlay'
       );
       const overlay = overlayCall[1];
 
