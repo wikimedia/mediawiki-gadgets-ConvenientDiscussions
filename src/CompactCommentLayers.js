@@ -6,6 +6,13 @@ import CommentLayers from './CommentLayers';
  */
 class CompactCommentLayers extends CommentLayers {
   /**
+   * Reference to the parent comment.
+   *
+   * @type {import('./CompactComment').default}
+   * @override
+   */
+  comment;
+  /**
    * Inner wrapper in comment's overlay.
    *
    * @type {HTMLElement | undefined}

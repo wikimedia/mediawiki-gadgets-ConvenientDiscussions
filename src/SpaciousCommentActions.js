@@ -9,6 +9,13 @@ import cd from './cd';
  */
 class SpaciousCommentActions extends CommentActions {
   /**
+   * The comment this actions instance belongs to.
+   *
+   * @type {import('./SpaciousComment').default}
+   * @override
+   */
+  comment;
+  /**
    * Create a reply button for spacious comments.
    *
    * @override
@@ -184,7 +191,7 @@ class SpaciousCommentActions extends CommentActions {
     this.toggleChildThreadsButton = this.createToggleChildThreadsButton(action);
 
     // Insert in header before change note
-    this.comment.headerElement?.insertBefore(
+    this.comment.headerElement.insertBefore(
       this.toggleChildThreadsButton.element,
       this.comment.$changeNote?.[0] || null
     );

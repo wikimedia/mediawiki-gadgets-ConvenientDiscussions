@@ -23,6 +23,22 @@ import { createSvg } from './utils-window';
  */
 class SpaciousComment extends Comment {
   /**
+   * Comment layers for spacious comments.
+   *
+   * @type {SpaciousCommentLayers | undefined}
+   * @override
+   */
+  layers;
+
+  /**
+   * Comment actions for spacious comments.
+   *
+   * @type {SpaciousCommentActions | undefined}
+   * @override
+   */
+  actions;
+
+  /**
    * Header element for spacious comments.
    *
    * @override

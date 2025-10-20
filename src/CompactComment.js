@@ -16,6 +16,22 @@ import { isInline } from './shared/utils-general';
  */
 class CompactComment extends Comment {
   /**
+   * Comment layers for compact comments.
+   *
+   * @type {CompactCommentLayers | undefined}
+   * @override
+   */
+  layers;
+
+  /**
+   * Comment actions for compact comments.
+   *
+   * @type {CompactCommentActions | undefined}
+   * @override
+   */
+  actions;
+
+  /**
    * Is the comment currently being hovered over.
    *
    * @type {boolean}

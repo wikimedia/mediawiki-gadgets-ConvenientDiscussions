@@ -6,6 +6,13 @@ import CommentLayers from './CommentLayers';
  */
 class SpaciousCommentLayers extends CommentLayers {
   /**
+   * Reference to the parent comment.
+   *
+   * @type {import('./SpaciousComment').default}
+   * @override
+   */
+  comment;
+  /**
    * Create the layer elements for spacious comments.
    * Spacious comments have standard underlay, overlay, line, and marker elements
    * but no overlay menu components.
