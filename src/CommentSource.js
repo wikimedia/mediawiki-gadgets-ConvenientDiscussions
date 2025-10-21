@@ -68,6 +68,7 @@ class CommentSource {
         this.headingMatch?.forEach((group, i) => {
           /** @type {RegExpMatchArray} */ (this.headingMatch)[i] = textMasker.unmaskText(group);
         });
+
         return text;
       })
       .unmask()
@@ -100,9 +101,9 @@ class CommentSource {
       // Try to edit the first comment at
       // https://ru.wikipedia.org/wiki/Википедия:Голосования/Отметки_статусных_статей_в_навигационных_шаблонах#Да
       // to see the bug happening if we don't check for this.comment.isOpeningSection.
-      this.lineStartIndex = this.comment.isOpeningSection() ?
-        this.headingStartIndex :
-        this.startIndex;
+      this.lineStartIndex = this.comment.isOpeningSection()
+        ? this.headingStartIndex
+        : this.startIndex;
     } else {
       // Exclude the text of the previous comment that is ended with 3 or 5 tildes instead of 4 and
       // foreign timestamps. The foreign timestamp part can be moved out of the !headingMatch
@@ -156,7 +157,7 @@ class CommentSource {
       // https://ru.wikipedia.org/w/index.php?oldid=110033693&section=6&action=edit (the regexp
       // doesn't catch the comment because of a newline inside the `syntaxhighlight` element).
       cd.g.badCommentBeginnings.forEach((regexp) => {
-        if (regexp.source[0] !== '^') {
+        if (!regexp.source.startsWith('^')) {
           console.debug('Regexps in cd.config.badCommentBeginnings should have "^" as the first character.');
         }
         let match;
@@ -180,12 +181,8 @@ class CommentSource {
   excludeIndentationAndIntro() {
     if (this.comment.level === 0) return;
 
-    const replaceIndentation = (
-      /** @type {string} */ s,
-      /** @type {string} */ before,
-      /** @type {string} */ chars,
-      after = ''
-    ) => {
+    /** @type {ReplaceCallback} */
+    const replaceIndentation = (s, before, chars, after = '') => {
       if (typeof after === 'number') {
         after = '';
       }
@@ -236,6 +233,7 @@ class CommentSource {
       this.lineStartIndex = this.startIndex + before.length;
       this.startIndex += startIndexShift;
       this.indentationSpacing = after;
+
       return remainder;
     };
 
@@ -350,10 +348,10 @@ class CommentSource {
         // https://ru.wikipedia.org/w/index.php?diff=105978713 (this one is actually handled by
         // replaceIndentation() in .excludeIndentationAndIntro()).
         if (replyIndentation.length < this.originalIndentation.length) {
-          const prefix = (
+          const prefix =
             this.originalIndentation.slice(replyIndentation.length) +
-            this.indentationSpacing
-          );
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+            /** @type {string} */ (this.indentationSpacing);
           this.code = prefix + this.code;
           this.indentation = this.originalIndentation = this.originalIndentation
             .slice(0, replyIndentation.length);
@@ -394,7 +392,7 @@ class CommentSource {
     let doesHeadlineMatch;
     if (commentData.previousComments.length) {
       for (let i = 0; i < commentData.previousComments.length; i++) {
-        const signature = signatures[this.index - 1 - i];
+        const signature = signatures.at(this.index - 1 - i);
         if (!signature) break;
 
         // At least one coincided comment is enough if the second is unavailable.
@@ -426,12 +424,13 @@ class CommentSource {
         this.headlineCode === undefined
           ? -0.4999
           : normalizeCode(removeWikiMarkup(this.headlineCode)) ===
-          normalizeCode(/** @type {string} */ (commentData.sectionHeadline));
+            normalizeCode(/** @type {string} */ (commentData.sectionHeadline));
     } else {
       doesHeadlineMatch = !this.headingMatch;
     }
 
     const wordOverlap = calculateWordOverlap(commentData.commentText, removeWikiMarkup(this.code));
+
     return {
       source: this,
       score: (
@@ -493,58 +492,63 @@ class CommentSource {
           const entireLineFromStartRegexp = /^(=+).*\1[ \t]*$|^----/;
           code = code.replace(
             /^((?![:*#; ]).+)\n(?![\n:*#; \u0003])(?=(.*))/gm,
-            (_s, currentLine, nextLine) => {
-              return (
-                currentLine +
+            /** @type {ReplaceCallback} */ (_s, currentLine, nextLine) =>
+              currentLine +
 
-                // Newline or space
+              // Newline or space
+              (
                 (
-                  (
-                    entireLineRegexp.test(currentLine) ||
-                    entireLineRegexp.test(nextLine) ||
-                    fileRegexp.test(currentLine) ||
-                    fileRegexp.test(nextLine) ||
-                    entireLineFromStartRegexp.test(currentLine) ||
-                    entireLineFromStartRegexp.test(nextLine) ||
-                    currentLineEndingRegexp.test(currentLine) ||
-                    nextLineBeginningRegexp.test(nextLine)
-                  )
-                    ? '\n'
-                    : ' '
+                  entireLineRegexp.test(currentLine) ||
+                  entireLineRegexp.test(nextLine) ||
+                  fileRegexp.test(currentLine) ||
+                  fileRegexp.test(nextLine) ||
+                  entireLineFromStartRegexp.test(currentLine) ||
+                  entireLineFromStartRegexp.test(nextLine) ||
+                  currentLineEndingRegexp.test(currentLine) ||
+                  nextLineBeginningRegexp.test(nextLine)
                 )
-              );
-            }
+                  ? '\n'
+                  : ' '
+              )
           );
         }
 
         code = brsToNewlines(code, '\u0001\n')
           // Templates occupying a whole line with <br> at the end get a special treatment.
-          .replace(/^((?:\u0001\d+_template.*\u0002) *)\u0001$/gm, (_s, m1) => m1 + '<br>')
+          .replace(
+            /^((?:\u0001\d+_template.*\u0002) *)\u0001$/gm,
+            /** @type {ReplaceCallback} */ (_s, m1) => m1 + '<br>'
+          )
 
           // Two templates in a row is likely a paragraph template + other template. This is a
           // workaround; may need to look specifically for paragraph templates and mark them as
           // such.
           .replace(
             /((?:\u0001\d+_template.*\u0002){2} *)\u0001/g,
-            (s, m1) => cd.config.paragraphTemplates.length ? m1 + '<br>' : s
+            /** @type {ReplaceCallback} */ (s, m1) =>
+              cd.config.paragraphTemplates.length ? m1 + '<br>' : s
           )
 
           // Replace the temporary marker.
           .replace(/\u0001\n/g, '\n')
 
           // Remove indentation characters
-          .replace(/\n([:*#]*)([ \t]*)/g, (_s, chars, spacing) => {
-            let newChars;
-            if (chars.length >= originalIndentationLength) {
-              newChars = chars.slice(originalIndentationLength);
-              if (chars.length > originalIndentationLength) {
-                newChars += spacing;
+          .replace(
+            /\n([:*#]*)([ \t]*)/g,
+            /** @type {ReplaceCallback} */ (_s, chars, spacing) => {
+              let newChars;
+              if (chars.length >= originalIndentationLength) {
+                newChars = chars.slice(originalIndentationLength);
+                if (chars.length > originalIndentationLength) {
+                  newChars += spacing;
+                }
+              } else {
+                newChars = chars + spacing;
               }
-            } else {
-              newChars = chars + spacing;
+
+              return '\n' + newChars;
             }
-            return '\n' + newChars;
-          });
+          );
 
         if (cd.config.paragraphTemplates.length) {
           const paragraphTemplatesPattern = cd.config.paragraphTemplates
@@ -578,7 +582,7 @@ class CommentSource {
    * @param {string} adjustedChunkCodeAfter
    * @returns {{
    *   adjustedCodeBetween: string;
-   *   indentationAfter: string;
+   *   indentationAfter: string | undefined;
    *   isNextLine: boolean;
    * }}
    * @private
@@ -622,10 +626,10 @@ class CommentSource {
 
     const properPlaceMatch =
       adjustedChunkCodeAfter.match(new RegExp(anySignaturePattern + endOfThreadPattern)) || [];
-    let adjustedCodeBetween = properPlaceMatch[1] ?? adjustedChunkCodeAfter;
+    let adjustedCodeBetween = properPlaceMatch.at(1) ?? adjustedChunkCodeAfter;
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    let indentationAfter = properPlaceMatch[properPlaceMatch.length - 1];
-    let isNextLine = countOccurrences(adjustedCodeBetween, /\n/g) === 1;
+    const indentationAfter = properPlaceMatch.at(-1);
+    const isNextLine = countOccurrences(adjustedCodeBetween, /\n/g) === 1;
 
     if (cd.config.outdentTemplates.length) {
       const outdentTemplatesPattern = cd.config.outdentTemplates
@@ -638,28 +642,24 @@ class CommentSource {
 
       /*
         If there is an "outdent" template next to the insertion place:
-        * If the outdent template is right next to the comment replied to, we throw an error.
-        * If not, we insert the reply on the next line after the target comment.
+        - If the outdent template is right next to the comment replied to, we throw an error.
+        - If not, we insert the reply on the next line after the target comment.
        */
-      const [, outdentIndentation] =
-        adjustedChunkCodeAfter
-          .slice(adjustedCodeBetween.length)
-          .match(outdentTemplatesRegexp) ||
-        [];
-      if (outdentIndentation !== undefined) {
+      const outdentIndentationMatch =
+        adjustedChunkCodeAfter.slice(adjustedCodeBetween.length).match(outdentTemplatesRegexp);
+      if (outdentIndentationMatch) {
+        const outdentIndentation = outdentIndentationMatch[1];
         if (isNextLine) {
           // Can't insert a reply before an "outdent" template.
           throw new CdError({
             type: 'parse',
             code: 'findPlace',
           });
-        } else if ((outdentIndentation || '').length <= this.replyIndentation.length) {
+        } else if (outdentIndentation.length <= this.replyIndentation.length) {
           // Matches code up to the next newline, to insert the reply in violation of chronological
           // order. If there was a properPlaceMatch, there should be a match here too.
-          [, adjustedCodeBetween] = (
-            adjustedChunkCodeAfter.match(new RegExp(anySignaturePattern)) ||
-            []
-          );
+          [, adjustedCodeBetween] =
+            adjustedChunkCodeAfter.match(new RegExp(anySignaturePattern)) || [];
         }
       }
     }
@@ -700,30 +700,25 @@ class CommentSource {
       isNextLine
     ) {
       this.isReplyOutdented = true;
-      this.replyIndentation = (
+      this.replyIndentation =
         this.replyIndentation.slice(0, Math.max(indentationAfter.length, 1)) +
-        cd.config.defaultIndentationChar
-      );
+        cd.config.defaultIndentationChar;
     }
 
     // If the comment is to be put after a comment with different indentation characters, use these,
     // unless it's a 1-level comment; then, there are options if indentationCharMode is `unify`.
-    const manyCharsPart = (
-      this.replyIndentation.length === 1 &&
-      cd.config.indentationCharMode === 'unify'
-    ) ?
-      '' :
-      '[:*#]{2,}|';
+    const manyCharsPart =
+      this.replyIndentation.length === 1 && cd.config.indentationCharMode === 'unify'
+        ? ''
+        : '[:*#]{2,}|';
     const firstChar = cd.config.indentationCharMode === 'mimic' ? '[#*:]' : '#';
-    const [, changedIndentation] = (
-      adjustedCodeBetween.match(new RegExp(`\\n(${manyCharsPart}${firstChar}[:*#]*).*\\n$`)) ||
-      []
-    );
-    if (changedIndentation) {
+    const changedIndentationMatch =
+      adjustedCodeBetween.match(new RegExp(`\\n(${manyCharsPart}${firstChar}[:*#]*).*\\n$`));
+    if (changedIndentationMatch) {
       // Note the bug https://ru.wikipedia.org/w/index.php?diff=next&oldid=105529545 that was
       // possible here when we used `.slice(0, this.indentation.length + 1)` (due to `**` as
       // indentation characters in Bsivko's comment).
-      this.replyIndentation = changedIndentation
+      this.replyIndentation = changedIndentationMatch[1]
         .slice(0, this.replyIndentation.length)
 
         // Don't replace `*` with `:`, as a comment indented with `:` after one indented with `*`
@@ -831,11 +826,10 @@ class CommentSource {
         commentCode ??= /** @type {import('./CommentForm').default} */ (commentForm).inputToCode(
           /** @type {import('./CommentForm').CommentFormAction} */ (commentFormAction)
         );
-        contextCode = (
+        contextCode =
           originalContextCode.slice(0, currentIndex) +
           commentCode +
-          originalContextCode.slice(currentIndex)
-        );
+          originalContextCode.slice(currentIndex);
         break;
       }
 
@@ -875,16 +869,15 @@ class CommentSource {
             }
           }
 
-          contextCode = (
+          contextCode =
             originalContextCode.slice(0, startIndex) +
-            originalContextCode.slice(endIndex)
-          );
+            originalContextCode.slice(endIndex);
         } else {
-          contextCode = (
+          contextCode =
             originalContextCode.slice(0, this.lineStartIndex) +
-            commentCode +
-            originalContextCode.slice(this.signatureEndIndex)
-          );
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+            /** @type {string} */ (commentCode) +
+            originalContextCode.slice(this.signatureEndIndex);
         }
         break;
       }
@@ -972,6 +965,7 @@ class CommentSource {
 
       // Get the index of the next section heading. Logically, there should always be a match.
       /** @type {number} */ (
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         /** @type {RegExpMatchArray} */ (
           // Match the code after
           adjustedCode.slice(currentIndex).match(/\n+(=+).*\1[ \t\u0001\u0002]*\n|$/)

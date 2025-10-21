@@ -105,7 +105,7 @@ const convenientDiscussionsWindow = {
   s(name, ...args) {
     const fullName = `convenient-discussions-${name}`;
     let options = /** @type {SOptions} */ ({});
-    const lastParam = args[args.length - 1];
+    const lastParam = args.at(-1);
 
     // lastParam.options can be a `mw.user`-like object to provide to {{gender:}}
     if (typeof lastParam === 'object' && !('options' in lastParam)) {
@@ -164,7 +164,7 @@ const convenientDiscussionsWindow = {
    */
   mws(name, ...params) {
     let options;
-    const lastParam = params[params.length - 1];
+    const lastParam = params.at(-1);
     if (typeof lastParam === 'object') {
       options = lastParam;
       params.splice(-1);

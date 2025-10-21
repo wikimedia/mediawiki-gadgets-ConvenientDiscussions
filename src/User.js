@@ -94,10 +94,10 @@ export default class User {
   /**
    * Get the user's rights (must be obtained using {@link module:utilsApi.getUserInfo}).
    *
-   * @returns {?(string[])}
+   * @returns {string[] | undefined}
    */
   getRights() {
-    return this.rights?.slice() || null;
+    return this.rights?.slice();
   }
 
   /**

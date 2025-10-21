@@ -14,6 +14,7 @@ import sectionManager from './sectionManager';
 import settings from './settings';
 import CdError from './shared/CdError';
 import SectionSkeleton from './shared/SectionSkeleton';
+import { defined } from './shared/utils-general';
 import talkPageController from './talkPageController';
 import updateChecker from './updateChecker';
 import { formatDate, formatDateNative, getLinkedAnchor } from './utils-window';
@@ -115,7 +116,9 @@ class Toc {
     this.items = undefined;
     this.floating = undefined;
     this.visitsPromise = new Promise((resolve) => {
-      visits.once('process', () => resolve());
+      visits.once('process', () => {
+        resolve();
+      });
     });
 
     if (this.isInSidebar() && sections) {
@@ -168,7 +171,7 @@ class Toc {
 
     // Ensure the bell icons are added after the TOC is updated and the comment counts are added in
     // visits#process().
-    await Promise.all([this.visitsPromise, this.updateTocSectionsPromise]);
+    await Promise.all([this.visitsPromise, this.updateTocSectionsPromise].filter(defined));
 
     sectionManager
       .query((section) => section.subscriptionState || this.isInSidebar())
@@ -288,8 +291,8 @@ class Toc {
     let item = /** @type {TocItemShort|undefined} */ (section.match?.getTocItem());
     const level = /** @type {number} */ (section.tocLevel);
     if (!item) {
-      const currentLevelMatch = currentTree[level - 1];
-      const upperLevelMatch = currentLevelMatch ? undefined : currentTree[currentTree.length - 1];
+      const currentLevelMatch = currentTree.at(level - 1);
+      const upperLevelMatch = currentLevelMatch ? undefined : currentTree.at(-1);
 
       const li = document.createElement('li');
       li.id = `toc-${section.id}`;
@@ -440,6 +443,7 @@ class Toc {
     sections.forEach((section) => {
       section.tocLevel = section.parent
         ? /** @type {number} */ (
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             /** @type {import('./updateChecker').SectionWorkerMatched} */ (section.parent).tocLevel
           ) + 1
         : 1;
@@ -526,7 +530,7 @@ class Toc {
    * Add a comment list (an `ul` element) to a section.
    *
    * @template {boolean} Rendered
-   * @param {Rendered extends true ? import('./Comment').default[] : import('./updateChecker').CommentWorkerMatched[]} comments
+   * @param {Rendered extends true ? import('./Comment').default[] : import('./updateChecker').CommentWorkerNew[]} comments
    *   Comment list.
    * @param {Element} [target] Target element.
    * @private
@@ -584,7 +588,7 @@ class Toc {
         ul.append(li);
 
         const a = document.createElement('a');
-        const id = 'dtId' in comment ? comment.dtId : comment.id;
+        const id = /** @type {string} */ ('dtId' in comment ? comment.dtId : comment.id);
         a.href = `#${id}`;
         if (this.isInSidebar()) {
           a.className = 'vector-toc-link cd-toc-link-sidebar';
@@ -651,7 +655,7 @@ class Toc {
    * Add links to new comments (either already displayed or loaded in the background) to the table
    * of contents.
    *
-   * @param {import('./Comment').CommentsBySection} commentsBySection
+   * @param {import('./updateChecker').AddedComments['bySection']} commentsBySection
    * @param {import('./BootProcess').default} [bootProcess]
    * @private
    */
@@ -666,7 +670,9 @@ class Toc {
           // When unrendered (in gray) comments are added. (Boot process is also not specified at
           // those times.)
           !bootProcess ||
+
           bootProcess.isFirstRun() ||
+
           // When the comment or section is opened by a link from the TOC
           bootProcess.passedData.commentIds ||
           bootProcess.passedData.sectionId
@@ -732,6 +738,7 @@ class Toc {
 
     return (
       /** @type {JQuery.Coordinates} */ (this.$element.offset()).top +
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       /** @type {number} */ (this.$element.outerHeight())
     );
   }

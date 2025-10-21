@@ -56,7 +56,7 @@ export default class CommentWorker extends CommentSkeleton {
 
   /**
    * @override
-   * @type {?import('./SectionWorker').default}
+   * @type {import('./SectionWorker').default | undefined}
    */
   section = this.section;
 
@@ -91,11 +91,10 @@ export default class CommentWorker extends CommentSkeleton {
         if (element.classList.contains('references') || isMetadataNode(element)) {
           return /** @type {import('domhandler').Element} */ (this.hideElement(element))
             .textContent;
-        } else {
-          this.processReferenceElements(element);
-
-          return element.outerHTML;
         }
+        this.processReferenceElements(element);
+
+        return element.outerHTML;
       });
   }
 
@@ -137,9 +136,9 @@ export default class CommentWorker extends CommentSkeleton {
    * @private
    */
   processHeadingElement(element) {
-    let headlineElement = element.getElementsByClassName('mw-headline', 1)[0];
+    let headlineElement = [...element.getElementsByClassName('mw-headline', 1)].at(0);
     if (!headlineElement) {
-      headlineElement = element.querySelectorAll('h1, h2, h3, h4, h5, h6')[0];
+      headlineElement = [...element.querySelectorAll('h1, h2, h3, h4, h5, h6')].at(0);
     }
     if (headlineElement) {
       // Was removed in 2021, see T284921. Keep this for some time.
@@ -196,7 +195,7 @@ export default class CommentWorker extends CommentSkeleton {
           (['autonumber', 'reference', 'references'].some((name) =>
             node.classList.contains(name)
           ) ||
-            isMetadataNode(node))
+          isMetadataNode(node))
       )
     ).forEach((el) => {
       this.hideElement(el);
@@ -221,7 +220,7 @@ export default class CommentWorker extends CommentSkeleton {
    * @private
    */
   processSvgElements(element) {
-    element.getElementsByTagName?.('svg').forEach((svg) => {
+    element.getElementsByTagName('svg').forEach((svg) => {
       svg.remove();
     });
   }
@@ -233,7 +232,7 @@ export default class CommentWorker extends CommentSkeleton {
    * @private
    */
   processTimestampElements(element) {
-    element.getElementsByClassName?.('ext-discussiontools-init-timestamplink').forEach((link) => {
+    element.getElementsByClassName('ext-discussiontools-init-timestamplink').forEach((link) => {
       // The link may change
       link.removeAttribute('href');
 
@@ -268,12 +267,12 @@ export default class CommentWorker extends CommentSkeleton {
         }
 
         return element.outerHTML;
-      } else {
-        return element.innerHTML;
       }
-    } else {
-      return element.innerHTML || element.textContent;
+
+      return element.innerHTML;
     }
+
+    return element.innerHTML || element.textContent;
   }
 
   /**
@@ -354,13 +353,13 @@ export default class CommentWorker extends CommentSkeleton {
    * @param {import('domhandler').Element} element
    * @private
    */
-  static removeDataAndParsoidAttributes(element) {
+  static removeDataAndParsoidAttributes = (element) => {
     Object.keys(element.attribs).forEach((name) => {
       if (name.startsWith('data-') || (name === 'id' && /^mw.{2,3}$/.test(element.attribs[name]))) {
         element.removeAttribute(name);
       }
     });
-  }
+  };
 
   /**
    * Prepare comments for transferring to the main process.

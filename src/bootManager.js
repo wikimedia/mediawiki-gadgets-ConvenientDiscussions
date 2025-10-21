@@ -1308,14 +1308,14 @@ class BootManager {
    *
    * @param {JQuery} $content
    */
-  handleWikipageContentHookFirings($content) {
+  handleWikipageContentHookFirings = ($content) => {
     if (!$content.is('#mw-content-text')) return;
 
     const $root = $content.children('.mw-parser-output');
     if ($root.length && !$root.hasClass('cd-parse-started')) {
       bootManager.reboot({ isPageReloadedExternally: true });
     }
-  }
+  };
 
   /**
    * Remove fragment and revision parameters from the URL; remove DOM elements related to the diff.

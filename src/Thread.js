@@ -156,7 +156,7 @@ class Thread extends mixInObject(
      *
      * @type {import('./Comment').default}
      */
-    this.lastComment = this.comments.slice(-1)[0];
+    this.lastComment = this.comments[this.comments.length - 1];
 
     /**
      * Number of comments in the thread.
@@ -185,7 +185,7 @@ class Thread extends mixInObject(
      * @private
      */
     this.visualLastComment = this.hasOutdents
-      ? rootComment.getChildren(true, true).slice(-1)[0] || rootComment
+      ? rootComment.getChildren(true, true).at(-1) || rootComment
       : this.lastComment;
 
     /**
@@ -199,7 +199,7 @@ class Thread extends mixInObject(
     this.visualLastCommentFallback = this.hasOutdents
       // `|| rootComment` part for a very weird case when an outdented comment is at the same level
       // as its parent.
-      ? rootComment.getChildren(true, true, false).slice(-1)[0] || rootComment
+      ? rootComment.getChildren(true, true, false).at(-1) || rootComment
 
       : this.lastComment;
 
@@ -1130,7 +1130,7 @@ class Thread extends mixInObject(
    */
   updateEndOfCollapsedRange(closedDiscussions) {
     const collapsedRange = /** @type {HTMLElement[]} */ (this.collapsedRange);
-    const end = collapsedRange.slice(-1)[0];
+    const end = collapsedRange[collapsedRange.length - 1];
 
     // Include a closed discussion template if the entirety of its contents is included but not the
     // start.
@@ -1636,7 +1636,7 @@ class Thread extends mixInObject(
   static findEndElementOfZeroLevelThread(startElement, highlightables, nextForeignElement) {
     /** @type {HTMLElement | null} */
     let commonAncestor = startElement;
-    const lastHighlightable = highlightables.slice(-1)[0];
+    const lastHighlightable = highlightables[highlightables.length - 1];
     do {
       commonAncestor = /** @type {HTMLElement} */ (commonAncestor).parentElement;
     } while (commonAncestor && !commonAncestor.contains(lastHighlightable));

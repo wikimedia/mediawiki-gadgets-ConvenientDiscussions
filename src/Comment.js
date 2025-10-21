@@ -312,7 +312,7 @@ class Comment extends CommentSkeleton {
   /**
    * Comment's source code object.
    *
-   * @type {CommentSource|null|undefined}
+   * @type {CommentSource|undefined}
    */
   source;
 
@@ -570,11 +570,9 @@ class Comment extends CommentSkeleton {
    * @protected
    */
   updateMainTimestampElement(timestamp, title) {
-    // Default implementation for base class and tests
-    if (this.timestampElement) {
-      this.timestampElement.textContent = timestamp;
-      this.timestampElement.title = title;
-    }
+    // Default implementation for tests. TODO: Added by Sonnet. Get rid of?
+    this.timestampElement.textContent = timestamp;
+    this.timestampElement.title = title;
   }
 
   /**
@@ -1173,12 +1171,9 @@ class Comment extends CommentSkeleton {
    */
   getDirection() {
     this.direction ||= talkPageController.areThereLtrRtlMixes()
-      ? this.elements
-
-        // Take the last element because the first one may be the section heading which can have
-        // another direction.
-        .slice(-1)[0]
-
+      // Take the last element because the first one may be the section heading which can have
+      // another direction.
+      ? this.elements[this.elements.length - 1]
         .closest('.mw-content-ltr, .mw-content-rtl')
         ?.classList.contains('mw-content-rtl')
         ? 'rtl'
@@ -3077,19 +3072,18 @@ class Comment extends CommentSkeleton {
       // The list can be broken, so we need to find the last list containing the children of the
       // comment.
       const descendants = this.getChildren(true);
-      if (descendants.length) {
-        const $test = descendants[descendants.length - 1].$elements
-          .last()
-          .closest(`.cd-commentLevel-${this.level + 1}`);
+      const $test = descendants.at(-1)
+        ?.$elements
+        .last()
+        .closest(`.cd-commentLevel-${this.level + 1}`);
 
-        // Logically, the element should always be there, but nevertheless.
-        if ($test.length) {
-          $existingWrappingList = $test;
+      // Logically, the element should always be there when there are descendants, but nevertheless.
+      if ($test?.length) {
+        $existingWrappingList = $test;
 
-          // Can be empty, but it doesn't matter to us. What matters is that $lastOfTarget is not an
-          // item element.
-          $lastOfTarget = $test.prev();
-        }
+        // Can be empty, but it doesn't matter to us. What matters is that $lastOfTarget is not an
+        // item element.
+        $lastOfTarget = $test.prev();
       }
     }
 
@@ -3316,7 +3310,7 @@ class Comment extends CommentSkeleton {
     const previousComment = /** @type {Comment} */ (commentManager.getByIndex(this.index - 1));
     if (this.level !== previousComment.level) return;
 
-    const previousCommentLastElement = previousComment.elements.slice(-1)[0];
+    const previousCommentLastElement = previousComment.elements[previousComment.elements.length - 1];
     const potentialElement = previousCommentLastElement.nextElementSibling;
     if (
       previousCommentLastElement.parentElement &&
@@ -3337,7 +3331,7 @@ class Comment extends CommentSkeleton {
    * @returns {Comment}
    */
   getCommentAboveCommentToBeAdded() {
-    return this.getChildren(true).slice(-1)[0] || this;
+    return this.getChildren(true).at(-1) || this;
   }
 
   /**

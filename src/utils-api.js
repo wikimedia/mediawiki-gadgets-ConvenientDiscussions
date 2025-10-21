@@ -151,6 +151,7 @@ export function splitIntoBatches(arr) {
   const limit = (
     currentUserRights
       ? currentUserRights.includes('apihighlimits')
+
       // No idea why wgUserGroups is said to be `null` for non-logged-in users on
       // https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#mw.config. I see it always
       // containing ['*'].
@@ -561,12 +562,12 @@ export async function convertHtmlToWikitext(html, syntaxHighlightLanguages) {
         (s, inlineCode) => {
           const lang = syntaxHighlightLanguages.shift() || 'wikitext';
           const code = (
-            inlineCode === undefined
-              ? '\n' +
-              s
-                .replace(/^ /gm, '')
-                .replace(/[^\n]$/, '$0\n')
-              : inlineCode
+            typeof inlineCode === 'string'
+              ? inlineCode
+              : '\n' +
+                s
+                  .replace(/^ /gm, '')
+                  .replace(/[^\n]$/, '$0\n')
           ).replace(/<nowiki>([^]*?)<\/nowiki>/g, '$1');
           const inlineOrNot = inlineCode === undefined ? '' : ' inline';
 

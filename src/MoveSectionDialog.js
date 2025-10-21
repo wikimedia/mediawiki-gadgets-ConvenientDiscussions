@@ -60,7 +60,7 @@ class MoveSectionDialog extends ProcessDialog {
   /**
    * @typedef {{
    *   title: 'title';
-   *   keepLink: 'checkbox' | undefined;
+   *   keepLink: 'checkbox';
    *   chronologicalOrder: 'checkbox';
    *   summaryEnding: 'text';
    * }} MoveSectionDialogControlTypes
@@ -243,18 +243,16 @@ class MoveSectionDialog extends ProcessDialog {
           input: this.controls.title.input,
         });
         $(this.insertArchivePageButton.buttonElement).on('click', () => {
-          this.controls.keepLink?.input.setSelected(false);
+          this.controls.keepLink.input.setSelected(false);
           this.controls.chronologicalOrder.input.setSelected(archiveConfig?.isSorted || false);
         });
       }
 
-      if (cd.config.getMoveSourcePageCode || cd.config.getMoveTargetPageCode) {
-        this.controls.keepLink = createCheckboxControl({
-          value: 'keepLink',
-          selected: !cd.page.isArchive(),
-          label: cd.s('msd-keeplink'),
-        });
-      }
+      this.controls.keepLink = createCheckboxControl({
+        value: 'keepLink',
+        selected: !cd.page.isArchive(),
+        label: cd.s('msd-keeplink'),
+      });
       this.controls.chronologicalOrder = createCheckboxControl({
         value: 'chronologicalOrder',
         selected: false,
@@ -279,7 +277,7 @@ class MoveSectionDialog extends ProcessDialog {
       this.movePanel.$element.append([
         this.controls.title.field.$element,
         this.insertArchivePageButton?.element,
-        this.controls.keepLink?.field.$element,
+        this.controls.keepLink.field.$element,
         this.controls.chronologicalOrder.field.$element,
         this.controls.summaryEnding.field.$element,
       ].filter(defined));
@@ -312,9 +310,11 @@ class MoveSectionDialog extends ProcessDialog {
    */
   getActionProcess(action) {
     if (action === 'move') {
+      // @ts-expect-error: Declares it needs a jQuery promise, but works equally well with a native
+      // one
       return new OO.ui.Process(async () => {
         this.pushPending();
-        this.controls.title.input.$input.blur();
+        this.controls.title.input.$input.trigger('blur');
 
         const targetPage = /** @type {import('./Page').default} */ (
           pageRegistry.get(/** @type {mw.Title} */ (this.controls.title.input.getMWTitle()))
@@ -358,7 +358,7 @@ class MoveSectionDialog extends ProcessDialog {
         );
 
         bootManager.reboot({
-          sectionId: this.controls.keepLink?.input.isSelected() ? this.section.id : undefined,
+          sectionId: this.controls.keepLink.input.isSelected() ? this.section.id : undefined,
         });
 
         this.stack.setItem(this.successPanel);
@@ -456,7 +456,7 @@ class MoveSectionDialog extends ProcessDialog {
     return {
       page: this.section.getSourcePage(),
       sectionSource,
-      sectionWikilink: this.controls.keepLink?.input.isSelected()
+      sectionWikilink: this.controls.keepLink.input.isSelected()
         ? `${pageName}#${headlineEncoded}`
         : pageName,
     };
@@ -519,7 +519,7 @@ class MoveSectionDialog extends ProcessDialog {
   async editTargetPage(source, target) {
     let codeBeginning;
     let codeEnding;
-    if (cd.config.getMoveTargetPageCode && this.controls.keepLink?.input.isSelected()) {
+    if (this.controls.keepLink.input.isSelected()) {
       const code = cd.config.getMoveTargetPageCode(
         source.sectionWikilink.replace(/=/g, '{{=}}'),
         cd.g.userSignature.replace(/=/g, '{{=}}')
@@ -604,7 +604,7 @@ class MoveSectionDialog extends ProcessDialog {
         text: (
           code.slice(0, source.sectionSource.startIndex) +
           (
-            cd.config.getMoveSourcePageCode && this.controls.keepLink?.input.isSelected()
+            this.controls.keepLink.input.isSelected()
               ? (
                   sectionCode.slice(0, source.sectionSource.relativeContentStartIndex) +
                   cd.config.getMoveSourcePageCode(

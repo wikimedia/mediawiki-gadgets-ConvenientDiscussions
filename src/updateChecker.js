@@ -148,8 +148,6 @@ class UpdateChecker extends EventEmitter {
    * @private
    */
   setAlarmViaWorker(interval) {
-    if (Number.isNaN(Number(interval))) return;
-
     cd.getWorker().postMessage(/** @type {MessageFromWindowSetAlarm} */ ({
       task: 'setAlarm',
       interval,
@@ -412,10 +410,10 @@ class UpdateChecker extends EventEmitter {
       if (ccFiltered.length === 1) {
         ccFiltered[0].match = ccFiltered[0].match
           ? this.sortCommentsByMatchScore(
-              [ccFiltered[0].match, otherComment],
-              ccFiltered[0],
-              isTotalCountEqual
-            )[0].comment
+            [ccFiltered[0].match, otherComment],
+            ccFiltered[0],
+            isTotalCountEqual
+          )[0].comment
           : otherComment;
       } else if (ccFiltered.length > 1) {
         /** @type {boolean} */
@@ -429,11 +427,9 @@ class UpdateChecker extends EventEmitter {
               match.comment.matchScore = match.score;
               delete match.comment.hasPoorMatch;
               found = true;
-            } else {
-              if (!match.comment.match) {
-                // There is a poor match for a current comment.
-                match.comment.hasPoorMatch = true;
-              }
+            } else if (!match.comment.match) {
+              // There is a poor match for a current comment.
+              match.comment.hasPoorMatch = true;
             }
           }
         );
@@ -596,7 +592,7 @@ class UpdateChecker extends EventEmitter {
     const seenStorageItem = /** @type {import('./StorageItemWithKeys').default} */ (new StorageItemWithKeys('seenRenderedChanges'))
       .cleanUp((entry) =>
         (Math.min(...Object.values(entry).map((data) => data.seenTime)) || 0) <
-        subtractDaysFromNow(60)
+          subtractDaysFromNow(60)
       );
     const seen = seenStorageItem.get(mw.config.get('wgArticleId'));
 
@@ -780,13 +776,11 @@ class UpdateChecker extends EventEmitter {
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
     const revisionIdAtStart = mw.config.get('wgRevisionId');
 
-    // Don't process >20 diffs, that's too much and probably means something is broken
-    const verifyDiffs = (
-      data.length <= 20 &&
-      data.some(({ comment }) => comment.getSourcePage().isCurrent())
-    );
+    // Don't process >20 diffs; that's too much and probably means something is broken
+    const verifyDiffs =
+      data.length <= 20 && data.some(({ comment }) => comment.getSourcePage().isCurrent());
 
-    /** @type {Revision<['content']>[]} */
+    /** @type {Revision<['content']>[] | undefined} */
     let revisions;
     /** @type {string|undefined} */
     let compareBody;
@@ -917,7 +911,7 @@ class UpdateChecker extends EventEmitter {
    * @param {MessageEvent} event
    * @private
    */
-  onMessageFromWorker = async (event) => {
+  onMessageFromWorker = (event) => {
     const message = /** @type {MessageFromWorker} */ (event.data);
 
     if (message.task === 'wakeUp') {
@@ -935,10 +929,9 @@ class UpdateChecker extends EventEmitter {
     visits
       .on('process', (/** @type {string[]} */ currentPageData) => {
         const bootProcess = bootManager.getBootProcess();
+        const previousVisitTime = currentPageData.at(-2);
         this.setup(
-          currentPageData.length >= 2 ?
-            Number(currentPageData[currentPageData.length - 2]) :
-            undefined,
+          previousVisitTime ? Number(previousVisitTime) : undefined,
           (
             (
               bootProcess.passedData.submittedCommentForm &&
@@ -957,7 +950,7 @@ class UpdateChecker extends EventEmitter {
    * @param {number} [previousVisitTime]
    * @param {string} [submittedCommentId]
    */
-  async setup(previousVisitTime, submittedCommentId) {
+  setup(previousVisitTime, submittedCommentId) {
     this.unscheduleCheck();
     this.previousVisitRevisionId = undefined;
     if (!this.initted) {

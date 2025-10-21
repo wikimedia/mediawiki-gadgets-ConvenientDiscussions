@@ -83,7 +83,7 @@ export default class PageSource {
    *
    * @param {object} options
    * @param {string} [options.commentCode] Comment code, including trailing newlines and the
-   *   signature. It is required (set to optional for polymorphism with CommentSource and
+   *   signature. NOTE: It is required (set to optional for polymorphism with CommentSource and
    *   SectionSource).
    * @param {import('./CommentForm').default} options.commentForm Comment form that has the code.
    * @returns {{
@@ -107,17 +107,17 @@ export default class PageSource {
               : ''
             : this.code.slice(0, firstSectionStartIndex)
         ) +
-        commentCode +
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+        /** @type {string} */ (commentCode) +
         '\n' +
         this.code.slice(firstSectionStartIndex);
+    } else if (commentForm.isNewSectionApi()) {
+      contextCode = /** @type {string} */ (commentCode);
     } else {
-      if (commentForm.isNewSectionApi()) {
-        contextCode = /** @type {string} */ (commentCode);
-      } else {
-        this.assertCode('Can\'t modify the context: context (page) code is not set.');
+      this.assertCode('Can\'t modify the context: context (page) code is not set.');
 
-        contextCode = (this.code + '\n').trimStart() + commentCode;
-      }
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+      contextCode = (this.code + '\n').trimStart() + /** @type {string} */ (commentCode);
     }
 
     return { contextCode, commentCode };
@@ -138,19 +138,19 @@ export default class PageSource {
   guessNewTopicPlacement() {
     this.assertCode('Can\'t analyze the placement of new topics: page code is not set.');
 
-    let areNewTopicsOnTop = cd.config.areNewTopicsOnTop?.(this.page.name, this.code) || null;
+    let areNewTopicsOnTop = cd.config.areNewTopicsOnTop?.(this.page.name, this.code);
 
     const adjustedCode = maskDistractingCode(this.code);
     const sectionHeadingRegexp = PageSource.getTopicHeadingRegexp();
 
-    if (areNewTopicsOnTop === null) {
+    if (areNewTopicsOnTop === undefined || areNewTopicsOnTop === null) {
       // Detect the topic order: newest first or newest last.
       let previousDate;
       let difference = 0;
       let sectionHeadingMatch;
       while ((sectionHeadingMatch = sectionHeadingRegexp.exec(adjustedCode))) {
         const timestamp = findFirstTimestamp(this.code.slice(sectionHeadingMatch.index));
-        const { date } = timestamp && parseTimestamp(timestamp) || {};
+        const { date } = (timestamp && parseTimestamp(timestamp)) || {};
         if (date) {
           if (previousDate) {
             difference += date > previousDate ? -1 : 1;
@@ -158,9 +158,9 @@ export default class PageSource {
           previousDate = date;
         }
       }
-      areNewTopicsOnTop = difference === 0 && mw.config.get('wgServerName') === 'ru.wikipedia.org' ?
-        this.page.namespaceId % 2 === 0 :
-        difference > 0;
+      areNewTopicsOnTop = difference === 0 && mw.config.get('wgServerName') === 'ru.wikipedia.org'
+        ? this.page.namespaceId % 2 === 0
+        : difference > 0;
     }
 
     return {
@@ -177,11 +177,11 @@ export default class PageSource {
    * Determine an offset in the code to insert a new/moved section into. If `referenceDate` is
    * specified, will take chronological order into account.
    *
-   * @param {Date} [referenceDate=new Date()]
+   * @param {Date} [referenceDate]
    * @returns {number}
    * @throws {CdError}
    */
-  findProperPlaceForSection(referenceDate = new Date()) {
+  findProperPlaceForSection(referenceDate) {
     this.assertCode('Can\'t find the proper place for a section: page code is not set.');
 
     const { areNewTopicsOnTop, firstSectionStartIndex } = this.guessNewTopicPlacement();
@@ -198,7 +198,7 @@ export default class PageSource {
     const sections = [];
     while ((sectionHeadingMatch = sectionHeadingRegexp.exec(adjustedCode))) {
       const timestamp = findFirstTimestamp(this.code.slice(sectionHeadingMatch.index));
-      const { date } = timestamp && parseTimestamp(timestamp) || {};
+      const { date } = (timestamp && parseTimestamp(timestamp)) || {};
       sections.push({
         date,
         index: sectionHeadingMatch.index,
@@ -208,9 +208,7 @@ export default class PageSource {
     return (
       // Proper place index
       sections.find(
-        ({ date }) =>
-          (areNewTopicsOnTop && date && date < referenceDate) ||
-          (!areNewTopicsOnTop && date && date > referenceDate)
+        ({ date }) => date && (areNewTopicsOnTop ? date < referenceDate : date > referenceDate)
       )?.index ||
 
       this.code.length

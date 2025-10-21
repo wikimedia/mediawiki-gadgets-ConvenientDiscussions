@@ -15,26 +15,17 @@ import { initDayjs } from './utils-window';
 
 /** @type {string} */
 let colon;
-
 /** @type {string | undefined} */
 let moveFromBeginning;
-
 /** @type {string | undefined} */
 let moveToBeginning;
-
 /** @type {string} */
 let goToCommentToYou;
-
 /** @type {string} */
 let goToCommentWatchedSection;
-
 /** @type {RegExp} */
 let currentUserRegexp;
-
-/** @type {OO.ui.ButtonWidget} */
-let switchRelevantButton;
-
-/** @type {import('./LegacySubscriptions').default} */
+/** @type {import('./LegacySubscriptions').default | undefined} */
 let subscriptions;
 
 /**
@@ -113,9 +104,10 @@ async function init() {
 /**
  * Show/hide relevant edits.
  *
+ * @param {OO.ui.ButtonWidget} switchRelevantButton
  * @private
  */
-function switchRelevant() {
+function switchRelevant(switchRelevantButton) {
   // This is for many watchlist types at once.
   const $collapsibles = bootManager.$content
     .find('.mw-changeslist .mw-collapsible:not(.mw-changeslist-legend)');
@@ -174,7 +166,7 @@ function addWatchlistMenu() {
 
   // For auto-updating watchlists
   mw.hook('wikipage.content').add(() => {
-    switchRelevantButton?.setFlags({ progressive: false });
+    switchRelevantButton.setFlags({ progressive: false });
   });
 
   const $menu = $('<div>').addClass('cd-watchlistMenu');
@@ -185,7 +177,7 @@ function addWatchlistMenu() {
     .text(cd.s('script-name-short'))
     .appendTo($menu);
 
-  switchRelevantButton = new OO.ui.ButtonWidget({
+  const switchRelevantButton = new OO.ui.ButtonWidget({
     framed: false,
     icon: 'speechBubble',
     label: cd.s('wl-button-switchrelevant-tooltip', mw.user),
@@ -195,7 +187,7 @@ function addWatchlistMenu() {
     disabled: !subscriptions.areLoaded(),
   });
   switchRelevantButton.on('click', () => {
-    switchRelevant();
+    switchRelevant(switchRelevantButton);
   });
   switchRelevantButton.$element.appendTo($menu);
 
@@ -353,7 +345,7 @@ function processWatchlist($content) {
       $('.mw-rcfilters-ui-filterWrapperWidget-showNewChanges a').on('click', async () => {
         // Reload in case the subscription list has changed (which should be a pretty common
         // occasion)
-        await subscriptions.load();
+        await /** @type {NonNullable<typeof subscriptions>} */ (subscriptions).load();
       });
     }
   }
@@ -379,7 +371,7 @@ function processWatchlist($content) {
     const nsNumber = nsMatch && Number(nsMatch[1]);
     if (nsNumber === null) return;
 
-    const linkElement = /** @type {HTMLAnchorElement} */ (
+    const linkElement = /** @type {HTMLAnchorElement | undefined} */ (
       (line.tagName === 'TR' ? /** @type {HTMLElement} */ (line.parentElement) : line).querySelector(
         '.mw-changeslist-title'
       )
@@ -520,6 +512,7 @@ function processContributions($content) {
       date,
       mw.config.get('wgRelevantUserName') || undefined
     );
+    if (!id) return;
 
     let wrapper;
     if (summary && currentUserRegexp.test(` ${summary} `)) {
@@ -604,11 +597,9 @@ function processHistory($content) {
     }
     setWrapperLinkAttr(wrapper, 'href', `${link}#${id}`);
 
-    let destination = line.querySelector('.comment');
-    if (!destination) {
-      const separators = line.querySelectorAll('.mw-changeslist-separator');
-      destination = separators?.[separators.length - 1];
-    }
+    const destination =
+      line.querySelector('.comment') ||
+      [...line.querySelectorAll('.mw-changeslist-separator')].at(-1);
     if (!destination) return;
 
     /** @type {HTMLElement} */ (destination.parentElement).insertBefore(
@@ -630,8 +621,10 @@ function processDiff($diff) {
   // the page that is a diff page (unless only a diff, and no content, is displayed - if
   // mw.user.options.get('diffonly') or the `diffonly` URL parameter is true). We parse that diff on
   // convenientDiscussions.pageReady hook instead.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if ($diff?.parent().is(bootManager.$content) && bootManager.$root) return;
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!cd.g.uiTimestampRegexp) {
     bootManager.initTimestampParsingTools('user');
   }
@@ -808,6 +801,8 @@ export function addCommentLinksToSpecialSearch() {
             .find('a')
             .first()
             .attr('href');
+          if (!originalHref) return;
+
           $(el).append(
             ' ',
             $('<span>')

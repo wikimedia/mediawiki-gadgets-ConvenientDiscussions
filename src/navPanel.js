@@ -104,7 +104,7 @@ class NavPanel {
               event.preventDefault();
               commentFormManager.goToNextCommentForm(true);
             }
-          })
+          });
         updateChecker
           .on('commentsUpdate', ({ all, relevant, bySection }) => {
             this.updateRefreshButton(all.length, bySection, Boolean(relevant.length));
@@ -119,10 +119,8 @@ class NavPanel {
         commentManager
           .on('registerSeen', this.updateFirstUnseenButton);
       }
-    } else {
-      if (this.isMounted()) {
-        this.unmount();
-      }
+    } else if (this.isMounted()) {
+      this.unmount();
     }
   }
 
@@ -201,9 +199,9 @@ class NavPanel {
     }).hide();
     $(this.state.commentFormButton.element).append(
       createSvg(16, 16, 20, 20).html(
-        cd.g.contentDirection === 'ltr' ?
-          `<path d="M18 0H2a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V2a2 2 0 00-2-2zM5 9.06a1.39 1.39 0 111.37-1.39A1.39 1.39 0 015 9.06zm5.16 0a1.39 1.39 0 111.39-1.39 1.39 1.39 0 01-1.42 1.39zm5.16 0a1.39 1.39 0 111.39-1.39 1.39 1.39 0 01-1.42 1.39z" />` :
-          `<path d="M0 2v12c0 1.1.9 2 2 2h14l4 4V2c0-1.1-.9-2-2-2H2C.9 0 0 .9 0 2zm13.6 5.7c0-.8.6-1.4 1.4-1.4.8 0 1.4.6 1.4 1.4s-.6 1.4-1.4 1.4c-.8-.1-1.4-.7-1.4-1.4zM9.9 9.1s-.1 0 0 0c-.8 0-1.4-.6-1.4-1.4 0-.8.6-1.4 1.4-1.4.8 0 1.4.6 1.4 1.4s-.7 1.4-1.4 1.4zm-5.2 0c-.8 0-1.4-.6-1.4-1.4 0-.8.6-1.4 1.4-1.4.8 0 1.4.6 1.4 1.4 0 .7-.7 1.4-1.4 1.4z" />`
+        cd.g.contentDirection === 'ltr'
+          ? `<path d="M18 0H2a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V2a2 2 0 00-2-2zM5 9.06a1.39 1.39 0 111.37-1.39A1.39 1.39 0 015 9.06zm5.16 0a1.39 1.39 0 111.39-1.39 1.39 1.39 0 01-1.42 1.39zm5.16 0a1.39 1.39 0 111.39-1.39 1.39 1.39 0 01-1.42 1.39z" />`
+          : `<path d="M0 2v12c0 1.1.9 2 2 2h14l4 4V2c0-1.1-.9-2-2-2H2C.9 0 0 .9 0 2zm13.6 5.7c0-.8.6-1.4 1.4-1.4.8 0 1.4.6 1.4 1.4s-.6 1.4-1.4 1.4c-.8-.1-1.4-.7-1.4-1.4zM9.9 9.1s-.1 0 0 0c-.8 0-1.4-.6-1.4-1.4 0-.8.6-1.4 1.4-1.4.8 0 1.4.6 1.4 1.4s-.7 1.4-1.4 1.4zm-5.2 0c-.8 0-1.4-.6-1.4-1.4 0-.8.6-1.4 1.4-1.4.8 0 1.4.6 1.4 1.4 0 .7-.7 1.4-1.4 1.4z" />`
       )
     );
 
@@ -275,7 +273,7 @@ class NavPanel {
   /**
    * Perform routines at the refresh button click.
    *
-   * @param {boolean} [markAsRead=false] Whether to mark all comments as read.
+   * @param {boolean} [markAsRead] Whether to mark all comments as read.
    * @private
    */
   refreshClick(markAsRead = false) {
@@ -290,7 +288,7 @@ class NavPanel {
    *
    * @param {number} commentCount
    * @param {import('./updateChecker').AddedComments['bySection']} [commentsBySection]
-   * @param {boolean} [areThereRelevant = false]
+   * @param {boolean} [areThereRelevant]
    * @private
    */
   updateRefreshButton(commentCount, commentsBySection, areThereRelevant = false) {
@@ -299,15 +297,15 @@ class NavPanel {
     $(this.state.refreshButton.element)
       .empty()
       .append(
-        commentCount ?
-          $('<span>')
+        commentCount
+          ? $('<span>')
             // Can't set the attribute to the button as its tooltip may have another direction.
-            .attr('dir', 'ltr')
+              .attr('dir', 'ltr')
 
-            .text(`+${commentCount}`) :
-          createSvg(20, 20).html(
-            `<path d="M15.65 4.35A8 8 0 1017.4 13h-2.22a6 6 0 11-1-7.22L11 9h7V2z" />`
-          )
+              .text(`+${commentCount}`)
+          : createSvg(20, 20).html(
+              `<path d="M15.65 4.35A8 8 0 1017.4 13h-2.22a6 6 0 11-1-7.22L11 9h7V2z" />`
+            )
       )
       .toggleClass('cd-navPanel-addedCommentCount', Boolean(commentCount))
       .toggleClass('cd-icon', !commentCount)
@@ -320,7 +318,7 @@ class NavPanel {
    * if there are such.
    *
    * @param {number} commentCount
-   * @param {import('./updateChecker').AddedComments['bySection']} [commentsBySection=new Map()]
+   * @param {import('./updateChecker').AddedComments['bySection']} [commentsBySection]
    * @private
    */
   updateRefreshButtonTooltip(commentCount, commentsBySection = new Map()) {
@@ -332,7 +330,7 @@ class NavPanel {
     this.state.cachedCommentCount = commentCount;
     this.state.cachedCommentsBySection = commentsBySection;
 
-    /** @type {string | undefined} */
+    /** @type {string} */
     let tooltipText;
     const areThereNew = commentManager.getAll().some((comment) => comment.isNew);
     if (commentCount) {
@@ -352,7 +350,6 @@ class NavPanel {
         comments.forEach((comment) => {
           tooltipText += `\n`;
 
-
           tooltipText +=
             bullet +
             ' ' +
@@ -360,12 +357,12 @@ class NavPanel {
             // Names
             (
               comment.parent?.author && comment.level > 1
-              ? cd.s(
-                  'navpanel-newcomments-names',
-                  comment.author.getName(),
-                  comment.parent.author.getName()
-                )
-              : comment.author.getName()
+                ? cd.s(
+                    'navpanel-newcomments-names',
+                    comment.author.getName(),
+                    comment.parent.author.getName()
+                  )
+                : comment.author.getName()
             ) +
 
             // RTL mark if needed

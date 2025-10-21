@@ -1278,7 +1278,10 @@ class CommentSkeleton {
           this.parts.some(
             (part) =>
               part.node.parentElement !== firstNodeParent &&
-              this.parser.constructor.contains(part.node.parentElement, firstNodeParent)
+              this.parser.constructor.contains(
+                /** @type {ElementLike} */ (part.node.parentElement),
+                firstNodeParent
+              )
           )
         ) {
           innerWrapper = this.parser.constructor.createElement('div');
@@ -1528,9 +1531,11 @@ class CommentSkeleton {
           .slice(0, indexes[0])
           .reverse()
           .find((ancestors) => ancestors.length)
-          ?.slice(-1)[0];
+          ?.at(-1);
         if (levelElement) {
-          const itemElement = this.parser.constructor.createElement(levelElement.tagName === 'DL' ? 'dd' : 'li');
+          const itemElement = this.parser.constructor.createElement(
+            levelElement.tagName === 'DL' ? 'dd' : 'li'
+          );
           indexes.forEach((index) => {
             this.parser.constructor.appendChild(itemElement, this.elements[index]);
           });
@@ -1748,6 +1753,32 @@ class CommentSkeleton {
   static isAnyId(value) {
     return this.isId(value) || this.isDtId(value);
   }
+
+  /**
+   * @overload
+   * @param {undefined} [date]
+   * @param {string} author
+   * @param {string[]} [existingIds]
+   * @returns {undefined}
+   *
+   * @overload
+   * @param {Date} date
+   * @param {undefined} [author]
+   * @param {string[]} [existingIds]
+   * @returns {undefined}
+   *
+   * @overload
+   * @param {Date} date
+   * @param {string} author
+   * @param {string[]} [existingIds]
+   * @returns {string}
+   *
+   * @overload
+   * @param {Date | undefined} date
+   * @param {string | undefined} author
+   * @param {string[]} [existingIds]
+   * @returns {string | undefined}
+   */
 
   /**
    * Generate a comment ID from a date and author.

@@ -195,7 +195,7 @@ export function defined(el) {
  * to keep only defined and not `null` values in an array.
  *
  * @template T
- * @param {?(T | undefined)} el
+ * @param {T | null | undefined} el
  * @returns {el is T}
  */
 export function definedAndNotNull(el) {
@@ -322,8 +322,8 @@ export function getContentLanguageMessages(messages) {
 /**
  * Turn many regexps into one, putting it in `()` and separating individual expressions by `|`.
  *
- * @param {?(RegExp[]|string[])} arr
- * @returns {RegExp|undefined}
+ * @param {RegExp[] | string[] | null} arr
+ * @returns {RegExp | undefined}
  */
 export function mergeRegexps(arr) {
   const pattern = (arr || [])
@@ -552,7 +552,7 @@ export function removeFromArrayIfPresent(arr, el) {
  * @returns {string | undefined}
  */
 export function getLastArrayElementOrSelf(value) {
-  return Array.isArray(value) ? value[value.length - 1] : value;
+  return Array.isArray(value) ? value.at(-1) : value;
 }
 
 /**

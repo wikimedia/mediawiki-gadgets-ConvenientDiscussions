@@ -108,6 +108,7 @@ class SectionSource {
       this.collectMatchData(sectionHeadingMatch, contextCode, adjustedContextCode);
     } catch (error) {
       console.warn(`Couldn't read the "${this.headline}" section contents.`, error);
+
       return;
     }
   }
@@ -127,7 +128,7 @@ class SectionSource {
       } else {
         this.lastCommentIndentation = null;
 
-        const lastComment = this.section.commentsInFirstChunk.slice(-1)[0];
+        const lastComment = this.section.commentsInFirstChunk.at(-1);
         if (
           lastComment &&
           (commentForm.getContainerListType() === 'ol' || cd.config.indentationCharMode === 'mimic')
@@ -166,7 +167,7 @@ class SectionSource {
    * @param {import('./CommentForm').CommentFormMode} options.action `'replyInSection'` or
    *   `'addSubsection'`.
    * @param {string} [options.commentCode] Comment code, including trailing newlines and the
-   *   signature. It is required (set to optional for polymorphism with CommentSource and
+   *   signature. NOTE: It is required (set to optional for polymorphism with CommentSource and
    *   PageSource).
    * @returns {{
    *   contextCode: string;
@@ -174,9 +175,9 @@ class SectionSource {
    * }}
    */
   modifyContext({ action, commentCode }) {
-    const originalContextCode = this.isInSectionContext ?
-      this.section.presumedCode :
-      this.section.getSourcePage().source.getCode();
+    const originalContextCode = this.isInSectionContext
+      ? this.section.presumedCode
+      : this.section.getSourcePage().source.getCode();
     if (!originalContextCode) {
       throw new CdError({
         type: 'internal',
@@ -185,28 +186,29 @@ class SectionSource {
     }
 
     let contextCode;
-    switch (action) {
+    switch (/** @type {'replyInSection' | 'addSubsection'} */ (action)) {
       case 'replyInSection': {
-        contextCode = (
+        contextCode =
           originalContextCode.slice(0, this.firstChunkContentEndIndex) +
-          commentCode +
-          originalContextCode.slice(this.firstChunkContentEndIndex)
-        );
+          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+          /** @type {string} */ (commentCode) +
+          originalContextCode.slice(this.firstChunkContentEndIndex);
         break;
       }
 
       case 'addSubsection': {
-        contextCode = (
+        contextCode =
           endWithTwoNewlines(originalContextCode.slice(0, this.contentEndIndex)) +
-          commentCode +
-          originalContextCode.slice(this.contentEndIndex).trim()
-        );
+          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+          /** @type {string} */ (commentCode) +
+          originalContextCode.slice(this.contentEndIndex).trim();
         break;
       }
     }
 
     return {
-      contextCode: /** @type {string} */ (contextCode),
+      contextCode,
+      // eslint-disable-next-line object-shorthand
       commentCode: /** @type {string} */ (commentCode),
     };
   }
@@ -282,8 +284,7 @@ class SectionSource {
 
     const startIndex = /** @type {number} */ (sectionHeadingMatch.index);
     const endIndex = startIndex + code.length;
-    const contentStartIndex =
-      /** @type {number} */ (sectionHeadingMatch.index) + sectionHeadingMatch[0].length;
+    const contentStartIndex = startIndex + sectionHeadingMatch[0].length;
     const firstChunkEndIndex = startIndex + firstChunkCode.length;
 
     let firstChunkContentEndIndex = firstChunkEndIndex;
@@ -376,17 +377,17 @@ class SectionSource {
     );
     const sectionOldestComment = this.section.oldestComment;
     // eslint-disable-next-line no-one-time-vars/no-one-time-vars
-    const doesOldestCommentMatch = oldestSig ?
-      Boolean(
-        sectionOldestComment &&
-        (
-          oldestSig.timestamp === sectionOldestComment.timestamp &&
-          oldestSig.author === sectionOldestComment.author
+    const doesOldestCommentMatch = oldestSig
+      ? Boolean(
+          sectionOldestComment &&
+          (
+            oldestSig.timestamp === sectionOldestComment.timestamp &&
+            oldestSig.author === sectionOldestComment.author
+          )
         )
-      ) :
 
       // There's no comments neither in the code nor on the page.
-      !sectionOldestComment;
+      : !sectionOldestComment;
 
     // Multiply by 0.5 to avoid situations like
     // https://commons.wikimedia.org/w/index.php?title=User_talk:Jack_who_built_the_house&oldid=956309089#Unwanted_pings_on_en.wikipedia,

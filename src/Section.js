@@ -291,7 +291,7 @@ class Section extends SectionSkeleton {
     let tag;
     let createList = false;
     const tagName = lastElement.tagName;
-    const lastComment = this.commentsInFirstChunk[this.commentsInFirstChunk.length - 1];
+    const lastComment = this.commentsInFirstChunk.at(-1);
     if (lastElement.classList.contains('cd-commentLevel') || isVotePlaceholder) {
       if (
         tagName === 'UL' ||
@@ -303,7 +303,6 @@ class Section extends SectionSkeleton {
           // item.
           (
             isVotePlaceholder ||
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             lastElement !== lastComment?.elements[lastComment.elements.length - 1]
           )
         )
@@ -471,7 +470,7 @@ class Section extends SectionSkeleton {
    * @returns {Section | undefined}
    */
   getLastDescendant() {
-    return this.getChildren(true).slice(-1)[0];
+    return this.getChildren(true).at(-1);
   }
 
   /**
@@ -697,7 +696,7 @@ class Section extends SectionSkeleton {
    */
   toggleAuthors() {
     if (!this.authorsPopup) {
-      const $button = $(/** @type {Button} */(this.authorCountButton).element);
+      const $button = $(/** @type {Button} */ (this.authorCountButton).element);
       this.authorsPopup = new OO.ui.PopupWidget({
         $content: this.createAuthorsPopupContent(),
         head: false,
@@ -777,7 +776,7 @@ class Section extends SectionSkeleton {
       classes: ['cd-popup-authors-sort'],
     });
     sortSelect.on('choose', (item) => {
-      stack.setItem(getPanelByName(/** @type {PanelName} */(item.getData())));
+      stack.setItem(getPanelByName(/** @type {PanelName} */ (item.getData())));
       settings.saveSettingOnTheFly('authorsSort', item.getData());
     });
 
@@ -1280,7 +1279,7 @@ class Section extends SectionSkeleton {
    */
   scrollToNewComments = (event) => {
     event.preventDefault();
-    Comment.scrollToFirstFlashAll(/** @type {Comment[]} */(this.newComments));
+    Comment.scrollToFirstFlashAll(/** @type {Comment[]} */ (this.newComments));
   };
 
   /**
@@ -1315,7 +1314,7 @@ class Section extends SectionSkeleton {
 
     /** @type {HTMLElement} */ (this.metadataElement).insertBefore(
       newCommentCountWrapper,
-      /** @type {HTMLElement} */(this.commentCountWrapper).nextSibling || null
+      /** @type {HTMLElement} */ (this.commentCountWrapper).nextSibling || null
     );
 
     this.newCommentCountWrapper = newCommentCountWrapper;
@@ -1690,7 +1689,7 @@ class Section extends SectionSkeleton {
       this.headline &&
       oldSectionDummy.headline !== this.headline &&
       /** @type {import('./LegacySubscriptions').default} */ (this.subscriptions).getOriginalState(
-        /** @type {string} */(oldSectionDummy.headline)
+        /** @type {string} */ (oldSectionDummy.headline)
       )
     ) {
       this.subscribe('quiet', oldSectionDummy.headline);
@@ -1736,7 +1735,7 @@ class Section extends SectionSkeleton {
         await cd
           .getApi()
           .post(
-            /** @type {import('types-mediawiki/api_params').UnknownApiParams} */(
+            /** @type {import('types-mediawiki/api_params').UnknownApiParams} */ (
               /** @type {import('types-mediawiki/api_params').ApiQueryRevisionsParams} */ ({
                 action: 'query',
                 titles: this.getSourcePage().name,
@@ -2178,8 +2177,9 @@ class Section extends SectionSkeleton {
       )
       .reverse()
       .reduce(
-        (comment, section) => comment || section.commentsInFirstChunk.slice(-1)[0],
-        /** @type {Comment | undefined} */(undefined)
+        (comment, section) =>
+          comment || section.commentsInFirstChunk[section.commentsInFirstChunk.length - 1],
+        /** @type {Comment | undefined} */ (undefined)
       );
   }
 

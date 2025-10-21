@@ -479,9 +479,9 @@ class CommentLayers {
         // anything here.
         this.comment.elements.length === 1 ||
         this.comment.parser.getNestingLevel(this.comment.elements[0]) <=
-        this.comment.parser.getNestingLevel(this.comment.elements.slice(-1)[0])
+        this.comment.parser.getNestingLevel(this.comment.elements[this.comment.elements.length - 1])
           ? this.comment.elements[0]
-          : this.comment.elements.slice(-1)[0]
+          : this.comment.elements[this.comment.elements.length - 1]
       );
 
       while (treeWalker.parentNode()) {

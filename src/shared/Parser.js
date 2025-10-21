@@ -942,12 +942,12 @@ class Parser {
   /**
    * Checks if an element contains a node.
    *
-   * @param {ElementLike | undefined} el The element to check the contents of
+   * @param {ElementLike} el The element to check the contents of
    * @param {NodeLike} node The node contained or not
    * @returns {boolean}
    */
   static contains(el, node) {
-    return Boolean(el?.contains(/** @type {any} */ (node)));
+    return el.contains(/** @type {any} */ (node));
   }
 
   /**
@@ -955,7 +955,7 @@ class Parser {
    *
    * @param {ElementLike} parent The parent element
    * @param {NodeLike} node The node to insert
-   * @param {NodeLike | undefined} referenceNode The reference node to insert before
+   * @param {NodeLike | null} [referenceNode] The reference node to insert before
    * @returns {NodeLike}
    */
   static insertBefore(parent, node, referenceNode) {

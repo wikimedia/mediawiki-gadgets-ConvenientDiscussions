@@ -1,4 +1,5 @@
 import cd from './cd';
+import CdError from './shared/CdError';
 import { isElement, isText } from './shared/utils-general';
 import { createSvg } from './utils-window';
 
@@ -35,12 +36,12 @@ export default class TocItem {
       a.querySelector(this.toc.isInSidebar() ? '.vector-toc-text' : '.toctext')
     );
     if (!textSpan) {
-      throw [`Couldn't find text for a TOC link`, a];
+      throw new CdError({ message: `Link text not found`, details: a });
     }
 
     const li = /** @type {HTMLElement} */ (a.parentNode);
     if (li.tagName !== 'LI') {
-      throw [`Couldn't find the <li> for a TOC link`, a];
+      throw new CdError({ message: `Parent is not <li>`, details: a });
     }
 
     const numberSpan = a.querySelector(this.toc.isInSidebar() ? '.vector-toc-numb' : '.tocnumber');
@@ -81,17 +82,17 @@ export default class TocItem {
   replaceText($headline) {
     if (!this.canBeModified) return;
 
-    const titleNodes = /** @type {Array<Text|HTMLElement>} */ (this.$text
+    this.$text
       .contents()
-      .filter((_, node) => (
-        isText(node)
-        || (isElement(node) && ![...node.classList].some((name) => name.match(/^(cd-|vector-)/)))
-      ))
-      .get());
-    titleNodes[titleNodes.length - 1].after(
-      ...$headline
-        .clone()
-        .find('*')
+      .filter((_, node) =>
+        isText(node) ||
+        (isElement(node) && ![...node.classList].some((name) => name.match(/^(cd-|vector-)/)))
+      )
+      .eq(-1)
+      .after(
+        ...$headline
+          .clone()
+          .find('*')
           .each((_, el) => {
             if (['B', 'EM', 'I', 'S', 'STRIKE', 'STRONG', 'SUB', 'SUP'].includes(el.tagName)) {
               [...el.attributes].forEach((attr) => {
@@ -104,13 +105,12 @@ export default class TocItem {
               el.remove();
             }
           })
-        .end()
-        .contents()
-        .get()
-    );
-    titleNodes.forEach((node) => {
-      node.remove();
-    });
+          .end()
+          .contents()
+          .get()
+      )
+      .end()
+      .remove();
   }
 
   /**

@@ -61,7 +61,7 @@ export default class Page {
    * Page where {@link Page#name} redirects. Filled upon running {@link Page#loadCode}.
    *
    * @name redirectTarget
-   * @type {?(string|undefined)}
+   * @type {string|null|undefined}
    */
   redirectTarget;
 

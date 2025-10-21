@@ -762,7 +762,7 @@ const defaultConfig = {
    * first group should contain indentation characters, the second - characters after them (usually
    * spacing).
    *
-   * @type {?string}
+   * @type {string}
    * @default '([:*#]+)( *)'
    */
   indentationCharsPattern: '([:*#]+)( *)',
@@ -888,7 +888,7 @@ const defaultConfig = {
 
   /**
    * Function that returns `true` if new topics are placed on top of the page specified in the
-   * parameter.
+   * parameter, `false` if not, `null` if couldn't tell.
    *
    * @type {((title: string, code: string) => boolean | null) | null}
    * @default null

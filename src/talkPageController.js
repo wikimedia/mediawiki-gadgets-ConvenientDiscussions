@@ -1291,7 +1291,7 @@ class TalkPageController extends EventEmitter {
             comment.author,
 
             // Where the comment is
-            comment.section.headline
+            comment.section?.headline
               ? wordSeparator + cd.s('notification-part-insection', comment.section.headline)
               : '',
 
@@ -1301,7 +1301,7 @@ class TalkPageController extends EventEmitter {
             'notification-insection-desktop',
             comment.author.getName(),
             comment.author,
-            comment.section.headline,
+            /** @type {import('./updateChecker').SectionWorkerMatched} */ (comment.section).headline,
             currentPageName
           );
     } else {
